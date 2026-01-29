@@ -46,7 +46,7 @@ export default function Navbar() {
           <img
             src="/FabSystem-Logo.svg"
             alt="FabSystem"
-            className={`h-9 w-auto max-w-[160px] ${isHome ? "invert" : ""}`}
+            className={`h-15 w-auto max-w-[160px] ${isHome ? "invert" : ""}`}
           />
         </Link>
 
@@ -60,30 +60,49 @@ export default function Navbar() {
         </nav>
 
         {/* CTA desktop */}
-        <div className="hidden sm:flex items-center gap-3">
-  <a
-    href="https://cal.com/fabien-l-typ79a"
-    target="_blank"
-    rel="noreferrer"
-    className={
-      isHome
-        ? "rounded-md border border-white/70 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
-        : "rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
-    }
-  >
-    Visio
-  </a>
+    <div className="hidden sm:flex items-start gap-3">
+  {/* Visio + micro-texte */}
+  <div className="flex flex-col items-center">
+    <a
+      href="https://cal.com/fabien-l-typ79a"
+      target="_blank"
+      rel="noreferrer"
+      className={
+        isHome
+          ? "rounded-md border border-white/70 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
+          : "rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
+      }
+    >
+      Visio
+    </a>
+    <span
+      className={
+        isHome
+          ? "mt-1 text-xs text-white/75"
+          : "mt-1 text-xs text-neutral-500"
+      }
+    >
+      Conseil à distance
+    </span>
+  </div>
 
-  <Link
-    href="/contact"
-    className={
-      isHome
-        ? "rounded-md bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
-        : "rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
-    }
-  >
-    Diagnostic
-  </Link>
+  {/* Diagnostic */}
+  <div className="flex flex-col items-center">
+    <Link
+      href="/contact"
+      className={
+        isHome
+          ? "rounded-md bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
+          : "rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
+      }
+    >
+      Diagnostic
+    </Link>
+    {/* espace fantôme pour alignement */}
+    <span className="mt-1 text-xs opacity-0 select-none">
+      Conseil à distance
+    </span>
+  </div>
 </div>
 
         {/* Burger mobile */}
