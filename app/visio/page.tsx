@@ -6,7 +6,7 @@ export default function VisioPage() {
         className="relative min-h-[60vh] bg-cover bg-center"
         style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
       >
-        <div className="absolute inset-0 bg-black/65" />
+        <div className="absolute inset-0 bg-black/55" />
 
         <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 text-white sm:py-28">
           <p className="text-sm uppercase tracking-wide text-white/80">
@@ -105,7 +105,7 @@ export default function VisioPage() {
           {/* Bouton réservation (lien à remplacer) */}
           <div className="mt-8">
             <a
-              href="https://cal.com/"
+              href="https://cal.com/fabien-l-typ79a"
               target="_blank"
               rel="noreferrer"
               className="inline-block rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800"

@@ -7,7 +7,7 @@ export default function ContactPage() {
         style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
       >
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/65" />
+        <div className="absolute inset-0 bg-black/55" />
 
         {/* Contenu hero */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 text-white sm:py-28">
@@ -53,7 +53,16 @@ export default function ContactPage() {
                   className="font-medium text-neutral-900 underline"
                 >
                   06 98 24 77 22
-                </a>
+                </a><div className="mt-6">
+  <a
+    href="https://cal.com/fabien-l-typ79a"
+    target="_blank"
+    rel="noreferrer"
+    className="inline-block rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
+  >
+    Réserver une visio
+  </a>
+</div>
               </li>
             </ul>
 
