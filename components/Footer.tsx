@@ -27,7 +27,7 @@ export default function Footer() {
               <li><Link href="/">Accueil</Link></li>
               <li><Link href="/prestations">Prestations</Link></li>
               <li><Link href="/realisations">Réalisations</Link></li>
-              <li><Link href="/visio">Visio (50€)</Link></li>
+              <li><Link href="/visio">Visio</Link></li>
               <li><Link href="/contact">Contact</Link></li>
             </ul>
           </div>
