@@ -1,38 +1,54 @@
-import Link from "next/link";
-
 export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
-      <p className="text-sm font-medium text-neutral-600">
-        Électricité embarquée
-      </p>
+    <main>
+      {/* HERO */}
+      <section
+        className="relative min-h-[85vh] bg-cover bg-center"
+        style={{
+          backgroundImage: "url('/hero-fabsystem.png')",
+        }}
+      >
+        {/* OVERLAY */}
+        <div className="absolute inset-0 bg-black/65" />
 
-      <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-        FabSystem
-      </h1>
+        {/* CONTENU */}
+        <div className="relative z-10 mx-auto max-w-6xl px-6 py-32 text-white">
+          <p className="text-sm uppercase tracking-wide text-white/80">
+            Électricité embarquée
+          </p>
 
-      <p className="mt-4 max-w-2xl text-lg text-neutral-700">
-        Sécurisation et mise aux normes électriques pour{" "}
-        <strong>bateaux</strong>, <strong>vans</strong> et{" "}
-        <strong>camping-cars</strong>. Diagnostic clair, installation propre,
-        solutions fiables.
-      </p>
+          <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
+            FabSystem
+          </h1>
 
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        <Link
-          href="/contact"
-          className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
-        >
-          Demander un diagnostic
-        </Link>
+          <p className="mt-6 max-w-2xl text-white/90">
+            Sécurisation et mise aux normes électriques pour bateaux,
+            vans et camping-cars. Diagnostic clair, installation propre,
+            solutions fiables.
+          </p>
 
-        <Link
-          href="/prestations"
-          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
-        >
-          Voir les prestations
-        </Link>
-      </div>
+          <div className="mt-10 flex flex-wrap gap-4">
+            <a
+              href="/contact"
+              className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-black"
+            >
+              Demander un diagnostic
+            </a>
+
+            <a
+              href="/prestations"
+              className="rounded-md border border-white/70 px-6 py-3 text-sm font-semibold text-white"
+            >
+              Voir les prestations
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* CONTENU NORMAL EN DESSOUS */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        {/* ton contenu actuel ici */}
+      </section>
     </main>
   );
 }

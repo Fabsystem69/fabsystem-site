@@ -1,51 +1,65 @@
 export default function RealisationsPage() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Réalisations
-      </h1>
+    <main>
+      {/* HERO */}
+      <section
+        className="relative min-h-[55vh] bg-cover bg-center"
+        style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/65" />
 
-      <p className="mt-4 max-w-3xl text-neutral-700">
-        Quelques exemples d’interventions réalisées ou typiques.
-        L’objectif est toujours le même : sécurité, fiabilité et lisibilité
-        de l’installation électrique.
-      </p>
-
-      <div className="mt-10 grid gap-6 sm:grid-cols-3">
-        <div className="rounded-xl border border-neutral-200 p-6">
-          <h2 className="font-semibold">
-            Reprise tableau électrique 12 V
-          </h2>
-          <p className="mt-2 text-sm text-neutral-700">
-            Nettoyage du câblage, ajout de protections, repérage clair
-            et suppression des points de chauffe.
+        {/* Contenu */}
+        <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 text-white sm:py-28">
+          <h1 className="text-4xl font-semibold sm:text-5xl">
+            Réalisations
+          </h1>
+          <p className="mt-4 max-w-2xl text-white/90">
+            Exemple de reprise complète d’une installation électrique embarquée :
+            sécurisation, organisation et lisibilité.
           </p>
         </div>
+      </section>
 
+      {/* CONTENU */}
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        {/* AVANT */}
         <div className="rounded-xl border border-neutral-200 p-6">
-          <h2 className="font-semibold">
-            Gestion d’énergie & batteries
-          </h2>
-          <p className="mt-2 text-sm text-neutral-700">
-            Mise en place d’une architecture cohérente batteries,
-            charge et distribution pour une autonomie fiable.
+          <h2 className="text-xl font-semibold">Avant</h2>
+          <p className="mt-2 max-w-3xl text-sm text-neutral-600">
+            Installation difficile à diagnostiquer, câblage désorganisé et protections
+            peu lisibles.
           </p>
+
+          <img
+            src="/realisations/realisation-avant.jpg"
+            alt="Installation électrique avant intervention"
+            className="mt-6 w-full rounded-lg border"
+          />
         </div>
 
-        <div className="rounded-xl border border-neutral-200 p-6">
-          <h2 className="font-semibold">
-            Préparation avant départ / vente
-          </h2>
-          <p className="mt-2 text-sm text-neutral-700">
-            Sécurisation de l’installation, corrections prioritaires
-            et conseils d’utilisation pour navigation ou revente.
+        {/* APRES */}
+        <div className="mt-12 rounded-xl border border-neutral-200 p-6">
+          <h2 className="text-xl font-semibold">Après</h2>
+          <p className="mt-2 max-w-3xl text-sm text-neutral-600">
+            Installation remise au propre, protections visibles, distribution claire
+            et architecture sécurisée.
           </p>
-        </div>
-      </div>
 
-      <p className="mt-10 text-sm text-neutral-500">
-        Des photos avant / après viendront compléter cette page.
-      </p>
+          <div className="mt-6 grid gap-6 sm:grid-cols-2">
+            <img
+              src="/realisations/realisation-apres-1.jpg"
+              alt="Installation électrique après intervention"
+              className="w-full rounded-lg border"
+            />
+            <img
+              src="/realisations/realisation-apres-2.jpg"
+              alt="Installation électrique après intervention"
+              className="w-full rounded-lg border"
+            />
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
