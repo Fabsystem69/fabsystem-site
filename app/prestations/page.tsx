@@ -13,10 +13,9 @@ export default function PrestationsPage() {
         ctas={[
           { href: "/contact", label: "Demander un diagnostic", variant: "primary" },
           {
-            href: "https://cal.com/fabien-l-typ79a",
-            label: "Réserver une visio",
+            href: "/visio",
+            label: "Découvrir la visio conseil",
             variant: "secondary",
-            external: true,
           },
         ]}
       />
@@ -26,38 +25,49 @@ export default function PrestationsPage() {
           <div className="rounded-xl border border-neutral-200 p-6">
             <h2 className="text-lg font-semibold">Diagnostic & sécurisation</h2>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Contrôle des protections, sections, masses, risques d’échauffement, points faibles.
+              Contrôle des protections, sections, masses, risques d’échauffement,
+              points faibles et non-conformités.
             </p>
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-6">
             <h2 className="text-lg font-semibold">Distribution & protections</h2>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Tableaux, fusibles, coupe-circuits, câblage propre, repérage.
+              Tableaux, fusibles, coupe-circuits, câblage propre et repérage clair
+              des circuits.
             </p>
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-6">
             <h2 className="text-lg font-semibold">Énergie & autonomie</h2>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Batterie(s), charge (alternateur, solaire), convertisseur, monitoring.
+              Batteries, charge (alternateur, solaire, secteur), convertisseur,
+              monitoring et optimisation.
             </p>
           </div>
 
           <div className="rounded-xl border border-neutral-200 p-6">
             <h2 className="text-lg font-semibold">Conseil & visio</h2>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Analyse de ton schéma, recommandations, liste d’achats, étapes de montage.
+              Analyse de schéma, recommandations techniques, liste de matériel
+              et plan d’action clair.
             </p>
           </div>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/contact"
             className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
           >
             Parler de ton projet
+          </Link>
+
+          <Link
+            href="/visio"
+            className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
+          >
+            Découvrir la visio conseil
           </Link>
         </div>
       </section>

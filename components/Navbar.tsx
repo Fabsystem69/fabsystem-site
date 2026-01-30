@@ -15,7 +15,6 @@ const nav = [
 export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
-
   const [open, setOpen] = useState(false);
 
   // Ferme le menu quand on change de page
@@ -64,12 +63,10 @@ export default function Navbar() {
 
           {/* CTA desktop */}
           <div className="hidden sm:flex items-start gap-3">
-            {/* Visio + micro-texte */}
+            {/* Visio */}
             <div className="flex flex-col items-center">
-              <a
-                href="https://cal.com/fabien-l-typ79a"
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href="/visio"
                 className={
                   isHome
                     ? "rounded-md border border-white/70 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
@@ -77,7 +74,7 @@ export default function Navbar() {
                 }
               >
                 Visio
-              </a>
+              </Link>
               <span
                 className={
                   isHome
@@ -101,7 +98,6 @@ export default function Navbar() {
               >
                 Diagnostic
               </Link>
-              {/* espace fantôme pour alignement */}
               <span className="mt-1 text-xs opacity-0 select-none">
                 Conseil à distance
               </span>
@@ -117,7 +113,7 @@ export default function Navbar() {
             }`}
             onClick={() => setOpen(true)}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path
                 d="M4 7h16M4 12h16M4 17h16"
                 stroke="currentColor"
@@ -129,7 +125,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* ✅ Drawer mobile déplacé hors du header (fix iOS/backdrop-blur) */}
+      {/* Drawer mobile */}
       {open && (
         <div className="fixed inset-0 z-[999] sm:hidden">
           {/* overlay */}
@@ -142,14 +138,18 @@ export default function Navbar() {
           {/* panel */}
           <div className="fixed right-0 top-0 h-full w-[85%] max-w-sm bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between">
-              <img src="/FabSystem-Logo.svg" alt="FabSystem" className="h-9 w-auto max-w-[160px]" />
+              <img
+                src="/FabSystem-Logo.svg"
+                alt="FabSystem"
+                className="h-9 w-auto max-w-[160px]"
+              />
               <button
                 type="button"
                 aria-label="Fermer le menu"
                 className="rounded-md p-2 text-neutral-900"
                 onClick={() => setOpen(false)}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M6 6l12 12M18 6L6 18"
                     stroke="currentColor"
@@ -174,15 +174,13 @@ export default function Navbar() {
             </nav>
 
             <div className="mt-8 space-y-3">
-              <a
-                href="https://cal.com/fabien-l-typ79a"
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href="/visio"
                 className="inline-block w-full rounded-md border border-neutral-300 px-4 py-3 text-center text-sm font-semibold text-neutral-900"
                 onClick={() => setOpen(false)}
               >
                 Visio
-              </a>
+              </Link>
 
               <Link
                 href="/contact"

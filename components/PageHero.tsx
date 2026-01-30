@@ -49,10 +49,8 @@ export default function PageHero({
             {ctas.map((cta) => {
               const base =
                 "inline-flex w-full items-center justify-center rounded-md px-5 py-3 text-sm font-semibold sm:w-auto";
-              const primary =
-                "bg-white text-black hover:bg-white/90";
-              const secondary =
-                "border border-white/70 text-white hover:bg-white/10";
+              const primary = "bg-white text-black hover:bg-white/90";
+              const secondary = "border border-white/70 text-white hover:bg-white/10";
 
               const className =
                 base + " " + (cta.variant === "secondary" ? secondary : primary);
@@ -63,7 +61,7 @@ export default function PageHero({
                     key={cta.href}
                     href={cta.href}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className={className}
                   >
                     {cta.label}

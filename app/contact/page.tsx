@@ -60,7 +60,7 @@ export default function ContactPage() {
                 href="/visio"
                 className="inline-block rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
               >
-                Découvrir la visio
+                Découvrir la visio conseil
               </Link>
             </div>
 

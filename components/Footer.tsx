@@ -16,6 +16,22 @@ export default function Footer() {
               Électricité et systèmes embarqués pour bateaux,
               vans et camping-cars.
             </p>
+
+            {/* CTA footer */}
+            <div className="mt-5 flex gap-3">
+              <Link
+                href="/visio"
+                className="rounded-md border border-neutral-300 px-3 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-100"
+              >
+                Découvrir la visio
+              </Link>
+              <Link
+                href="/contact"
+                className="rounded-md bg-neutral-900 px-3 py-2 text-xs font-semibold text-white hover:bg-neutral-800"
+              >
+                Diagnostic
+              </Link>
+            </div>
           </div>
 
           {/* Bloc 2 */}

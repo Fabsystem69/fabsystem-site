@@ -29,14 +29,13 @@ export default function RealisationsPage() {
             >
               Demander un diagnostic
             </Link>
-            <a
-              href="https://cal.com/fabien-l-typ79a"
-              target="_blank"
-              rel="noreferrer"
+
+            <Link
+              href="/visio"
               className="inline-flex w-full items-center justify-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
             >
-              Réserver une visio
-            </a>
+              Découvrir la visio conseil
+            </Link>
           </div>
         </div>
       </section>
@@ -62,7 +61,7 @@ export default function RealisationsPage() {
         </div>
 
         {/* APRES */}
-        <div className="mt-10 sm:mt-12 rounded-xl border border-neutral-200 p-6">
+        <div className="mt-10 rounded-xl border border-neutral-200 p-6 sm:mt-12">
           <h2 className="text-xl font-semibold">Après</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-neutral-700">
             Installation remise au propre, protections visibles, distribution claire
@@ -106,14 +105,13 @@ export default function RealisationsPage() {
               >
                 Contacter FabSystem
               </Link>
-              <a
-                href="https://cal.com/fabien-l-typ79a"
-                target="_blank"
-                rel="noreferrer"
+
+              <Link
+                href="/visio"
                 className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
               >
-                Visio (conseil à distance)
-              </a>
+                Découvrir la visio conseil
+              </Link>
             </div>
           </div>
         </div>
