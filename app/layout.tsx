@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   title: "FabSystem – Électricité embarquée",
   description:
     "Conseil et accompagnement en électricité embarquée pour bateaux, vans et camping-cars.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
