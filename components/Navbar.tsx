@@ -135,7 +135,7 @@ export default function Navbar() {
 
       {/* Drawer mobile */}
       {open && (
-        <div className="fixed inset-0 z-[999] sm:hidden">
+        <div className="fixed inset-0 z-[999] sm:hidden bg-white">
           {/* overlay (FIXED + z-index clair) */}
           <button
             aria-label="Fermer le menu"
@@ -144,7 +144,7 @@ export default function Navbar() {
           />
 
           {/* panel (FIXED pour éviter les soucis de stacking/scroll) */}
-          <div className="fixed right-0 top-0 h-full w-[85%] max-w-sm bg-white p-6 shadow-xl">
+          <div className="fixed inset-0 bg-white p-6">
             <div className="flex items-center justify-between">
               <img
                 src="/FabSystem-Logo.svg"
