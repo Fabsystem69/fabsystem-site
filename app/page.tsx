@@ -1,5 +1,12 @@
-import Link from "next/link";
 import PageHero from "@/components/PageHero";
+import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Électricité embarquée bateau, van et camping-car | FabSystem",
+  description:
+    "Diagnostic, conseil et installation en électricité embarquée pour bateaux, vans et camping-cars. Sécurité, clarté et solutions adaptées à votre usage.",
+};
 
 export default function HomePage() {
   return (
@@ -12,11 +19,7 @@ export default function HomePage() {
         overlay="bg-black/50"
         ctas={[
           { href: "/contact", label: "Demander un diagnostic", variant: "primary" },
-          {
-            href: "/visio",
-            label: "Découvrir la visio",
-            variant: "secondary",
-          },
+          { href: "/visio", label: "Découvrir la visio conseil", variant: "secondary" },
         ]}
       />
 
@@ -41,25 +44,21 @@ export default function HomePage() {
               alt="Victron Energy"
               className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
             />
-
             <img
               src="/partners/sok-logo.png"
               alt="SOK Battery"
               className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
             />
-
             <img
               src="/partners/elgena-logo.png"
               alt="Elgena"
               className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
             />
-
             <img
               src="/partners/pentair-logo.svg"
               alt="Pentair / Shurflo"
               className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
             />
-
             <img
               src="/partners/pundmann-logo.svg"
               alt="Pundmann"

@@ -1,5 +1,12 @@
 import PageHero from "@/components/PageHero";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Prestations en électricité embarquée | Bateau, van, camping-car",
+  description:
+    "Diagnostic, sécurisation et installation électrique embarquée pour bateaux, vans et camping-cars. Solutions fiables, claires et adaptées à chaque projet.",
+};
 
 export default function PrestationsPage() {
   return (
@@ -12,11 +19,7 @@ export default function PrestationsPage() {
         overlay="bg-black/55"
         ctas={[
           { href: "/contact", label: "Demander un diagnostic", variant: "primary" },
-          {
-            href: "/visio",
-            label: "Découvrir la visio conseil",
-            variant: "secondary",
-          },
+          { href: "/visio", label: "Découvrir la visio conseil", variant: "secondary" },
         ]}
       />
 

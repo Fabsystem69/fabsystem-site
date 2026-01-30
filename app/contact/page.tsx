@@ -1,5 +1,12 @@
 import Link from "next/link";
 import ContactForm from "../../components/ContactForm";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contact électricien embarqué bateau & van | FabSystem",
+  description:
+    "Contactez FabSystem pour un diagnostic ou un conseil en électricité embarquée pour bateau, van ou camping-car. Réponse claire et rapide.",
+};
 
 export default function ContactPage() {
   return (
@@ -72,8 +79,6 @@ export default function ContactPage() {
           {/* FORMULAIRE ACTIF */}
           <div className="rounded-xl border border-neutral-200 p-6">
             <h3 className="text-lg font-semibold">Décrire votre besoin</h3>
-
-            {/* Formulaire actif */}
             <ContactForm />
           </div>
         </div>

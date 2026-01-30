@@ -9,12 +9,14 @@ const nav = [
   { href: "/prestations", label: "Prestations" },
   { href: "/realisations", label: "Réalisations" },
   { href: "/visio", label: "Visio" },
+  { href: "/a-propos", label: "À propos" }, // ✅ AJOUT
   { href: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+
   const [open, setOpen] = useState(false);
 
   // Ferme le menu quand on change de page
@@ -98,9 +100,7 @@ export default function Navbar() {
               >
                 Diagnostic
               </Link>
-              <span className="mt-1 text-xs opacity-0 select-none">
-                Conseil à distance
-              </span>
+              <span className="mt-1 text-xs opacity-0 select-none">.</span>
             </div>
           </div>
 
@@ -128,14 +128,12 @@ export default function Navbar() {
       {/* Drawer mobile */}
       {open && (
         <div className="fixed inset-0 z-[999] sm:hidden">
-          {/* overlay */}
           <button
             aria-label="Fermer le menu"
             className="fixed inset-0 bg-black/60"
             onClick={() => setOpen(false)}
           />
 
-          {/* panel */}
           <div className="fixed right-0 top-0 h-full w-[85%] max-w-sm bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <img

@@ -1,4 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Réalisations en électricité embarquée | Avant / Après – FabSystem",
+  description:
+    "Exemples de reprises et sécurisation d’installations électriques embarquées sur bateaux et vans. Avant / après, clarté et sécurité.",
+};
 
 export default function RealisationsPage() {
   return (
