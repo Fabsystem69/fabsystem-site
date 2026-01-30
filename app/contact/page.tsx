@@ -1,3 +1,5 @@
+import ContactForm from "../../components/ContactForm";
+
 export default function ContactPage() {
   return (
     <main>
@@ -11,12 +13,9 @@ export default function ContactPage() {
 
         {/* Contenu hero */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 text-white sm:py-28">
-          <h1 className="text-4xl font-semibold sm:text-5xl">
-            Contact
-          </h1>
+          <h1 className="text-4xl font-semibold sm:text-5xl">Contact</h1>
           <p className="mt-4 max-w-2xl text-white/90">
-            Un doute sur votre installation électrique ?
-            Parlons-en simplement.
+            Un doute sur votre installation électrique ? Parlons-en simplement.
           </p>
         </div>
       </section>
@@ -26,13 +25,10 @@ export default function ContactPage() {
         <div className="grid gap-12 sm:grid-cols-2">
           {/* INFOS */}
           <div>
-            <h2 className="text-2xl font-semibold">
-              FabSystem
-            </h2>
+            <h2 className="text-2xl font-semibold">FabSystem</h2>
 
             <p className="mt-4 text-neutral-700">
-              Électricité et systèmes embarqués pour bateaux,
-              vans et camping-cars.
+              Électricité et systèmes embarqués pour bateaux, vans et camping-cars.
             </p>
 
             <ul className="mt-6 space-y-3 text-neutral-700">
@@ -53,59 +49,33 @@ export default function ContactPage() {
                   className="font-medium text-neutral-900 underline"
                 >
                   06 98 24 77 22
-                </a><div className="mt-6">
-  <a
-    href="https://cal.com/fabien-l-typ79a"
-    target="_blank"
-    rel="noreferrer"
-    className="inline-block rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
-  >
-    Réserver une visio
-  </a>
-</div>
+                </a>
               </li>
             </ul>
 
+            {/* Bouton visio (hors <li>) */}
+            <div className="mt-6">
+              <a
+                href="https://cal.com/fabien-l-typ79a"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
+              >
+                Réserver une visio
+              </a>
+            </div>
+
             <p className="mt-6 text-sm text-neutral-500">
-              Intervention sur rendez-vous. Diagnostic clair et conseils
-              adaptés à votre usage.
+              Intervention sur rendez-vous. Diagnostic clair et conseils adaptés à votre usage.
             </p>
           </div>
 
-          {/* FORMULAIRE (visuel pour l’instant) */}
+          {/* FORMULAIRE ACTIF */}
           <div className="rounded-xl border border-neutral-200 p-6">
-            <h3 className="text-lg font-semibold">
-              Décrire votre besoin
-            </h3>
+            <h3 className="text-lg font-semibold">Décrire votre besoin</h3>
 
-            <form className="mt-6 space-y-4">
-              <input
-                type="text"
-                placeholder="Nom"
-                className="w-full rounded-md border px-4 py-2"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full rounded-md border px-4 py-2"
-              />
-              <textarea
-                placeholder="Votre message"
-                rows={5}
-                className="w-full rounded-md border px-4 py-2"
-              />
-
-              <button
-                type="button"
-                className="rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white"
-              >
-                Envoyer
-              </button>
-            </form>
-
-            <p className="mt-3 text-xs text-neutral-500">
-              Le formulaire sera activé prochainement.
-            </p>
+            {/* Formulaire actif */}
+            <ContactForm />
           </div>
         </div>
       </section>
