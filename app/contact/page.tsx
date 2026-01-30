@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ContactForm from "../../components/ContactForm";
 
 export default function ContactPage() {
@@ -53,16 +54,14 @@ export default function ContactPage() {
               </li>
             </ul>
 
-            {/* Bouton visio (hors <li>) */}
+            {/* Bouton visio */}
             <div className="mt-6">
-              <a
-                href="https://cal.com/fabien-l-typ79a"
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href="/visio"
                 className="inline-block rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
               >
-                Réserver une visio
-              </a>
+                Découvrir la visio
+              </Link>
             </div>
 
             <p className="mt-6 text-sm text-neutral-500">
