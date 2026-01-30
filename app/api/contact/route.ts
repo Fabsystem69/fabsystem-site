@@ -1,145 +1,165 @@
 import nodemailer from "nodemailer";
 
+export const runtime = "nodejs"; // important pour nodemailer sur Vercel
+
 function pick(obj: Record<string, any>, keys: string[]) {
   const out: Record<string, any> = {};
-  for (const k of keys) out[k] = obj?.[k] ?? "";
+  for (const k of keys) {
+    if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") {
+      out[k] = obj[k];
+    }
+  }
   return out;
+}
+
+function safeText(v: any) {
+  return typeof v === "string" ? v : v === undefined || v === null ? "" : String(v);
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const contentType = req.headers.get("content-type") || "";
 
-    // Champs communs
-    const {
-      name,
-      email,
-      phone,
-      message,
-      source,
-      company, // honeypot
-    } = body ?? {};
+    // ✅ Anti-spam honeypot
+    // (on checkera "company" quelle que soit la forme)
+    let payload: Record<string, any> = {};
+    let attachments: { filename: string; content: Buffer; contentType?: string }[] = [];
 
-    // ✅ Honeypot anti-spam : si rempli => bot (on répond ok pour éviter l’acharnement)
-    if (company && String(company).trim().length > 0) {
-      return new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+    // 1) JSON (ancien comportement : ContactForm)
+    if (contentType.includes("application/json")) {
+      payload = await req.json().catch(() => ({}));
+      if (payload.company) {
+        return Response.json({ ok: true }, { status: 200 }); // spam silencieux
+      }
+    } else {
+      // 2) multipart/form-data (nouveau : VisioForm + fichiers)
+      const fd = await req.formData();
+
+      // honeypot
+      const company = safeText(fd.get("company"));
+      if (company) {
+        return Response.json({ ok: true }, { status: 200 }); // spam silencieux
+      }
+
+      // champs texte
+      for (const [k, v] of fd.entries()) {
+        if (v instanceof File) continue;
+        payload[k] = safeText(v);
+      }
+
+      // fichiers: input name="photos" multiple
+      const files = fd.getAll("photos").filter((x) => x instanceof File) as File[];
+
+      // limites simples (évite les gros envois)
+      const MAX_FILES = 3;
+      const MAX_TOTAL_BYTES = 7 * 1024 * 1024; // 7 MB total (safe)
+
+      const sliced = files.slice(0, MAX_FILES);
+      let total = 0;
+
+      for (const f of sliced) {
+        total += f.size;
+      }
+      if (total > MAX_TOTAL_BYTES) {
+        return Response.json(
+          { ok: false, error: "Fichiers trop lourds. Réduis la taille ou envoie un lien (Drive/iCloud)." },
+          { status: 413 }
+        );
+      }
+
+      for (const f of sliced) {
+        const ab = await f.arrayBuffer();
+        attachments.push({
+          filename: f.name || "photo.jpg",
+          content: Buffer.from(ab),
+          contentType: f.type || undefined,
+        });
+      }
     }
 
+    // champs minimaux
+    const name = safeText(payload.name);
+    const email = safeText(payload.email);
+    const message = safeText(payload.message);
+    const source = safeText(payload.source || "contact");
+
     if (!name || !email || !message) {
-      return new Response(
-        JSON.stringify({ ok: false, error: "Champs manquants." }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+      return Response.json(
+        { ok: false, error: "Champs obligatoires manquants." },
+        { status: 400 }
       );
     }
 
+    // ✅ Config SMTP via variables d’environnement (déjà en place chez toi normalement)
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: false,
+      port: Number(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true", // true si 465
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      tls: { rejectUnauthorized: false },
     });
 
-    const to = process.env.MAIL_TO || process.env.SMTP_USER;
+    const to = process.env.CONTACT_TO || "fabien.lages@fabsystem.fr";
+    const from = process.env.CONTACT_FROM || process.env.SMTP_USER || to;
 
-    const isVisio = source === "visio";
-    const subject = isVisio
-      ? "FabSystem — Demande VISIO (site)"
-      : "FabSystem — Nouveau message (Contact)";
-
-    // ✅ Si Visio : on extrait les champs de préparation (même si certains sont vides)
-    const visioFields = pick(body, [
+    const common = pick(payload, [
+      "name",
+      "email",
+      "phone",
+      "bookingDate",
       "supportType",
       "supportModel",
-      "homePortOrCity",
+      "goal",
       "currentProblems",
       "batteryCount",
       "batteryType",
       "batteryCapacity",
       "chargingSources",
+      "shorePower",
       "inverterPresent",
       "solarPresent",
-      "shorePower",
       "equipmentList",
-      "goal",
       "deadline",
       "budgetRange",
       "priorityQ1",
       "priorityQ2",
       "priorityQ3",
       "photosLink",
-      "bookingDate",
+      "source",
     ]);
 
     const lines: string[] = [];
-    lines.push(`Source: ${source || "contact"}`);
+    lines.push(`Source: ${source}`);
     lines.push("");
-    lines.push(`Nom: ${name}`);
-    lines.push(`Email: ${email}`);
-    if (phone) lines.push(`Téléphone: ${phone}`);
-
-    if (isVisio) {
-      lines.push("");
-      lines.push("=== PRÉPARATION VISIO ===");
-      const labelMap: Record<string, string> = {
-        supportType: "Support",
-        supportModel: "Modèle / Référence",
-        homePortOrCity: "Port / Ville",
-        bookingDate: "Date / heure réservation (si connue)",
-        currentProblems: "Problème / contexte actuel",
-        batteryCount: "Nombre de batteries",
-        batteryType: "Type de batteries",
-        batteryCapacity: "Capacité (Ah / Wh) si connue",
-        chargingSources: "Sources de charge",
-        inverterPresent: "Convertisseur 230V (oui/non)",
-        solarPresent: "Solaire (oui/non)",
-        shorePower: "Branchement quai/secteur (oui/non)",
-        equipmentList: "Équipements à alimenter",
-        goal: "Objectif principal",
-        deadline: "Échéance",
-        budgetRange: "Budget (optionnel)",
-        priorityQ1: "Question prioritaire 1",
-        priorityQ2: "Question prioritaire 2",
-        priorityQ3: "Question prioritaire 3",
-        photosLink: "Lien photos / schéma",
-      };
-
-      for (const [k, v] of Object.entries(visioFields)) {
-        if (String(v).trim().length > 0) {
-          lines.push(`${labelMap[k] || k}: ${v}`);
-        }
-      }
+    for (const [k, v] of Object.entries(common)) {
+      lines.push(`${k}: ${safeText(v)}`);
     }
-
     lines.push("");
-    lines.push("=== MESSAGE ===");
+    lines.push("Message:");
     lines.push(message);
 
-    const text = lines.join("\n");
+    const subject =
+      source === "visio"
+        ? `FabSystem — Demande VISIO (${name})`
+        : `FabSystem — Contact (${name})`;
 
     await transporter.sendMail({
-      from: `FabSystem <${process.env.SMTP_USER}>`,
       to,
+      from,
       replyTo: email,
       subject,
-      text,
+      text: lines.join("\n"),
+      attachments: attachments.length ? attachments : undefined,
     });
 
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    console.error("CONTACT API ERROR:", err);
-    return new Response(
-      JSON.stringify({ ok: false, error: "Erreur d’envoi." }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+    return Response.json({ ok: true }, { status: 200 });
+  } catch (err: any) {
+    console.error("API CONTACT ERROR:", err);
+    return Response.json(
+      { ok: false, error: "Erreur serveur." },
+      { status: 500 }
     );
   }
 }

@@ -16,13 +16,15 @@ export default function VisioForm() {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
-    const payload = Object.fromEntries(formData.entries());
+
+    // Ajout du "source" dans le FormData pour que l’API sache que c’est la visio
+    formData.set("source", "visio");
 
     try {
+      // On envoie en multipart/form-data (FormData) pour supporter les fichiers
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, source: "visio" }),
+        body: formData,
       });
 
       const data = await res.json().catch(() => null);
@@ -42,9 +44,10 @@ export default function VisioForm() {
     }
   }
 
-  // Style commun (lisible, pas coupé)
+  // UX mobile:
+  // - text-base sur inputs => évite le zoom automatique iOS
   const fieldClass =
-    "w-full rounded-md border px-3 py-2 text-sm leading-snug placeholder:text-neutral-400";
+    "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-base leading-snug placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-300";
   const labelClass = "text-xs font-medium text-neutral-700";
   const hintClass = "text-xs text-neutral-500";
   const sectionTitleClass = "text-sm font-semibold text-neutral-900";
@@ -61,7 +64,7 @@ export default function VisioForm() {
   );
 
   return (
-    <form className="mt-6 space-y-6" onSubmit={onSubmit}>
+    <form className="space-y-6" onSubmit={onSubmit}>
       {/* ✅ Honeypot (anti-spam) : doit rester vide */}
       <div className="hidden" aria-hidden="true">
         <label htmlFor="company">Company</label>
@@ -70,13 +73,13 @@ export default function VisioForm() {
 
       {/* INTRO */}
       <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
-        <p className="text-sm text-neutral-700">
-          Remplissez le <strong>minimum</strong> ci-dessous, puis vous pouvez ajouter des détails techniques
-          (optionnels mais recommandés) pour que la visio soit ultra efficace.
+        <p className="text-sm leading-relaxed text-neutral-700">
+          Remplis le <strong>minimum</strong> ci-dessous. Tu peux ensuite ajouter des détails techniques (optionnels)
+          et joindre des photos : ça rend la visio beaucoup plus efficace.
         </p>
       </div>
 
-      {/* ✅ ÉTAPE 1 — ESSENTIEL (court, conversion-friendly) */}
+      {/* ✅ ÉTAPE 1 — ESSENTIEL */}
       <section className="rounded-xl border border-neutral-200 p-6">
         <h4 className={sectionTitleClass}>Essentiel</h4>
 
@@ -98,12 +101,7 @@ export default function VisioForm() {
 
           <div className="space-y-1">
             <label className={labelClass}>Date/heure Cal.com (si déjà réservé)</label>
-            <input
-              name="bookingDate"
-              type="text"
-              placeholder="Ex: mardi 18h"
-              className={fieldClass}
-            />
+            <input name="bookingDate" type="text" placeholder="Ex: mardi 18h" className={fieldClass} />
           </div>
 
           <div className="space-y-1 sm:col-span-2">
@@ -132,7 +130,7 @@ export default function VisioForm() {
             <input
               name="goal"
               type="text"
-              placeholder="Ex: gagner en autonomie / sécuriser / ajouter du solaire / refaire la distribution…"
+              placeholder="Ex: autonomie / sécuriser / ajouter du solaire / refaire la distribution…"
               className={fieldClass}
             />
           </div>
@@ -143,13 +141,35 @@ export default function VisioForm() {
               name="message"
               required
               rows={5}
-              placeholder="Décrivez votre situation + ce que vous attendez de la visio (2-5 lignes suffisent) *"
+              placeholder="Décris ta situation + ce que tu attends de la visio (2-5 lignes suffisent) *"
               className={fieldClass}
             />
             <p className={hintClass}>
-              Conseil: écris comme si tu m’envoyais un message WhatsApp. Simple, direct.
+              Conseil : écris comme si tu m’envoyais un message WhatsApp. Simple, direct.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* ✅ NIVEAU 2 — PHOTOS (upload direct) */}
+      <section className="rounded-xl border border-neutral-200 p-6">
+        <h4 className={sectionTitleClass}>Photos (recommandé)</h4>
+        <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+          Ajoute 1 à 3 photos (tableau, batteries, protections, MPPT/chargeur, câblage). Sur mobile tu peux prendre une photo direct.
+        </p>
+
+        <div className="mt-4 space-y-2">
+          <label className={labelClass}>Fichiers (jpg/png) — 3 max</label>
+          <input
+            name="photos"
+            type="file"
+            accept="image/*"
+            multiple
+            className="block w-full text-sm"
+          />
+          <p className={hintClass}>
+            Astuce : si ça échoue (réseau/poids), mets un lien Drive/iCloud dans “Photos / schéma” (section technique).
+          </p>
         </div>
       </section>
 
@@ -157,36 +177,34 @@ export default function VisioForm() {
       <button
         type="button"
         onClick={() => setShowTech((v) => !v)}
-        className="w-full rounded-xl border border-neutral-200 bg-white px-6 py-4 text-left hover:bg-neutral-50"
+        className="w-full rounded-xl border border-neutral-200 bg-white px-6 py-4 text-left hover:bg-neutral-50 active:scale-[0.99] transition"
       >
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-neutral-900">
               Détails techniques (optionnel mais recommandé)
             </p>
-            <p className="mt-1 text-xs text-neutral-600">
-              Batteries, charge, 230V, équipements, photos… (ça fait gagner beaucoup de temps en visio)
+            <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+              Batteries, charge, 230V, équipements, photos… (ça fait gagner du temps en visio)
             </p>
           </div>
-          <span className="text-sm text-neutral-600">{showTech ? "−" : "+"}</span>
+          <span className="mt-0.5 text-lg leading-none text-neutral-700">{showTech ? "−" : "+"}</span>
         </div>
       </button>
 
-      {/* ✅ ÉTAPE 2 — TECH (complet mais caché) */}
+      {/* ✅ ÉTAPE 2 — TECH */}
       {showTech && (
         <div className="space-y-6">
-          {/* 3) Contexte / problème */}
           <section className="rounded-xl border border-neutral-200 p-6">
             <h4 className={sectionTitleClass}>Contexte / problème</h4>
             <textarea
               name="currentProblems"
               rows={4}
-              placeholder="Décrivez ce qui ne va pas / ce que vous souhaitez améliorer (pannes, autonomie, sécurité, câblage, ajout d’équipements, etc.)"
+              placeholder="Décris ce qui ne va pas / ce que tu veux améliorer…"
               className={`${fieldClass} mt-4`}
             />
           </section>
 
-          {/* 4) Installation actuelle */}
           <section className="rounded-xl border border-neutral-200 p-6">
             <h4 className={sectionTitleClass}>Installation actuelle</h4>
 
@@ -198,106 +216,59 @@ export default function VisioForm() {
 
               <div className="space-y-1">
                 <label className={labelClass}>Type</label>
-                <input
-                  name="batteryType"
-                  type="text"
-                  placeholder="Plomb / AGM / Lithium…"
-                  className={fieldClass}
-                />
+                <input name="batteryType" type="text" placeholder="Plomb / AGM / Lithium…" className={fieldClass} />
               </div>
 
               <div className="space-y-1">
                 <label className={labelClass}>Capacité</label>
-                <input
-                  name="batteryCapacity"
-                  type="text"
-                  placeholder="Ah / Wh (si connu)"
-                  className={fieldClass}
-                />
+                <input name="batteryCapacity" type="text" placeholder="Ah / Wh (si connu)" className={fieldClass} />
               </div>
             </div>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="space-y-1">
                 <label className={labelClass}>Sources de charge</label>
-                <input
-                  name="chargingSources"
-                  type="text"
-                  placeholder="Alternateur, secteur, solaire, chargeur…"
-                  className={fieldClass}
-                />
+                <input name="chargingSources" type="text" placeholder="Alternateur, secteur, solaire, chargeur…" className={fieldClass} />
               </div>
 
               <div className="space-y-1">
                 <label className={labelClass}>Branchement secteur/quai</label>
-                <input
-                  name="shorePower"
-                  type="text"
-                  placeholder="Oui/non + détails"
-                  className={fieldClass}
-                />
+                <input name="shorePower" type="text" placeholder="Oui/non + détails" className={fieldClass} />
               </div>
 
               <div className="space-y-1">
                 <label className={labelClass}>Convertisseur 230V</label>
-                <input
-                  name="inverterPresent"
-                  type="text"
-                  placeholder="Oui/non + puissance"
-                  className={fieldClass}
-                />
+                <input name="inverterPresent" type="text" placeholder="Oui/non + puissance" className={fieldClass} />
               </div>
 
               <div className="space-y-1">
                 <label className={labelClass}>Solaire</label>
-                <input
-                  name="solarPresent"
-                  type="text"
-                  placeholder="Oui/non + W + MPPT"
-                  className={fieldClass}
-                />
+                <input name="solarPresent" type="text" placeholder="Oui/non + W + MPPT" className={fieldClass} />
               </div>
             </div>
 
             <div className="mt-4 space-y-1">
               <label className={labelClass}>Équipements à alimenter</label>
-              <textarea
-                name="equipmentList"
-                rows={4}
-                placeholder="Frigo, guindeau, électronique, chauffage, pompe, prises 230V..."
-                className={fieldClass}
-              />
+              <textarea name="equipmentList" rows={4} placeholder="Frigo, guindeau, électronique, chauffage…" className={fieldClass} />
             </div>
           </section>
 
-          {/* 5) Objectif & contraintes (compléments) */}
           <section className="rounded-xl border border-neutral-200 p-6">
-            <h4 className={sectionTitleClass}>Objectif & contraintes (compléments)</h4>
+            <h4 className={sectionTitleClass}>Objectif & contraintes</h4>
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="space-y-1">
                 <label className={labelClass}>Échéance</label>
-                <input
-                  name="deadline"
-                  type="text"
-                  placeholder="Ex: avant départ en août"
-                  className={fieldClass}
-                />
+                <input name="deadline" type="text" placeholder="Ex: avant départ en août" className={fieldClass} />
               </div>
 
               <div className="space-y-1">
                 <label className={labelClass}>Budget (optionnel)</label>
-                <input
-                  name="budgetRange"
-                  type="text"
-                  placeholder="Fourchette"
-                  className={fieldClass}
-                />
+                <input name="budgetRange" type="text" placeholder="Fourchette" className={fieldClass} />
               </div>
             </div>
           </section>
 
-          {/* 6) Questions prioritaires */}
           <section className="rounded-xl border border-neutral-200 p-6">
             <h4 className={sectionTitleClass}>Vos 3 questions prioritaires</h4>
 
@@ -308,13 +279,11 @@ export default function VisioForm() {
             </div>
           </section>
 
-          {/* 7) Photos/schéma */}
           <section className="rounded-xl border border-neutral-200 p-6">
-            <h4 className={sectionTitleClass}>Photos / schéma</h4>
+            <h4 className={sectionTitleClass}>Photos / schéma (lien)</h4>
 
-            <p className="mt-2 text-sm text-neutral-600">
-              Recommandé : tableau électrique, batteries, chargeur/MPPT, câblage, protections, convertisseur.
-              Mets un lien (Drive, iCloud, Dropbox…).
+            <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+              Si tu préfères : mets un lien Drive / iCloud / Dropbox vers tes photos.
             </p>
 
             <input
@@ -328,26 +297,34 @@ export default function VisioForm() {
       )}
 
       {/* SUBMIT */}
-      <div className="rounded-xl bg-neutral-900 p-6 text-white">
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
         <button
           type="submit"
           disabled={loading}
-          className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-black disabled:opacity-60"
+          className="w-full rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-60 sm:w-auto"
         >
           {loading ? "Envoi..." : "Envoyer la demande"}
         </button>
 
         {status === "ok" && (
-          <p className="mt-3 text-sm text-white/90">
+          <p className="mt-3 text-sm text-neutral-800">
             Demande envoyée ✅ Vous recevrez une réponse par email.
           </p>
         )}
 
         {status === "error" && (
-          <p className="mt-3 text-sm text-white/90">
+          <p className="mt-3 text-sm text-neutral-800">
             Erreur d’envoi. Réessaie ou contacte-nous par email.
           </p>
         )}
+
+        <p className="mt-3 text-xs text-neutral-500">
+          Si l’envoi échoue, écris directement à{" "}
+          <a className="underline" href="mailto:fabien.lages@fabsystem.fr">
+            fabien.lages@fabsystem.fr
+          </a>
+          .
+        </p>
       </div>
     </form>
   );

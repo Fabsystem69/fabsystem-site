@@ -1,91 +1,64 @@
+import PageHero from "@/components/PageHero";
+import Link from "next/link";
+
 export default function PrestationsPage() {
   return (
     <main>
-      {/* HERO */}
-      <section
-        className="relative min-h-[55vh] bg-cover bg-center"
-        style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
-      >
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-black/55" />
+      <PageHero
+        title="Prestations"
+        subtitle="Sécurisation, diagnostic et installation électrique embarquée — bateau, van, camping-car."
+        micro="Tu veux une installation fiable ? On part d’un diagnostic puis on construit proprement."
+        background="/hero-fabsystem.png"
+        overlay="bg-black/55"
+        ctas={[
+          { href: "/contact", label: "Demander un diagnostic", variant: "primary" },
+          {
+            href: "https://cal.com/fabien-l-typ79a",
+            label: "Réserver une visio",
+            variant: "secondary",
+            external: true,
+          },
+        ]}
+      />
 
-        {/* Contenu hero */}
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 text-white sm:py-28">
-          <h1 className="text-4xl font-semibold sm:text-5xl">
-            Prestations
-          </h1>
-          <p className="mt-4 max-w-2xl text-white/90">
-            Électricité et systèmes embarqués pour bateaux, vans et camping-cars.
-            Des interventions pensées pour la sécurité, la fiabilité et la compréhension
-            de votre installation.
-          </p>
-        </div>
-      </section>
-
-      {/* CONTENU */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-8 sm:grid-cols-2">
-          {/* Carte 1 */}
+      <section className="mx-auto max-w-6xl px-6 py-14">
+        <div className="grid gap-6 sm:grid-cols-2">
           <div className="rounded-xl border border-neutral-200 p-6">
-            <h2 className="text-lg font-semibold">
-              Diagnostic électrique
-            </h2>
-            <p className="mt-2 text-sm text-neutral-700">
-              Analyse de l’installation existante, identification des risques,
-              points de chauffe, incohérences de câblage et protections manquantes.
+            <h2 className="text-lg font-semibold">Diagnostic & sécurisation</h2>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+              Contrôle des protections, sections, masses, risques d’échauffement, points faibles.
             </p>
           </div>
 
-          {/* Carte 2 */}
           <div className="rounded-xl border border-neutral-200 p-6">
-            <h2 className="text-lg font-semibold">
-              Remise au propre & sécurisation
-            </h2>
-            <p className="mt-2 text-sm text-neutral-700">
-              Réorganisation complète des circuits, ajout de protections adaptées,
-              repérage clair et amélioration de l’accessibilité.
+            <h2 className="text-lg font-semibold">Distribution & protections</h2>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+              Tableaux, fusibles, coupe-circuits, câblage propre, repérage.
             </p>
           </div>
 
-          {/* Carte 3 */}
           <div className="rounded-xl border border-neutral-200 p-6">
-            <h2 className="text-lg font-semibold">
-              Gestion d’énergie & batteries
-            </h2>
-            <p className="mt-2 text-sm text-neutral-700">
-              Architecture batteries, charge, distribution et autonomie
-              adaptées à l’usage réel (navigation, vanlife, loisirs).
+            <h2 className="text-lg font-semibold">Énergie & autonomie</h2>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+              Batterie(s), charge (alternateur, solaire), convertisseur, monitoring.
             </p>
           </div>
 
-          {/* Carte 4 */}
           <div className="rounded-xl border border-neutral-200 p-6">
-            <h2 className="text-lg font-semibold">
-              Préparation avant départ ou vente
-            </h2>
-            <p className="mt-2 text-sm text-neutral-700">
-              Vérifications prioritaires, corrections essentielles et conseils
-              pour partir serein ou présenter une installation fiable à la vente.
+            <h2 className="text-lg font-semibold">Conseil & visio</h2>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+              Analyse de ton schéma, recommandations, liste d’achats, étapes de montage.
             </p>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-16 rounded-xl bg-neutral-900 px-8 py-10 text-white">
-          <h3 className="text-2xl font-semibold">
-            Un doute sur votre installation ?
-          </h3>
-          <p className="mt-3 max-w-2xl text-white/90">
-            Un diagnostic clair permet d’éviter les pannes, les risques électriques
-            et les mauvaises surprises.
-          </p>
-
-          <a
+        <div className="mt-10">
+          <Link
             href="/contact"
-            className="mt-6 inline-block rounded-md bg-white px-6 py-3 text-sm font-semibold text-black"
+            className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
           >
-            Demander un diagnostic
-          </a>
+            Parler de ton projet
+          </Link>
         </div>
       </section>
     </main>

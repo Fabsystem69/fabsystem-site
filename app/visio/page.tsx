@@ -1,108 +1,130 @@
-import VisioForm from "../../components/VisioForm";
+import Link from "next/link";
+import VisioForm from "@/components/VisioForm";
 
 export default function VisioPage() {
   return (
     <main>
       {/* HERO */}
       <section
-        className="relative min-h-[60vh] bg-cover bg-center"
+        className="relative min-h-[56vh] bg-cover bg-center"
         style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
       >
+        {/* Overlay */}
         <div className="absolute inset-0 bg-black/55" />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-24 text-white sm:py-28">
-          <p className="text-sm uppercase tracking-wide text-white/80">
-            Visio / Conseil
-          </p>
-
-          <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
-            Clarifiez votre installation en 1 heure
+        {/* Contenu */}
+        <div className="relative z-10 mx-auto max-w-6xl px-6 py-20 text-white sm:py-28">
+          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
+            Visio
           </h1>
 
-          <p className="mt-5 max-w-2xl text-white/90">
-            Un échange simple et concret pour éviter les erreurs coûteuses,
-            sécuriser vos choix et repartir avec un plan d’action clair.
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">
+            On fait le point sur ton installation (bateau, van, camping-car) et je
+            te donne un plan clair : sécurisation, schéma, liste matériel, étapes.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm">
-              ⏱️ 1h00
-            </span>
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm">
-              💶 50 €
-            </span>
-            <span className="rounded-full bg-white/10 px-4 py-2 text-sm">
-              ⚡ Bateau • Van • Camping-car
-            </span>
-          </div>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80">
+            Réserve ton créneau puis remplis le formulaire : ça rend la séance bien
+            plus efficace.
+          </p>
 
-          <div className="mt-10 flex flex-wrap gap-4">
+          {/* CTA mobile-friendly */}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <a
               href="https://cal.com/fabien-l-typ79a"
               target="_blank"
               rel="noreferrer"
-              className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-black hover:bg-white/90"
+              className="inline-flex w-full items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 sm:w-auto"
             >
-              Réserver mon créneau
+              Réserver une visio
             </a>
 
-            <a
-              href="#demande"
-              className="rounded-md border border-white/70 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
+            <Link
+              href="/contact"
+              className="inline-flex w-full items-center justify-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
             >
-              Préparer ma demande
-            </a>
+              Plutôt un diagnostic
+            </Link>
           </div>
         </div>
       </section>
 
       {/* CONTENU */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-12 sm:grid-cols-2">
-          {/* Texte explicatif */}
+      <section className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
+        <div className="grid gap-10 sm:grid-cols-2">
+          {/* Colonne gauche : explications */}
           <div>
-            <h2 className="text-2xl font-semibold">Préparer la visio</h2>
-            <p className="mt-4 text-neutral-700">
-              Plus vous êtes précis, plus la visio est efficace. Ce formulaire me
-              permet de préparer votre séance et d’aller droit au but.
-            </p>
+            <h2 className="text-2xl font-semibold">Comment ça se passe</h2>
 
-            <ul className="mt-6 space-y-2 text-neutral-700">
-              <li>• Contexte + objectifs</li>
-              <li>• Installation actuelle (batteries, charge, 230V…)</li>
-              <li>• Vos questions prioritaires</li>
-              <li>• Lien photos/schéma (recommandé)</li>
-            </ul>
-
-            <div className="mt-8 rounded-xl border border-neutral-200 bg-neutral-50 p-5">
-              <p className="text-sm text-neutral-700">
-                Vous pouvez <strong>réserver sur Cal.com</strong> avant ou après
-                avoir rempli le formulaire.
+            <div className="mt-4 space-y-4 text-sm leading-relaxed text-neutral-700">
+              <p>
+                1) Tu réserves un créneau sur Cal.
+                <br />
+                2) Tu remplis le formulaire ci-dessous.
+                <br />
+                3) Pendant la visio, on analyse et je te propose une solution adaptée.
               </p>
 
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
+                <h3 className="text-sm font-semibold text-neutral-900">
+                  Ce que tu obtiens
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  <li>• Un diagnostic clair (ce qui est OK / ce qui est risqué)</li>
+                  <li>• Une architecture recommandée (protections, distribution)</li>
+                  <li>• Une liste de matériel + sections de câbles (si nécessaire)</li>
+                  <li>• Un plan d’action simple (étapes)</li>
+                </ul>
+              </div>
+
+              <div className="rounded-xl border border-neutral-200 p-5">
+                <h3 className="text-sm font-semibold text-neutral-900">
+                  À préparer si possible
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  <li>• 2–3 photos de ton installation</li>
+                  <li>• Les équipements à alimenter (frigo, guindeau, etc.)</li>
+                  <li>• Batteries / charge (alternateur, solaire, 230V)</li>
+                  <li>• Tes objectifs (autonomie, sécurité, ajout matériel)</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* CTA rappel */}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
                 href="https://cal.com/fabien-l-typ79a"
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-block rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
+                className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
               >
-                Réserver mon créneau
+                Réserver maintenant
               </a>
 
-              <p className="mt-3 text-xs text-neutral-500">
-                Si vous avez déjà réservé, indiquez la date/heure dans le formulaire.
-              </p>
+              <Link
+                href="/contact"
+                className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
+              >
+                Me contacter
+              </Link>
             </div>
           </div>
 
-          {/* Formulaire */}
-          <div id="demande" className="rounded-xl border border-neutral-200 p-6">
-            <h3 className="text-lg font-semibold">Brief de préparation</h3>
+          {/* Colonne droite : formulaire */}
+          <div className="rounded-xl border border-neutral-200 p-6">
+            <h3 className="text-lg font-semibold">Formulaire de préparation</h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Remplissez ce brief. Je vous réponds par email si un point manque.
+              Plus tu donnes d’infos, plus la visio est efficace.
             </p>
 
-            <VisioForm />
+            <div className="mt-6">
+              <VisioForm />
+            </div>
+
+            <p className="mt-4 text-xs text-neutral-500">
+              Astuce : tu peux aussi préparer quelques photos et les avoir sous la
+              main pendant la visio.
+            </p>
           </div>
         </div>
       </section>
