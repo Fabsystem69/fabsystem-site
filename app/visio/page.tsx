@@ -15,12 +15,17 @@ export default function VisioPage() {
         {/* Contenu */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 py-20 text-white sm:py-28">
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            Visio
+            Visio conseil en électricité embarquée
           </h1>
 
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90 sm:text-lg">
-            On fait le point sur ton installation (bateau, van, camping-car) et je
-            te donne un plan clair : sécurisation, schéma, liste matériel, étapes.
+            Comprendre, sécuriser et décider — en 1 heure.
+          </p>
+
+          <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/80 sm:text-base">
+            Batteries, solaire, 230 V, protections, câblage… On fait le point sur
+            votre installation (bateau, van, camping-car) pour clarifier la situation,
+            éviter les erreurs et définir un plan d’action simple.
           </p>
 
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80">
@@ -46,6 +51,10 @@ export default function VisioPage() {
               Plutôt un diagnostic
             </Link>
           </div>
+
+          <p className="mt-3 text-xs text-white/70">
+            Visio individuelle • 1h • Paiement requis (50 €)
+          </p>
         </div>
       </section>
 
@@ -88,6 +97,17 @@ export default function VisioPage() {
                   <li>• Tes objectifs (autonomie, sécurité, ajout matériel)</li>
                 </ul>
               </div>
+
+              {/* Bloc prix / rassurance */}
+              <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
+                <h3 className="text-sm font-semibold text-neutral-900">Tarif</h3>
+                <p className="mt-2 text-sm text-neutral-700">
+                  <strong>50 €</strong> pour une visio individuelle de 1 heure.
+                </p>
+                <p className="mt-1 text-xs text-neutral-600">
+                  Paiement sécurisé en ligne avant confirmation du rendez-vous.
+                </p>
+              </div>
             </div>
 
             {/* CTA rappel */}
@@ -114,7 +134,8 @@ export default function VisioPage() {
           <div className="rounded-xl border border-neutral-200 p-6">
             <h3 className="text-lg font-semibold">Formulaire de préparation</h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Plus tu donnes d’infos, plus la visio est efficace.
+              Remplis le minimum ci-dessous. Les détails techniques sont optionnels,
+              mais ils font gagner beaucoup de temps pendant la visio.
             </p>
 
             <div className="mt-6">
