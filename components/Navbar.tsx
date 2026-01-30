@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
-const nav = [
+const NAV = [
   { href: "/", label: "Accueil" },
   { href: "/prestations", label: "Prestations" },
   { href: "/realisations", label: "Réalisations" },
@@ -13,162 +14,171 @@ const nav = [
 ];
 
 export default function Navbar() {
-  const pathname = usePathname();
-  const isHome = pathname === "/";
-
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   // Ferme le menu quand on change de page
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  // Empêche le scroll du body quand le menu est ouvert
+  // Empêche le scroll derrière quand le menu est ouvert
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = prev;
     };
   }, [open]);
 
-  const headerClass = isHome
-    ? "absolute inset-x-0 top-0 z-30"
-    : "sticky top-0 z-30 border-b bg-white/90 backdrop-blur";
-
-  const linkClass = isHome ? "text-white hover:text-white/70" : "text-neutral-900 hover:text-neutral-600";
+  // Ferme avec la touche ESC
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
-    <header className={headerClass}>
+    <header className="sticky top-0 z-[100] w-full border-b border-neutral-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <img
-            src="/FabSystem-Logo.svg"
-            alt="FabSystem"
-            className={`h-15 w-auto max-w-[160px] ${isHome ? "invert" : ""}`}
-          />
+          <div className="relative h-10 w-10 shrink-0">
+            <Image
+              src="/FabSystem-Logo.png"
+              alt="FabSystem"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="leading-tight">
+            <div className="text-base font-semibold text-neutral-900">
+              FabSystem
+            </div>
+            <div className="text-xs text-neutral-600">
+              Électricité & systèmes embarqués
+            </div>
+          </div>
         </Link>
 
-        {/* Menu desktop */}
-        <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
-          {nav.map((item) => (
-            <Link key={item.href} href={item.href} className={linkClass}>
-              {item.label}
-            </Link>
-          ))}
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-6 text-sm font-medium text-neutral-800 sm:flex">
+          {NAV.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={
+                  active
+                    ? "text-neutral-900 underline underline-offset-8"
+                    : "hover:text-neutral-900"
+                }
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* CTA desktop */}
-    <div className="hidden sm:flex items-start gap-3">
-  {/* Visio + micro-texte */}
-  <div className="flex flex-col items-center">
-    <a
-      href="https://cal.com/fabien-l-typ79a"
-      target="_blank"
-      rel="noreferrer"
-      className={
-        isHome
-          ? "rounded-md border border-white/70 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
-          : "rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
-      }
-    >
-      Visio
-    </a>
-    <span
-      className={
-        isHome
-          ? "mt-1 text-xs text-white/75"
-          : "mt-1 text-xs text-neutral-500"
-      }
-    >
-      Conseil à distance
-    </span>
-  </div>
-
-  {/* Diagnostic */}
-  <div className="flex flex-col items-center">
-    <Link
-      href="/contact"
-      className={
-        isHome
-          ? "rounded-md bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
-          : "rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
-      }
-    >
-      Diagnostic
-    </Link>
-    {/* espace fantôme pour alignement */}
-    <span className="mt-1 text-xs opacity-0 select-none">
-      Conseil à distance
-    </span>
-  </div>
-</div>
-
-        {/* Burger mobile */}
+        {/* Burger */}
         <button
           type="button"
-          aria-label="Ouvrir le menu"
-          className={`sm:hidden rounded-md p-2 ${isHome ? "text-white" : "text-neutral-900"}`}
-          onClick={() => setOpen(true)}
+          className="sm:hidden inline-flex items-center justify-center rounded-md border border-neutral-200 px-3 py-2 text-sm font-medium"
+          aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
+          {open ? "✕" : "☰"}
         </button>
       </div>
 
-      {/* Drawer mobile */}
+      {/* Mobile drawer */}
       {open && (
-        <div className="fixed inset-0 z-50 sm:hidden">
-          {/* overlay */}
+        <div className="sm:hidden">
+          {/* Overlay */}
           <button
             aria-label="Fermer le menu"
-            className="absolute inset-0 bg-black/60"
+            className="fixed inset-0 z-[90] bg-black/40"
             onClick={() => setOpen(false)}
           />
-          {/* panel */}
-          <div className="absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <img src="/FabSystem-Logo.svg" alt="FabSystem" className="h-9 w-auto max-w-[160px]" />
-              <button
-                type="button"
-                aria-label="Fermer le menu"
-                className="rounded-md p-2 text-neutral-900"
-                onClick={() => setOpen(false)}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            </div>
 
-            <nav className="mt-8 flex flex-col gap-4 text-base font-medium text-neutral-900">
-              {nav.map((item) => (
-                <Link key={item.href} href={item.href} className="py-2">
-                  {item.label}
+          {/* Panel */}
+          <div className="fixed left-0 right-0 top-0 z-[100] bg-white shadow-lg">
+            <div className="mx-auto max-w-6xl px-6 py-4">
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/"
+                  className="flex items-center gap-3"
+                  onClick={() => setOpen(false)}
+                >
+                  <div className="relative h-9 w-9">
+                    <Image
+                      src="/FabSystem-Logo.png"
+                      alt="FabSystem"
+                      fill
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                  <span className="font-semibold">FabSystem</span>
                 </Link>
-              ))}
-            </nav>
 
-            <div className="mt-8 space-y-3">
-  <a
-    href="https://cal.com/fabien-l-typ79a"
-    target="_blank"
-    rel="noreferrer"
-    className="inline-block w-full rounded-md border border-neutral-300 px-4 py-3 text-center text-sm font-semibold text-neutral-900"
-  >
-    Visio
-  </a>
+                <button
+                  type="button"
+                  className="rounded-md border border-neutral-200 px-3 py-2 text-sm font-medium"
+                  onClick={() => setOpen(false)}
+                >
+                  ✕
+                </button>
+              </div>
 
-  <Link
-    href="/contact"
-    className="inline-block w-full rounded-md bg-neutral-900 px-4 py-3 text-center text-sm font-semibold text-white"
-  >
-    Diagnostic
-  </Link>
-</div>
+              <div className="mt-4 flex flex-col gap-2 pb-4">
+                {NAV.map((item) => {
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={
+                        "rounded-md px-3 py-3 text-base font-medium " +
+                        (active
+                          ? "bg-neutral-900 text-white"
+                          : "text-neutral-900 hover:bg-neutral-100")
+                      }
+                      onClick={() => setOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="border-t border-neutral-200 py-4 text-sm text-neutral-600">
+                <a
+                  href="mailto:fabien.lages@fabsystem.fr"
+                  className="block py-2 underline"
+                  onClick={() => setOpen(false)}
+                >
+                  fabien.lages@fabsystem.fr
+                </a>
+                <a
+                  href="tel:+33698247722"
+                  className="block py-2 underline"
+                  onClick={() => setOpen(false)}
+                >
+                  06 98 24 77 22
+                </a>
+              </div>
+            </div>
           </div>
+
+          {/* espace pour éviter que le contenu "saute" sous le header sticky */}
+          <div className="h-0" />
         </div>
       )}
     </header>
