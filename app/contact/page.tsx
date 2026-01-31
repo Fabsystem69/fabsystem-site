@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ContactForm from "../../components/ContactForm";
+import PhoneReveal from "../../components/PhoneReveal";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -39,27 +40,18 @@ export default function ContactPage() {
               Électricité et systèmes embarqués pour bateaux, vans et camping-cars.
             </p>
 
-            <ul className="mt-6 space-y-3 text-neutral-700">
-              <li>
-                📧{" "}
-                <a
-                  href="mailto:fabien.lages@fabsystem.fr"
-                  className="font-medium text-neutral-900 underline"
-                >
-                  fabien.lages@fabsystem.fr
-                </a>
-              </li>
+            {/* Email (visible) */}
+            <div className="mt-6">
+              <a
+                href="mailto:fabien.lages@fabsystem.fr"
+                className="font-medium text-neutral-900 underline"
+              >
+                📧 fabien.lages@fabsystem.fr
+              </a>
+            </div>
 
-              <li>
-                📞{" "}
-                <a
-                  href="tel:+33698247722"
-                  className="font-medium text-neutral-900 underline"
-                >
-                  06 98 24 77 22
-                </a>
-              </li>
-            </ul>
+            {/* Téléphone (caché par CTA) */}
+            <PhoneReveal />
 
             {/* Bouton visio */}
             <div className="mt-6">
@@ -67,7 +59,7 @@ export default function ContactPage() {
                 href="/visio"
                 className="inline-block rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
               >
-                Découvrir la visio conseil
+                Prendre un rendez-vous
               </Link>
             </div>
 
