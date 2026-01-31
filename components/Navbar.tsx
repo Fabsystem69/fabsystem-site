@@ -75,7 +75,7 @@ export default function Navbar() {
                     : "rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
                 }
               >
-                Visio
+                Visio/Conseil
               </Link>
               <span
                 className={
@@ -177,7 +177,7 @@ export default function Navbar() {
                 className="inline-block w-full rounded-md border border-neutral-300 px-4 py-3 text-center text-sm font-semibold text-neutral-900"
                 onClick={() => setOpen(false)}
               >
-                Visio
+                Visio/Conseil
               </Link>
 
               <Link

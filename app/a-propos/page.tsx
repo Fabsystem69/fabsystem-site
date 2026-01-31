@@ -43,26 +43,40 @@ export default function AProposPage() {
           {/* TEXTE */}
           <div>
             <h2 className="text-2xl font-semibold">
-              Fabien, électricien en systèmes embarqués
-            </h2>
+    Fabien, électricien en systèmes embarqués
+  </h2>
 
-            <p className="mt-4 text-neutral-700 leading-relaxed">
-              Je suis spécialisé en <strong>électricité embarquée</strong> pour
-              les bateaux, vans et camping-cars.
-            </p>
+  <p className="mt-4 text-neutral-700 leading-relaxed">
+    Je suis spécialisé en <strong>électricité embarquée</strong> pour les
+    bateaux, vans et camping-cars.
+  </p>
 
-            <p className="mt-4 text-neutral-700 leading-relaxed">
-              Avec le temps, j’ai vu trop d’installations dangereuses, bricolées,
-              mal protégées ou simplement incomprises.  
-              Mon objectif est simple : <strong>rendre l’électricité embarquée
-              fiable, lisible et sécurisée</strong>.
-            </p>
+  <p className="mt-4 text-neutral-700 leading-relaxed">
+    Avec le temps, j’ai vu trop d’installations dangereuses, bricolées,
+    mal protégées ou simplement incomprises.  
+    Mon approche est simple : <strong>remettre de la logique, de la sécurité
+    et de la lisibilité</strong> dans des systèmes électriques souvent complexes.
+  </p>
 
-            <p className="mt-4 text-neutral-700 leading-relaxed">
-              Que ce soit pour un diagnostic, une remise à plat ou un conseil à
-              distance, je pars toujours de l’existant, sans jugement, pour
-              proposer une solution adaptée à l’usage réel.
-            </p>
+  <p className="mt-4 text-neutral-700 leading-relaxed">
+    J’interviens aussi bien pour des diagnostics, des remises à plat
+    que pour du conseil à distance. Chaque projet commence par
+    l’existant, sans jugement, afin de proposer une solution
+    réellement adaptée à l’usage et aux contraintes du terrain.
+  </p>
+
+  <p className="mt-4 text-neutral-700 leading-relaxed">
+    J’interviens également en <strong>sous-traitance pour des professionnels</strong>,
+    notamment sur des installations techniques ou sensibles,
+    lorsqu’un regard expert, un diagnostic précis ou un renfort ponctuel
+    est nécessaire.
+  </p>
+
+  <p className="mt-4 text-neutral-700 leading-relaxed">
+    Mon objectif reste toujours le même : <strong>une installation fiable,
+    compréhensible et durable</strong>, que ce soit pour un particulier
+    ou dans un cadre professionnel.
+  </p>
           </div>
         </div>
       </section>

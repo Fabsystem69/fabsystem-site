@@ -24,49 +24,74 @@ export default function HomePage() {
       />
 
       {/* PARTENAIRES */}
-      <section className="border-t border-neutral-200 bg-white py-14">
-        <div className="mx-auto max-w-6xl px-6 text-center">
-          <h2 className="text-lg font-semibold text-neutral-900">
-            Marques et équipements utilisés
-          </h2>
+{/* PARTENAIRES */}
+<section className="border-t border-neutral-200 bg-white py-14">
+  <div className="mx-auto max-w-6xl px-6 text-center">
+    <h2 className="text-lg font-semibold text-neutral-900">
+      Marques et équipements utilisés
+    </h2>
 
-          <p className="mt-2 text-sm text-neutral-600">
-            Matériel reconnu et éprouvé, sélectionné pour la fiabilité et la sécurité des installations.
-          </p>
+    <p className="mt-2 text-sm text-neutral-600">
+      Matériel reconnu et éprouvé, sélectionné pour la fiabilité et la sécurité des installations.
+    </p>
 
-          <p className="mt-1 text-xs text-neutral-500">
-            Sélection selon les contraintes techniques de chaque projet.
-          </p>
+    <p className="mt-1 text-xs text-neutral-500">
+      Sélection selon les contraintes techniques de chaque projet.
+    </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-10">
-            <img
-              src="/partners/victron-logo.svg"
-              alt="Victron Energy"
-              className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
-            />
-            <img
-              src="/partners/sok-logo.png"
-              alt="SOK Battery"
-              className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
-            />
-            <img
-              src="/partners/elgena-logo.png"
-              alt="Elgena"
-              className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
-            />
-            <img
-              src="/partners/pentair-logo.svg"
-              alt="Pentair / Shurflo"
-              className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
-            />
-            <img
-              src="/partners/pundmann-logo.svg"
-              alt="Pundmann"
-              className="max-h-12 max-w-[140px] w-auto object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
-            />
-          </div>
-        </div>
-      </section>
+    <div className="mt-10 grid grid-cols-2 gap-x-10 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+      {[
+        {
+          href: "https://www.victronenergy.com",
+          src: "/partners/victron-logo.svg",
+          alt: "Victron Energy",
+        },
+        {
+          href: "https://www.sokbattery.com",
+          src: "/partners/sok-logo.png",
+          alt: "SOK Battery",
+        },
+        {
+          href: "https://www.elgena.de",
+          src: "/partners/elgena-logo.png",
+          alt: "Elgena",
+        },
+        {
+          href: "https://www.pundmann.de",
+          src: "/partners/pundmann-logo.svg",
+          alt: "Pundmann",
+        },
+        {
+          href: "https://www.dometic.com",
+          src: "/partners/dometic-logo.png",
+          alt: "Dometic",
+        },
+        {
+          href: "https://www.truma.com",
+          src: "/partners/truma-logo.png",
+          alt: "Truma",
+        },
+      ].map((brand) => (
+        <a
+          key={brand.alt}
+          href={brand.href}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-center"
+          aria-label={brand.alt}
+          title={brand.alt}
+        >
+          <img
+            src={brand.src}
+            alt={brand.alt}
+            className="h-10 w-auto max-w-[120px] object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
+            loading="lazy"
+          />
+        </a>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Preuves rapides / réassurance */}
       <section className="mx-auto max-w-6xl px-6 py-12">
