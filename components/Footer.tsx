@@ -35,7 +35,7 @@ export default function Footer() {
             <h3 className="text-sm font-semibold text-neutral-900">Contact</h3>
 
             <p className="mt-4 text-sm text-neutral-600">
-              Premier échange par email (réponse rapide).
+              Premier échange par email.
             </p>
 
             <a

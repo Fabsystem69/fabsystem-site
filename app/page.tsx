@@ -14,7 +14,7 @@ export default function HomePage() {
       <PageHero
         title="Électricité embarquée fiable et sécurisée"
         subtitle="Pour bateaux, vans et camping-cars. Diagnostic clair, conseils concrets, installation propre et protégée."
-        micro="Objectif : une installation simple, sûre, et adaptée à ton usage (sans bidouilles dangereuses)."
+        micro="Objectif : une installation simple, sûre, et adaptée à ton usage."
         background="/hero-fabsystem.png"
         overlay="bg-black/50"
         ctas={[
@@ -95,26 +95,30 @@ export default function HomePage() {
 
       {/* Preuves rapides / réassurance */}
       <section className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-neutral-200 p-5">
-            <div className="text-sm font-semibold">✅ Sécurité</div>
-            <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
-              Protections adaptées, câbles dimensionnés, montage propre et durable.
-            </p>
-          </div>
-          <div className="rounded-xl border border-neutral-200 p-5">
-            <div className="text-sm font-semibold">✅ Diagnostic clair</div>
-            <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
-              On identifie ce qui est risqué, ce qui est OK, et le plan d’action.
-            </p>
-          </div>
-          <div className="rounded-xl border border-neutral-200 p-5">
-            <div className="text-sm font-semibold">✅ Conseils utiles</div>
-            <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
-              Tu comprends ce que tu payes et pourquoi. Pas de jargon inutile.
-            </p>
-          </div>
-        </div>
+  <div className="grid gap-4 sm:grid-cols-3">
+    <div className="rounded-xl border border-neutral-200 p-5">
+      <div className="text-sm font-semibold">✅ Diagnostic clair</div>
+      <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
+        On identifie précisément ce qui est fiable, ce qui est risqué,
+        et les priorités à traiter.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 p-5">
+      <div className="text-sm font-semibold">✅ Sécurité avant tout</div>
+      <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
+        Protections adaptées, sections correctes, installation pensée
+        pour durer et éviter les incidents.
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 p-5">
+  <div className="text-sm font-semibold">✅ Accompagnement personnalisé</div>
+  <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
+    Chaque installation est analysée selon ton usage, ton matériel et tes contraintes réelles.
+  </p>
+</div>
+  </div>
 
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Link
