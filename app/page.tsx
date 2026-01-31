@@ -97,7 +97,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-12">
   <div className="grid gap-4 sm:grid-cols-3">
     <div className="rounded-xl border border-neutral-200 p-5">
-      <div className="text-sm font-semibold">✅ Diagnostic clair</div>
+      <div className="text-sm font-semibold">Diagnostic clair</div>
       <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
         On identifie précisément ce qui est fiable, ce qui est risqué,
         et les priorités à traiter.
@@ -105,7 +105,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-xl border border-neutral-200 p-5">
-      <div className="text-sm font-semibold">✅ Sécurité avant tout</div>
+      <div className="text-sm font-semibold">Sécurité avant tout</div>
       <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
         Protections adaptées, sections correctes, installation pensée
         pour durer et éviter les incidents.
@@ -113,7 +113,7 @@ export default function HomePage() {
     </div>
 
     <div className="rounded-xl border border-neutral-200 p-5">
-  <div className="text-sm font-semibold">✅ Accompagnement personnalisé</div>
+  <div className="text-sm font-semibold">Accompagnement personnalisé</div>
   <p className="mt-2 text-sm text-neutral-700 leading-relaxed">
     Chaque installation est analysée selon ton usage, ton matériel et tes contraintes réelles.
   </p>

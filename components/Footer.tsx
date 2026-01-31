@@ -33,11 +33,6 @@ export default function Footer() {
           {/* Bloc 3 */}
           <div>
             <h3 className="text-sm font-semibold text-neutral-900">Contact</h3>
-
-            <p className="mt-4 text-sm text-neutral-600">
-              Premier échange par email.
-            </p>
-
             <a
               href="mailto:fabien.lages@fabsystem.fr"
               className="mt-3 block text-sm font-medium text-neutral-900 hover:text-neutral-700"
