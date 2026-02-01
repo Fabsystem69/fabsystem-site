@@ -40,28 +40,7 @@ export default function VisioPage() {
             plus efficace.
           </p>
 
-          {/* CTA : lien Cal uniquement ici */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href="https://cal.com/fabien-l-typ79a"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex w-full items-center justify-center rounded-md bg-white px-5 py-3 text-sm font-semibold text-black hover:bg-white/90 sm:w-auto"
-            >
-              Réserver une visio
-            </a>
-
-            <Link
-              href="/contact"
-              className="inline-flex w-full items-center justify-center rounded-md border border-white/70 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
-            >
-              Plutôt un diagnostic
-            </Link>
-          </div>
-
-          <p className="mt-3 text-xs text-white/70">
-            Visio individuelle • 1h • Paiement requis (50 €)
-          </p>
+          
         </div>
       </section>
 
