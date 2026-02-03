@@ -117,7 +117,7 @@ export default function HomePage() {
 <section className="mx-auto max-w-6xl px-6 py-14">
   <div className="mx-auto max-w-4xl text-center">
     <h2 className="text-2xl font-semibold text-neutral-900">
-      Comment ça se passe
+      Comment ça se passe?
     </h2>
     <p className="mt-3 text-sm leading-relaxed text-neutral-600">
       Un accompagnement clair, étape par étape, pour comprendre votre installation
@@ -132,8 +132,7 @@ export default function HomePage() {
         1️⃣ Diagnostic
       </div>
       <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-        Analyse de l’existant, identification des risques, points faibles
-        et éléments à sécuriser en priorité.
+        Analyse de votre installation, repérage des risques et des améliorations prioritaires.
       </p>
       <p className="mt-2 text-xs text-neutral-500">
         → Ce qui est OK / ce qui est risqué / ce qu’il faut corriger
@@ -146,8 +145,7 @@ export default function HomePage() {
         2️⃣ Plan d’action
       </div>
       <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-        Proposition d’une architecture adaptée à votre usage :
-        protections, distribution, énergie, priorités.
+        Je vous aide à organiser votre installation de façon logique et sécurisée, en tenant compte de votre usage réel.
       </p>
       <p className="mt-2 text-xs text-neutral-500">
         → Schéma simple, matériel adapté, étapes claires
