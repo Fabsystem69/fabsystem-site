@@ -98,11 +98,11 @@ export default function RealisationsPage() {
           {/* Petit rappel conversion en bas */}
           <div className="mt-10 rounded-xl bg-neutral-50 p-6">
             <h3 className="text-base font-semibold text-neutral-900">
-              Tu veux une installation propre et sécurisée ?
+              Vous voulez une installation propre et sécurisée ?
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Je peux te faire un diagnostic clair et te proposer un plan d’action adapté
-              à ton usage (bateau, van, camping-car).
+              Je peux vous faire un diagnostic clair et vous proposer un plan d’action adapté
+              à votre usage (bateau, van, camping-car).
             </p>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
