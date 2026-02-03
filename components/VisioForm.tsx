@@ -74,7 +74,7 @@ export default function VisioForm() {
       {/* INTRO */}
       <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
         <p className="text-sm leading-relaxed text-neutral-700">
-          Remplis le <strong>minimum</strong> ci-dessous. Vous pouvez ensuite ajouter des détails techniques (optionnels)
+          Remplissez le <strong>minimum</strong> ci-dessous. Vous pouvez ensuite ajouter des détails techniques (optionnels)
           et joindre des photos : ça rend la visio beaucoup plus efficace.
         </p>
       </div>
