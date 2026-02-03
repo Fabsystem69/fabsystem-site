@@ -18,7 +18,7 @@ const services = [
       "Recherche de pannes / coupures / charges anormales",
       "Repérage des risques (fusibles, masses, 230V, charge)",
     ],
-    result: "Tu sais exactement ce qui est OK, ce qui est risqué, et quoi faire en priorité.",
+    result: "Vous savez exactement ce qui est OK, ce qui est risqué, et quoi faire en priorité.",
   },
   {
     title: "Distribution & protections",
@@ -38,9 +38,9 @@ const services = [
     points: [
       "Batterie(s) moteur / service, lithium, relais, DC-DC",
       "Solaire (MPPT), alternateur, charge 230V, monitoring",
-      "Optimisation selon ton usage réel (frigo, guindeau, etc.)",
+      "Optimisation selon votre usage réel (frigo, guindeau, etc.)",
     ],
-    result: "Tu gagnes en autonomie sans bricolage, avec des choix cohérents.",
+    result: "Vous gagnez en autonomie sans bricolage, avec des choix cohérents.",
   },
   {
     title: "Conseil & visio",
@@ -51,7 +51,7 @@ const services = [
       "Architecture recommandée + plan d’action",
       "Liste matériel + sections de câbles (si nécessaire)",
     ],
-    result: "Tu prends les bonnes décisions avant de dépenser ou de câbler.",
+    result: "Vous prenez les bonnes décisions avant de dépenser ou de câbler.",
   },
 ];
 
@@ -77,9 +77,9 @@ export default function PrestationsPage() {
             Ce que je fais, concrètement
           </h2>
           <p className="mt-4 text-sm leading-relaxed text-neutral-700">
-            Je t’aide à sécuriser et fiabiliser ton électricité embarquée, sans jargon inutile.
+            Je vous aide à sécuriser et fiabiliser votre électricité embarquée, sans jargon inutile.
             L’idée n’est pas de “tout refaire pour refaire”, mais de construire une installation cohérente,
-            adaptée à ton usage, et facile à maintenir.
+            adaptée à votre usage, et facile à maintenir.
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export default function PrestationsPage() {
               href="/contact"
               className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
             >
-              Parler de ton projet
+              Parler de votre projet
             </Link>
 
             <Link

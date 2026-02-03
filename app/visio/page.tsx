@@ -36,7 +36,7 @@ export default function VisioPage() {
           </p>
 
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80">
-            Réservez votre créneau puis remplis le formulaire : ça rend la séance bien
+            Réservez votre créneau puis remplissez le formulaire : ça rend la séance bien
             plus efficace.
           </p>
 
@@ -77,10 +77,10 @@ export default function VisioPage() {
                   À préparer si possible
                 </h3>
                 <ul className="mt-3 space-y-2">
-                  <li>• 2–3 photos de ton installation</li>
+                  <li>• 2–3 photos de votre installation</li>
                   <li>• Les équipements à alimenter (frigo, guindeau, etc.)</li>
                   <li>• Batteries / charge (alternateur, solaire, 230V)</li>
-                  <li>• Tes objectifs (autonomie, sécurité, ajout matériel)</li>
+                  <li>• Vos objectifs (autonomie, sécurité, ajout matériel)</li>
                 </ul>
               </div>
 
@@ -120,7 +120,7 @@ export default function VisioPage() {
           <div className="rounded-xl border border-neutral-200 p-6">
             <h3 className="text-lg font-semibold">Formulaire de préparation</h3>
             <p className="mt-2 text-sm text-neutral-600">
-              Remplis le minimum ci-dessous. Les détails techniques sont optionnels,
+              Remplissez le minimum ci-dessous. Les détails techniques sont optionnels,
               mais ils font gagner beaucoup de temps pendant la visio.
             </p>
 

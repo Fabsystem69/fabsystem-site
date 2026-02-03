@@ -16,10 +16,10 @@ const FAQ = [
   },
   {
     q: "Qu’est-ce que je dois fournir pour un bon diagnostic ?",
-    a: "Le support (bateau/van/camping-car), ton objectif, et si possible : type de batteries, source(s) de charge, et les équipements principaux.",
+    a: "Le support (bateau/van/camping-car), votre objectif, et si possible : type de batteries, source(s) de charge, et les équipements principaux.",
   },
   {
-    q: "Tu te déplaces ou tu fais aussi à distance ?",
+    q: "Vous vous déplacez ou intervenez-vous à distance ?",
     a: "Les deux. Pour aller vite, la visio conseil permet déjà de clarifier l’architecture, la liste matériel et les étapes.",
   },
   {
@@ -139,7 +139,7 @@ export default function ContactPage() {
                 </div>
 
                 <p className="mt-4 text-xs text-neutral-500">
-                  Tu ne trouves pas ta réponse ? Envoie ton message via le formulaire, je te réponds clairement.
+                  Vous ne trouvez pas votre réponse ? Envoyez votre message via le formulaire, je vous réponds clairement.
                 </p>
               </div>
             </div>

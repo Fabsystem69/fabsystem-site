@@ -115,7 +115,7 @@ export default function ContactForm() {
         <div className="space-y-1">
           <label className={labelClass}>Téléphone (optionnel)</label>
           <input name="phone" type="text" placeholder="Ex : 06..." className={fieldClass} />
-          <p className={hintClass}>Utile si tu veux être rappelé.</p>
+          <p className={hintClass}>Utile si vous souhaitez être rappelé.</p>
         </div>
 
         <div className="space-y-1">
@@ -175,7 +175,7 @@ export default function ContactForm() {
           name="message"
           required
           rows={6}
-          placeholder="Décris le problème / l’objectif en 5–10 lignes : ce qui existe, ce qui ne va pas, ce que tu veux obtenir."
+          placeholder="Décris le problème / l’objectif en 5–10 lignes : ce qui existe, ce qui ne va pas, ce que vous souhaitez obtenir."
           className={fieldClass}
         />
       </div>
@@ -192,7 +192,7 @@ export default function ContactForm() {
       {/* Messages */}
       {status === "ok" && (
         <p className="text-sm text-neutral-700">
-          Message envoyé ✅ Je te réponds par email dès que possible.
+          Message envoyé ✅ Je vous réponds par email dès que possible.
         </p>
       )}
 
@@ -207,7 +207,7 @@ export default function ContactForm() {
       )}
 
       <p className="pt-2 text-xs text-neutral-500">
-        Anti-spam activé. Si tu n’as pas de réponse, vérifie tes indésirables.
+        Anti-spam activé. Si vous n’avez pas de réponse, vérifiez vos indésirables.
       </p>
     </form>
   );

@@ -141,11 +141,11 @@ export default function VisioForm() {
               name="message"
               required
               rows={5}
-              placeholder="Décris ta situation + ce que tu attends de la visio (2-5 lignes suffisent) *"
+              placeholder="Décrivez votre situation + ce que vous attendez de la visio (2-5 lignes suffisent) *"
               className={fieldClass}
             />
             <p className={hintClass}>
-              Conseil : écris comme si vous m’envoyez un message WhatsApp. Simple, direct.
+              Conseil : écrivez comme si vous m'envoyiez un message WhatsApp. Simple, direct.
             </p>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function VisioForm() {
       <section className="rounded-xl border border-neutral-200 p-6">
         <h4 className={sectionTitleClass}>Photos (recommandé)</h4>
         <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-          Ajoute 1 à 3 photos (tableau, batteries, protections, MPPT/chargeur, câblage). Sur mobile tu peux prendre une photo direct.
+          Ajoutez 1 à 3 photos (tableau, batteries, protections, MPPT/chargeur, câblage). Sur mobile, vous pouvez prendre une photo directement.
         </p>
 
         <div className="mt-4 space-y-2">
@@ -200,7 +200,7 @@ export default function VisioForm() {
             <textarea
               name="currentProblems"
               rows={4}
-              placeholder="Décris ce qui ne va pas / ce que tu veux améliorer…"
+              placeholder="Décrivez ce qui ne va pas / ce que vous voulez améliorer…"
               className={`${fieldClass} mt-4`}
             />
           </section>
@@ -283,7 +283,7 @@ export default function VisioForm() {
             <h4 className={sectionTitleClass}>Photos / schéma (lien)</h4>
 
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-              Si tu préfères : mets un lien Drive / iCloud / Dropbox vers tes photos.
+              Si vous préférez : mettez un lien Drive / iCloud / Dropbox vers vos photos.
             </p>
 
             <input
@@ -314,12 +314,12 @@ export default function VisioForm() {
 
         {status === "error" && (
           <p className="mt-3 text-sm text-neutral-800">
-            Erreur d’envoi. Réessaie ou contacte-nous par email.
+            Erreur d’envoi. Réessayez ou contactez-nous par email.
           </p>
         )}
 
         <p className="mt-3 text-xs text-neutral-500">
-          Si l’envoi échoue, écris directement à{" "}
+          Si l’envoi échoue, écrivez directement à{" "}
           <a className="underline" href="mailto:fabien.lages@fabsystem.fr">
             fabien.lages@fabsystem.fr
           </a>

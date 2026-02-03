@@ -47,7 +47,7 @@ export default function HomePage() {
       <PageHero
         title="Électricité embarquée fiable et sécurisée"
         subtitle="Pour bateaux, vans et camping-cars. Diagnostic clair, conseils concrets, installation propre et protégée."
-        micro="Objectif : une installation simple, sûre, et adaptée à ton usage."
+        micro="Objectif : une installation simple, sûre, et adaptée à votre usage."
         background="/hero-fabsystem.png"
         overlay="bg-black/50"
         ctas={[
@@ -104,7 +104,7 @@ export default function HomePage() {
             <div className="relative p-6 text-white">
               <div className="text-sm font-semibold">Accompagnement personnalisé</div>
               <p className="mt-2 text-sm leading-relaxed text-white/90">
-                Chaque installation est analysée selon ton usage, ton matériel et tes contraintes
+                Chaque installation est analysée selon votre usage, votre matériel et vos contraintes
                 réelles.
               </p>
             </div>
