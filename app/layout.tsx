@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "FabSystem – Électricité embarquée",
   description:
     "Conseil et accompagnement en électricité embarquée pour bateaux, vans et camping-cars.",
+  metadataBase: new URL("https://fabsystem.fr"),
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
