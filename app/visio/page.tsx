@@ -1,14 +1,11 @@
-import Link from "next/link";
-import VisioForm from "@/components/VisioForm";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Visio conseil en électricité embarquée | Bateau, van, camping-car",
-  description:
-    "Visio individuelle pour analyser votre installation électrique embarquée. Diagnostic clair, recommandations et plan d’action en 1 heure.",
-};
+import Link from "next/link";
+import { useState } from "react";
+import VisioForm from "@/components/VisioForm";
 
 export default function VisioPage() {
+  const [isCalOpen, setIsCalOpen] = useState(false);
   return (
     <main>
       {/* HERO */}
@@ -98,14 +95,12 @@ export default function VisioPage() {
 
             {/* CTA rappel */}
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="https://cal.com/fabien-l-typ79a"
-                target="_blank"
-                rel="noreferrer"
+              <button
+                onClick={() => setIsCalOpen(true)}
                 className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
               >
                 Réserver maintenant
-              </a>
+              </button>
 
               <Link
                 href="/contact"
@@ -135,6 +130,44 @@ export default function VisioPage() {
           </div>
         </div>
       </section>
+
+      {/* MODAL CAL */}
+      {isCalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg max-h-[85vh] overflow-hidden sm:max-h-none">
+            {/* Bouton fermer */}
+            <button
+              onClick={() => setIsCalOpen(false)}
+              className="absolute right-4 top-4 z-10 rounded-md bg-neutral-100 p-2 hover:bg-neutral-200"
+              aria-label="Fermer le formulaire"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Cal.com iframe */}
+            <iframe
+              src="https://cal.com/fabien-l-typ79a?embed=true"
+              style={{
+                width: "100%",
+                height: "100%",
+                minHeight: "500px",
+                border: "none",
+                borderRadius: "12px",
+              }}
+              frameBorder="0"
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }

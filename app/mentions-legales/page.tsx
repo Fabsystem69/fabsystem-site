@@ -15,13 +15,6 @@ export default function MentionsLegalesPage() {
               className="underline"
             >
               fabien.lages@fabsystem.fr
-            </a><br />
-            Téléphone :{" "}
-            <a
-              href="tel:+33698247722"
-              className="underline"
-            >
-              06 98 24 77 22
             </a>
           </p>
         </div>

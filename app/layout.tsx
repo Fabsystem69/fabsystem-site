@@ -15,6 +15,28 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+  openGraph: {
+    title: "FabSystem – Électricité embarquée fiable et sécurisée",
+    description:
+      "Diagnostic, conseil et installation en électricité embarquée pour bateaux, vans et camping-cars.",
+    url: "https://fabsystem.fr",
+    siteName: "FabSystem",
+    images: [
+      {
+        url: "/hero-fabsystem.png",
+        width: 1200,
+        height: 630,
+        alt: "FabSystem - Électricité embarquée",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FabSystem – Électricité embarquée",
+    description: "Diagnostic et conseil pour installations électriques embarquées",
+    images: ["/hero-fabsystem.png"],
+  },
 };
 
 export const viewport: Viewport = {

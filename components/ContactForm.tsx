@@ -49,8 +49,6 @@ export default function ContactForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
-    setStatus(null);
 
     const form = e.currentTarget;
     const formData = new FormData(form);
@@ -58,11 +56,19 @@ export default function ContactForm() {
     // Honeypot anti-spam : doit rester vide
     const hp = String(formData.get("company") || "");
     if (hp.trim().length > 0) {
-      setLoading(false);
-      setStatus("ok"); // on fait comme si c’était OK (silencieux)
+      setStatus("ok");
       form.reset();
       return;
     }
+
+    // Confirmation avant envoi
+    const email = String(formData.get("email") || "").trim();
+    if (!window.confirm(`Confirmer l'envoi à ${email} ?`)) {
+      return;
+    }
+
+    setLoading(true);
+    setStatus(null);
 
     // Petit "délai humain" anti-bot (optionnel)
     await new Promise((r) => setTimeout(r, 250));
