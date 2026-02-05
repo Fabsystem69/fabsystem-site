@@ -15,7 +15,7 @@ const brands = [
     alt: "Victron Energy",
   },
   {
-    href: "https://www.sokbattery.com",
+    href: "https://www.europe.sokbattery.com/?ref=Fabsystem",
     src: "/partners/sok-logo.png",
     alt: "SOK Battery",
   },
