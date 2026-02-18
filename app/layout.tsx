@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     "Conseil et accompagnement en électricité embarquée pour bateaux, vans et camping-cars.",
   metadataBase: new URL("https://fabsystem.fr"),
   manifest: "/manifest.webmanifest",
+
+  verification: {
+    google: "mUAK2ZWHbPW2uWY_sqRnjEE22ai4RwfVR6nk7D1MpXo",
+  },
+
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -16,6 +21,7 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
+
   openGraph: {
     title: "FabSystem – Électricité embarquée fiable et sécurisée",
     description:
@@ -32,10 +38,12 @@ export const metadata: Metadata = {
     ],
     type: "website",
   },
+
   twitter: {
     card: "summary_large_image",
     title: "FabSystem – Électricité embarquée",
-    description: "Diagnostic et conseil pour installations électriques embarquées",
+    description:
+      "Diagnostic et conseil pour installations électriques embarquées",
     images: ["/hero-fabsystem.png"],
   },
 };
