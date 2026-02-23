@@ -4,10 +4,20 @@ import Footer from "../components/Footer";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "FabSystem – Électricité embarquée",
+  metadataBase: new URL("https://www.fabsystem.fr"),
+
+  title: {
+    default: "FabSystem – Électricité embarquée",
+    template: "%s | FabSystem",
+  },
+
   description:
     "Conseil et accompagnement en électricité embarquée pour bateaux, vans et camping-cars.",
-  metadataBase: new URL("https://fabsystem.fr"),
+
+  alternates: {
+    canonical: "https://www.fabsystem.fr",
+  },
+
   manifest: "/manifest.webmanifest",
 
   verification: {
@@ -26,7 +36,7 @@ export const metadata: Metadata = {
     title: "FabSystem – Électricité embarquée fiable et sécurisée",
     description:
       "Diagnostic, conseil et installation en électricité embarquée pour bateaux, vans et camping-cars.",
-    url: "https://fabsystem.fr",
+    url: "https://www.fabsystem.fr",
     siteName: "FabSystem",
     images: [
       {
