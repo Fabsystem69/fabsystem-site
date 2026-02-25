@@ -45,9 +45,9 @@ export default function HomePage() {
   return (
     <main>
       <PageHero
-        title="Électricité embarquée fiable et sécurisée"
-        subtitle="Pour bateaux, vans et camping-cars. Diagnostic clair, conseils concrets, installation propre et protégée."
-        micro="Objectif : une installation simple, sûre, et adaptée à votre usage."
+        title="Électricité embarquée claire, fiable et maîtrisée"
+        subtitle="Bateaux, vans, camping-cars — diagnostic précis, architecture cohérente, installation sécurisée."
+        micro="Vous comprenez votre installation. Vous avancez en confiance."
         background="/hero-fabsystem.png"
         overlay="bg-black/50"
         ctas={[
