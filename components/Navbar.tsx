@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const nav = [
   { href: "/", label: "Accueil" },
@@ -18,6 +18,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [open, setOpen] = useState(false);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setOpen(false);
@@ -25,6 +26,34 @@ export default function Navbar() {
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+    // focus trap + escape key
+    if (open && drawerRef.current) {
+      const focusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(
+          'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusable.length) focusable[0].focus();
+
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setOpen(false);
+        }
+        if (e.key === "Tab" && focusable.length) {
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      };
+      document.addEventListener("keydown", handleKey);
+      return () => document.removeEventListener("keydown", handleKey);
+    }
     return () => {
       document.body.style.overflow = "";
     };
@@ -62,7 +91,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className={theme.header}>
+      <header role="navigation" className={theme.header}>
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
@@ -109,12 +138,13 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       {open && (
-        <div className="fixed inset-0 z-[999] sm:hidden">
+        <div ref={drawerRef} id="mobile-menu" className="fixed inset-0 z-[999] sm:hidden">
           {/* overlay */}
           <button
             aria-label="Fermer le menu"
             className={`fixed inset-0 ${theme.overlay}`}
             onClick={() => setOpen(false)}
+            aria-hidden="true"
           />
 
           {/* panel */}

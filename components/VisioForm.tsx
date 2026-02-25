@@ -307,13 +307,13 @@ export default function VisioForm() {
         </button>
 
         {status === "ok" && (
-          <p className="mt-3 text-sm text-neutral-800">
+          <p className="mt-3 text-sm text-neutral-800" role="status" aria-live="polite">
             Demande envoyée ✅ Vous recevrez une réponse par email.
           </p>
         )}
 
         {status === "error" && (
-          <p className="mt-3 text-sm text-neutral-800">
+          <p className="mt-3 text-sm text-neutral-800" role="status" aria-live="polite">
             Erreur d’envoi. Réessayez ou contactez-nous par email.
           </p>
         )}

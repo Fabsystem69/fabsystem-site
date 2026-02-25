@@ -197,13 +197,13 @@ export default function ContactForm() {
 
       {/* Messages */}
       {status === "ok" && (
-        <p className="text-sm text-neutral-700">
+        <p className="text-sm text-neutral-700" role="status" aria-live="polite">
           Message envoyé ✅ Je vous réponds par email dès que possible.
         </p>
       )}
 
       {status === "error" && (
-        <p className="text-sm text-neutral-700">
+        <p className="text-sm text-neutral-700" role="status" aria-live="polite">
           Erreur d’envoi. Réessaie ou écris directement à{" "}
           <a className="underline" href="mailto:fabien.lages@fabsystem.fr">
             fabien.lages@fabsystem.fr

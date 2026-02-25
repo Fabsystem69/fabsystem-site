@@ -70,6 +70,25 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className="bg-white text-neutral-900">
+        {/* structured data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Electrician",
+              name: "FabSystem",
+              url: "https://www.fabsystem.fr",
+              description:
+                "Conseil, installation et dépannage en électricité embarquée pour bateaux, vans et camping-cars.",
+              areaServed: ["bateaux", "vans", "camping-cars"],
+              sameAs: [
+                "https://www.facebook.com/fabsystem",
+                "https://www.instagram.com/fabsystem"
+              ]
+            }),
+          }}
+        />
         <Navbar />
         {children}
         <Footer />
