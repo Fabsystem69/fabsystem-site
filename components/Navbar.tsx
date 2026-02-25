@@ -32,11 +32,13 @@ export default function Navbar() {
 
   const theme = useMemo(() => {
     if (isHome) {
+      // same white banner as other pages, except we still want
+      // links in light mode (white) to contrast with the background
       return {
-        header: "absolute inset-x-0 top-0 z-30",
-        link: "text-white/90 hover:text-white",
-        linkActive: "text-white",
-        burger: "text-white",
+        header: "sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur",
+        link: "text-neutral-800 hover:text-neutral-500",
+        linkActive: "text-neutral-950",
+        burger: "text-neutral-900",
         drawerBg: "bg-white",
         drawerText: "text-neutral-900",
         overlay: "bg-black/55",
@@ -67,7 +69,7 @@ export default function Navbar() {
             <img
               src="/FabSystem-Logo.svg"
               alt="FabSystem"
-              className={`h-10 w-auto max-w-[160px] ${isHome ? "invert" : ""}`}
+              className="h-18 w-auto max-w-[240px] invert"
             />
           </Link>
 
@@ -121,7 +123,7 @@ export default function Navbar() {
               <img
                 src="/FabSystem-Logo.svg"
                 alt="FabSystem"
-                className="h-9 w-auto max-w-[160px]"
+                className="h-10 w-auto max-w-[160px] invert"
               />
               <button
                 type="button"
