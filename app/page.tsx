@@ -178,6 +178,69 @@ export default function HomePage() {
   </div>
 </section>
 
+{/* AUDIT ÉLECTRIQUE NAUTIQUE */}
+<section className="mx-auto max-w-6xl px-6 py-14">
+  <div className="mx-auto max-w-4xl text-center">
+    <h2 className="text-2xl font-semibold text-neutral-900">
+      Audit électrique nautique – conformité & sécurité
+    </h2>
+    <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+      Un diagnostic terrain (ou à distance) pour vérifier la sécurité de votre installation,
+      repérer les points à risque et définir les priorités.
+    </p>
+  </div>
+
+  <div className="mt-12 grid gap-6 sm:grid-cols-3">
+    <div className="rounded-xl border border-neutral-200 p-6">
+      <div className="text-sm font-semibold text-neutral-900">✅ Vérification</div>
+      <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+        Contrôle de l’existant : protections, câblage, charge, batteries, masses,
+        risques d’échauffement et de court-circuit.
+      </p>
+      <p className="mt-2 text-xs text-neutral-500">
+        → On confirme ce qui est fiable
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 p-6">
+      <div className="text-sm font-semibold text-neutral-900">⚠️ Risques & priorités</div>
+      <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+        Identification des points faibles et des éléments à sécuriser en priorité
+        (fusibles, sections, connexions, cheminements, ventilation).
+      </p>
+      <p className="mt-2 text-xs text-neutral-500">
+        → On liste les actions urgentes
+      </p>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 p-6">
+      <div className="text-sm font-semibold text-neutral-900">🧩 Plan d’amélioration</div>
+      <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+        Proposition d’une architecture adaptée à votre usage : distribution,
+        protections, énergie, priorités et étapes claires.
+      </p>
+      <p className="mt-2 text-xs text-neutral-500">
+        → Un plan simple à suivre
+      </p>
+    </div>
+  </div>
+
+  <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+    <a
+      href="/contact"
+      className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
+    >
+      Demander un audit
+    </a>
+    <a
+      href="/visio"
+      className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
+    >
+      Voir la visio conseil
+    </a>
+  </div>
+</section>
+
       {/* PARTENAIRES */}
       <section className="border-t border-neutral-200 bg-white py-14">
         <div className="mx-auto max-w-6xl px-6 text-center">
