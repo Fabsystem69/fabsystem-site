@@ -2,115 +2,95 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const nav = [
   { href: "/", label: "Accueil" },
   { href: "/prestations", label: "Prestations" },
   { href: "/realisations", label: "Réalisations" },
   { href: "/visio", label: "Visio" },
-  { href: "/a-propos", label: "À propos" }, // ✅ AJOUT
+  { href: "/audit-nautique", label: "Audit nautique" },
+  { href: "/a-propos", label: "À propos" },
   { href: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const isHome = pathname === "/";
-
   const [open, setOpen] = useState(false);
 
-  // Ferme le menu quand on change de page
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
 
-  // Empêche le scroll du body quand le menu est ouvert
   useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
+    document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
 
-  const headerClass = isHome
-    ? "absolute inset-x-0 top-0 z-30"
-    : "sticky top-0 z-30 border-b bg-white/90 backdrop-blur";
+  const theme = useMemo(() => {
+    if (isHome) {
+      return {
+        header: "absolute inset-x-0 top-0 z-30",
+        link: "text-white/90 hover:text-white",
+        linkActive: "text-white",
+        burger: "text-white",
+        drawerBg: "bg-white",
+        drawerText: "text-neutral-900",
+        overlay: "bg-black/55",
+      };
+    }
+    return {
+      header: "sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur",
+      link: "text-neutral-800 hover:text-neutral-500",
+      linkActive: "text-neutral-950",
+      burger: "text-neutral-900",
+      drawerBg: "bg-white",
+      drawerText: "text-neutral-900",
+      overlay: "bg-black/55",
+    };
+  }, [isHome]);
 
-  const linkClass = isHome
-    ? "text-white hover:text-white/70"
-    : "text-neutral-900 hover:text-neutral-600";
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname?.startsWith(href + "/");
+  };
 
   return (
     <>
-      <header className={headerClass}>
+      <header className={theme.header}>
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <img
               src="/FabSystem-Logo.svg"
               alt="FabSystem"
-              className={`h-15 w-auto max-w-[160px] ${isHome ? "invert" : ""}`}
+              className={`h-10 w-auto max-w-[160px] ${isHome ? "invert" : ""}`}
             />
           </Link>
 
-          {/* Menu desktop */}
+          {/* Desktop nav */}
           <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
             {nav.map((item) => (
-              <Link key={item.href} href={item.href} className={linkClass}>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`${theme.link} ${
+                  isActive(item.href) ? theme.linkActive : ""
+                }`}
+              >
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          {/* CTA desktop */}
-          <div className="hidden sm:flex items-start gap-3">
-            {/* Visio */}
-            <div className="flex flex-col items-center">
-              <Link
-                href="/visio"
-                className={
-                  isHome
-                    ? "rounded-md border border-white/70 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
-                    : "rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
-                }
-              >
-                Visio/Conseil
-              </Link>
-              <span
-                className={
-                  isHome
-                    ? "mt-1 text-xs text-white/75"
-                    : "mt-1 text-xs text-neutral-500"
-                }
-              >
-                Conseil à distance
-              </span>
-            </div>
-
-            {/* Diagnostic */}
-            <div className="flex flex-col items-center">
-              <Link
-                href="/contact"
-                className={
-                  isHome
-                    ? "rounded-md bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90"
-                    : "rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
-                }
-              >
-                Diagnostic
-              </Link>
-              <span className="mt-1 text-xs opacity-0 select-none">.</span>
-            </div>
-          </div>
-
-          {/* Burger mobile */}
+          {/* Burger */}
           <button
             type="button"
             aria-label="Ouvrir le menu"
-            className={`sm:hidden rounded-md p-2 ${
-              isHome ? "text-white" : "text-neutral-900"
-            }`}
+            className={`sm:hidden rounded-md p-2 ${theme.burger}`}
             onClick={() => setOpen(true)}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -125,16 +105,18 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Drawer mobile */}
+      {/* Mobile drawer */}
       {open && (
         <div className="fixed inset-0 z-[999] sm:hidden">
+          {/* overlay */}
           <button
             aria-label="Fermer le menu"
-            className="fixed inset-0 bg-black/60"
+            className={`fixed inset-0 ${theme.overlay}`}
             onClick={() => setOpen(false)}
           />
 
-          <div className="fixed right-0 top-0 h-full w-[85%] max-w-sm bg-white p-6 shadow-xl">
+          {/* panel */}
+          <div className={`fixed right-0 top-0 h-full w-[85%] max-w-sm ${theme.drawerBg} p-6 shadow-xl`}>
             <div className="flex items-center justify-between">
               <img
                 src="/FabSystem-Logo.svg"
@@ -158,36 +140,22 @@ export default function Navbar() {
               </button>
             </div>
 
-            <nav className="mt-8 flex flex-col gap-4 text-base font-medium text-neutral-900">
+            <nav className={`mt-8 flex flex-col text-base font-medium ${theme.drawerText}`}>
               {nav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="py-2"
+                  className={`rounded-md px-3 py-3 ${
+                    isActive(item.href)
+                      ? "bg-neutral-100 text-neutral-950"
+                      : "hover:bg-neutral-50"
+                  }`}
                   onClick={() => setOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
             </nav>
-
-            <div className="mt-8 space-y-3">
-              <Link
-                href="/visio"
-                className="inline-block w-full rounded-md border border-neutral-300 px-4 py-3 text-center text-sm font-semibold text-neutral-900"
-                onClick={() => setOpen(false)}
-              >
-                Visio/Conseil
-              </Link>
-
-              <Link
-                href="/contact"
-                className="inline-block w-full rounded-md bg-neutral-900 px-4 py-3 text-center text-sm font-semibold text-white"
-                onClick={() => setOpen(false)}
-              >
-                Diagnostic
-              </Link>
-            </div>
           </div>
         </div>
       )}

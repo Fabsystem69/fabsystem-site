@@ -1,0 +1,60 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Audit électrique nautique – conformité & sécurité | FabSystem",
+  description:
+    "Audit clair de votre installation électrique à bord : risques, priorités, recommandations concrètes. Visio ou sur place.",
+  alternates: { canonical: "https://www.fabsystem.fr/audit-nautique" },
+};
+
+export default function AuditNautiquePage() {
+  return (
+    <main className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
+      <h1 className="text-3xl font-semibold text-neutral-900 sm:text-4xl">
+        Audit électrique nautique – conformité &amp; sécurité
+      </h1>
+      <p className="mt-4 max-w-3xl text-sm leading-relaxed text-neutral-700 sm:text-base">
+        Un diagnostic clair de votre installation électrique à bord : points sûrs,
+        risques identifiés, priorités de correction et recommandations concrètes.
+      </p>
+
+      <div className="mt-8 grid gap-6 sm:grid-cols-2">
+        <div className="rounded-xl border border-neutral-200 p-6">
+          <h2 className="text-lg font-semibold text-neutral-900">Ce que nous vérifions</h2>
+          <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+            <li>• Sécurité générale (câbles, connexions, protections)</li>
+            <li>• Points à risque (échauffements, surintensités, sections)</li>
+            <li>• Architecture (batteries, charge, distribution)</li>
+            <li>• 230V à bord (si présent)</li>
+          </ul>
+        </div>
+
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
+          <h2 className="text-lg font-semibold text-neutral-900">Ce que vous recevez</h2>
+          <ul className="mt-3 space-y-2 text-sm text-neutral-700">
+            <li>• Bilan clair : OK / à surveiller / à corriger</li>
+            <li>• Corrections priorisées (urgent → confort)</li>
+            <li>• Recos matériel si nécessaire</li>
+            <li>• Plan d’action simple</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/contact"
+          className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
+        >
+          Demander un audit
+        </Link>
+        <Link
+          href="/visio"
+          className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
+        >
+          Découvrir la visio conseil
+        </Link>
+      </div>
+    </main>
+  );
+}

@@ -7,8 +7,21 @@ export default function MentionsLegalesPage() {
         <div>
           <h2 className="font-semibold text-neutral-900">Éditeur du site</h2>
           <p className="mt-2">
-            <strong>FabSystem</strong><br />
-            Responsable de la publication : Fabien Lages<br />
+            <strong>FabSystem</strong>
+            <br />
+            Entrepreneur individuel : <strong>Fabien Lages</strong>
+            <br />
+            SIREN : <strong>100 271 980</strong>
+            <br />
+            SIRET : <strong>100 271 980 00011</strong>
+            <br />
+            Code APE : <strong>4321A</strong> – Travaux d'installation électrique 
+            <br />
+            Activité principale : Installation d’équipements électriques et électroniques
+            <br />
+          
+          Responsable de la publication : <strong>Fabien Lages</strong>
+            <br />
             Email :{" "}
             <a
               href="mailto:fabien.lages@fabsystem.fr"
@@ -16,6 +29,7 @@ export default function MentionsLegalesPage() {
             >
               fabien.lages@fabsystem.fr
             </a>
+            <br />
           </p>
         </div>
 
@@ -23,18 +37,24 @@ export default function MentionsLegalesPage() {
           <h2 className="font-semibold text-neutral-900">Activité</h2>
           <p className="mt-2">
             Prestations de services dans le domaine de l’électricité embarquée
-            (bateaux, vans, camping-cars), conseil technique et accompagnement à distance.
+            (bateaux, vans, camping-cars), diagnostic technique, mise en conformité,
+            conseil et accompagnement à distance.
           </p>
         </div>
 
         <div>
           <h2 className="font-semibold text-neutral-900">Hébergement</h2>
           <p className="mt-2">
-            Le site est hébergé par :<br />
-            <strong>Vercel Inc.</strong><br />
-            440 N Barranca Ave #4133<br />
-            Covina, CA 91723<br />
-            États-Unis<br />
+            Le site est hébergé par :
+            <br />
+            <strong>Vercel Inc.</strong>
+            <br />
+            440 N Barranca Ave #4133
+            <br />
+            Covina, CA 91723
+            <br />
+            États-Unis
+            <br />
             <a
               href="https://vercel.com"
               target="_blank"
@@ -78,8 +98,9 @@ export default function MentionsLegalesPage() {
           <p className="mt-2">
             Les données personnelles collectées via les formulaires sont utilisées
             uniquement pour répondre aux demandes et ne sont jamais cédées à des tiers.
-            Conformément à la réglementation en vigueur, vous pouvez exercer vos droits
-            d’accès, de rectification ou de suppression en contactant :
+            Conformément à la réglementation en vigueur (RGPD),
+            vous pouvez exercer vos droits d’accès, de rectification ou de suppression
+            en contactant :
             <br />
             <a
               href="mailto:fabien.lages@fabsystem.fr"
