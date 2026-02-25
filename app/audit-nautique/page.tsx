@@ -32,24 +32,32 @@ export default function AuditNautiquePage() {
       </section>
 
       <div className="mx-auto max-w-6xl px-6 py-14 sm:py-16 mt-8 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-xl border border-neutral-200 p-6">
-          <h2 className="text-lg font-semibold text-neutral-900">Ce que nous vérifions</h2>
-          <ul className="mt-3 space-y-2 text-sm text-neutral-700">
-            <li>• Sécurité générale (câbles, connexions, protections)</li>
-            <li>• Points à risque (échauffements, surintensités, sections)</li>
-            <li>• Architecture (batteries, charge, distribution)</li>
-            <li>• 230V à bord (si présent)</li>
-          </ul>
+        <div className="relative overflow-hidden rounded-xl border border-neutral-200">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/preuves/cable.png')" }} />
+          <div className="absolute inset-0 bg-black/55" />
+          <div className="relative p-6 text-white">
+            <h2 className="text-lg font-semibold">Ce que nous vérifions</h2>
+            <ul className="mt-3 space-y-2 text-sm text-white">
+              <li>• Sécurité générale (câbles, connexions, protections)</li>
+              <li>• Points à risque (échauffements, surintensités, sections)</li>
+              <li>• Architecture (batteries, charge, distribution)</li>
+              <li>• 230V à bord (si présent)</li>
+            </ul>
+          </div>
         </div>
 
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">
-          <h2 className="text-lg font-semibold text-neutral-900">Ce que vous recevez</h2>
-          <ul className="mt-3 space-y-2 text-sm text-neutral-700">
-            <li>• Bilan clair : OK / à surveiller / à corriger</li>
-            <li>• Corrections priorisées (urgent → confort)</li>
-            <li>• Recos matériel si nécessaire</li>
-            <li>• Plan d’action simple</li>
-          </ul>
+        <div className="relative overflow-hidden rounded-xl border border-neutral-200">
+          <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/preuves/victronbaylinermini.png')" }} />
+          <div className="absolute inset-0 bg-black/55" />
+          <div className="relative p-6 text-white">
+            <h2 className="text-lg font-semibold">Ce que vous recevez</h2>
+            <ul className="mt-3 space-y-2 text-sm text-white">
+              <li>• Bilan clair : OK / à surveiller / à corriger</li>
+              <li>• Corrections priorisées (urgent → confort)</li>
+              <li>• Recos matériel si nécessaire</li>
+              <li>• Plan d’action simple</li>
+            </ul>
+          </div>
         </div>
       </div>
 
