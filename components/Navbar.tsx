@@ -69,7 +69,7 @@ export default function Navbar() {
             <img
               src="/FabSystem-Logo.svg"
               alt="FabSystem"
-              className="h-18 w-auto max-w-[240px] invert"
+              className="h-18 w-auto max-w-[240px]"
             />
           </Link>
 
@@ -123,7 +123,7 @@ export default function Navbar() {
               <img
                 src="/FabSystem-Logo.svg"
                 alt="FabSystem"
-                className="h-10 w-auto max-w-[160px] invert"
+                className="h-10 w-auto max-w-[160px]"
               />
               <button
                 type="button"
