@@ -1,3 +1,4 @@
+import PageHero from "@/components/PageHero";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -10,46 +11,17 @@ export const metadata: Metadata = {
 export default function AuditNautiquePage() {
   return (
     <main className="bg-white text-neutral-900">
-      {/* HERO */}
-      <section className="border-b border-neutral-200">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-              Audit électrique nautique
-            </p>
-
-            <h1 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl">
-              Conformité, sécurité et fiabilité de votre installation à bord
-            </h1>
-
-            <p className="mt-4 text-base leading-relaxed text-neutral-700">
-              Un audit clair et pédagogique pour comprendre votre installation 12V / 230V,
-              identifier les risques, et repartir avec un plan d’action concret.
-              Objectif : éviter les bricolages dangereux et fiabiliser le système pour durer.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href="/contact"
-                className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
-              >
-                Demander un audit
-              </Link>
-
-              <Link
-                href="/visio"
-                className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 sm:w-auto"
-              >
-                Visio conseil
-              </Link>
-            </div>
-
-            <p className="mt-4 text-xs text-neutral-500">
-              Intervention sur place ou accompagnement à distance selon votre besoin.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        title="Audit électrique nautique"
+        subtitle="Conformité, sécurité et fiabilité de votre installation à bord."
+        micro="Un audit clair et pédagogique pour comprendre votre installation 12V / 230V, identifier les risques, et repartir avec un plan d’action concret."
+        background="/hero-fabsystem.png"
+        overlay="bg-black/55"
+        ctas={[
+          { href: "/contact", label: "Demander un audit", variant: "primary" },
+          { href: "/visio", label: "Visio conseil", variant: "secondary" },
+        ]}
+      />
 
       {/* POUR QUI / QUAND */}
       <section className="mx-auto max-w-6xl px-6 py-14">
