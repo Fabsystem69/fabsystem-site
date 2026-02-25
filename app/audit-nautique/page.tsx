@@ -1,3 +1,4 @@
+import PageHero from "@/components/PageHero";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -10,16 +11,27 @@ export const metadata: Metadata = {
 
 export default function AuditNautiquePage() {
   return (
-    <main className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
-      <h1 className="text-3xl font-semibold text-neutral-900 sm:text-4xl">
-        Audit électrique nautique – conformité &amp; sécurité
-      </h1>
-      <p className="mt-4 max-w-3xl text-sm leading-relaxed text-neutral-700 sm:text-base">
-        Un diagnostic clair de votre installation électrique à bord : points sûrs,
-        risques identifiés, priorités de correction et recommandations concrètes.
-      </p>
+    <main>
+      <PageHero
+        title="Audit électrique nautique – conformité & sécurité"
+        subtitle="Diagnostic clair de votre installation à bord : risques, priorités et recommandations."
+        background="/hero-fabsystem.png"
+        overlay="bg-black/50"
+        ctas={[
+          { href: "/contact", label: "Demander un audit", variant: "primary" },
+          { href: "/visio", label: "Découvrir la visio conseil", variant: "secondary" },
+        ]}
+      />
 
-      <div className="mt-8 grid gap-6 sm:grid-cols-2">
+      <section className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
+        <h2 className="sr-only">Détails de l'audit</h2>
+        <p className="mt-4 max-w-3xl text-sm leading-relaxed text-neutral-700 sm:text-base">
+          Un diagnostic clair de votre installation électrique à bord : points sûrs,
+          risques identifiés, priorités de correction et recommandations concrètes.
+        </p>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-6 py-14 sm:py-16 mt-8 grid gap-6 sm:grid-cols-2">
         <div className="rounded-xl border border-neutral-200 p-6">
           <h2 className="text-lg font-semibold text-neutral-900">Ce que nous vérifions</h2>
           <ul className="mt-3 space-y-2 text-sm text-neutral-700">
