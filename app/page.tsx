@@ -1,5 +1,5 @@
 import PageHero from "@/components/PageHero";
-import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -268,9 +268,11 @@ export default function HomePage() {
                 aria-label={brand.alt}
                 title={brand.alt}
               >
-                <img
+                <Image
                   src={brand.src}
                   alt={brand.alt}
+                  width={120}
+                  height={40}
                   className="h-10 w-auto max-w-[120px] object-contain opacity-80 grayscale transition hover:opacity-100 hover:grayscale-0"
                   loading="lazy"
                 />

@@ -15,7 +15,7 @@ export default function MentionsLegalesPage() {
             <br />
             SIRET : <strong>100 271 980 00011</strong>
             <br />
-            Code APE : <strong>4321A</strong> – Travaux d'installation électrique 
+            Code APE : <strong>4321A</strong> – Travaux d&apos;installation électrique 
             <br />
             Activité principale : Installation d’équipements électriques et électroniques
             <br />

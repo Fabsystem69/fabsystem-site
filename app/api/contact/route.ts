@@ -2,8 +2,11 @@ import nodemailer from "nodemailer";
 
 export const runtime = "nodejs"; // important pour nodemailer sur Vercel
 
-function pick(obj: Record<string, any>, keys: string[]) {
-  const out: Record<string, any> = {};
+type PayloadValue = string | number | boolean | null | undefined;
+type Payload = Record<string, PayloadValue>;
+
+function pick(obj: Payload, keys: string[]) {
+  const out: Payload = {};
   for (const k of keys) {
     if (obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") {
       out[k] = obj[k];
@@ -12,7 +15,7 @@ function pick(obj: Record<string, any>, keys: string[]) {
   return out;
 }
 
-function safeText(v: any) {
+function safeText(v: unknown) {
   return typeof v === "string" ? v : v === undefined || v === null ? "" : String(v);
 }
 
@@ -22,12 +25,12 @@ export async function POST(req: Request) {
 
     // ✅ Anti-spam honeypot
     // (on checkera "company" quelle que soit la forme)
-    let payload: Record<string, any> = {};
-    let attachments: { filename: string; content: Buffer; contentType?: string }[] = [];
+    let payload: Payload = {};
+    const attachments: { filename: string; content: Buffer; contentType?: string }[] = [];
 
     // 1) JSON (ancien comportement : ContactForm)
     if (contentType.includes("application/json")) {
-      payload = await req.json().catch(() => ({}));
+      payload = (await req.json().catch(() => ({}))) as Payload;
       if (payload.company) {
         return Response.json({ ok: true }, { status: 200 }); // spam silencieux
       }
@@ -155,7 +158,7 @@ export async function POST(req: Request) {
     });
 
     return Response.json({ ok: true }, { status: 200 });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("API CONTACT ERROR:", err);
     return Response.json(
       { ok: false, error: "Erreur serveur." },

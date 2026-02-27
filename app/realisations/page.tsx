@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -58,9 +59,11 @@ export default function RealisationsPage() {
           </p>
 
           <div className="mt-6 overflow-hidden rounded-lg border bg-neutral-50 shadow-sm">
-            <img
+            <Image
               src="/realisations/realisation-avant.jpg"
               alt="Installation électrique avant intervention"
+              width={1600}
+              height={900}
               className="h-auto w-full object-cover"
               loading="lazy"
             />
@@ -77,18 +80,22 @@ export default function RealisationsPage() {
 
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <div className="overflow-hidden rounded-lg border bg-neutral-50 shadow-sm">
-              <img
+              <Image
                 src="/realisations/realisation-apres-1.jpg"
                 alt="Installation électrique après intervention (vue 1)"
+                width={1600}
+                height={900}
                 className="h-auto w-full object-cover"
                 loading="lazy"
               />
             </div>
 
             <div className="overflow-hidden rounded-lg border bg-neutral-50 shadow-sm">
-              <img
+              <Image
                 src="/realisations/realisation-apres-2.jpg"
                 alt="Installation électrique après intervention (vue 2)"
+                width={1600}
+                height={900}
                 className="h-auto w-full object-cover"
                 loading="lazy"
               />

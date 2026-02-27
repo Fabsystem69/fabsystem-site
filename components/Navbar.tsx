@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -19,10 +20,6 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const [open, setOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -95,9 +92,11 @@ export default function Navbar() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <img
+            <Image
               src="/FabSystem-Logo.svg"
               alt="FabSystem"
+              width={240}
+              height={72}
               className="h-18 w-auto max-w-[240px]"
             />
           </Link>
@@ -150,9 +149,11 @@ export default function Navbar() {
           {/* panel */}
           <div className={`fixed right-0 top-0 h-full w-[85%] max-w-sm ${theme.drawerBg} p-6 shadow-xl`}>
             <div className="flex items-center justify-between">
-              <img
+              <Image
                 src="/FabSystem-Logo.svg"
                 alt="FabSystem"
+                width={160}
+                height={40}
                 className="h-10 w-auto max-w-[160px]"
               />
               <button

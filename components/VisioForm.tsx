@@ -145,7 +145,7 @@ export default function VisioForm() {
               className={fieldClass}
             />
             <p className={hintClass}>
-              Conseil : écrivez comme si vous m'envoyiez un message WhatsApp. Simple, direct.
+              Conseil : écrivez comme si vous m&apos;envoyiez un message WhatsApp. Simple, direct.
             </p>
           </div>
         </div>

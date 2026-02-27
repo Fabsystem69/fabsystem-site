@@ -1,5 +1,8 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+Admin auth uses `.env.local`. Keep the bcrypt hash quoted, for example `AUTH_ADMIN_PASSWORD_HASH='$2b$10$...'`; the login route also falls back to the raw `.env.local` value if Next mangles `process.env`.
+Generate a hash with `node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"`.
+
 ## Getting Started
 
 First, run the development server:

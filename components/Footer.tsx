@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -7,9 +8,11 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-3">
           {/* Bloc 1 */}
           <div>
-            <img
+            <Image
               src="/FabSystem-Logo.svg"
               alt="FabSystem"
+              width={160}
+              height={48}
               className="h-12 w-auto max-w-[160px]"
             />
             <p className="mt-4 text-sm text-neutral-600">
