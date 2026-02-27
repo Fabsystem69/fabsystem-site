@@ -3,6 +3,23 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 Admin auth uses `.env.local`. Keep the bcrypt hash quoted, for example `AUTH_ADMIN_PASSWORD_HASH='$2b$10$...'`; the login route also falls back to the raw `.env.local` value if Next mangles `process.env`.
 Generate a hash with `node -e "console.log(require('bcryptjs').hashSync('your-password', 10))"`.
 
+## Environment
+
+Copy `.env.example` to `.env.local` and fill in the real values.
+
+Required variables:
+
+- `AUTH_ADMIN_EMAIL`
+- `AUTH_ADMIN_PASSWORD_HASH`
+- `AUTH_SESSION_SECRET`
+- `AUTH_COOKIE_NAME`
+- `DATABASE_URL`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `MAIL_TO`
+
 ## Getting Started
 
 First, run the development server:
@@ -34,6 +51,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This repo is prepared for Vercel with [vercel.json](/Users/fabienlages/Desktop/fabsystem-site/vercel.json):
+
+- install command: `npm install`
+- build command: `npx prisma migrate deploy && next build`
+
+Before the first deploy, add the same variables as `.env.example` in the Vercel project settings.
+
+Useful Prisma commands:
+
+- local init/update: `npx prisma migrate dev --name init_documents`
+- Vercel / production: `npx prisma migrate deploy`
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
