@@ -9,7 +9,7 @@
  * 🟢 You can import this file directly.
  */
 
-import type * as runtime from "@/lib/prisma-runtime"
+import type * as runtime from "@prisma/client/runtime/client"
 import * as $Enums from "./enums"
 import type * as Prisma from "./internal/prismaNamespace"
 
