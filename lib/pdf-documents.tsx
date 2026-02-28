@@ -60,6 +60,10 @@ type DocumentData = {
 };
 
 const MIN_EMPTY_DESIGNATION_ROWS = 0;
+const TABLE_QTY_WIDTH = 44;
+const TABLE_AMOUNT_WIDTH = 82;
+const TABLE_CELL_VERTICAL_PADDING = 6;
+const TABLE_CELL_HORIZONTAL_PADDING = 8;
 
 const styles = StyleSheet.create({
   pageWithFooter: {
@@ -202,28 +206,46 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+    alignItems: "stretch",
   },
   lastRow: {
     borderBottomWidth: 0,
   },
   cellDescription: {
-    flex: 1.8,
-    padding: 8,
-    lineHeight: 1.25,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    paddingTop: TABLE_CELL_VERTICAL_PADDING,
+    paddingBottom: TABLE_CELL_VERTICAL_PADDING,
+    paddingLeft: TABLE_CELL_HORIZONTAL_PADDING,
+    paddingRight: TABLE_CELL_HORIZONTAL_PADDING,
+    lineHeight: 1.18,
   },
   cellQty: {
-    flex: 0.5,
-    padding: 8,
+    width: TABLE_QTY_WIDTH,
+    flexShrink: 0,
+    paddingTop: TABLE_CELL_VERTICAL_PADDING,
+    paddingBottom: TABLE_CELL_VERTICAL_PADDING,
+    paddingLeft: 6,
+    paddingRight: TABLE_CELL_HORIZONTAL_PADDING,
     textAlign: "right",
   },
   cellPrice: {
-    flex: 0.8,
-    padding: 8,
+    width: TABLE_AMOUNT_WIDTH,
+    flexShrink: 0,
+    paddingTop: TABLE_CELL_VERTICAL_PADDING,
+    paddingBottom: TABLE_CELL_VERTICAL_PADDING,
+    paddingLeft: 6,
+    paddingRight: TABLE_CELL_HORIZONTAL_PADDING,
     textAlign: "right",
   },
   cellTotal: {
-    flex: 0.8,
-    padding: 8,
+    width: TABLE_AMOUNT_WIDTH,
+    flexShrink: 0,
+    paddingTop: TABLE_CELL_VERTICAL_PADDING,
+    paddingBottom: TABLE_CELL_VERTICAL_PADDING,
+    paddingLeft: 6,
+    paddingRight: TABLE_CELL_HORIZONTAL_PADDING,
     textAlign: "right",
   },
   totalsWrap: {
