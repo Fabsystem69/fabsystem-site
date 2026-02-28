@@ -59,11 +59,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 24,
     gap: 24,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e7e5e4",
   },
   companyWrap: {
     flexDirection: "row",
     gap: 14,
-    maxWidth: 300,
+    maxWidth: 320,
+    alignItems: "center",
   },
   logo: {
     width: 64,
@@ -79,20 +83,42 @@ const styles = StyleSheet.create({
   companyText: {
     gap: 3,
   },
+  companyEyebrow: {
+    fontSize: 8,
+    color: "#78716c",
+    letterSpacing: 0.6,
+  },
   companyName: {
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 700,
+    color: "#111827",
   },
   companyMeta: {
     color: "#525252",
   },
   titleWrap: {
     alignItems: "flex-end",
-    gap: 4,
+    gap: 6,
+    minWidth: 170,
+  },
+  titleBadge: {
+    fontSize: 8,
+    color: "#0f172a",
+    backgroundColor: "#e2e8f0",
+    borderRadius: 999,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 8,
+    paddingRight: 8,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 700,
+    color: "#0f172a",
+  },
+  titleNumber: {
+    fontSize: 11,
+    color: "#475569",
   },
   columns: {
     flexDirection: "row",
@@ -102,15 +128,17 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: "#e7e5e4",
+    backgroundColor: "#fcfcfb",
+    borderRadius: 12,
+    padding: 14,
     gap: 6,
   },
   cardTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 700,
-    marginBottom: 2,
+    marginBottom: 4,
+    color: "#44403c",
   },
   label: {
     color: "#737373",
@@ -118,24 +146,24 @@ const styles = StyleSheet.create({
   },
   table: {
     borderWidth: 1,
-    borderColor: "#e5e5e5",
-    borderRadius: 8,
+    borderColor: "#e7e5e4",
+    borderRadius: 12,
     overflow: "hidden",
     marginBottom: 20,
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f3f4f6",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
+    borderBottomColor: "#e7e5e4",
     fontSize: 9,
     fontWeight: 700,
-    color: "#404040",
+    color: "#374151",
   },
   row: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#f5f5f5",
+    borderBottomColor: "#f3f4f6",
   },
   lastRow: {
     borderBottomWidth: 0,
@@ -163,9 +191,10 @@ const styles = StyleSheet.create({
     marginLeft: "auto",
     width: 220,
     borderWidth: 1,
-    borderColor: "#e5e5e5",
-    borderRadius: 8,
-    padding: 12,
+    borderColor: "#cbd5e1",
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    padding: 14,
     gap: 6,
   },
   totalRow: {
@@ -175,6 +204,7 @@ const styles = StyleSheet.create({
   totalStrong: {
     fontWeight: 700,
     fontSize: 11,
+    color: "#0f172a",
   },
   notesWrap: {
     marginTop: 20,
@@ -357,6 +387,7 @@ function PdfDocument({
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
             {logoSrc ? <Image src={logoSrc} style={styles.logo} /> : null}
             <View style={styles.companyText}>
+              <Text style={styles.companyEyebrow}>DOCUMENT COMMERCIAL</Text>
               <Text style={styles.companyName}>{site.name}</Text>
               <Text style={styles.companyMeta}>{site.tagline}</Text>
               <Text style={styles.companyMeta}>{site.location}</Text>
@@ -366,8 +397,11 @@ function PdfDocument({
           </View>
 
           <View style={styles.titleWrap}>
+            <Text style={styles.titleBadge}>
+              {data.kind === "quote" ? "Édition devis" : "Édition facture"}
+            </Text>
             <Text style={styles.title}>{title}</Text>
-            <Text>{data.number}</Text>
+            <Text style={styles.titleNumber}>{data.number}</Text>
           </View>
         </View>
 
