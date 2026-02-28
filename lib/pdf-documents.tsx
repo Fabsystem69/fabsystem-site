@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     width: 292,
     alignSelf: "flex-end",
     marginTop: 14,
-    marginBottom: 4,
+    marginBottom: 12,
     paddingTop: 8,
     paddingBottom: 8,
     paddingLeft: 10,
@@ -673,6 +673,13 @@ function PdfDocument({
 
         <View style={styles.bottomRow}>
           <View style={styles.mentionsBox}>
+            {data.notes ? (
+              <>
+                <Text style={styles.cardTitle}>Notes</Text>
+                <Text style={styles.mention}>{data.notes}</Text>
+              </>
+            ) : null}
+
             <Text style={styles.cardTitle}>Mentions</Text>
             {mentions.map((mention) => (
               <Text key={mention} style={styles.mention}>
@@ -693,13 +700,6 @@ function PdfDocument({
             <Text style={styles.vatNotice}>TVA non applicable – article 293 B du CGI</Text>
           </View>
         </View>
-
-        {data.notes ? (
-          <View style={styles.notesWrap}>
-            <Text style={styles.cardTitle}>Notes</Text>
-            <Text style={styles.mention}>{data.notes}</Text>
-          </View>
-        ) : null}
 
         {data.kind === "quote" ? (
           <View style={{ flexGrow: 1 }} />
