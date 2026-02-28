@@ -59,21 +59,25 @@ type DocumentData = {
   signatureDataUrl?: string | null;
 };
 
+const MIN_EMPTY_DESIGNATION_ROWS = 5;
+
 const styles = StyleSheet.create({
   pageWithFooter: {
-    paddingTop: 18,
-    paddingLeft: 18,
-    paddingRight: 18,
-    paddingBottom: 88,
+    paddingTop: 24,
+    paddingLeft: 24,
+    paddingRight: 24,
+    paddingBottom: 96,
     fontSize: 10,
     color: "#171717",
     fontFamily: "Helvetica",
   },
-  page: {},
+  page: {
+    fontSize: 9,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 24,
+    marginBottom: 32,
     gap: 24,
     paddingBottom: 14,
     borderBottomWidth: 1,
@@ -100,25 +104,26 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   companyEyebrow: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: "#78716c",
     letterSpacing: 0.6,
   },
   companyName: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: 700,
     color: "#111827",
   },
   companyMeta: {
     color: "#525252",
+    fontSize: 8,
   },
   titleWrap: {
     alignItems: "flex-end",
-    gap: 6,
+    gap: 8,
     minWidth: 170,
   },
   titleBadge: {
-    fontSize: 8,
+    fontSize: 7.2,
     color: "#0f172a",
     backgroundColor: "#e2e8f0",
     borderRadius: 999,
@@ -128,18 +133,18 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 700,
     color: "#0f172a",
   },
   titleNumber: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#475569",
   },
   columns: {
     flexDirection: "row",
     gap: 18,
-    marginBottom: 20,
+    marginBottom: 28,
   },
   card: {
     flex: 1,
@@ -147,60 +152,61 @@ const styles = StyleSheet.create({
     borderColor: "#e7e5e4",
     backgroundColor: "#fcfcfb",
     borderRadius: 12,
-    padding: 14,
-    gap: 6,
+    padding: 16,
+    gap: 8,
   },
   cardTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 700,
-    marginBottom: 4,
+    marginBottom: 6,
     color: "#44403c",
   },
   label: {
     color: "#737373",
-    fontSize: 9,
+    fontSize: 8,
   },
   table: {
     borderWidth: 1,
     borderColor: "#e7e5e4",
     borderRadius: 12,
     overflow: "hidden",
-    marginBottom: 20,
+    marginBottom: 24,
   },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#f3f4f6",
     borderBottomWidth: 1,
     borderBottomColor: "#e7e5e4",
-    fontSize: 9,
+    fontSize: 8.2,
     fontWeight: 700,
     color: "#374151",
   },
   row: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: "#e5e7eb",
   },
   lastRow: {
     borderBottomWidth: 0,
   },
   cellDescription: {
     flex: 1.8,
-    padding: 10,
+    padding: 12,
+    lineHeight: 1.35,
   },
   cellQty: {
     flex: 0.5,
-    padding: 10,
+    padding: 12,
     textAlign: "right",
   },
   cellPrice: {
     flex: 0.8,
-    padding: 10,
+    padding: 12,
     textAlign: "right",
   },
   cellTotal: {
     flex: 0.8,
-    padding: 10,
+    padding: 12,
     textAlign: "right",
   },
   totalsWrap: {
@@ -210,7 +216,7 @@ const styles = StyleSheet.create({
     borderColor: "#cbd5e1",
     backgroundColor: "#f8fafc",
     borderRadius: 12,
-    padding: 14,
+    padding: 16,
     gap: 6,
   },
   totalRow: {
@@ -223,13 +229,13 @@ const styles = StyleSheet.create({
     color: "#0f172a",
   },
   notesWrap: {
-    marginTop: 20,
+    marginTop: 28,
     gap: 6,
   },
   signatureContainer: {
     width: 292,
     alignSelf: "center",
-    marginTop: 18,
+    marginTop: 24,
     paddingTop: 10,
     paddingBottom: 10,
     paddingLeft: 12,
@@ -250,7 +256,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
     color: "#525252",
-    lineHeight: 1.3,
+    lineHeight: 1.4,
   },
   signatureMetaRow: {
     flexDirection: "row",
@@ -280,7 +286,7 @@ const styles = StyleSheet.create({
   },
   signatureImage: {
     width: 128,
-    height: 42,
+    height: 48,
     objectFit: "contain",
   },
   signatureLine: {
@@ -292,11 +298,12 @@ const styles = StyleSheet.create({
   vatNotice: {
     marginTop: 10,
     color: "#525252",
-    fontSize: 9,
+    fontSize: 8,
   },
   mention: {
     color: "#525252",
-    lineHeight: 1.4,
+    fontSize: 8.5,
+    lineHeight: 1.5,
   },
   footer: {
     position: "absolute",
@@ -356,7 +363,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   cgvContainer: {
-    width: 408,
+    width: 430,
     alignSelf: "center",
   },
   cgvTitle: {
@@ -373,7 +380,7 @@ const styles = StyleSheet.create({
     color: "#444444",
   },
   cgvBlock: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   cgvHeading: {
     fontSize: 8.5,
@@ -382,7 +389,7 @@ const styles = StyleSheet.create({
   },
   cgvBody: {
     fontSize: 8.1,
-    lineHeight: 1.18,
+    lineHeight: 1.25,
     textAlign: "justify",
   },
   cgvParagraph: {
@@ -485,6 +492,8 @@ function PdfDocument({
   const { totalHt, totalTtc } = getPdfTotals(data);
   const cgvBlocks = CGV_PARAGRAPHS.map(splitCgvParagraph);
   const customerAssetSummary = formatCustomerAssetSummary(data.customer);
+  const fillerRowCount = data.items.length <= 4 ? MIN_EMPTY_DESIGNATION_ROWS : 0;
+  const fillerRows = Array.from({ length: fillerRowCount }, (_, index) => index);
 
   return (
     <Document title={`${title} ${data.number}`}>
@@ -570,13 +579,30 @@ function PdfDocument({
               key={`${item.position}-${item.description}`}
               style={[
                 styles.row,
-                ...(index === data.items.length - 1 ? [styles.lastRow] : []),
+                ...(index === data.items.length - 1 && fillerRows.length === 0
+                  ? [styles.lastRow]
+                  : []),
               ]}
             >
               <Text style={styles.cellDescription}>{item.description}</Text>
               <Text style={styles.cellQty}>{item.quantity}</Text>
               <Text style={styles.cellPrice}>{formatEuroFromCents(item.unitPrice)}</Text>
               <Text style={styles.cellTotal}>{formatEuroFromCents(item.lineTotal)}</Text>
+            </View>
+          ))}
+
+          {fillerRows.map((rowIndex) => (
+            <View
+              key={`empty-row-${rowIndex}`}
+              style={[
+                styles.row,
+                ...(rowIndex === fillerRows.length - 1 ? [styles.lastRow] : []),
+              ]}
+            >
+              <Text style={styles.cellDescription}> </Text>
+              <Text style={styles.cellQty}> </Text>
+              <Text style={styles.cellPrice}> </Text>
+              <Text style={styles.cellTotal}> </Text>
             </View>
           ))}
         </View>
