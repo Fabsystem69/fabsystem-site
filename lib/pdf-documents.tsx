@@ -41,6 +41,10 @@ type DocumentData = {
   total: number;
   customer: CustomerInfo;
   items: DocumentItem[];
+  signedAt?: Date | null;
+  signedName?: string | null;
+  agreementChecked?: boolean;
+  signatureDataUrl?: string | null;
 };
 
 const styles = StyleSheet.create({
@@ -209,6 +213,25 @@ const styles = StyleSheet.create({
   notesWrap: {
     marginTop: 20,
     gap: 6,
+  },
+  signatureSection: {
+    marginTop: 18,
+    borderWidth: 1,
+    borderColor: "#d6d3d1",
+    borderRadius: 12,
+    padding: 14,
+    gap: 6,
+  },
+  signatureImage: {
+    width: 160,
+    height: 60,
+    objectFit: "contain",
+  },
+  signaturePlaceholder: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#d6d3d1",
   },
   vatNotice: {
     marginTop: 10,
@@ -480,6 +503,25 @@ function PdfDocument({
             </Text>
           ))}
         </View>
+
+        {data.kind === "quote" ? (
+          <View style={styles.signatureSection}>
+            <Text style={styles.cardTitle}>Bon pour accord</Text>
+            {data.signedName ? <Text>Nom: {data.signedName}</Text> : null}
+            {data.signedAt ? <Text>Date: {formatDate(data.signedAt)}</Text> : null}
+            {data.signatureDataUrl ? (
+              <>
+                {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                <Image src={data.signatureDataUrl} style={styles.signatureImage} />
+                <Text>Accord client: {data.agreementChecked ? "Oui" : "Non"}</Text>
+              </>
+            ) : (
+              <View style={styles.signaturePlaceholder}>
+                <Text>Signature client:</Text>
+              </View>
+            )}
+          </View>
+        ) : null}
 
         <PdfFooter logoSrc={logoSrc} qrDataUrl={qrDataUrl} />
       </Page>

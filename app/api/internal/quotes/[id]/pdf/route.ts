@@ -55,6 +55,10 @@ export async function GET(_: Request, { params }: Params) {
         total: quote.total,
         customer: quote.customer,
         items: quote.items,
+        signedAt: quote.signedAt,
+        signedName: quote.signedName,
+        agreementChecked: quote.agreementChecked,
+        signatureDataUrl: quote.signatureDataUrl,
       },
       qrDataUrl
     );

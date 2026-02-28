@@ -36,20 +36,28 @@ model Customer {
 }
 
 model Quote {
-  id         String      @id @default(cuid())
-  number     String      @unique
-  status     QuoteStatus @default(DRAFT)
-  customerId String
-  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  issueDate  DateTime
-  validUntil DateTime?
-  notes      String?
-  subtotal   Int
-  tax        Int
-  total      Int
-  items      QuoteItem[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id                       String      @id @default(cuid())
+  number                   String      @unique
+  status                   QuoteStatus @default(DRAFT)
+  customerId               String
+  customer                 Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  issueDate                DateTime
+  validUntil               DateTime?
+  notes                    String?
+  subtotal                 Int
+  tax                      Int
+  total                    Int
+  signedAt                 DateTime?
+  signedName               String?
+  agreementChecked         Boolean     @default(false)
+  signatureDataUrl         String?
+  signatureTokenHash       String?
+  signatureTokenExpiresAt  DateTime?
+  signatureIp              String?
+  signatureUserAgent       String?
+  items                    QuoteItem[]
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
 
   @@index([customerId])
 }

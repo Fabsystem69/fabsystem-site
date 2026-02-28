@@ -847,6 +847,14 @@ export const QuoteScalarFieldEnum = {
   subtotal: 'subtotal',
   tax: 'tax',
   total: 'total',
+  signedAt: 'signedAt',
+  signedName: 'signedName',
+  agreementChecked: 'agreementChecked',
+  signatureDataUrl: 'signatureDataUrl',
+  signatureTokenHash: 'signatureTokenHash',
+  signatureTokenExpiresAt: 'signatureTokenExpiresAt',
+  signatureIp: 'signatureIp',
+  signatureUserAgent: 'signatureUserAgent',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -981,6 +989,13 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

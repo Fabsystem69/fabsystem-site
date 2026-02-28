@@ -49,6 +49,14 @@ export type QuoteMinAggregateOutputType = {
   subtotal: number | null
   tax: number | null
   total: number | null
+  signedAt: Date | null
+  signedName: string | null
+  agreementChecked: boolean | null
+  signatureDataUrl: string | null
+  signatureTokenHash: string | null
+  signatureTokenExpiresAt: Date | null
+  signatureIp: string | null
+  signatureUserAgent: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -64,6 +72,14 @@ export type QuoteMaxAggregateOutputType = {
   subtotal: number | null
   tax: number | null
   total: number | null
+  signedAt: Date | null
+  signedName: string | null
+  agreementChecked: boolean | null
+  signatureDataUrl: string | null
+  signatureTokenHash: string | null
+  signatureTokenExpiresAt: Date | null
+  signatureIp: string | null
+  signatureUserAgent: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -79,6 +95,14 @@ export type QuoteCountAggregateOutputType = {
   subtotal: number
   tax: number
   total: number
+  signedAt: number
+  signedName: number
+  agreementChecked: number
+  signatureDataUrl: number
+  signatureTokenHash: number
+  signatureTokenExpiresAt: number
+  signatureIp: number
+  signatureUserAgent: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -108,6 +132,14 @@ export type QuoteMinAggregateInputType = {
   subtotal?: true
   tax?: true
   total?: true
+  signedAt?: true
+  signedName?: true
+  agreementChecked?: true
+  signatureDataUrl?: true
+  signatureTokenHash?: true
+  signatureTokenExpiresAt?: true
+  signatureIp?: true
+  signatureUserAgent?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -123,6 +155,14 @@ export type QuoteMaxAggregateInputType = {
   subtotal?: true
   tax?: true
   total?: true
+  signedAt?: true
+  signedName?: true
+  agreementChecked?: true
+  signatureDataUrl?: true
+  signatureTokenHash?: true
+  signatureTokenExpiresAt?: true
+  signatureIp?: true
+  signatureUserAgent?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -138,6 +178,14 @@ export type QuoteCountAggregateInputType = {
   subtotal?: true
   tax?: true
   total?: true
+  signedAt?: true
+  signedName?: true
+  agreementChecked?: true
+  signatureDataUrl?: true
+  signatureTokenHash?: true
+  signatureTokenExpiresAt?: true
+  signatureIp?: true
+  signatureUserAgent?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -240,6 +288,14 @@ export type QuoteGroupByOutputType = {
   subtotal: number
   tax: number
   total: number
+  signedAt: Date | null
+  signedName: string | null
+  agreementChecked: boolean
+  signatureDataUrl: string | null
+  signatureTokenHash: string | null
+  signatureTokenExpiresAt: Date | null
+  signatureIp: string | null
+  signatureUserAgent: string | null
   createdAt: Date
   updatedAt: Date
   _count: QuoteCountAggregateOutputType | null
@@ -278,6 +334,14 @@ export type QuoteWhereInput = {
   subtotal?: Prisma.IntFilter<"Quote"> | number
   tax?: Prisma.IntFilter<"Quote"> | number
   total?: Prisma.IntFilter<"Quote"> | number
+  signedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  signedName?: Prisma.StringNullableFilter<"Quote"> | string | null
+  agreementChecked?: Prisma.BoolFilter<"Quote"> | boolean
+  signatureDataUrl?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureTokenHash?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureTokenExpiresAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  signatureIp?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureUserAgent?: Prisma.StringNullableFilter<"Quote"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
@@ -295,6 +359,14 @@ export type QuoteOrderByWithRelationInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  signedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  signedName?: Prisma.SortOrderInput | Prisma.SortOrder
+  agreementChecked?: Prisma.SortOrder
+  signatureDataUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureIp?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureUserAgent?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   customer?: Prisma.CustomerOrderByWithRelationInput
@@ -315,6 +387,14 @@ export type QuoteWhereUniqueInput = Prisma.AtLeast<{
   subtotal?: Prisma.IntFilter<"Quote"> | number
   tax?: Prisma.IntFilter<"Quote"> | number
   total?: Prisma.IntFilter<"Quote"> | number
+  signedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  signedName?: Prisma.StringNullableFilter<"Quote"> | string | null
+  agreementChecked?: Prisma.BoolFilter<"Quote"> | boolean
+  signatureDataUrl?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureTokenHash?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureTokenExpiresAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  signatureIp?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureUserAgent?: Prisma.StringNullableFilter<"Quote"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
@@ -332,6 +412,14 @@ export type QuoteOrderByWithAggregationInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  signedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  signedName?: Prisma.SortOrderInput | Prisma.SortOrder
+  agreementChecked?: Prisma.SortOrder
+  signatureDataUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureTokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureIp?: Prisma.SortOrderInput | Prisma.SortOrder
+  signatureUserAgent?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.QuoteCountOrderByAggregateInput
@@ -355,6 +443,14 @@ export type QuoteScalarWhereWithAggregatesInput = {
   subtotal?: Prisma.IntWithAggregatesFilter<"Quote"> | number
   tax?: Prisma.IntWithAggregatesFilter<"Quote"> | number
   total?: Prisma.IntWithAggregatesFilter<"Quote"> | number
+  signedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Quote"> | Date | string | null
+  signedName?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
+  agreementChecked?: Prisma.BoolWithAggregatesFilter<"Quote"> | boolean
+  signatureDataUrl?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
+  signatureTokenHash?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
+  signatureTokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Quote"> | Date | string | null
+  signatureIp?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
+  signatureUserAgent?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Quote"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Quote"> | Date | string
 }
@@ -369,6 +465,14 @@ export type QuoteCreateInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.CustomerCreateNestedOneWithoutQuotesInput
@@ -386,6 +490,14 @@ export type QuoteUncheckedCreateInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.QuoteItemUncheckedCreateNestedManyWithoutQuoteInput
@@ -401,6 +513,14 @@ export type QuoteUpdateInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.CustomerUpdateOneRequiredWithoutQuotesNestedInput
@@ -418,6 +538,14 @@ export type QuoteUncheckedUpdateInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.QuoteItemUncheckedUpdateManyWithoutQuoteNestedInput
@@ -434,6 +562,14 @@ export type QuoteCreateManyInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -448,6 +584,14 @@ export type QuoteUpdateManyMutationInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -463,6 +607,14 @@ export type QuoteUncheckedUpdateManyInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -488,6 +640,14 @@ export type QuoteCountOrderByAggregateInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  signedAt?: Prisma.SortOrder
+  signedName?: Prisma.SortOrder
+  agreementChecked?: Prisma.SortOrder
+  signatureDataUrl?: Prisma.SortOrder
+  signatureTokenHash?: Prisma.SortOrder
+  signatureTokenExpiresAt?: Prisma.SortOrder
+  signatureIp?: Prisma.SortOrder
+  signatureUserAgent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -509,6 +669,14 @@ export type QuoteMaxOrderByAggregateInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  signedAt?: Prisma.SortOrder
+  signedName?: Prisma.SortOrder
+  agreementChecked?: Prisma.SortOrder
+  signatureDataUrl?: Prisma.SortOrder
+  signatureTokenHash?: Prisma.SortOrder
+  signatureTokenExpiresAt?: Prisma.SortOrder
+  signatureIp?: Prisma.SortOrder
+  signatureUserAgent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -524,6 +692,14 @@ export type QuoteMinOrderByAggregateInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  signedAt?: Prisma.SortOrder
+  signedName?: Prisma.SortOrder
+  agreementChecked?: Prisma.SortOrder
+  signatureDataUrl?: Prisma.SortOrder
+  signatureTokenHash?: Prisma.SortOrder
+  signatureTokenExpiresAt?: Prisma.SortOrder
+  signatureIp?: Prisma.SortOrder
+  signatureUserAgent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -597,6 +773,10 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type QuoteCreateNestedOneWithoutItemsInput = {
   create?: Prisma.XOR<Prisma.QuoteCreateWithoutItemsInput, Prisma.QuoteUncheckedCreateWithoutItemsInput>
   connectOrCreate?: Prisma.QuoteCreateOrConnectWithoutItemsInput
@@ -621,6 +801,14 @@ export type QuoteCreateWithoutCustomerInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.QuoteItemCreateNestedManyWithoutQuoteInput
@@ -636,6 +824,14 @@ export type QuoteUncheckedCreateWithoutCustomerInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   items?: Prisma.QuoteItemUncheckedCreateNestedManyWithoutQuoteInput
@@ -681,6 +877,14 @@ export type QuoteScalarWhereInput = {
   subtotal?: Prisma.IntFilter<"Quote"> | number
   tax?: Prisma.IntFilter<"Quote"> | number
   total?: Prisma.IntFilter<"Quote"> | number
+  signedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  signedName?: Prisma.StringNullableFilter<"Quote"> | string | null
+  agreementChecked?: Prisma.BoolFilter<"Quote"> | boolean
+  signatureDataUrl?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureTokenHash?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureTokenExpiresAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
+  signatureIp?: Prisma.StringNullableFilter<"Quote"> | string | null
+  signatureUserAgent?: Prisma.StringNullableFilter<"Quote"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Quote"> | Date | string
 }
@@ -695,6 +899,14 @@ export type QuoteCreateWithoutItemsInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   customer: Prisma.CustomerCreateNestedOneWithoutQuotesInput
@@ -711,6 +923,14 @@ export type QuoteUncheckedCreateWithoutItemsInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -741,6 +961,14 @@ export type QuoteUpdateWithoutItemsInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.CustomerUpdateOneRequiredWithoutQuotesNestedInput
@@ -757,6 +985,14 @@ export type QuoteUncheckedUpdateWithoutItemsInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -771,6 +1007,14 @@ export type QuoteCreateManyCustomerInput = {
   subtotal: number
   tax: number
   total: number
+  signedAt?: Date | string | null
+  signedName?: string | null
+  agreementChecked?: boolean
+  signatureDataUrl?: string | null
+  signatureTokenHash?: string | null
+  signatureTokenExpiresAt?: Date | string | null
+  signatureIp?: string | null
+  signatureUserAgent?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -785,6 +1029,14 @@ export type QuoteUpdateWithoutCustomerInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.QuoteItemUpdateManyWithoutQuoteNestedInput
@@ -800,6 +1052,14 @@ export type QuoteUncheckedUpdateWithoutCustomerInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.QuoteItemUncheckedUpdateManyWithoutQuoteNestedInput
@@ -815,6 +1075,14 @@ export type QuoteUncheckedUpdateManyWithoutCustomerInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  signatureDataUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  signatureIp?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  signatureUserAgent?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -861,6 +1129,14 @@ export type QuoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  signedAt?: boolean
+  signedName?: boolean
+  agreementChecked?: boolean
+  signatureDataUrl?: boolean
+  signatureTokenHash?: boolean
+  signatureTokenExpiresAt?: boolean
+  signatureIp?: boolean
+  signatureUserAgent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
@@ -879,6 +1155,14 @@ export type QuoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  signedAt?: boolean
+  signedName?: boolean
+  agreementChecked?: boolean
+  signatureDataUrl?: boolean
+  signatureTokenHash?: boolean
+  signatureTokenExpiresAt?: boolean
+  signatureIp?: boolean
+  signatureUserAgent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
@@ -895,6 +1179,14 @@ export type QuoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  signedAt?: boolean
+  signedName?: boolean
+  agreementChecked?: boolean
+  signatureDataUrl?: boolean
+  signatureTokenHash?: boolean
+  signatureTokenExpiresAt?: boolean
+  signatureIp?: boolean
+  signatureUserAgent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
@@ -911,11 +1203,19 @@ export type QuoteSelectScalar = {
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  signedAt?: boolean
+  signedName?: boolean
+  agreementChecked?: boolean
+  signatureDataUrl?: boolean
+  signatureTokenHash?: boolean
+  signatureTokenExpiresAt?: boolean
+  signatureIp?: boolean
+  signatureUserAgent?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type QuoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "number" | "status" | "customerId" | "issueDate" | "validUntil" | "notes" | "subtotal" | "tax" | "total" | "createdAt" | "updatedAt", ExtArgs["result"]["quote"]>
+export type QuoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "number" | "status" | "customerId" | "issueDate" | "validUntil" | "notes" | "subtotal" | "tax" | "total" | "signedAt" | "signedName" | "agreementChecked" | "signatureDataUrl" | "signatureTokenHash" | "signatureTokenExpiresAt" | "signatureIp" | "signatureUserAgent" | "createdAt" | "updatedAt", ExtArgs["result"]["quote"]>
 export type QuoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Quote$itemsArgs<ExtArgs>
@@ -945,6 +1245,14 @@ export type $QuotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     subtotal: number
     tax: number
     total: number
+    signedAt: Date | null
+    signedName: string | null
+    agreementChecked: boolean
+    signatureDataUrl: string | null
+    signatureTokenHash: string | null
+    signatureTokenExpiresAt: Date | null
+    signatureIp: string | null
+    signatureUserAgent: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["quote"]>
@@ -1382,6 +1690,14 @@ export interface QuoteFieldRefs {
   readonly subtotal: Prisma.FieldRef<"Quote", 'Int'>
   readonly tax: Prisma.FieldRef<"Quote", 'Int'>
   readonly total: Prisma.FieldRef<"Quote", 'Int'>
+  readonly signedAt: Prisma.FieldRef<"Quote", 'DateTime'>
+  readonly signedName: Prisma.FieldRef<"Quote", 'String'>
+  readonly agreementChecked: Prisma.FieldRef<"Quote", 'Boolean'>
+  readonly signatureDataUrl: Prisma.FieldRef<"Quote", 'String'>
+  readonly signatureTokenHash: Prisma.FieldRef<"Quote", 'String'>
+  readonly signatureTokenExpiresAt: Prisma.FieldRef<"Quote", 'DateTime'>
+  readonly signatureIp: Prisma.FieldRef<"Quote", 'String'>
+  readonly signatureUserAgent: Prisma.FieldRef<"Quote", 'String'>
   readonly createdAt: Prisma.FieldRef<"Quote", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Quote", 'DateTime'>
 }

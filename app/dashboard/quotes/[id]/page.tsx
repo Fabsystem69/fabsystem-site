@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuoteDeleteButton } from "@/components/dashboard/QuoteDeleteButton";
+import { QuoteSignatureLinkButton } from "@/components/dashboard/QuoteSignatureLinkButton";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
@@ -52,6 +53,10 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
         </div>
 
         <div className="flex gap-3">
+          <QuoteSignatureLinkButton
+            quoteId={quote.id}
+            disabled={Boolean(quote.signedAt)}
+          />
           <Link
             href={`/dashboard/quotes/${quote.id}/edit`}
             className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900"
@@ -95,6 +100,11 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
             <p>Date d&apos;émission: {formatDate(quote.issueDate)}</p>
             <p>Validité: {formatDate(quote.validUntil)}</p>
             <p>Statut: {quote.status}</p>
+            {quote.signedAt && quote.signedName ? (
+              <p className="text-green-700">
+                Signé le {formatDate(quote.signedAt)} par {quote.signedName}
+              </p>
+            ) : null}
             {quote.status !== "DRAFT" ? (
               <p className="text-amber-700">
                 Suppression désactivée: seuls les devis DRAFT peuvent être supprimés.
@@ -138,6 +148,17 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
           Total TTC: {formatEuroFromCents(quote.total)}
         </p>
         {quote.notes ? <p className="mt-4 whitespace-pre-line">{quote.notes}</p> : null}
+        {quote.signatureDataUrl ? (
+          <div className="mt-4">
+            <p className="mb-2 font-medium text-neutral-900">Signature client</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={quote.signatureDataUrl}
+              alt="Signature client"
+              className="max-h-28 rounded border border-neutral-200 bg-white"
+            />
+          </div>
+        ) : null}
       </section>
     </main>
   );

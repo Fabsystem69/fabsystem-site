@@ -96,6 +96,14 @@ export const QuoteScalarFieldEnum = {
   subtotal: 'subtotal',
   tax: 'tax',
   total: 'total',
+  signedAt: 'signedAt',
+  signedName: 'signedName',
+  agreementChecked: 'agreementChecked',
+  signatureDataUrl: 'signatureDataUrl',
+  signatureTokenHash: 'signatureTokenHash',
+  signatureTokenExpiresAt: 'signatureTokenExpiresAt',
+  signatureIp: 'signatureIp',
+  signatureUserAgent: 'signatureUserAgent',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
