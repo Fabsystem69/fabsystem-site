@@ -4,6 +4,9 @@ import { requireApiSession } from "@/lib/internal-api";
 import { createQuoteSignatureLink } from "@/lib/quote-signature-service";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
+import { sendMail } from "@/lib/server/nodemailer";
+import { renderQuotePdfBuffer } from "@/lib/server/pdf";
+import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const runtime = "nodejs";
 
@@ -40,28 +43,15 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
-    const { toDataURL } = await import("qrcode");
-    const { generateQuotePdfBuffer } = await import("@/lib/quote-pdf");
-    const qrDataUrl = await toDataURL("https://www.fabsystem.fr/contact", {
+    const qrDataUrl = await generateQrDataUrl("https://www.fabsystem.fr/contact", {
       margin: 0,
       width: 256,
     });
 
     const [{ url }, pdf] = await Promise.all([
       createQuoteSignatureLink(id, { request }),
-      generateQuotePdfBuffer(id, qrDataUrl),
+      renderQuotePdfBuffer(id, qrDataUrl),
     ]);
-
-    const nodemailer = await import("nodemailer");
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || "587"),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
 
     const from =
       process.env.CONTACT_FROM ||
@@ -90,7 +80,7 @@ export async function POST(request: Request, { params }: Params) {
       "FabSystem",
     ].join("\n");
 
-    await transporter.sendMail({
+    await sendMail({
       to: quote.customer.email,
       from,
       subject,

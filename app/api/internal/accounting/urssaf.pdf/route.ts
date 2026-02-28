@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getUrssafSummary, parseAccountingYear } from "@/lib/accounting";
 import { requireApiSession } from "@/lib/internal-api";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
+import { renderUrssafPdfBuffer } from "@/lib/server/pdf";
 
 export const runtime = "nodejs";
 
@@ -16,8 +17,7 @@ export async function GET(request: Request) {
 
   try {
     const summary = await getUrssafSummary(year);
-    const { renderUrssafPdf } = await import("@/lib/accounting-pdf");
-    const buffer = await renderUrssafPdf(summary);
+    const buffer = await renderUrssafPdfBuffer(summary);
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { requireApiSession } from "@/lib/internal-api";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
+import { renderInvoicePdf } from "@/lib/server/pdf";
+import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,9 +23,7 @@ export async function GET(_: Request, { params }: Params) {
   const { id } = await params;
 
   try {
-    const { toDataURL } = await import("qrcode");
-    const { renderDocumentPdf } = await import("@/lib/pdf-documents");
-    const qrDataUrl = await toDataURL("https://www.fabsystem.fr/contact", {
+    const qrDataUrl = await generateQrDataUrl("https://www.fabsystem.fr/contact", {
       margin: 0,
       width: 256,
     });
@@ -42,7 +42,7 @@ export async function GET(_: Request, { params }: Params) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    const { buffer, filename } = await renderDocumentPdf(
+    const { buffer, filename } = await renderInvoicePdf(
       {
         kind: "invoice",
         number: invoice.number,

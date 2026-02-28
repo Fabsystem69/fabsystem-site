@@ -3,6 +3,7 @@ import Link from "next/link";
 import ContactForm from "../../components/ContactForm";
 import PhoneReveal from "../../components/PhoneReveal";
 import type { Metadata } from "next";
+import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const metadata: Metadata = {
   title: "Contact électricien embarqué bateau & van | FabSystem",
@@ -35,8 +36,7 @@ const websiteHref = "https://www.fabsystem.fr";
 const vcardPageUrl = "https://www.fabsystem.fr/vcard";
 
 export default async function ContactPage() {
-  const { toDataURL } = await import("qrcode");
-  const qrDataUrl = await toDataURL(vcardPageUrl, {
+  const qrDataUrl = await generateQrDataUrl(vcardPageUrl, {
     margin: 1,
     width: 240,
   });

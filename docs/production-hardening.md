@@ -58,6 +58,7 @@ This phase hardens the public entry points, centralizes part of the business log
   - `next-auth`
   - `@auth/prisma-adapter`
   - `bcrypt`
+- Added dedicated build notes in `docs/build-notes.md` for the stable Webpack build path and server-only dependency isolation.
 
 ### Tests
 

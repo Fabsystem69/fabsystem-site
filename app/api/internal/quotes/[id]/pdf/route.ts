@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireApiSession } from "@/lib/internal-api";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
+import { renderQuotePdfBuffer } from "@/lib/server/pdf";
+import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,14 +22,12 @@ export async function GET(_: Request, { params }: Params) {
   const { id } = await params;
 
   try {
-    const { toDataURL } = await import("qrcode");
-    const { generateQuotePdfBuffer } = await import("@/lib/quote-pdf");
-    const qrDataUrl = await toDataURL("https://www.fabsystem.fr/contact", {
+    const qrDataUrl = await generateQrDataUrl("https://www.fabsystem.fr/contact", {
       margin: 0,
       width: 256,
     });
 
-    const { buffer, filename } = await generateQuotePdfBuffer(id, qrDataUrl);
+    const { buffer, filename } = await renderQuotePdfBuffer(id, qrDataUrl);
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

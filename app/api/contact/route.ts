@@ -1,6 +1,7 @@
 import { assertHumanDelay, parseContactPayload } from "@/lib/contact-request";
 import { payloadTooLarge, toErrorResponse } from "@/lib/http-errors";
 import { enforceRateLimit, getClientIp } from "@/lib/rate-limit";
+import { sendMail } from "@/lib/server/nodemailer";
 import { logServerEvent } from "@/lib/server-log";
 
 export const runtime = "nodejs"; // important pour nodemailer sur Vercel
@@ -54,17 +55,6 @@ export async function POST(req: Request) {
     const email = safeText(data.email);
     const message = safeText(data.message);
     const source = safeText(data.source);
-
-    const nodemailer = await import("nodemailer");
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || "587"),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
 
     const to = process.env.CONTACT_TO || "fabien.lages@fabsystem.fr";
     const from = process.env.CONTACT_FROM || process.env.SMTP_USER || to;
@@ -121,7 +111,7 @@ export async function POST(req: Request) {
           )
         : undefined;
 
-    await transporter.sendMail({
+    await sendMail({
       to,
       from,
       replyTo: email,
