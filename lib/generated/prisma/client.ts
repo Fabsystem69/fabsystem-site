@@ -71,3 +71,8 @@ export type InvoiceItem = Prisma.InvoiceItemModel
  * 
  */
 export type ItemTemplate = Prisma.ItemTemplateModel
+/**
+ * Model DocumentSequence
+ * 
+ */
+export type DocumentSequence = Prisma.DocumentSequenceModel

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import ContactForm from "../../components/ContactForm";
 import PhoneReveal from "../../components/PhoneReveal";
@@ -28,7 +29,18 @@ const FAQ = [
   },
 ];
 
-export default function ContactPage() {
+const phoneHref = "tel:+33698247722";
+const emailHref = "mailto:fabien.lages@fabsystem.fr";
+const websiteHref = "https://www.fabsystem.fr";
+const vcardPageUrl = "https://www.fabsystem.fr/vcard";
+
+export default async function ContactPage() {
+  const { toDataURL } = await import("qrcode");
+  const qrDataUrl = await toDataURL(vcardPageUrl, {
+    margin: 1,
+    width: 240,
+  });
+
   return (
     <main className="bg-white">
       {/* HERO */}
@@ -43,6 +55,100 @@ export default function ContactPage() {
           <p className="mt-4 max-w-2xl text-white/90">
             Un doute sur votre installation électrique ? Parlons-en simplement.
           </p>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-12 max-w-3xl px-6">
+        <div className="space-y-6 rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+          <div>
+            <h2 className="text-2xl font-semibold text-neutral-950">
+              Carte de visite digitale
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-white">
+              <Image
+                src="/logo.png"
+                alt="Logo FabSystem"
+                width={56}
+                height={56}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </div>
+
+          <div className="h-px bg-neutral-200" />
+
+          <div className="space-y-2">
+            <p className="text-lg font-semibold text-neutral-950">
+              Fabien Lages
+            </p>
+            <p className="font-medium text-neutral-900">FabSystem</p>
+            <p className="text-sm text-neutral-500">
+              Électricité embarquée • Audit • Formation
+            </p>
+          </div>
+
+          <div className="space-y-3 text-sm text-neutral-700">
+            <p>
+              <span className="font-medium text-neutral-900">Téléphone :</span>{" "}
+              <a href={phoneHref} className="underline underline-offset-4">
+                06 98 24 77 22
+              </a>
+            </p>
+            <p>
+              <span className="font-medium text-neutral-900">Email :</span>{" "}
+              <a href={emailHref} className="underline underline-offset-4">
+                fabien.lages@fabsystem.fr
+              </a>
+            </p>
+            <p>
+              <span className="font-medium text-neutral-900">Adresse :</span>{" "}
+              48 rue Rey Loras, Bât. E, 69250 Neuville-sur-Saône
+            </p>
+            <p>
+              <span className="font-medium text-neutral-900">Site :</span>{" "}
+              <a
+                href={websiteHref}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-4"
+              >
+                www.fabsystem.fr
+              </a>
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a
+              href="/contact.vcf"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
+            >
+              Ajouter à mes contacts
+            </a>
+            <a
+              href="/contact.vcf"
+              download
+              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
+            >
+              Télécharger la vCard (.vcf)
+            </a>
+          </div>
+
+          <div className="pt-2 text-center">
+            <Image
+              src={qrDataUrl}
+              alt="QR code vers la carte digitale FabSystem"
+              width={128}
+              height={128}
+              unoptimized
+              className="mx-auto h-32 w-32"
+            />
+            <p className="mt-3 text-sm text-neutral-500">
+              Scanner pour enregistrer mes coordonnées
+            </p>
+          </div>
         </div>
       </section>
 

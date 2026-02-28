@@ -3,7 +3,7 @@ import { createInvoiceTotals, invoiceUpsertSchema } from "@/lib/invoice-payload"
 import { requireApiSession } from "@/lib/internal-api";
 import { rememberItemTemplates } from "@/lib/item-templates";
 import { prisma } from "@/lib/prisma";
-import { databaseErrorResponse, isDatabaseConnectionError } from "@/lib/prisma-errors";
+import { databaseErrorResponse } from "@/lib/prisma-errors";
 
 type Params = {
   params: Promise<{
@@ -148,11 +148,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
     return NextResponse.json({ ok: true, invoice });
   } catch (error) {
-    if (isDatabaseConnectionError(error)) {
-      return databaseErrorResponse(error);
-    }
-
-    return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    return databaseErrorResponse(error, "api.internal.invoices.patch");
   }
 }
 
@@ -187,10 +183,6 @@ export async function DELETE(_: Request, { params }: Params) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (isDatabaseConnectionError(error)) {
-      return databaseErrorResponse(error);
-    }
-
-    return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    return databaseErrorResponse(error, "api.internal.invoices.delete");
   }
 }

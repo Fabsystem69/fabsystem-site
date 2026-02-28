@@ -1,151 +1,103 @@
 import Image from "next/image";
-import Link from "next/link";
 
 export default function AProposPage() {
   return (
-    <main>
-      {/* HERO */}
-      <section
-        className="relative min-h-[45vh] bg-cover bg-center"
-        style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
-      >
-        <div className="absolute inset-0 bg-black/55" />
-
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-20 text-white sm:py-24">
-          <h1 className="text-4xl font-semibold sm:text-5xl">
-            À propos de FabSystem
-          </h1>
-          <p className="mt-4 max-w-2xl text-white/90">
-            Électricité embarquée fiable, lisible et sécurisée pour bateaux,
-            vans et camping-cars.
-          </p>
-        </div>
-      </section>
-
-      {/* CONTENU PRINCIPAL */}
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid gap-10 sm:grid-cols-[300px_1fr] sm:items-start">
-          
-          {/* PHOTO */}
-          <div className="flex justify-center sm:justify-start">
-            <div className="w-full max-w-[260px] sm:max-w-[300px]">
-              <Image
-                src="/fab-bateau.png"
-                alt="Fabien – électricien systèmes embarqués"
-                width={300}
-                height={380}
-                className="w-full h-auto rounded-lg object-cover shadow-md"
-                priority
-              />
-            </div>
-          </div>
-
-          {/* TEXTE */}
-          <div>
-            <h2 className="text-2xl font-semibold">
-    Fabien, électricien en systèmes embarqués
-  </h2>
-
-  <p className="mt-4 text-neutral-700 leading-relaxed">
-    Je suis spécialisé en <strong>électricité embarquée</strong> pour les
-    bateaux, vans et camping-cars.
-  </p>
-
-  <p className="mt-4 text-neutral-700 leading-relaxed">
-    Avec le temps, j’ai vu trop d’installations dangereuses, bricolées,
-    mal protégées ou simplement incomprises.  
-    Mon approche est simple : <strong>remettre de la logique, de la sécurité
-    et de la lisibilité</strong> dans des systèmes électriques souvent complexes.
-  </p>
-
-  <p className="mt-4 text-neutral-700 leading-relaxed">
-    J’interviens aussi bien pour des diagnostics, des remises à plat
-    que pour du conseil à distance. Chaque projet commence par
-    l’existant, sans jugement, afin de proposer une solution
-    réellement adaptée à l’usage et aux contraintes du terrain.
-  </p>
-
-  <p className="mt-4 text-neutral-700 leading-relaxed">
-    J’interviens également en <strong>sous-traitance pour des professionnels</strong>,
-    notamment sur des installations techniques ou sensibles,
-    lorsqu’un regard expert, un diagnostic précis ou un renfort ponctuel
-    est nécessaire.
-  </p>
-
-  <p className="mt-4 text-neutral-700 leading-relaxed">
-    Mon objectif reste toujours le même : <strong>une installation fiable,
-    compréhensible et durable</strong>, que ce soit pour un particulier
-    ou dans un cadre professionnel.
-  </p>
-          </div>
-        </div>
-      </section>
-
-      {/* POURQUOI FABSYSTEM */}
-      <section className="mx-auto max-w-6xl px-6 pb-16">
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-8">
-          <h3 className="text-lg font-semibold text-neutral-900">
-            Pourquoi FabSystem ?
-          </h3>
-
-          <ul className="mt-4 space-y-3 text-sm text-neutral-700">
-            <li>• Pas de solutions standard : chaque installation est différente</li>
-            <li>• Sécurité avant tout (protections, sections, architecture)</li>
-            <li>• Explications claires, sans jargon inutile</li>
-            <li>• Matériel fiable, éprouvé et adapté à l’usage réel</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* MÉTHODE */}
-      <section className="mx-auto max-w-6xl px-6 pb-20">
-        <div className="grid gap-6 sm:grid-cols-3">
-          <div className="rounded-xl border border-neutral-200 p-6">
-            <h4 className="font-semibold">Analyser</h4>
-            <p className="mt-2 text-sm text-neutral-700">
-              Comprendre l’existant, repérer les risques et incohérences.
+    <main className="bg-white">
+      <section className="mx-auto mt-16 max-w-3xl px-6 pb-24">
+        <div className="space-y-12">
+          <header className="space-y-5">
+            <p className="text-sm font-medium uppercase tracking-[0.16em] text-neutral-500">
+              À propos
             </p>
-          </div>
-
-          <div className="rounded-xl border border-neutral-200 p-6">
-            <h4 className="font-semibold">Clarifier</h4>
-            <p className="mt-2 text-sm text-neutral-700">
-              Rendre l’installation lisible, logique et compréhensible.
+            <h1 className="text-4xl font-semibold tracking-tight text-neutral-950">
+              FabSystem, spécialiste en électricité embarquée
+            </h1>
+            <p className="max-w-2xl text-base leading-relaxed text-neutral-700">
+              FabSystem accompagne les propriétaires et les professionnels qui
+              recherchent une installation électrique embarquée plus lisible,
+              plus sûre et plus durable, sur bateau, van ou camping-car.
             </p>
+          </header>
+
+          <div className="overflow-hidden rounded-2xl border border-neutral-200">
+            <Image
+              src="/fab-bateau.png"
+              alt="Fabien Lages"
+              width={1200}
+              height={720}
+              className="h-auto w-full object-cover"
+              priority
+            />
           </div>
 
-          <div className="rounded-xl border border-neutral-200 p-6">
-            <h4 className="font-semibold">Sécuriser</h4>
-            <p className="mt-2 text-sm text-neutral-700">
-              Protéger durablement les personnes et le matériel.
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-neutral-950">
+              Expertise
+            </h2>
+            <p className="leading-relaxed text-neutral-700">
+              Fabien Lages intervient sur des systèmes électriques embarqués qui
+              exigent à la fois compréhension globale, précision technique et
+              capacité d&apos;adaptation au réel. L&apos;activité s&apos;articule
+              autour de l&apos;audit électrique, de l&apos;installation, de
+              l&apos;optimisation et de la formation technique.
             </p>
-          </div>
-        </div>
-      </section>
+            <p className="leading-relaxed text-neutral-700">
+              Chaque intervention vise à clarifier l&apos;architecture, fiabiliser
+              les protections, améliorer l&apos;usage et redonner une vision
+              cohérente de l&apos;ensemble. L&apos;objectif n&apos;est pas
+              uniquement de corriger un point faible, mais de rendre le système
+              compréhensible et maîtrisable dans la durée.
+            </p>
+          </section>
 
-      {/* CTA FINAL */}
-      <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link
-            href="/contact"
-            className="inline-flex items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
-          >
-            Me contacter
-          </Link>
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-neutral-950">
+              Approche
+            </h2>
+            <p className="leading-relaxed text-neutral-700">
+              La méthode repose sur la rigueur, la sécurité et la conformité.
+              Elle commence toujours par l&apos;analyse de l&apos;existant :
+              comprendre les choix déjà en place, identifier les incohérences,
+              mesurer les risques et définir un cadre d&apos;intervention
+              pertinent.
+            </p>
+            <p className="leading-relaxed text-neutral-700">
+              Cette approche privilégie une vision long terme. Une installation
+              bien pensée doit rester lisible, documentée, évolutive et adaptée
+              à l&apos;usage réel. La technique n&apos;est jamais traitée comme
+              un assemblage de solutions ponctuelles, mais comme un système qui
+              doit conserver sa cohérence dans le temps.
+            </p>
+          </section>
 
-          <Link
-            href="/visio"
-            className="inline-flex items-center justify-center rounded-md border border-neutral-300 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
-          >
-            Découvrir la visio conseil
-          </Link>
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-neutral-950">
+              Positionnement
+            </h2>
+            <p className="leading-relaxed text-neutral-700">
+              FabSystem s&apos;adresse à celles et ceux qui attendent un regard
+              structuré, une expertise technique solide et une exécution
+              sérieuse. L&apos;intervention peut concerner une remise à niveau,
+              une sécurisation, une refonte partielle ou un accompagnement plus
+              global sur des installations sensibles.
+            </p>
+            <p className="leading-relaxed text-neutral-700">
+              Le positionnement est volontairement clair : apporter des réponses
+              fiables, défendables techniquement et adaptées aux contraintes du
+              terrain, sans approximation ni sur-promesse.
+            </p>
+          </section>
 
-          <Link
-            href="/vcard"
-            className="inline-flex items-center justify-center rounded-md border border-neutral-300 bg-neutral-50 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
-          >
-            Carte de visite
-          </Link>
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold text-neutral-950">
+              Conclusion
+            </h2>
+            <p className="leading-relaxed text-neutral-700">
+              FabSystem s&apos;engage à construire des installations embarquées
+              sûres, cohérentes et durables, avec une exigence professionnelle
+              constante.
+            </p>
+          </section>
         </div>
       </section>
     </main>

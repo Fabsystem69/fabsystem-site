@@ -54,7 +54,8 @@ export const ModelName = {
   QuoteItem: 'QuoteItem',
   Invoice: 'Invoice',
   InvoiceItem: 'InvoiceItem',
-  ItemTemplate: 'ItemTemplate'
+  ItemTemplate: 'ItemTemplate',
+  DocumentSequence: 'DocumentSequence'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -184,6 +185,18 @@ export const ItemTemplateScalarFieldEnum = {
 } as const
 
 export type ItemTemplateScalarFieldEnum = (typeof ItemTemplateScalarFieldEnum)[keyof typeof ItemTemplateScalarFieldEnum]
+
+
+export const DocumentSequenceScalarFieldEnum = {
+  key: 'key',
+  prefix: 'prefix',
+  year: 'year',
+  currentValue: 'currentValue',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentSequenceScalarFieldEnum = (typeof DocumentSequenceScalarFieldEnum)[keyof typeof DocumentSequenceScalarFieldEnum]
 
 
 export const SortOrder = {

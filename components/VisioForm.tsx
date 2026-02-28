@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 export default function VisioForm() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<null | "ok" | "error">(null);
+  const [startedAt] = useState(() => String(Date.now()));
 
   // UX: on cache les détails techniques par défaut
   const [showTech, setShowTech] = useState(false);
@@ -69,6 +70,7 @@ export default function VisioForm() {
       <div className="hidden" aria-hidden="true">
         <label htmlFor="company">Company</label>
         <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+        <input name="startedAt" type="hidden" value={startedAt} readOnly />
       </div>
 
       {/* INTRO */}
@@ -163,7 +165,7 @@ export default function VisioForm() {
           <input
             name="photos"
             type="file"
-            accept="image/*"
+            accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf"
             multiple
             className="block w-full text-sm"
           />

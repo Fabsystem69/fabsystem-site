@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-import QRCode from "qrcode";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { requireApiSession } from "@/lib/internal-api";
-import { generateQuotePdfBuffer } from "@/lib/quote-pdf";
 import { createQuoteSignatureLink } from "@/lib/quote-signature-service";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
@@ -43,7 +40,9 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
-    const qrDataUrl = await QRCode.toDataURL("https://fabsystem.fr/vcard", {
+    const { toDataURL } = await import("qrcode");
+    const { generateQuotePdfBuffer } = await import("@/lib/quote-pdf");
+    const qrDataUrl = await toDataURL("https://www.fabsystem.fr/contact", {
       margin: 0,
       width: 256,
     });
@@ -53,6 +52,7 @@ export async function POST(request: Request, { params }: Params) {
       generateQuotePdfBuffer(id, qrDataUrl),
     ]);
 
+    const nodemailer = await import("nodemailer");
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || "587"),
@@ -81,6 +81,9 @@ export async function POST(request: Request, { params }: Params) {
       "",
       "Vous pouvez le consulter, le signer et nous le retourner via ce lien :",
       url,
+      "",
+      "Nos coordonnées directes :",
+      "https://www.fabsystem.fr/contact",
       "",
       "Le devis PDF est également joint à ce message.",
       "",

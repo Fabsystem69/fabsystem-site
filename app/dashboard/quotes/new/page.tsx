@@ -3,22 +3,15 @@ import {
   QuoteCreateForm,
   type CustomerOption,
 } from "@/components/dashboard/QuoteCreateForm";
-import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import { getCustomerSelectOptions } from "@/lib/services/customers";
 
 export default async function DashboardQuoteNewPage() {
   let customers: CustomerOption[] = [];
   let databaseError: string | null = null;
 
   try {
-    customers = await prisma.customer.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    customers = await getCustomerSelectOptions();
   } catch (error) {
     databaseError = getDatabaseErrorMessage(error);
   }

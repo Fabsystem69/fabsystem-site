@@ -1,22 +1,47 @@
 import Link from "next/link";
 import { CustomerCreateForm } from "@/components/dashboard/CustomerCreateForm";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
-import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import {
+  getCustomersPage,
+  normalizeCustomerSearchQuery,
+  parseCustomerLimitParam,
+  parseCustomerPageParam,
+} from "@/lib/services/customers";
 
 export default async function DashboardCustomersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ new?: string }>;
+  searchParams: Promise<{
+    new?: string;
+    search?: string;
+    page?: string;
+    limit?: string;
+  }>;
 }) {
   const params = await searchParams;
-  let customers: Awaited<ReturnType<typeof prisma.customer.findMany>> = [];
+  let customers: Awaited<ReturnType<typeof getCustomersPage>>["customers"] = [];
   let databaseError: string | null = null;
+  let totalCount = 0;
+  let totalPages = 1;
+  let currentPage = 1;
+  let pageSize = 20;
+  const search = normalizeCustomerSearchQuery(params.search);
+  const requestedPage = parseCustomerPageParam(params.page);
+  const requestedLimit = parseCustomerLimitParam(params.limit);
 
   try {
-    customers = await prisma.customer.findMany({
-      orderBy: { createdAt: "desc" },
-    });
+    ({
+      customers,
+      totalCount,
+      totalPages,
+      currentPage,
+      pageSize,
+    } = await getCustomersPage({
+      search,
+      page: requestedPage,
+      limit: requestedLimit,
+    }));
   } catch (error) {
     databaseError = getDatabaseErrorMessage(error);
   }
@@ -27,15 +52,33 @@ export default async function DashboardCustomersPage({
         <div>
           <h1 className="text-3xl font-semibold text-neutral-900">Clients</h1>
           <p className="mt-2 text-sm text-neutral-600">
-            Liste minimale des clients pour devis et factures.
+            Base clients paginée pour devis, factures et suivi matériel.
           </p>
         </div>
-        <Link
-          href="/dashboard/customers?new=1"
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white"
-        >
-          Nouveau client
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <form className="flex items-center gap-2" method="get">
+            <input type="hidden" name="limit" value={String(pageSize)} />
+            <input
+              type="search"
+              name="search"
+              defaultValue={search}
+              placeholder="Rechercher un client"
+              className="h-10 rounded-md border border-neutral-300 px-3 text-sm text-neutral-900"
+            />
+            <button
+              type="submit"
+              className="rounded-md border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-900"
+            >
+              Rechercher
+            </button>
+          </form>
+          <Link
+            href={`/dashboard/customers?new=1${search ? `&search=${encodeURIComponent(search)}` : ""}`}
+            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Nouveau client
+          </Link>
+        </div>
       </div>
 
       {databaseError ? (
@@ -45,6 +88,21 @@ export default async function DashboardCustomersPage({
       ) : null}
 
       {params.new === "1" && !databaseError ? <CustomerCreateForm /> : null}
+
+      {!databaseError ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-neutral-600">
+          <p>
+            {totalCount} client{totalCount > 1 ? "s" : ""} au total
+            {search ? ` pour “${search}”` : ""}.
+          </p>
+          <div className="flex items-center gap-2">
+            <span>Page</span>
+            <span className="rounded-md border border-neutral-200 px-2 py-1 text-neutral-900">
+              {currentPage} / {totalPages}
+            </span>
+          </div>
+        </div>
+      ) : null}
 
       <section className="rounded-lg border border-neutral-200 bg-white">
         <table className="min-w-full divide-y divide-neutral-200 text-sm">
@@ -102,6 +160,29 @@ export default async function DashboardCustomersPage({
           </tbody>
         </table>
       </section>
+
+      {!databaseError ? (
+        <div className="flex items-center justify-between gap-3">
+          {currentPage > 1 ? (
+            <Link
+              href={`/dashboard/customers?page=${currentPage - 1}&limit=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
+              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900"
+            >
+              Page précédente
+            </Link>
+          ) : (
+            <span />
+          )}
+          {currentPage < totalPages ? (
+            <Link
+              href={`/dashboard/customers?page=${currentPage + 1}&limit=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
+              className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900"
+            >
+              Page suivante
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -455,6 +455,13 @@ function splitCgvParagraph(paragraph: string) {
   };
 }
 
+export function getPdfTotals(data: Pick<DocumentData, "subtotal" | "total">) {
+  return {
+    totalHt: data.subtotal,
+    totalTtc: data.total,
+  };
+}
+
 function PdfDocument({
   data,
   logoSrc,
@@ -466,8 +473,7 @@ function PdfDocument({
 }) {
   const mentions = buildMentions(data);
   const title = data.kind === "quote" ? "DEVIS" : "FACTURE";
-  const totalHt = data.subtotal;
-  const totalTtc = data.subtotal;
+  const { totalHt, totalTtc } = getPdfTotals(data);
   const cgvBlocks = CGV_PARAGRAPHS.map(splitCgvParagraph);
   const customerAssetSummary = formatCustomerAssetSummary(data.customer);
 

@@ -3,7 +3,7 @@ import { requireApiSession } from "@/lib/internal-api";
 import { rememberItemTemplates } from "@/lib/item-templates";
 import { createQuoteTotals, quoteUpsertSchema } from "@/lib/quote-payload";
 import { prisma } from "@/lib/prisma";
-import { databaseErrorResponse, isDatabaseConnectionError } from "@/lib/prisma-errors";
+import { databaseErrorResponse } from "@/lib/prisma-errors";
 
 type Params = {
   params: Promise<{
@@ -107,11 +107,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
     return NextResponse.json({ ok: true, quote });
   } catch (error) {
-    if (isDatabaseConnectionError(error)) {
-      return databaseErrorResponse(error);
-    }
-
-    return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+    return databaseErrorResponse(error, "api.internal.quotes.patch");
   }
 }
 
@@ -146,10 +142,6 @@ export async function DELETE(_: Request, { params }: Params) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (isDatabaseConnectionError(error)) {
-      return databaseErrorResponse(error);
-    }
-
-    return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+    return databaseErrorResponse(error, "api.internal.quotes.delete");
   }
 }

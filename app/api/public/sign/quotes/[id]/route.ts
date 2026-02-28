@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isHttpError, toErrorResponse } from "@/lib/http-errors";
 import {
   findQuoteForSignature,
   invalidSignatureResponse,
@@ -6,6 +7,9 @@ import {
   signatureDatabaseErrorResponse,
 } from "@/lib/public-quote-signature";
 import { prisma } from "@/lib/prisma";
+import { enforceRateLimit, getClientIp } from "@/lib/rate-limit";
+import { validateSignatureDataUrl } from "@/lib/signature-image";
+import { logServerEvent } from "@/lib/server-log";
 
 type Params = {
   params: Promise<{
@@ -14,6 +18,17 @@ type Params = {
 };
 
 export async function GET(request: Request, { params }: Params) {
+  try {
+    enforceRateLimit(request, {
+      name: "signature-read",
+      limit: 30,
+      windowMs: 10 * 60 * 1000,
+      blockDurationMs: 10 * 60 * 1000,
+    });
+  } catch (error) {
+    return toErrorResponse(error, "public-signature.get");
+  }
+
   const { id } = await params;
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token")?.trim();
@@ -49,6 +64,19 @@ export async function GET(request: Request, { params }: Params) {
 }
 
 export async function POST(request: Request, { params }: Params) {
+  const ip = getClientIp(request);
+
+  try {
+    enforceRateLimit(request, {
+      name: "signature-write",
+      limit: 10,
+      windowMs: 10 * 60 * 1000,
+      blockDurationMs: 20 * 60 * 1000,
+    });
+  } catch (error) {
+    return toErrorResponse(error, "public-signature.post");
+  }
+
   const { id } = await params;
   const json = (await request.json().catch(() => null)) as
     | {
@@ -75,6 +103,7 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   try {
+    validateSignatureDataUrl(signatureDataUrl);
     const quote = await findQuoteForSignature(id, token);
 
     if (quote === "signed") {
@@ -85,10 +114,6 @@ export async function POST(request: Request, { params }: Params) {
       return invalidSignatureResponse();
     }
 
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      request.headers.get("x-real-ip") ??
-      null;
     const userAgent = request.headers.get("user-agent");
 
     await prisma.quote.update({
@@ -106,8 +131,18 @@ export async function POST(request: Request, { params }: Params) {
       },
     });
 
+    logServerEvent("info", "quote signed", {
+      quoteId: id,
+      signedName,
+      ip,
+    });
+
     return NextResponse.json({ ok: true });
   } catch (error) {
+    if (isHttpError(error)) {
+      return toErrorResponse(error, "public-signature.post");
+    }
+
     return signatureDatabaseErrorResponse(error);
   }
 }

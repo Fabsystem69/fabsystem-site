@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { customerInputSchema, normalizeCustomerData } from "@/lib/customer-payload";
+import { customerInputSchema } from "@/lib/customer-payload";
+import { badRequest } from "@/lib/http-errors";
 import { requireApiSession } from "@/lib/internal-api";
-import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
+import { getCustomerById, updateCustomer } from "@/lib/services/customers";
 
 type Params = {
   params: Promise<{
@@ -19,17 +20,11 @@ export async function GET(_: Request, { params }: Params) {
   const { id } = await params;
 
   try {
-    const customer = await prisma.customer.findUnique({
-      where: { id },
-    });
-
-    if (!customer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
-    }
+    const customer = await getCustomerById(id);
 
     return NextResponse.json({ customer });
   } catch (error) {
-    return databaseErrorResponse(error);
+    return databaseErrorResponse(error, "api.internal.customers.by-id.get");
   }
 }
 
@@ -44,26 +39,14 @@ export async function PATCH(req: Request, { params }: Params) {
   const parsed = customerInputSchema.safeParse(json);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid customer payload" }, { status: 400 });
+    return databaseErrorResponse(badRequest("Invalid customer payload"));
   }
 
   try {
-    const existingCustomer = await prisma.customer.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-
-    if (!existingCustomer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
-    }
-
-    const customer = await prisma.customer.update({
-      where: { id },
-      data: normalizeCustomerData(parsed.data),
-    });
+    const customer = await updateCustomer(id, parsed.data);
 
     return NextResponse.json({ ok: true, customer });
   } catch (error) {
-    return databaseErrorResponse(error);
+    return databaseErrorResponse(error, "api.internal.customers.by-id.patch");
   }
 }

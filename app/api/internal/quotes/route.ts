@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { generateDocumentNumber } from "@/lib/document-number";
 import { getQuotesPage, normalizeSearchQuery, parsePageParam } from "@/lib/document-list";
+import { badRequest } from "@/lib/http-errors";
 import { requireApiSession } from "@/lib/internal-api";
-import { rememberItemTemplates } from "@/lib/item-templates";
-import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
-import { createQuoteTotals, quoteUpsertSchema } from "@/lib/quote-payload";
+import { quoteUpsertSchema } from "@/lib/quote-payload";
+import { createQuote } from "@/lib/services/quotes";
 
 export async function GET(request: Request) {
   const unauthorized = await requireApiSession();
@@ -44,53 +43,14 @@ export async function POST(req: Request) {
   const parsed = quoteUpsertSchema.safeParse(json);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid quote payload" }, { status: 400 });
+    return databaseErrorResponse(badRequest("Invalid quote payload"));
   }
 
   try {
-    const customer = await prisma.customer.findUnique({
-      where: { id: parsed.data.customerId },
-      select: { id: true },
-    });
-
-    if (!customer) {
-      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
-    }
-
-    const { normalizedItems, subtotal, tax, total } = createQuoteTotals(parsed.data.items);
-
-    const quote = await prisma.quote.create({
-      data: {
-        number: generateDocumentNumber("QUO"),
-        status: parsed.data.status ?? "DRAFT",
-        customerId: parsed.data.customerId,
-        issueDate: parsed.data.issueDate
-          ? new Date(parsed.data.issueDate)
-          : new Date(),
-        validUntil: parsed.data.validUntil ? new Date(parsed.data.validUntil) : null,
-        serviceDate: parsed.data.serviceDate ? new Date(parsed.data.serviceDate) : null,
-        serviceType: parsed.data.serviceType ?? "INTERVENTION",
-        deliveryMode: parsed.data.deliveryMode ?? "ONSITE",
-        notes: parsed.data.notes || null,
-        subtotal,
-        tax,
-        total,
-        items: {
-          create: normalizedItems,
-        },
-      },
-      include: {
-        customer: true,
-        items: {
-          orderBy: { position: "asc" },
-        },
-      },
-    });
-
-    await rememberItemTemplates(normalizedItems).catch(() => undefined);
+    const quote = await createQuote(parsed.data);
 
     return NextResponse.json({ ok: true, quote }, { status: 201 });
   } catch (error) {
-    return databaseErrorResponse(error);
+    return databaseErrorResponse(error, "api.internal.quotes.post");
   }
 }

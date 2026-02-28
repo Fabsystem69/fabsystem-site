@@ -7,6 +7,7 @@ import {
 } from "@/components/dashboard/QuoteCreateForm";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import { getCustomerSelectOptions } from "@/lib/services/customers";
 
 type Params = {
   params: Promise<{
@@ -22,14 +23,7 @@ export default async function DashboardQuoteEditPage({ params }: Params) {
 
   try {
     const [customersResult, quoteResult] = await Promise.all([
-      prisma.customer.findMany({
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-        orderBy: { createdAt: "desc" },
-      }),
+      getCustomerSelectOptions(),
       prisma.quote.findUnique({
         where: { id },
         include: {

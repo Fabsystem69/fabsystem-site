@@ -7,6 +7,7 @@ type Status = null | "ok" | "error";
 export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+  const [startedAt] = useState(() => String(Date.now()));
 
   const fieldClass =
     "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm leading-snug text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/20";
@@ -101,6 +102,7 @@ export default function ContactForm() {
       <div className="hidden" aria-hidden="true">
         <label htmlFor="company">Company</label>
         <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+        <input name="startedAt" type="hidden" value={startedAt} readOnly />
       </div>
 
       {/* Ligne 1 : Nom / Email */}

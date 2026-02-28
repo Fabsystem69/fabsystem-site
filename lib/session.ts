@@ -2,6 +2,7 @@ import crypto from "crypto";
 
 export type SessionPayload = {
   sub: string; // email
+  role?: "admin";
   iat: number; // issued at (sec)
   exp: number; // expiry (sec)
 };

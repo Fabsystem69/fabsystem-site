@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import QRCode from "qrcode";
 import { requireApiSession } from "@/lib/internal-api";
-import { generateQuotePdfBuffer } from "@/lib/quote-pdf";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
 
 export const runtime = "nodejs";
@@ -22,7 +20,9 @@ export async function GET(_: Request, { params }: Params) {
   const { id } = await params;
 
   try {
-    const qrDataUrl = await QRCode.toDataURL("https://fabsystem.fr/vcard", {
+    const { toDataURL } = await import("qrcode");
+    const { generateQuotePdfBuffer } = await import("@/lib/quote-pdf");
+    const qrDataUrl = await toDataURL("https://www.fabsystem.fr/contact", {
       margin: 0,
       width: 256,
     });

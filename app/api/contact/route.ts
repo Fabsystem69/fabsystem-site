@@ -1,9 +1,13 @@
-import nodemailer from "nodemailer";
+import { assertHumanDelay, parseContactPayload } from "@/lib/contact-request";
+import { payloadTooLarge, toErrorResponse } from "@/lib/http-errors";
+import { enforceRateLimit, getClientIp } from "@/lib/rate-limit";
+import { logServerEvent } from "@/lib/server-log";
 
 export const runtime = "nodejs"; // important pour nodemailer sur Vercel
 
 type PayloadValue = string | number | boolean | null | undefined;
 type Payload = Record<string, PayloadValue>;
+const MAX_REQUEST_BYTES = 5 * 1024 * 1024;
 
 function pick(obj: Payload, keys: string[]) {
   const out: Payload = {};
@@ -20,84 +24,42 @@ function safeText(v: unknown) {
 }
 
 export async function POST(req: Request) {
+  const ip = getClientIp(req);
+
   try {
-    const contentType = req.headers.get("content-type") || "";
+    enforceRateLimit(req, {
+      name: "contact",
+      limit: 8,
+      windowMs: 10 * 60 * 1000,
+      blockDurationMs: 20 * 60 * 1000,
+    });
 
-    // ✅ Anti-spam honeypot
-    // (on checkera "company" quelle que soit la forme)
-    let payload: Payload = {};
-    const attachments: { filename: string; content: Buffer; contentType?: string }[] = [];
-
-    // 1) JSON (ancien comportement : ContactForm)
-    if (contentType.includes("application/json")) {
-      payload = (await req.json().catch(() => ({}))) as Payload;
-      if (payload.company) {
-        return Response.json({ ok: true }, { status: 200 }); // spam silencieux
-      }
-    } else {
-      // 2) multipart/form-data (nouveau : VisioForm + fichiers)
-      const fd = await req.formData();
-
-      // honeypot
-      const company = safeText(fd.get("company"));
-      if (company) {
-        return Response.json({ ok: true }, { status: 200 }); // spam silencieux
-      }
-
-      // champs texte
-      for (const [k, v] of fd.entries()) {
-        if (v instanceof File) continue;
-        payload[k] = safeText(v);
-      }
-
-      // fichiers: input name="photos" multiple
-      const files = fd.getAll("photos").filter((x) => x instanceof File) as File[];
-
-      // limites simples (évite les gros envois)
-      const MAX_FILES = 3;
-      const MAX_TOTAL_BYTES = 7 * 1024 * 1024; // 7 MB total (safe)
-
-      const sliced = files.slice(0, MAX_FILES);
-      let total = 0;
-
-      for (const f of sliced) {
-        total += f.size;
-      }
-      if (total > MAX_TOTAL_BYTES) {
-        return Response.json(
-          { ok: false, error: "Fichiers trop lourds. Réduis la taille ou envoie un lien (Drive/iCloud)." },
-          { status: 413 }
-        );
-      }
-
-      for (const f of sliced) {
-        const ab = await f.arrayBuffer();
-        attachments.push({
-          filename: f.name || "photo.jpg",
-          content: Buffer.from(ab),
-          contentType: f.type || undefined,
-        });
-      }
+    const contentLength = Number(req.headers.get("content-length") || "0");
+    if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+      throw payloadTooLarge("Request payload exceeds 5MB");
     }
 
-    // champs minimaux
-    const name = safeText(payload.name);
-    const email = safeText(payload.email);
-    const message = safeText(payload.message);
-    const source = safeText(payload.source || "contact");
-
-    if (!name || !email || !message) {
-      return Response.json(
-        { ok: false, error: "Champs obligatoires manquants." },
-        { status: 400 }
-      );
+    const { data, attachments } = await parseContactPayload(req);
+    if (data.company) {
+      logServerEvent("warn", "contact honeypot triggered", {
+        ip,
+        source: data.source,
+      });
+      return Response.json({ ok: true }, { status: 200 });
     }
 
-    // ✅ Config SMTP via variables d’environnement (déjà en place chez toi normalement)
+    assertHumanDelay(data.startedAt);
+    const payload = data as unknown as Payload;
+    const name = safeText(data.name);
+    const email = safeText(data.email);
+    const message = safeText(data.message);
+    const source = safeText(data.source);
+
+    const nodemailer = await import("nodemailer");
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || "587"),
-      secure: process.env.SMTP_SECURE === "true", // true si 465
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -148,21 +110,42 @@ export async function POST(req: Request) {
         ? `FabSystem — Demande VISIO (${name})`
         : `FabSystem — Contact (${name})`;
 
+    const mailAttachments =
+      attachments.length > 0
+        ? await Promise.all(
+            attachments.map(async (attachment) => ({
+              filename: attachment.filename,
+              content: Buffer.from(await attachment.file.arrayBuffer()),
+              contentType: attachment.contentType,
+            }))
+          )
+        : undefined;
+
     await transporter.sendMail({
       to,
       from,
       replyTo: email,
       subject,
       text: lines.join("\n"),
-      attachments: attachments.length ? attachments : undefined,
+      attachments: mailAttachments,
+    });
+
+    logServerEvent("info", "contact request sent", {
+      ip,
+      source,
+      attachments: attachments.map((attachment) => ({
+        filename: attachment.filename,
+        size: attachment.size,
+        contentType: attachment.contentType,
+      })),
     });
 
     return Response.json({ ok: true }, { status: 200 });
   } catch (err: unknown) {
-    console.error("API CONTACT ERROR:", err);
-    return Response.json(
-      { ok: false, error: "Erreur serveur." },
-      { status: 500 }
-    );
+    logServerEvent("error", "contact request failed", {
+      ip,
+      error: err,
+    });
+    return toErrorResponse(err, "api.contact");
   }
 }
