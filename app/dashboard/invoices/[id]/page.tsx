@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { InvoiceDeleteButton } from "@/components/dashboard/InvoiceDeleteButton";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
@@ -52,6 +53,12 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
 
         <div className="flex gap-3">
           <Link
+            href={`/dashboard/invoices/${invoice.id}/edit`}
+            className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900"
+          >
+            Modifier
+          </Link>
+          <Link
             href="/dashboard/invoices"
             className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900"
           >
@@ -64,6 +71,10 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
           >
             Télécharger PDF
           </Link>
+          <InvoiceDeleteButton
+            invoiceId={invoice.id}
+            disabled={invoice.status !== "DRAFT"}
+          />
         </div>
       </div>
 
@@ -84,6 +95,11 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
             <p>Date d&apos;émission: {formatDate(invoice.issueDate)}</p>
             <p>Échéance: {formatDate(invoice.dueDate)}</p>
             <p>Statut: {invoice.status}</p>
+            {invoice.status !== "DRAFT" ? (
+              <p className="text-amber-700">
+                Suppression désactivée: seules les factures DRAFT peuvent être supprimées.
+              </p>
+            ) : null}
           </div>
         </div>
       </section>
@@ -116,8 +132,7 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
       </section>
 
       <section className="ml-auto max-w-sm rounded-lg border border-neutral-200 bg-white p-4 text-sm text-neutral-700">
-        <p>Sous-total HT: {formatEuroFromCents(invoice.subtotal)}</p>
-        <p className="mt-2">TVA / taxe: {formatEuroFromCents(invoice.tax)}</p>
+        <p>Total HT: {formatEuroFromCents(invoice.subtotal)}</p>
         <p className="mt-2 text-base font-semibold text-neutral-900">
           Total TTC: {formatEuroFromCents(invoice.total)}
         </p>

@@ -35,7 +35,7 @@ export default function DashboardPage() {
         >
           <h2 className="text-lg font-semibold text-neutral-900">Factures</h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Consulter les factures et générer leur PDF côté serveur.
+            Créer, modifier, supprimer et exporter les factures en PDF.
           </p>
         </Link>
       </div>

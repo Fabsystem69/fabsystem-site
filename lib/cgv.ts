@@ -5,7 +5,7 @@ export function sanitize(text: string) {
     .replace(/\u00AD/g, "")
     .replace(/\u2060/g, "")
     .replace(/\uFEFF/g, "")
-    .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F\u200B-\u200F\uFFF9-\uFFFB\uFFFD]/g, "");
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFFF9-\uFFFB\uFFFD]/g, "");
 }
 
 const RAW_CGV_PARAGRAPHS = [

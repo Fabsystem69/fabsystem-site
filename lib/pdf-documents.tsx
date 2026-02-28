@@ -10,7 +10,7 @@ import {
   View,
   renderToBuffer,
 } from "@react-pdf/renderer";
-import { CGV_PARAGRAPHS } from "@/lib/cgv";
+import { CGV_PARAGRAPHS, sanitize } from "@/lib/cgv";
 import { formatAddressLines, formatDate, formatEuroFromCents } from "@/lib/format";
 import { site } from "@/lib/site";
 
@@ -257,35 +257,34 @@ const styles = StyleSheet.create({
   cgvPage: {
     paddingTop: 18,
   },
+  cgvContainer: {
+    width: 420,
+    alignSelf: "center",
+  },
   cgvTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
-    marginBottom: 2,
+    textAlign: "center",
+    marginBottom: 4,
   },
   cgvSubtitle: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 500,
-    marginBottom: 8,
+    textAlign: "center",
+    marginBottom: 10,
     color: "#444444",
   },
-  cgvColumns: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  cgvCol: {
-    flex: 1,
-  },
   cgvBlock: {
-    marginBottom: 3,
+    marginBottom: 5,
   },
   cgvHeading: {
-    fontSize: 7.8,
+    fontSize: 9,
     fontWeight: 600,
-    marginBottom: 1,
+    marginBottom: 2,
   },
   cgvBody: {
-    fontSize: 7.4,
-    lineHeight: 1.12,
+    fontSize: 8.4,
+    lineHeight: 1.22,
     textAlign: "justify",
   },
   cgvParagraph: {
@@ -334,8 +333,9 @@ function PdfFooter({
   logoSrc: string | null;
   qrDataUrl: string;
 }) {
-  const footerText =
-    "FabSystem — 48 rue Rey Loras, Bât. E, 69250 Neuville-sur-Saône — SIRET 100 271 980 00011 — TVA non applicable (293 B CGI) — fabien.lages@fabsystem.fr — 06 98 24 77 22";
+  const footerText = sanitize(
+    "FabSystem — 48 rue Rey Loras, Bât. E, 69250 Neuville-sur-Saône — SIRET 100 271 980 00011 — TVA non applicable (293 B CGI) — fabien.lages@fabsystem.fr — 06 98 24 77 22"
+  );
 
   return (
     <View style={styles.footer} fixed>
@@ -344,7 +344,7 @@ function PdfFooter({
         {logoSrc ? <Image src={logoSrc} style={styles.footerLogo} /> : null}
         <View style={styles.footerTextWrap}>
           <Text style={styles.footerText}>{footerText}</Text>
-          <Text style={styles.footerUrl}>www.fabsystem.fr</Text>
+          <Text style={styles.footerUrl}>{sanitize("www.fabsystem.fr")}</Text>
         </View>
       </View>
       {/* eslint-disable-next-line jsx-a11y/alt-text */}
@@ -375,9 +375,7 @@ function PdfDocument({
   const title = data.kind === "quote" ? "DEVIS" : "FACTURE";
   const totalHt = data.subtotal;
   const totalTtc = data.subtotal;
-  const mid = Math.ceil(CGV_PARAGRAPHS.length / 2);
-  const leftCgv = CGV_PARAGRAPHS.slice(0, mid).map(splitCgvParagraph);
-  const rightCgv = CGV_PARAGRAPHS.slice(mid).map(splitCgvParagraph);
+  const cgvBlocks = CGV_PARAGRAPHS.map(splitCgvParagraph);
 
   return (
     <Document title={`${title} ${data.number}`}>
@@ -388,11 +386,11 @@ function PdfDocument({
             {logoSrc ? <Image src={logoSrc} style={styles.logo} /> : null}
             <View style={styles.companyText}>
               <Text style={styles.companyEyebrow}>DOCUMENT COMMERCIAL</Text>
-              <Text style={styles.companyName}>{site.name}</Text>
-              <Text style={styles.companyMeta}>{site.tagline}</Text>
-              <Text style={styles.companyMeta}>{site.location}</Text>
-              <Text style={styles.companyMeta}>{site.email}</Text>
-              <Text style={styles.companyMeta}>{site.phone}</Text>
+              <Text style={styles.companyName}>{sanitize(site.name)}</Text>
+              <Text style={styles.companyMeta}>{sanitize(site.tagline)}</Text>
+              <Text style={styles.companyMeta}>{sanitize(site.location)}</Text>
+              <Text style={styles.companyMeta}>{sanitize(site.email)}</Text>
+              <Text style={styles.companyMeta}>{sanitize(site.phone)}</Text>
             </View>
           </View>
 
@@ -487,25 +485,15 @@ function PdfDocument({
       </Page>
 
       <Page size="A4" style={[styles.pageWithFooter, styles.cgvPage]}>
-        <Text style={styles.cgvTitle}>CONDITIONS GÉNÉRALES DE VENTE</Text>
-        <Text style={styles.cgvSubtitle}>FabSystem</Text>
-        <View style={styles.cgvColumns}>
-          <View style={styles.cgvCol}>
-            {leftCgv.map((paragraph) => (
-              <View key={paragraph.heading} style={styles.cgvBlock}>
-                <Text style={styles.cgvHeading}>{paragraph.heading}</Text>
-                <Text style={[styles.cgvBody, styles.cgvParagraph]}>{paragraph.body}</Text>
-              </View>
-            ))}
-          </View>
-          <View style={styles.cgvCol}>
-            {rightCgv.map((paragraph) => (
-              <View key={paragraph.heading} style={styles.cgvBlock}>
-                <Text style={styles.cgvHeading}>{paragraph.heading}</Text>
-                <Text style={[styles.cgvBody, styles.cgvParagraph]}>{paragraph.body}</Text>
-              </View>
-            ))}
-          </View>
+        <View style={styles.cgvContainer}>
+          <Text style={styles.cgvTitle}>CONDITIONS GÉNÉRALES DE VENTE</Text>
+          <Text style={styles.cgvSubtitle}>FabSystem</Text>
+          {cgvBlocks.map((paragraph) => (
+            <View key={paragraph.heading} style={styles.cgvBlock}>
+              <Text style={styles.cgvHeading}>{paragraph.heading}</Text>
+              <Text style={[styles.cgvBody, styles.cgvParagraph]}>{paragraph.body}</Text>
+            </View>
+          ))}
         </View>
         <PdfFooter logoSrc={logoSrc} qrDataUrl={qrDataUrl} />
       </Page>

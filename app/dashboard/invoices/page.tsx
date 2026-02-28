@@ -29,11 +29,19 @@ export default async function DashboardInvoicesPage() {
 
   return (
     <main className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold text-neutral-900">Factures</h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          Liste minimale des factures enregistrées en base.
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold text-neutral-900">Factures</h1>
+          <p className="mt-2 text-sm text-neutral-600">
+            Liste minimale des factures enregistrées en base.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/invoices/new"
+          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white"
+        >
+          Nouvelle facture
+        </Link>
       </div>
 
       {databaseError ? (
@@ -51,12 +59,13 @@ export default async function DashboardInvoicesPage() {
               <th className="px-4 py-3 font-medium">Statut</th>
               <th className="px-4 py-3 font-medium">Lignes</th>
               <th className="px-4 py-3 font-medium">Total</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200">
             {invoices.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-neutral-500">
+                <td colSpan={6} className="px-4 py-6 text-neutral-500">
                   Aucune facture pour l’instant.
                 </td>
               </tr>
@@ -73,6 +82,14 @@ export default async function DashboardInvoicesPage() {
                   <td className="px-4 py-3 text-neutral-600">{invoice.items.length}</td>
                   <td className="px-4 py-3 text-neutral-600">
                     {formatEuroFromCents(invoice.total)}
+                  </td>
+                  <td className="px-4 py-3 text-neutral-600">
+                    <Link
+                      href={`/dashboard/invoices/${invoice.id}/edit`}
+                      className="underline underline-offset-2"
+                    >
+                      Modifier
+                    </Link>
                   </td>
                 </tr>
               ))
