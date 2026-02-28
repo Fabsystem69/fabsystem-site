@@ -227,55 +227,64 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   signatureContainer: {
-    width: 340,
+    width: 292,
     alignSelf: "center",
-    marginTop: 30,
-    padding: 16,
+    marginTop: 18,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 12,
+    paddingRight: 12,
     borderWidth: 1,
     borderColor: "#E5E5E5",
-    borderRadius: 6,
+    borderRadius: 8,
   },
   signatureTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 700,
     textAlign: "center",
-    marginBottom: 6,
+    marginBottom: 4,
     color: "#171717",
   },
   signatureIntro: {
-    fontSize: 8.5,
+    fontSize: 7.5,
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 8,
     color: "#525252",
     lineHeight: 1.3,
   },
+  signatureMetaRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
   signatureMetaBlock: {
-    marginBottom: 10,
+    flex: 1,
+    marginBottom: 0,
   },
   signatureMetaLabel: {
-    fontSize: 7,
+    fontSize: 6.5,
     color: "#737373",
-    marginBottom: 3,
+    marginBottom: 2,
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   signatureMetaValue: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#171717",
+    minHeight: 12,
   },
   signatureImageWrap: {
-    marginTop: 12,
+    marginTop: 8,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 60,
+    minHeight: 42,
   },
   signatureImage: {
-    width: 160,
-    height: 60,
+    width: 128,
+    height: 42,
     objectFit: "contain",
   },
   signatureLine: {
-    marginTop: 25,
+    marginTop: 12,
     height: 1,
     backgroundColor: "#999999",
     width: "100%",
@@ -608,18 +617,20 @@ function PdfDocument({
               conditions générales de vente.
             </Text>
 
-            <View style={styles.signatureMetaBlock}>
-              <Text style={styles.signatureMetaLabel}>Nom</Text>
-              <Text style={styles.signatureMetaValue}>
-                {data.signedName || " "}
-              </Text>
-            </View>
+            <View style={styles.signatureMetaRow}>
+              <View style={styles.signatureMetaBlock}>
+                <Text style={styles.signatureMetaLabel}>Nom</Text>
+                <Text style={styles.signatureMetaValue}>
+                  {data.signedName || " "}
+                </Text>
+              </View>
 
-            <View style={styles.signatureMetaBlock}>
-              <Text style={styles.signatureMetaLabel}>Date</Text>
-              <Text style={styles.signatureMetaValue}>
-                {data.signedAt ? formatDate(data.signedAt) : " "}
-              </Text>
+              <View style={styles.signatureMetaBlock}>
+                <Text style={styles.signatureMetaLabel}>Date</Text>
+                <Text style={styles.signatureMetaValue}>
+                  {data.signedAt ? formatDate(data.signedAt) : " "}
+                </Text>
+              </View>
             </View>
 
             <View style={styles.signatureImageWrap}>
