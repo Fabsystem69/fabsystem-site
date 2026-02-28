@@ -255,36 +255,36 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   cgvPage: {
-    paddingTop: 18,
+    paddingTop: 16,
   },
   cgvContainer: {
-    width: 420,
+    width: 408,
     alignSelf: "center",
   },
   cgvTitle: {
-    fontSize: 12,
+    fontSize: 11.4,
     fontWeight: 700,
     textAlign: "center",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   cgvSubtitle: {
-    fontSize: 10,
+    fontSize: 9.4,
     fontWeight: 500,
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 8,
     color: "#444444",
   },
   cgvBlock: {
-    marginBottom: 5,
+    marginBottom: 4,
   },
   cgvHeading: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 600,
-    marginBottom: 2,
+    marginBottom: 1.5,
   },
   cgvBody: {
-    fontSize: 8.4,
-    lineHeight: 1.22,
+    fontSize: 8.1,
+    lineHeight: 1.18,
     textAlign: "justify",
   },
   cgvParagraph: {
