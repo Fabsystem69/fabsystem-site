@@ -1,4 +1,5 @@
 import PageHero from "@/components/PageHero";
+import ServiceAssurance from "@/components/ServiceAssurance";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -61,6 +62,7 @@ export default function AuditNautiquePage() {
           { href: "/contact", label: "Demander un audit", variant: "primary" },
           { href: "/visio", label: "Visio conseil", variant: "secondary" },
         ]}
+        assurance={<ServiceAssurance tone="inverse" />}
       />
 
       <section className="mx-auto max-w-6xl px-6 py-6 sm:py-8">

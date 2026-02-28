@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import TrackedLink from "@/components/TrackedLink";
 import { resolveBackgroundImage } from "@/lib/background-image";
 
 type Cta = {
@@ -7,6 +8,7 @@ type Cta = {
   label: string;
   variant?: "primary" | "secondary";
   external?: boolean;
+  event?: string;
 };
 
 export default function PageHero({
@@ -54,7 +56,7 @@ export default function PageHero({
           <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
             {ctas.map((cta) => {
               const base =
-                "inline-flex min-h-10 w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold sm:w-auto";
+                "inline-flex min-h-9 w-full items-center justify-center rounded-md px-3 py-2 text-sm font-semibold sm:w-auto";
               const primary = "bg-white text-black hover:bg-white/90";
               const secondary = "border border-white/70 text-white hover:bg-white/10";
 
@@ -72,6 +74,19 @@ export default function PageHero({
                   >
                     {cta.label}
                   </a>
+                );
+              }
+
+              if (cta.event) {
+                return (
+                  <TrackedLink
+                    key={cta.href}
+                    href={cta.href}
+                    event={cta.event}
+                    className={className}
+                  >
+                    {cta.label}
+                  </TrackedLink>
                 );
               }
 

@@ -1,6 +1,7 @@
 import LightboxImage from "@/components/LightboxImage";
+import PageHero from "@/components/PageHero";
+import ServiceAssurance from "@/components/ServiceAssurance";
 import TrackedLink from "@/components/TrackedLink";
-import { resolveBackgroundImage } from "@/lib/background-image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -98,42 +99,25 @@ const cases: CaseStudy[] = [
 ] as const;
 
 export default function RealisationsPage() {
-  const heroBackground = resolveBackgroundImage("/hero-fabsystem.png");
-
   return (
     <main>
-      <section
-        className="relative bg-cover bg-center"
-        style={{ backgroundImage: heroBackground }}
-      >
-        <div className="absolute inset-0 bg-black/55" />
-
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-8 text-white sm:py-10">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
-            Réalisations
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
-            Trois cas types pour montrer le niveau d’analyse, d’intervention et de résultat.
-          </p>
-
-          <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
-            <Link
-              href="/contact"
-              className="inline-flex min-h-9 w-full items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-black hover:bg-white/90 sm:w-auto"
-            >
-              Parler de votre projet
-            </Link>
-
-            <TrackedLink
-              href="/visio"
-              event="click_rdv"
-              className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-white/70 px-3 py-2 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
-            >
-              Visio conseil
-            </TrackedLink>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        title="Réalisations"
+        subtitle="Trois cas types pour montrer le niveau d’analyse, d’intervention et de résultat."
+        micro="Études de cas réelles, avant / après, avec une lecture claire du contexte, des actions et du résultat."
+        background="/hero-fabsystem.png"
+        overlay="bg-black/55"
+        ctas={[
+          { href: "/contact", label: "Parler de votre projet", variant: "primary" },
+          {
+            href: "/visio",
+            label: "Visio conseil",
+            variant: "secondary",
+            event: "click_rdv",
+          },
+        ]}
+        assurance={<ServiceAssurance tone="inverse" />}
+      />
 
       <section className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="max-w-3xl">

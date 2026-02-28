@@ -96,7 +96,7 @@ export default function VisioPage() {
             <button
               type="button"
               onClick={openBooking}
-              className="inline-flex min-h-10 w-full items-center justify-center rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:w-auto"
+              className="inline-flex min-h-9 w-full items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-black transition hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:w-auto"
             >
               Réserver ma visio à 50 €
             </button>
