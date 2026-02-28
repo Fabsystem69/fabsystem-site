@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 
@@ -26,6 +27,7 @@ export function QuoteSignatureForm({
   quoteId,
   token,
 }: QuoteSignatureFormProps) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
@@ -174,6 +176,15 @@ export function QuoteSignatureForm({
     hasSignatureRef.current = false;
   }
 
+  function handleReturn() {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/");
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -238,6 +249,15 @@ export function QuoteSignatureForm({
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 pb-28 md:pb-8">
       <section className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <div className="mb-4 md:hidden">
+          <button
+            type="button"
+            onClick={handleReturn}
+            className="inline-flex min-h-9 items-center justify-center rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900"
+          >
+            Retour
+          </button>
+        </div>
         <h1 className="text-2xl font-semibold text-neutral-900">Signature du devis</h1>
         <p className="mt-2 text-sm text-neutral-600">
           Vérifiez le résumé puis signez pour valider le devis.
