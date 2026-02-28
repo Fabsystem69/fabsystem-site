@@ -49,6 +49,9 @@ export type QuoteMinAggregateOutputType = {
   subtotal: number | null
   tax: number | null
   total: number | null
+  serviceType: $Enums.ServiceType | null
+  deliveryMode: $Enums.DeliveryMode | null
+  serviceDate: Date | null
   signedAt: Date | null
   signedName: string | null
   agreementChecked: boolean | null
@@ -72,6 +75,9 @@ export type QuoteMaxAggregateOutputType = {
   subtotal: number | null
   tax: number | null
   total: number | null
+  serviceType: $Enums.ServiceType | null
+  deliveryMode: $Enums.DeliveryMode | null
+  serviceDate: Date | null
   signedAt: Date | null
   signedName: string | null
   agreementChecked: boolean | null
@@ -95,6 +101,9 @@ export type QuoteCountAggregateOutputType = {
   subtotal: number
   tax: number
   total: number
+  serviceType: number
+  deliveryMode: number
+  serviceDate: number
   signedAt: number
   signedName: number
   agreementChecked: number
@@ -132,6 +141,9 @@ export type QuoteMinAggregateInputType = {
   subtotal?: true
   tax?: true
   total?: true
+  serviceType?: true
+  deliveryMode?: true
+  serviceDate?: true
   signedAt?: true
   signedName?: true
   agreementChecked?: true
@@ -155,6 +167,9 @@ export type QuoteMaxAggregateInputType = {
   subtotal?: true
   tax?: true
   total?: true
+  serviceType?: true
+  deliveryMode?: true
+  serviceDate?: true
   signedAt?: true
   signedName?: true
   agreementChecked?: true
@@ -178,6 +193,9 @@ export type QuoteCountAggregateInputType = {
   subtotal?: true
   tax?: true
   total?: true
+  serviceType?: true
+  deliveryMode?: true
+  serviceDate?: true
   signedAt?: true
   signedName?: true
   agreementChecked?: true
@@ -288,6 +306,9 @@ export type QuoteGroupByOutputType = {
   subtotal: number
   tax: number
   total: number
+  serviceType: $Enums.ServiceType
+  deliveryMode: $Enums.DeliveryMode
+  serviceDate: Date | null
   signedAt: Date | null
   signedName: string | null
   agreementChecked: boolean
@@ -334,6 +355,9 @@ export type QuoteWhereInput = {
   subtotal?: Prisma.IntFilter<"Quote"> | number
   tax?: Prisma.IntFilter<"Quote"> | number
   total?: Prisma.IntFilter<"Quote"> | number
+  serviceType?: Prisma.EnumServiceTypeFilter<"Quote"> | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFilter<"Quote"> | $Enums.DeliveryMode
+  serviceDate?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
   signedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
   signedName?: Prisma.StringNullableFilter<"Quote"> | string | null
   agreementChecked?: Prisma.BoolFilter<"Quote"> | boolean
@@ -359,6 +383,9 @@ export type QuoteOrderByWithRelationInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  serviceType?: Prisma.SortOrder
+  deliveryMode?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrderInput | Prisma.SortOrder
   signedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   signedName?: Prisma.SortOrderInput | Prisma.SortOrder
   agreementChecked?: Prisma.SortOrder
@@ -387,6 +414,9 @@ export type QuoteWhereUniqueInput = Prisma.AtLeast<{
   subtotal?: Prisma.IntFilter<"Quote"> | number
   tax?: Prisma.IntFilter<"Quote"> | number
   total?: Prisma.IntFilter<"Quote"> | number
+  serviceType?: Prisma.EnumServiceTypeFilter<"Quote"> | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFilter<"Quote"> | $Enums.DeliveryMode
+  serviceDate?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
   signedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
   signedName?: Prisma.StringNullableFilter<"Quote"> | string | null
   agreementChecked?: Prisma.BoolFilter<"Quote"> | boolean
@@ -412,6 +442,9 @@ export type QuoteOrderByWithAggregationInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  serviceType?: Prisma.SortOrder
+  deliveryMode?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrderInput | Prisma.SortOrder
   signedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   signedName?: Prisma.SortOrderInput | Prisma.SortOrder
   agreementChecked?: Prisma.SortOrder
@@ -443,6 +476,9 @@ export type QuoteScalarWhereWithAggregatesInput = {
   subtotal?: Prisma.IntWithAggregatesFilter<"Quote"> | number
   tax?: Prisma.IntWithAggregatesFilter<"Quote"> | number
   total?: Prisma.IntWithAggregatesFilter<"Quote"> | number
+  serviceType?: Prisma.EnumServiceTypeWithAggregatesFilter<"Quote"> | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeWithAggregatesFilter<"Quote"> | $Enums.DeliveryMode
+  serviceDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Quote"> | Date | string | null
   signedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Quote"> | Date | string | null
   signedName?: Prisma.StringNullableWithAggregatesFilter<"Quote"> | string | null
   agreementChecked?: Prisma.BoolWithAggregatesFilter<"Quote"> | boolean
@@ -465,6 +501,9 @@ export type QuoteCreateInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -490,6 +529,9 @@ export type QuoteUncheckedCreateInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -513,6 +555,9 @@ export type QuoteUpdateInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -538,6 +583,9 @@ export type QuoteUncheckedUpdateInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -562,6 +610,9 @@ export type QuoteCreateManyInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -584,6 +635,9 @@ export type QuoteUpdateManyMutationInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -607,6 +661,9 @@ export type QuoteUncheckedUpdateManyInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -640,6 +697,9 @@ export type QuoteCountOrderByAggregateInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  serviceType?: Prisma.SortOrder
+  deliveryMode?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrder
   signedAt?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   agreementChecked?: Prisma.SortOrder
@@ -669,6 +729,9 @@ export type QuoteMaxOrderByAggregateInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  serviceType?: Prisma.SortOrder
+  deliveryMode?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrder
   signedAt?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   agreementChecked?: Prisma.SortOrder
@@ -692,6 +755,9 @@ export type QuoteMinOrderByAggregateInput = {
   subtotal?: Prisma.SortOrder
   tax?: Prisma.SortOrder
   total?: Prisma.SortOrder
+  serviceType?: Prisma.SortOrder
+  deliveryMode?: Prisma.SortOrder
+  serviceDate?: Prisma.SortOrder
   signedAt?: Prisma.SortOrder
   signedName?: Prisma.SortOrder
   agreementChecked?: Prisma.SortOrder
@@ -773,6 +839,14 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type EnumServiceTypeFieldUpdateOperationsInput = {
+  set?: $Enums.ServiceType
+}
+
+export type EnumDeliveryModeFieldUpdateOperationsInput = {
+  set?: $Enums.DeliveryMode
+}
+
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
@@ -801,6 +875,9 @@ export type QuoteCreateWithoutCustomerInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -824,6 +901,9 @@ export type QuoteUncheckedCreateWithoutCustomerInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -877,6 +957,9 @@ export type QuoteScalarWhereInput = {
   subtotal?: Prisma.IntFilter<"Quote"> | number
   tax?: Prisma.IntFilter<"Quote"> | number
   total?: Prisma.IntFilter<"Quote"> | number
+  serviceType?: Prisma.EnumServiceTypeFilter<"Quote"> | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFilter<"Quote"> | $Enums.DeliveryMode
+  serviceDate?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
   signedAt?: Prisma.DateTimeNullableFilter<"Quote"> | Date | string | null
   signedName?: Prisma.StringNullableFilter<"Quote"> | string | null
   agreementChecked?: Prisma.BoolFilter<"Quote"> | boolean
@@ -899,6 +982,9 @@ export type QuoteCreateWithoutItemsInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -923,6 +1009,9 @@ export type QuoteUncheckedCreateWithoutItemsInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -961,6 +1050,9 @@ export type QuoteUpdateWithoutItemsInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -985,6 +1077,9 @@ export type QuoteUncheckedUpdateWithoutItemsInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1007,6 +1102,9 @@ export type QuoteCreateManyCustomerInput = {
   subtotal: number
   tax: number
   total: number
+  serviceType?: $Enums.ServiceType
+  deliveryMode?: $Enums.DeliveryMode
+  serviceDate?: Date | string | null
   signedAt?: Date | string | null
   signedName?: string | null
   agreementChecked?: boolean
@@ -1029,6 +1127,9 @@ export type QuoteUpdateWithoutCustomerInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1052,6 +1153,9 @@ export type QuoteUncheckedUpdateWithoutCustomerInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1075,6 +1179,9 @@ export type QuoteUncheckedUpdateManyWithoutCustomerInput = {
   subtotal?: Prisma.IntFieldUpdateOperationsInput | number
   tax?: Prisma.IntFieldUpdateOperationsInput | number
   total?: Prisma.IntFieldUpdateOperationsInput | number
+  serviceType?: Prisma.EnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  serviceDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   signedName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agreementChecked?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1129,6 +1236,9 @@ export type QuoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  serviceType?: boolean
+  deliveryMode?: boolean
+  serviceDate?: boolean
   signedAt?: boolean
   signedName?: boolean
   agreementChecked?: boolean
@@ -1155,6 +1265,9 @@ export type QuoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  serviceType?: boolean
+  deliveryMode?: boolean
+  serviceDate?: boolean
   signedAt?: boolean
   signedName?: boolean
   agreementChecked?: boolean
@@ -1179,6 +1292,9 @@ export type QuoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  serviceType?: boolean
+  deliveryMode?: boolean
+  serviceDate?: boolean
   signedAt?: boolean
   signedName?: boolean
   agreementChecked?: boolean
@@ -1203,6 +1319,9 @@ export type QuoteSelectScalar = {
   subtotal?: boolean
   tax?: boolean
   total?: boolean
+  serviceType?: boolean
+  deliveryMode?: boolean
+  serviceDate?: boolean
   signedAt?: boolean
   signedName?: boolean
   agreementChecked?: boolean
@@ -1215,7 +1334,7 @@ export type QuoteSelectScalar = {
   updatedAt?: boolean
 }
 
-export type QuoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "number" | "status" | "customerId" | "issueDate" | "validUntil" | "notes" | "subtotal" | "tax" | "total" | "signedAt" | "signedName" | "agreementChecked" | "signatureDataUrl" | "signatureTokenHash" | "signatureTokenExpiresAt" | "signatureIp" | "signatureUserAgent" | "createdAt" | "updatedAt", ExtArgs["result"]["quote"]>
+export type QuoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "number" | "status" | "customerId" | "issueDate" | "validUntil" | "notes" | "subtotal" | "tax" | "total" | "serviceType" | "deliveryMode" | "serviceDate" | "signedAt" | "signedName" | "agreementChecked" | "signatureDataUrl" | "signatureTokenHash" | "signatureTokenExpiresAt" | "signatureIp" | "signatureUserAgent" | "createdAt" | "updatedAt", ExtArgs["result"]["quote"]>
 export type QuoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   items?: boolean | Prisma.Quote$itemsArgs<ExtArgs>
@@ -1245,6 +1364,9 @@ export type $QuotePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     subtotal: number
     tax: number
     total: number
+    serviceType: $Enums.ServiceType
+    deliveryMode: $Enums.DeliveryMode
+    serviceDate: Date | null
     signedAt: Date | null
     signedName: string | null
     agreementChecked: boolean
@@ -1690,6 +1812,9 @@ export interface QuoteFieldRefs {
   readonly subtotal: Prisma.FieldRef<"Quote", 'Int'>
   readonly tax: Prisma.FieldRef<"Quote", 'Int'>
   readonly total: Prisma.FieldRef<"Quote", 'Int'>
+  readonly serviceType: Prisma.FieldRef<"Quote", 'ServiceType'>
+  readonly deliveryMode: Prisma.FieldRef<"Quote", 'DeliveryMode'>
+  readonly serviceDate: Prisma.FieldRef<"Quote", 'DateTime'>
   readonly signedAt: Prisma.FieldRef<"Quote", 'DateTime'>
   readonly signedName: Prisma.FieldRef<"Quote", 'String'>
   readonly agreementChecked: Prisma.FieldRef<"Quote", 'Boolean'>

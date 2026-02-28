@@ -12,8 +12,16 @@ export const invoiceUpsertSchema = z.object({
   customerId: z.string().trim().min(1),
   issueDate: z.string().datetime().optional(),
   dueDate: z.string().datetime().nullable().optional(),
+  serviceDate: z.string().datetime().nullable().optional(),
   notes: z.string().trim().nullable().optional(),
   status: invoiceStatusSchema.optional(),
+  serviceType: z
+    .enum(["INTERVENTION", "FORMATION", "AUDIT", "CONSEIL"])
+    .optional(),
+  deliveryMode: z.enum(["ONSITE", "REMOTE"]).optional(),
+  paidAt: z.string().datetime().nullable().optional(),
+  paymentMethod: z.string().trim().nullable().optional(),
+  paymentRef: z.string().trim().nullable().optional(),
   items: z.array(invoiceItemSchema).min(1),
 });
 

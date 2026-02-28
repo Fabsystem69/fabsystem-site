@@ -23,6 +23,9 @@ export type QuoteFormInitialData = {
   customerId: string;
   issueDate: string | Date;
   validUntil: string | Date | null;
+  serviceDate: string | Date | null;
+  serviceType: "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL";
+  deliveryMode: "ONSITE" | "REMOTE";
   notes: string | null;
   status: "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED";
   items: Array<{
@@ -92,6 +95,15 @@ export function QuoteCreateForm({
   );
   const [validUntil, setValidUntil] = useState(
     formatDateForInput(initialData?.validUntil)
+  );
+  const [serviceDate, setServiceDate] = useState(
+    formatDateForInput(initialData?.serviceDate)
+  );
+  const [serviceType, setServiceType] = useState<
+    "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL"
+  >(initialData?.serviceType ?? "INTERVENTION");
+  const [deliveryMode, setDeliveryMode] = useState<"ONSITE" | "REMOTE">(
+    initialData?.deliveryMode ?? "ONSITE"
   );
   const [status, setStatus] = useState<
     "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED"
@@ -183,6 +195,9 @@ export function QuoteCreateForm({
           customerId,
           issueDate: new Date(issueDate).toISOString(),
           validUntil: validUntil ? new Date(validUntil).toISOString() : null,
+          serviceDate: serviceDate ? new Date(serviceDate).toISOString() : null,
+          serviceType,
+          deliveryMode,
           notes: notes.trim() || null,
           status,
           items,
@@ -255,6 +270,34 @@ export function QuoteCreateForm({
             type="date"
             value={validUntil}
             onChange={(event) => setValidUntil(event.target.value)}
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          />
+          <select
+            value={serviceType}
+            onChange={(event) =>
+              setServiceType(
+                event.target.value as "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL"
+              )
+            }
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          >
+            <option value="INTERVENTION">Intervention</option>
+            <option value="FORMATION">Formation</option>
+            <option value="AUDIT">Audit</option>
+            <option value="CONSEIL">Conseil</option>
+          </select>
+          <select
+            value={deliveryMode}
+            onChange={(event) => setDeliveryMode(event.target.value as "ONSITE" | "REMOTE")}
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          >
+            <option value="ONSITE">Sur site</option>
+            <option value="REMOTE">Visio</option>
+          </select>
+          <input
+            type="date"
+            value={serviceDate}
+            onChange={(event) => setServiceDate(event.target.value)}
             className="h-11 rounded-md border border-neutral-300 px-3 text-base"
           />
         </div>

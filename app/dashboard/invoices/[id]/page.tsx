@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InvoiceDeleteButton } from "@/components/dashboard/InvoiceDeleteButton";
+import { InvoicePaymentForm } from "@/components/dashboard/InvoicePaymentForm";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import { formatDeliveryMode, formatServiceType } from "@/lib/service-meta";
 
 type Params = {
   params: Promise<{
@@ -98,7 +100,13 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
           <div className="mt-3 space-y-1 text-sm text-neutral-700">
             <p>Date d&apos;émission: {formatDate(invoice.issueDate)}</p>
             <p>Échéance: {formatDate(invoice.dueDate)}</p>
+            <p>Type: {formatServiceType(invoice.serviceType)}</p>
+            <p>Mode: {formatDeliveryMode(invoice.deliveryMode)}</p>
+            <p>Date prestation: {formatDate(invoice.serviceDate)}</p>
             <p>Statut: {invoice.status}</p>
+            <p>Encaissement: {formatDate(invoice.paidAt)}</p>
+            {invoice.paymentMethod ? <p>Mode: {invoice.paymentMethod}</p> : null}
+            {invoice.paymentRef ? <p>Référence: {invoice.paymentRef}</p> : null}
             {invoice.status !== "DRAFT" ? (
               <p className="text-amber-700">
                 Suppression désactivée: seules les factures DRAFT peuvent être supprimées.
@@ -168,6 +176,14 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
         </p>
         {invoice.notes ? <p className="mt-4 whitespace-pre-line">{invoice.notes}</p> : null}
       </section>
+
+      <InvoicePaymentForm
+        invoiceId={invoice.id}
+        initialStatus={invoice.status}
+        initialPaidAt={invoice.paidAt}
+        initialPaymentMethod={invoice.paymentMethod}
+        initialPaymentRef={invoice.paymentRef}
+      />
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-6xl gap-3">

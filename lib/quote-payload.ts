@@ -12,8 +12,13 @@ export const quoteUpsertSchema = z.object({
   customerId: z.string().trim().min(1),
   issueDate: z.string().datetime().optional(),
   validUntil: z.string().datetime().nullable().optional(),
+  serviceDate: z.string().datetime().nullable().optional(),
   notes: z.string().trim().nullable().optional(),
   status: quoteStatusSchema.optional(),
+  serviceType: z
+    .enum(["INTERVENTION", "FORMATION", "AUDIT", "CONSEIL"])
+    .optional(),
+  deliveryMode: z.enum(["ONSITE", "REMOTE"]).optional(),
   items: z.array(quoteItemSchema).min(1),
 });
 

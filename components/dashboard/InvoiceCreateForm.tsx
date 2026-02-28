@@ -23,6 +23,12 @@ export type InvoiceFormInitialData = {
   customerId: string;
   issueDate: string | Date;
   dueDate: string | Date | null;
+  serviceDate: string | Date | null;
+  serviceType: "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL";
+  deliveryMode: "ONSITE" | "REMOTE";
+  paidAt: string | Date | null;
+  paymentMethod: string | null;
+  paymentRef: string | null;
   notes: string | null;
   status: "DRAFT" | "SENT" | "PAID" | "CANCELLED";
   items: Array<{
@@ -91,6 +97,18 @@ export function InvoiceCreateForm({
     formatDateForInput(initialData?.issueDate ?? new Date())
   );
   const [dueDate, setDueDate] = useState(formatDateForInput(initialData?.dueDate));
+  const [serviceDate, setServiceDate] = useState(
+    formatDateForInput(initialData?.serviceDate)
+  );
+  const [serviceType, setServiceType] = useState<
+    "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL"
+  >(initialData?.serviceType ?? "INTERVENTION");
+  const [deliveryMode, setDeliveryMode] = useState<"ONSITE" | "REMOTE">(
+    initialData?.deliveryMode ?? "ONSITE"
+  );
+  const [paidAt, setPaidAt] = useState(formatDateForInput(initialData?.paidAt));
+  const [paymentMethod, setPaymentMethod] = useState(initialData?.paymentMethod ?? "");
+  const [paymentRef, setPaymentRef] = useState(initialData?.paymentRef ?? "");
   const [status, setStatus] = useState<
     "DRAFT" | "SENT" | "PAID" | "CANCELLED"
   >(initialData?.status ?? "DRAFT");
@@ -178,6 +196,12 @@ export function InvoiceCreateForm({
           customerId,
           issueDate: new Date(issueDate).toISOString(),
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+          serviceDate: serviceDate ? new Date(serviceDate).toISOString() : null,
+          serviceType,
+          deliveryMode,
+          paidAt: paidAt ? new Date(paidAt).toISOString() : null,
+          paymentMethod: paymentMethod.trim() || null,
+          paymentRef: paymentRef.trim() || null,
           notes: notes.trim() || null,
           status,
           items,
@@ -251,6 +275,57 @@ export function InvoiceCreateForm({
             value={dueDate}
             onChange={(event) => setDueDate(event.target.value)}
             className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          />
+          <select
+            value={serviceType}
+            onChange={(event) =>
+              setServiceType(
+                event.target.value as "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL"
+              )
+            }
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          >
+            <option value="INTERVENTION">Intervention</option>
+            <option value="FORMATION">Formation</option>
+            <option value="AUDIT">Audit</option>
+            <option value="CONSEIL">Conseil</option>
+          </select>
+          <select
+            value={deliveryMode}
+            onChange={(event) => setDeliveryMode(event.target.value as "ONSITE" | "REMOTE")}
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          >
+            <option value="ONSITE">Sur site</option>
+            <option value="REMOTE">Visio</option>
+          </select>
+          <input
+            type="date"
+            value={serviceDate}
+            onChange={(event) => setServiceDate(event.target.value)}
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          />
+          <input
+            type="date"
+            value={paidAt}
+            onChange={(event) => setPaidAt(event.target.value)}
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          />
+          <select
+            value={paymentMethod}
+            onChange={(event) => setPaymentMethod(event.target.value)}
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+          >
+            <option value="">Mode de paiement</option>
+            <option value="Virement">Virement</option>
+            <option value="CB">CB</option>
+            <option value="Espèces">Espèces</option>
+            <option value="Chèque">Chèque</option>
+          </select>
+          <input
+            value={paymentRef}
+            onChange={(event) => setPaymentRef(event.target.value)}
+            placeholder="Référence paiement"
+            className="h-11 rounded-md border border-neutral-300 px-3 text-base sm:col-span-2"
           />
         </div>
         <p className="mt-3 text-sm text-neutral-600">

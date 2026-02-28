@@ -47,6 +47,9 @@ export default async function DashboardQuoteEditPage({ params }: Params) {
           customerId: quoteResult.customerId,
           issueDate: quoteResult.issueDate,
           validUntil: quoteResult.validUntil,
+          serviceDate: quoteResult.serviceDate,
+          serviceType: quoteResult.serviceType,
+          deliveryMode: quoteResult.deliveryMode,
           notes: quoteResult.notes,
           status: quoteResult.status,
           items: quoteResult.items.map((item) => ({

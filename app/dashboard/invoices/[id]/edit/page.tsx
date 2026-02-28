@@ -47,6 +47,12 @@ export default async function DashboardInvoiceEditPage({ params }: Params) {
           customerId: invoiceResult.customerId,
           issueDate: invoiceResult.issueDate,
           dueDate: invoiceResult.dueDate,
+          serviceDate: invoiceResult.serviceDate,
+          serviceType: invoiceResult.serviceType,
+          deliveryMode: invoiceResult.deliveryMode,
+          paidAt: invoiceResult.paidAt,
+          paymentMethod: invoiceResult.paymentMethod,
+          paymentRef: invoiceResult.paymentRef,
           notes: invoiceResult.notes,
           status: invoiceResult.status,
           items: invoiceResult.items.map((item) => ({

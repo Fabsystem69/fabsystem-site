@@ -57,7 +57,7 @@ export async function PATCH(req: Request, { params }: Params) {
   try {
     const existingInvoice = await prisma.invoice.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, paidAt: true, status: true },
     });
 
     if (!existingInvoice) {
@@ -74,6 +74,13 @@ export async function PATCH(req: Request, { params }: Params) {
     }
 
     const { normalizedItems, subtotal, tax, total } = createInvoiceTotals(parsed.data.items);
+    const nextStatus = parsed.data.status ?? "DRAFT";
+    const paidAt =
+      nextStatus === "PAID"
+        ? parsed.data.paidAt
+          ? new Date(parsed.data.paidAt)
+          : existingInvoice.paidAt ?? new Date()
+        : null;
 
     const invoice = await prisma.invoice.update({
       where: { id },
@@ -81,11 +88,17 @@ export async function PATCH(req: Request, { params }: Params) {
         customerId: parsed.data.customerId,
         issueDate: parsed.data.issueDate ? new Date(parsed.data.issueDate) : new Date(),
         dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
-        status: parsed.data.status ?? "DRAFT",
+        serviceDate: parsed.data.serviceDate ? new Date(parsed.data.serviceDate) : null,
+        serviceType: parsed.data.serviceType ?? "INTERVENTION",
+        deliveryMode: parsed.data.deliveryMode ?? "ONSITE",
+        status: nextStatus,
         notes: parsed.data.notes || null,
         subtotal,
         tax,
         total,
+        paidAt,
+        paymentMethod: parsed.data.paymentMethod || null,
+        paymentRef: parsed.data.paymentRef || null,
         items: {
           deleteMany: {},
           createMany: {

@@ -1,29 +1,34 @@
 import { NextResponse } from "next/server";
 import { generateDocumentNumber } from "@/lib/document-number";
+import { getQuotesPage, normalizeSearchQuery, parsePageParam } from "@/lib/document-list";
 import { requireApiSession } from "@/lib/internal-api";
 import { rememberItemTemplates } from "@/lib/item-templates";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
 import { createQuoteTotals, quoteUpsertSchema } from "@/lib/quote-payload";
 
-export async function GET() {
+export async function GET(request: Request) {
   const unauthorized = await requireApiSession();
   if (unauthorized) {
     return unauthorized;
   }
 
   try {
-    const quotes = await prisma.quote.findMany({
-      include: {
-        customer: true,
-        items: {
-          orderBy: { position: "asc" },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const { searchParams } = new URL(request.url);
+    const search = normalizeSearchQuery(searchParams.get("search"));
+    const page = parsePageParam(searchParams.get("page"));
+    const { quotes, totalCount, totalPages, currentPage } = await getQuotesPage(
+      search,
+      page
+    );
 
-    return NextResponse.json({ quotes });
+    return NextResponse.json({
+      quotes,
+      totalCount,
+      totalPages,
+      currentPage,
+      pageSize: 10,
+    });
   } catch (error) {
     return databaseErrorResponse(error);
   }
@@ -63,6 +68,9 @@ export async function POST(req: Request) {
           ? new Date(parsed.data.issueDate)
           : new Date(),
         validUntil: parsed.data.validUntil ? new Date(parsed.data.validUntil) : null,
+        serviceDate: parsed.data.serviceDate ? new Date(parsed.data.serviceDate) : null,
+        serviceType: parsed.data.serviceType ?? "INTERVENTION",
+        deliveryMode: parsed.data.deliveryMode ?? "ONSITE",
         notes: parsed.data.notes || null,
         subtotal,
         tax,

@@ -14,7 +14,8 @@ import { CGV_PARAGRAPHS, sanitize } from "@/lib/cgv";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { formatAddressLines, formatDate, formatEuroFromCents } from "@/lib/format";
 import { site } from "@/lib/site";
-import type { AssetType } from "@/lib/generated/prisma/client";
+import type { AssetType, DeliveryMode, ServiceType } from "@/lib/generated/prisma/client";
+import { formatDeliveryMode, formatServiceType } from "@/lib/service-meta";
 
 type CustomerInfo = {
   name: string;
@@ -43,6 +44,9 @@ type DocumentData = {
   status: string;
   issueDate: Date;
   dueDate: Date | null;
+  serviceType: ServiceType;
+  deliveryMode: DeliveryMode;
+  serviceDate: Date | null;
   notes: string | null;
   subtotal: number;
   tax: number;
@@ -480,6 +484,24 @@ function PdfDocument({
             {data.customer.email ? <Text>{data.customer.email}</Text> : null}
             {data.customer.phone ? <Text>{data.customer.phone}</Text> : null}
             {customerAssetSummary ? <Text>{sanitize(customerAssetSummary)}</Text> : null}
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Prestation</Text>
+            <Text>
+              <Text style={styles.label}>Type: </Text>
+              {formatServiceType(data.serviceType)}
+            </Text>
+            <Text>
+              <Text style={styles.label}>Mode: </Text>
+              {formatDeliveryMode(data.deliveryMode)}
+            </Text>
+            {data.serviceDate ? (
+              <Text>
+                <Text style={styles.label}>Date: </Text>
+                {formatDate(data.serviceDate)}
+              </Text>
+            ) : null}
           </View>
 
           <View style={styles.card}>

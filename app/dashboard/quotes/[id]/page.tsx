@@ -6,6 +6,7 @@ import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import { formatDeliveryMode, formatServiceType } from "@/lib/service-meta";
 
 type Params = {
   params: Promise<{
@@ -103,6 +104,9 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
           <div className="mt-3 space-y-1 text-sm text-neutral-700">
             <p>Date d&apos;émission: {formatDate(quote.issueDate)}</p>
             <p>Validité: {formatDate(quote.validUntil)}</p>
+            <p>Type: {formatServiceType(quote.serviceType)}</p>
+            <p>Mode: {formatDeliveryMode(quote.deliveryMode)}</p>
+            <p>Date prestation: {formatDate(quote.serviceDate)}</p>
             <p>Statut: {quote.status}</p>
             {quote.signedAt && quote.signedName ? (
               <p className="text-green-700">

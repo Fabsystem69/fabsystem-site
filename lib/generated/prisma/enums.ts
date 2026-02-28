@@ -36,3 +36,21 @@ export const InvoiceStatus = {
 } as const
 
 export type InvoiceStatus = (typeof InvoiceStatus)[keyof typeof InvoiceStatus]
+
+
+export const ServiceType = {
+  INTERVENTION: 'INTERVENTION',
+  FORMATION: 'FORMATION',
+  AUDIT: 'AUDIT',
+  CONSEIL: 'CONSEIL'
+} as const
+
+export type ServiceType = (typeof ServiceType)[keyof typeof ServiceType]
+
+
+export const DeliveryMode = {
+  ONSITE: 'ONSITE',
+  REMOTE: 'REMOTE'
+} as const
+
+export type DeliveryMode = (typeof DeliveryMode)[keyof typeof DeliveryMode]

@@ -29,6 +29,18 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+enum ServiceType {
+  INTERVENTION
+  FORMATION
+  AUDIT
+  CONSEIL
+}
+
+enum DeliveryMode {
+  ONSITE
+  REMOTE
+}
+
 model Customer {
   id           String    @id @default(cuid())
   name         String
@@ -61,6 +73,9 @@ model Quote {
   subtotal                 Int
   tax                      Int
   total                    Int
+  serviceType              ServiceType   @default(INTERVENTION)
+  deliveryMode             DeliveryMode  @default(ONSITE)
+  serviceDate              DateTime?
   signedAt                 DateTime?
   signedName               String?
   agreementChecked         Boolean     @default(false)
@@ -90,22 +105,29 @@ model QuoteItem {
 }
 
 model Invoice {
-  id         String        @id @default(cuid())
-  number     String        @unique
-  status     InvoiceStatus @default(DRAFT)
-  customerId String
-  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  issueDate  DateTime
-  dueDate    DateTime?
-  notes      String?
-  subtotal   Int
-  tax        Int
-  total      Int
-  items      InvoiceItem[]
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  number        String        @unique
+  status        InvoiceStatus @default(DRAFT)
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  issueDate     DateTime
+  dueDate       DateTime?
+  notes         String?
+  subtotal      Int
+  tax           Int
+  total         Int
+  serviceType   ServiceType   @default(INTERVENTION)
+  deliveryMode  DeliveryMode  @default(ONSITE)
+  serviceDate   DateTime?
+  paidAt        DateTime?
+  paymentMethod String?
+  paymentRef    String?
+  items         InvoiceItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   @@index([customerId])
+  @@index([paidAt])
 }
 
 model InvoiceItem {

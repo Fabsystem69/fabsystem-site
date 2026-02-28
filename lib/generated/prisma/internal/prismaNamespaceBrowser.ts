@@ -103,6 +103,9 @@ export const QuoteScalarFieldEnum = {
   subtotal: 'subtotal',
   tax: 'tax',
   total: 'total',
+  serviceType: 'serviceType',
+  deliveryMode: 'deliveryMode',
+  serviceDate: 'serviceDate',
   signedAt: 'signedAt',
   signedName: 'signedName',
   agreementChecked: 'agreementChecked',
@@ -142,6 +145,12 @@ export const InvoiceScalarFieldEnum = {
   subtotal: 'subtotal',
   tax: 'tax',
   total: 'total',
+  serviceType: 'serviceType',
+  deliveryMode: 'deliveryMode',
+  serviceDate: 'serviceDate',
+  paidAt: 'paidAt',
+  paymentMethod: 'paymentMethod',
+  paymentRef: 'paymentRef',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

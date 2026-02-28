@@ -38,6 +38,16 @@ export default function DashboardPage() {
             Créer, modifier, supprimer et exporter les factures en PDF.
           </p>
         </Link>
+
+        <Link
+          href="/dashboard/accounting"
+          className="rounded-lg border border-neutral-200 bg-white p-5"
+        >
+          <h2 className="text-lg font-semibold text-neutral-900">Récap URSSAF</h2>
+          <p className="mt-2 text-sm text-neutral-600">
+            Suivre le CA encaissé, les trimestres et exporter le livre des recettes.
+          </p>
+        </Link>
       </div>
     </main>
   );

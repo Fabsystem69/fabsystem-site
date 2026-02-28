@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getInvoicesPage, normalizeSearchQuery, parsePageParam } from "@/lib/document-list";
 import { generateDocumentNumber } from "@/lib/document-number";
 import { createInvoiceTotals, invoiceUpsertSchema } from "@/lib/invoice-payload";
 import { requireApiSession } from "@/lib/internal-api";
@@ -6,24 +7,28 @@ import { rememberItemTemplates } from "@/lib/item-templates";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
 
-export async function GET() {
+export async function GET(request: Request) {
   const unauthorized = await requireApiSession();
   if (unauthorized) {
     return unauthorized;
   }
 
   try {
-    const invoices = await prisma.invoice.findMany({
-      include: {
-        customer: true,
-        items: {
-          orderBy: { position: "asc" },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    const { searchParams } = new URL(request.url);
+    const search = normalizeSearchQuery(searchParams.get("search"));
+    const page = parsePageParam(searchParams.get("page"));
+    const { invoices, totalCount, totalPages, currentPage } = await getInvoicesPage(
+      search,
+      page
+    );
 
-    return NextResponse.json({ invoices });
+    return NextResponse.json({
+      invoices,
+      totalCount,
+      totalPages,
+      currentPage,
+      pageSize: 10,
+    });
   } catch (error) {
     return databaseErrorResponse(error);
   }
@@ -53,18 +58,31 @@ export async function POST(req: Request) {
     }
 
     const { normalizedItems, subtotal, tax, total } = createInvoiceTotals(parsed.data.items);
+    const nextStatus = parsed.data.status ?? "DRAFT";
+    const paidAt =
+      nextStatus === "PAID"
+        ? parsed.data.paidAt
+          ? new Date(parsed.data.paidAt)
+          : new Date()
+        : null;
 
     const invoice = await prisma.invoice.create({
       data: {
         number: generateDocumentNumber("INV"),
-        status: parsed.data.status ?? "DRAFT",
+        status: nextStatus,
         customerId: parsed.data.customerId,
         issueDate: parsed.data.issueDate ? new Date(parsed.data.issueDate) : new Date(),
         dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
+        serviceDate: parsed.data.serviceDate ? new Date(parsed.data.serviceDate) : null,
+        serviceType: parsed.data.serviceType ?? "INTERVENTION",
+        deliveryMode: parsed.data.deliveryMode ?? "ONSITE",
         notes: parsed.data.notes || null,
         subtotal,
         tax,
         total,
+        paidAt,
+        paymentMethod: parsed.data.paymentMethod || null,
+        paymentRef: parsed.data.paymentRef || null,
         items: {
           create: normalizedItems,
         },
