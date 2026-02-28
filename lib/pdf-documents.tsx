@@ -222,24 +222,59 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 6,
   },
-  signatureSection: {
-    marginTop: 18,
+  signatureContainer: {
+    width: 340,
+    alignSelf: "center",
+    marginTop: 30,
+    padding: 16,
     borderWidth: 1,
-    borderColor: "#d6d3d1",
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
+    borderColor: "#E5E5E5",
+    borderRadius: 6,
+  },
+  signatureTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    textAlign: "center",
+    marginBottom: 6,
+    color: "#171717",
+  },
+  signatureIntro: {
+    fontSize: 8.5,
+    textAlign: "center",
+    marginBottom: 12,
+    color: "#525252",
+    lineHeight: 1.3,
+  },
+  signatureMetaBlock: {
+    marginBottom: 10,
+  },
+  signatureMetaLabel: {
+    fontSize: 7,
+    color: "#737373",
+    marginBottom: 3,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  signatureMetaValue: {
+    fontSize: 9,
+    color: "#171717",
+  },
+  signatureImageWrap: {
+    marginTop: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 60,
   },
   signatureImage: {
     width: 160,
     height: 60,
     objectFit: "contain",
   },
-  signaturePlaceholder: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#d6d3d1",
+  signatureLine: {
+    marginTop: 25,
+    height: 1,
+    backgroundColor: "#999999",
+    width: "100%",
   },
   vatNotice: {
     marginTop: 10,
@@ -515,21 +550,35 @@ function PdfDocument({
         </View>
 
         {data.kind === "quote" ? (
-          <View style={styles.signatureSection}>
-            <Text style={styles.cardTitle}>Bon pour accord</Text>
-            {data.signedName ? <Text>Nom: {data.signedName}</Text> : null}
-            {data.signedAt ? <Text>Date: {formatDate(data.signedAt)}</Text> : null}
-            {data.signatureDataUrl ? (
-              <>
-                {/* eslint-disable-next-line jsx-a11y/alt-text */}
+          <View style={styles.signatureContainer}>
+            <Text style={styles.signatureTitle}>BON POUR ACCORD</Text>
+            <Text style={styles.signatureIntro}>
+              Je reconnais avoir pris connaissance du présent devis et des
+              conditions générales de vente.
+            </Text>
+
+            <View style={styles.signatureMetaBlock}>
+              <Text style={styles.signatureMetaLabel}>Nom</Text>
+              <Text style={styles.signatureMetaValue}>
+                {data.signedName || " "}
+              </Text>
+            </View>
+
+            <View style={styles.signatureMetaBlock}>
+              <Text style={styles.signatureMetaLabel}>Date</Text>
+              <Text style={styles.signatureMetaValue}>
+                {data.signedAt ? formatDate(data.signedAt) : " "}
+              </Text>
+            </View>
+
+            <View style={styles.signatureImageWrap}>
+              {data.signatureDataUrl ? (
+                // eslint-disable-next-line jsx-a11y/alt-text
                 <Image src={data.signatureDataUrl} style={styles.signatureImage} />
-                <Text>Accord client: {data.agreementChecked ? "Oui" : "Non"}</Text>
-              </>
-            ) : (
-              <View style={styles.signaturePlaceholder}>
-                <Text>Signature client:</Text>
-              </View>
-            )}
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
+            </View>
           </View>
         ) : null}
 
