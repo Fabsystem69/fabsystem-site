@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isAuthedFromRequestCookie } from "@/lib/auth-session";
+
+const SESSION_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "fabsystem_session";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname.startsWith("/dashboard")) {
-    const token = req.cookies.get("fabsystem_session")?.value;
-    const ok = await isAuthedFromRequestCookie(token);
-    if (!ok) {
+    const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (!token) {
       const url = req.nextUrl.clone();
       url.pathname = "/login";
+      url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
   }

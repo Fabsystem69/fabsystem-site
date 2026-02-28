@@ -1,35 +1,38 @@
-import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-
-const COOKIE_NAME = "fabsystem_session";
+import {
+  SESSION_COOKIE_NAME,
+  SESSION_MAX_AGE_SECONDS,
+  signSession,
+  verifySession,
+} from "@/lib/session";
 
 function getSecret() {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) throw new Error("Missing AUTH_SECRET");
-  return new TextEncoder().encode(secret);
+  const secret = process.env.AUTH_SESSION_SECRET;
+  if (!secret) throw new Error("Missing AUTH_SESSION_SECRET");
+  return secret;
 }
 
 export async function setSession() {
-  const token = await new SignJWT({ role: "admin" })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(getSecret());
-
+  const now = Math.floor(Date.now() / 1000);
+  const token = signSession(
+    { sub: "admin", role: "admin", iat: now, exp: now + SESSION_MAX_AGE_SECONDS },
+    getSecret()
+  );
   const cookieStore = await cookies();
 
-  cookieStore.set(COOKIE_NAME, token, {
+  cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS,
   });
 }
 
 export async function clearSession() {
   const cookieStore = await cookies();
 
-  cookieStore.set(COOKIE_NAME, "", {
+  cookieStore.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
     expires: new Date(0),
     path: "/",
@@ -38,16 +41,11 @@ export async function clearSession() {
 
 export async function isAuthedFromRequestCookie(cookieValue?: string) {
   if (!cookieValue) return false;
-  try {
-    await jwtVerify(cookieValue, getSecret());
-    return true;
-  } catch {
-    return false;
-  }
+  return Boolean(verifySession(cookieValue, getSecret()));
 }
 
 export async function isAuthedServer() {
   const cookieStore = await cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   return isAuthedFromRequestCookie(token);
 }
