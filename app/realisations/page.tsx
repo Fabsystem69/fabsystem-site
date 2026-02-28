@@ -9,7 +9,27 @@ export const metadata: Metadata = {
     "Quelques cas d’intervention en électricité embarquée sur bateau, van et camping-car.",
 };
 
-const cases = [
+type CaseDetail = {
+  label: string;
+  value: string;
+};
+
+type CaseStudy = {
+  title: string;
+  context: string;
+  problem: string;
+  actions: string[];
+  result: string;
+  details: CaseDetail[];
+  image: string;
+  imageAlt: string;
+  beforeImage?: string;
+  beforeImageAlt?: string;
+  afterImage?: string;
+  afterImageAlt?: string;
+};
+
+const cases: CaseStudy[] = [
   {
     title: "Bateau — Sécurisation 12V/230V",
     context: "Refonte partielle avant saison",
