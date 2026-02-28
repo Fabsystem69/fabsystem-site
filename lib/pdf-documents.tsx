@@ -378,20 +378,6 @@ const styles = StyleSheet.create({
     height: 48,
     objectFit: "contain",
   },
-  footerQrLabel: {
-    fontSize: 6.6,
-    color: "#444444",
-    marginTop: 3,
-    textAlign: "center",
-    lineHeight: 1.15,
-  },
-  footerQrUrl: {
-    fontSize: 6.2,
-    color: "#444444",
-    marginTop: 1,
-    textAlign: "center",
-    lineHeight: 1.1,
-  },
   footerPageNumber: {
     position: "absolute",
     left: 0,
@@ -493,8 +479,6 @@ function PdfFooter({
       <View style={styles.footerQrWrap}>
         {/* eslint-disable-next-line jsx-a11y/alt-text */}
         <Image src={qrDataUrl} style={styles.footerQr} />
-        <Text style={styles.footerQrLabel}>{sanitize("Ajouter au contact")}</Text>
-        <Text style={styles.footerQrUrl}>{sanitize("www.fabsystem.fr")}</Text>
       </View>
       <Text
         style={styles.footerPageNumber}
