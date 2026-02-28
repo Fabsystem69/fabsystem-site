@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import QRCode from "qrcode";
 import { requireApiSession } from "@/lib/internal-api";
-import { renderDocumentPdf } from "@/lib/pdf-documents";
-import { prisma } from "@/lib/prisma";
+import { generateQuotePdfBuffer } from "@/lib/quote-pdf";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
 
 export const runtime = "nodejs";
@@ -23,45 +21,7 @@ export async function GET(_: Request, { params }: Params) {
   const { id } = await params;
 
   try {
-    const qrDataUrl = await QRCode.toDataURL("https://fabsystem.fr", {
-      margin: 0,
-      width: 128,
-    });
-
-    const quote = await prisma.quote.findUnique({
-      where: { id },
-      include: {
-        customer: true,
-        items: {
-          orderBy: { position: "asc" },
-        },
-      },
-    });
-
-    if (!quote) {
-      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
-    }
-
-    const { buffer, filename } = await renderDocumentPdf(
-      {
-        kind: "quote",
-        number: quote.number,
-        status: quote.status,
-        issueDate: quote.issueDate,
-        dueDate: quote.validUntil,
-        notes: quote.notes,
-        subtotal: quote.subtotal,
-        tax: quote.tax,
-        total: quote.total,
-        customer: quote.customer,
-        items: quote.items,
-        signedAt: quote.signedAt,
-        signedName: quote.signedName,
-        agreementChecked: quote.agreementChecked,
-        signatureDataUrl: quote.signatureDataUrl,
-      },
-      qrDataUrl
-    );
+    const { buffer, filename } = await generateQuotePdfBuffer(id);
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
@@ -71,6 +31,10 @@ export async function GET(_: Request, { params }: Params) {
       },
     });
   } catch (error) {
+    if (error instanceof Error && error.message === "Quote not found") {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+
     return databaseErrorResponse(error);
   }
 }

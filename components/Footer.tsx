@@ -70,12 +70,18 @@ export default function Footer() {
         {/* Bas footer */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t pt-6 text-xs text-neutral-500 sm:flex-row">
           <p>© {new Date().getFullYear()} FabSystem — Tous droits réservés</p>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
             <Link className="hover:text-neutral-700" href="/mentions-legales">
               Mentions légales
             </Link>
             <Link className="hover:text-neutral-700" href="/confidentialite">
               Confidentialité
+            </Link>
+            <Link
+              href="/login"
+              className="text-xs text-neutral-400 transition-colors hover:text-neutral-600"
+            >
+              Accès interne
             </Link>
           </div>
         </div>

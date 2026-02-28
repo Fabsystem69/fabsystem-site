@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuoteDeleteButton } from "@/components/dashboard/QuoteDeleteButton";
-import { QuoteSignatureLinkButton } from "@/components/dashboard/QuoteSignatureLinkButton";
+import { QuoteSignatureActions } from "@/components/dashboard/QuoteSignatureActions";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
@@ -53,7 +53,7 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
         </div>
 
         <div className="flex gap-3">
-          <QuoteSignatureLinkButton
+          <QuoteSignatureActions
             quoteId={quote.id}
             disabled={Boolean(quote.signedAt)}
           />
