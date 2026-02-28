@@ -1,9 +1,10 @@
 "use client";
 
 import ServiceAssurance from "@/components/ServiceAssurance";
+import { resolveBackgroundImage } from "@/lib/background-image";
 import { track } from "@/lib/client/track";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import VisioForm from "@/components/VisioForm";
 
 const heroBenefits = [
@@ -33,22 +34,45 @@ const faqItems = [
 
 export default function VisioPage() {
   const [isCalOpen, setIsCalOpen] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const visioAssuranceItems = [
     "Visio 50 €. Interventions sur devis. Diagnostic sur site à partir de 89 € selon périmètre.",
     "Réponse sous 24–48h ouvrées.",
     "Basé à Neuville-sur-Saône. Déplacements Rhône / Auvergne-Rhône-Alpes sur rendez-vous. Visio partout en France.",
   ];
+  const heroBackground = resolveBackgroundImage("/hero-fabsystem.png");
   const openBooking = () => {
     track("click_rdv");
     setIsCalOpen(true);
   };
+
+  useEffect(() => {
+    if (!isCalOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsCalOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCalOpen]);
 
   return (
     <main>
       {/* HERO */}
       <section
         className="relative bg-cover bg-center"
-        style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
+        style={{ backgroundImage: heroBackground }}
       >
         {/* Overlay */}
         <div className="absolute inset-0 bg-black/55" />
@@ -220,10 +244,22 @@ export default function VisioPage() {
 
       {/* MODAL CAL */}
       {isCalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg max-h-[85vh] overflow-hidden sm:max-h-none">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Réservation visio FabSystem"
+          className="fixed inset-0 z-50 bg-black/50 p-4"
+          onClick={() => setIsCalOpen(false)}
+        >
+          <div className="flex min-h-full items-center justify-center">
+          <div
+            className="relative w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-lg max-h-[85vh] sm:max-h-none"
+            onClick={(event) => event.stopPropagation()}
+          >
             {/* Bouton fermer */}
             <button
+              ref={closeButtonRef}
+              type="button"
               onClick={() => setIsCalOpen(false)}
               className="absolute right-4 top-4 z-10 rounded-md bg-neutral-100 p-2 hover:bg-neutral-200"
               aria-label="Fermer le formulaire"
@@ -243,6 +279,7 @@ export default function VisioPage() {
             {/* Cal.com iframe */}
             <iframe
               src="https://cal.com/fabien-l-typ79a?embed=true"
+              title="Réservation visio Cal.com"
               style={{
                 width: "100%",
                 height: "100%",
@@ -252,6 +289,7 @@ export default function VisioPage() {
               }}
               frameBorder="0"
             />
+          </div>
           </div>
         </div>
       )}

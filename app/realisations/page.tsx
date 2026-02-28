@@ -1,12 +1,16 @@
 import LightboxImage from "@/components/LightboxImage";
 import TrackedLink from "@/components/TrackedLink";
+import { resolveBackgroundImage } from "@/lib/background-image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Réalisations en électricité embarquée | FabSystem",
+  title: "Réalisations en électricité embarquée",
   description:
     "Quelques cas d’intervention en électricité embarquée sur bateau, van et camping-car.",
+  alternates: {
+    canonical: "/realisations",
+  },
 };
 
 type CaseDetail = {
@@ -94,11 +98,13 @@ const cases: CaseStudy[] = [
 ] as const;
 
 export default function RealisationsPage() {
+  const heroBackground = resolveBackgroundImage("/hero-fabsystem.png");
+
   return (
     <main>
       <section
         className="relative bg-cover bg-center"
-        style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
+        style={{ backgroundImage: heroBackground }}
       >
         <div className="absolute inset-0 bg-black/55" />
 

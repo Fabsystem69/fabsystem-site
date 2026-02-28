@@ -5,9 +5,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Prestations électricité embarquée bateau, van, camping-car | FabSystem",
+  title: "Prestations électricité embarquée bateau, van, camping-car",
   description:
     "Diagnostic, sécurisation, distribution, autonomie (batteries/solaire/230V) et accompagnement. Prestations en électricité embarquée pour bateau, van et camping-car.",
+  alternates: {
+    canonical: "/prestations",
+  },
 };
 
 const offers = [

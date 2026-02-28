@@ -1,4 +1,13 @@
 import { QuoteSignatureForm } from "@/components/sign/QuoteSignatureForm";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Signature de devis",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 type Params = {
   params: Promise<{

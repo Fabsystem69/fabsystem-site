@@ -118,7 +118,7 @@ const links = [
 ];
 
 export const metadata: Metadata = {
-  title: "Carte de visite digitale — FabSystem",
+  title: "Carte de visite digitale",
   description:
     "Carte digitale FabSystem pour ajouter rapidement les coordonnées de Fabien Lages (électricité embarquée).",
   alternates: {

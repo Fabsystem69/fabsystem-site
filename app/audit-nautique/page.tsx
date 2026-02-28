@@ -3,9 +3,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Audit électrique nautique – Conformité & sécurité | FabSystem",
+  title: "Audit électrique nautique – Conformité & sécurité",
   description:
     "Audit électrique nautique pédagogique : diagnostic sécurité, conformité (Division 240 / 245), recommandations claires et plan d’action pour fiabiliser votre installation 12V/230V.",
+  alternates: {
+    canonical: "/audit-nautique",
+  },
 };
 
 const faqItems = [

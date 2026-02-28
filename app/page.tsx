@@ -5,9 +5,12 @@ import Image from "next/image";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Électricité embarquée bateau, van et camping-car | FabSystem",
+  title: "Électricité embarquée bateau, van et camping-car",
   description:
     "Diagnostic, conseil et installation en électricité embarquée pour bateaux, vans et camping-cars. Sécurité, clarté et solutions adaptées à votre usage.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 const brands = [
@@ -64,9 +67,12 @@ export default function HomePage() {
         <div className="grid gap-4 sm:grid-cols-3">
           {/* 1 */}
           <div className="relative overflow-hidden rounded-xl border border-neutral-200">
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/preuves/cable.png')" }}
+            <Image
+              src="/preuves/cable.png"
+              alt=""
+              fill
+              sizes="(max-width: 640px) 100vw, 33vw"
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-black/55" />
 
@@ -81,9 +87,12 @@ export default function HomePage() {
 
           {/* 2 */}
           <div className="relative overflow-hidden rounded-xl border border-neutral-200">
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/preuves/fuse-out.jpg')" }}
+            <Image
+              src="/preuves/fuse-out.jpg"
+              alt=""
+              fill
+              sizes="(max-width: 640px) 100vw, 33vw"
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-black/55" />
 
@@ -98,9 +107,12 @@ export default function HomePage() {
 
           {/* 3 */}
           <div className="relative overflow-hidden rounded-xl border border-neutral-200">
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: "url('/preuves/install-victron.jpg')" }}
+            <Image
+              src="/preuves/install-victron.jpg"
+              alt=""
+              fill
+              sizes="(max-width: 640px) 100vw, 33vw"
+              className="object-cover"
             />
             <div className="absolute inset-0 bg-black/55" />
 

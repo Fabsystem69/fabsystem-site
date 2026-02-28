@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 
 type QuoteViewModel = {
@@ -38,7 +38,7 @@ export function QuoteSignatureForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  useMemo(() => {
+  useEffect(() => {
     let active = true;
 
     async function loadQuote() {

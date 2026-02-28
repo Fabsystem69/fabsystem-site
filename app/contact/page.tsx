@@ -3,12 +3,16 @@ import TrackedLink from "@/components/TrackedLink";
 import ContactForm from "../../components/ContactForm";
 import type { Metadata } from "next";
 import ServiceAssurance from "@/components/ServiceAssurance";
+import { resolveBackgroundImage } from "@/lib/background-image";
 import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const metadata: Metadata = {
-  title: "Contact électricien embarqué bateau & van | FabSystem",
+  title: "Contact électricien embarqué bateau & van",
   description:
     "Contactez FabSystem pour un diagnostic ou un conseil en électricité embarquée pour bateau, van ou camping-car. Réponse claire et rapide.",
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
 const FAQ = [
@@ -57,6 +61,7 @@ export default async function ContactPage() {
     margin: 1,
     width: 200,
   });
+  const heroBackground = resolveBackgroundImage("/hero-fabsystem.png");
 
   return (
     <main className="bg-white">
@@ -67,7 +72,7 @@ export default async function ContactPage() {
 
       <section
         className="relative min-h-[48vh] bg-cover bg-center"
-        style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
+        style={{ backgroundImage: heroBackground }}
       >
         <div className="absolute inset-0 bg-black/55" />
 
