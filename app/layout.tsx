@@ -76,12 +76,20 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": "Electrician",
+              "@type": "ProfessionalService",
               name: "FabSystem",
               url: "https://www.fabsystem.fr",
+              email: "fabien.lages@fabsystem.fr",
+              telephone: "+33698247722",
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Neuville-sur-Saône",
+                postalCode: "69250",
+                addressCountry: "FR",
+              },
               description:
                 "Conseil, installation et dépannage en électricité embarquée pour bateaux, vans et camping-cars.",
-              areaServed: ["bateaux", "vans", "camping-cars"],
+              areaServed: ["Rhône", "Auvergne-Rhône-Alpes", "France"],
               sameAs: [
                 "https://www.facebook.com/fabsystem",
                 "https://www.instagram.com/fabsystem"

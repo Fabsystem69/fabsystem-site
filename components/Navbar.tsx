@@ -89,20 +89,23 @@ export default function Navbar() {
   return (
     <>
       <header role="navigation" className={theme.header}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2 sm:py-3">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/FabSystem-Logo.svg"
-              alt="FabSystem"
-              width={240}
-              height={72}
-              className="h-18 w-auto max-w-[240px]"
-            />
+          <Link href="/" className="flex items-center">
+            <span className="relative block h-9 w-[180px] overflow-hidden">
+              <Image
+                src="/FabSystem-Logo.svg"
+                alt="FabSystem"
+                fill
+                priority
+                sizes="180px"
+                className="origin-center scale-[1.05] object-cover object-center"
+              />
+            </span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-6 text-sm font-medium sm:flex">
+          <nav className="hidden items-center gap-4 text-xs font-medium sm:flex sm:text-sm sm:gap-6">
             {nav.map((item) => (
               <Link
                 key={item.href}
@@ -120,7 +123,7 @@ export default function Navbar() {
           <button
             type="button"
             aria-label="Ouvrir le menu"
-            className={`sm:hidden rounded-md p-2 ${theme.burger}`}
+            className={`sm:hidden rounded-md p-1.5 ${theme.burger}`}
             onClick={() => setOpen(true)}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -149,17 +152,19 @@ export default function Navbar() {
           {/* panel */}
           <div className={`fixed right-0 top-0 h-full w-[85%] max-w-sm ${theme.drawerBg} p-6 shadow-xl`}>
             <div className="flex items-center justify-between">
-              <Image
-                src="/FabSystem-Logo.svg"
-                alt="FabSystem"
-                width={160}
-                height={40}
-                className="h-10 w-auto max-w-[160px]"
-              />
+              <span className="relative block h-9 w-[160px] overflow-hidden">
+                <Image
+                  src="/FabSystem-Logo.svg"
+                  alt="FabSystem"
+                  fill
+                  sizes="160px"
+                  className="origin-center scale-[1.05] object-cover object-center"
+                />
+              </span>
               <button
                 type="button"
                 aria-label="Fermer le menu"
-                className="rounded-md p-2 text-neutral-900"
+                className="rounded-md p-1.5 text-neutral-900"
                 onClick={() => setOpen(false)}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

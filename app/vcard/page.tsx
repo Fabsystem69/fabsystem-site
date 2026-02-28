@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import TrackedLink from "@/components/TrackedLink";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -196,34 +197,38 @@ export default async function VCardPage() {
               </div>
 
               <div className="grid gap-3">
-                <Link
+                <TrackedLink
                   href="/contact.vcf"
+                  event="download_vcf"
                   className="inline-flex min-h-11 items-center justify-center rounded-xl bg-neutral-900 px-4 py-3 text-base font-semibold text-white transition hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                 >
                   Ajouter à mes contacts
-                </Link>
+                </TrackedLink>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Link
+                  <TrackedLink
                     href={scheduleHref}
+                    event="click_rdv"
                     className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-900 transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                   >
                     Prendre rendez-vous
-                  </Link>
-                  <a
+                  </TrackedLink>
+                  <TrackedLink
                     href={emailHref}
+                    event="click_email"
                     className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base font-medium text-neutral-900 transition hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                   >
                     Envoyer un email
-                  </a>
+                  </TrackedLink>
                 </div>
 
-                <a
+                <TrackedLink
                   href={phoneHref}
+                  event="click_tel"
                   className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-base font-medium text-neutral-900 transition hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                 >
                   Appeler
-                </a>
+                </TrackedLink>
               </div>
             </section>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import TrackedLink from "@/components/TrackedLink";
 
 export default function Footer() {
   return (
@@ -36,21 +37,23 @@ export default function Footer() {
           {/* Bloc 3 */}
           <div>
             <h3 className="text-sm font-semibold text-neutral-900">Contact</h3>
-            <a
+            <TrackedLink
               href="mailto:fabien.lages@fabsystem.fr"
+              event="click_email"
               className="mt-3 block text-sm font-medium text-neutral-900 hover:text-neutral-700"
             >
               fabien.lages@fabsystem.fr
-            </a>
+            </TrackedLink>
 
             <div className="mt-4 grid gap-2">
               {/* CTA 1 */}
-              <a
+              <TrackedLink
                 href="mailto:fabien.lages@fabsystem.fr?subject=Demande%20d%27information%20FabSystem"
+                event="click_email"
                 className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800"
               >
                 Écrire un message
-              </a>
+              </TrackedLink>
 
               {/* CTA 2 */}
               <Link

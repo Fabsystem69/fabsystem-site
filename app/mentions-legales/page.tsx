@@ -1,3 +1,17 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Mentions légales",
+  description: "Mentions légales du site FabSystem.",
+  alternates: {
+    canonical: "/mentions-legales",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
 export default function MentionsLegalesPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">

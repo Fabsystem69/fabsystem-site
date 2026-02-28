@@ -1,6 +1,8 @@
 import Image from "next/image";
+import TrackedLink from "@/components/TrackedLink";
 import ContactForm from "../../components/ContactForm";
 import type { Metadata } from "next";
+import ServiceAssurance from "@/components/ServiceAssurance";
 import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const metadata: Metadata = {
@@ -11,22 +13,39 @@ export const metadata: Metadata = {
 
 const FAQ = [
   {
-    q: "Combien de temps pour avoir une réponse ?",
-    a: "En général sous 24–48h (jours ouvrés). Si c’est un sujet sécurité, précise-le dans “Urgence”.",
+    q: "Intervenez-vous seulement sur bateaux ?",
+    a: "Non. Bateau, van et camping-car : même logique de sécurité et de fiabilité.",
   },
   {
-    q: "Qu’est-ce que je dois fournir pour un bon diagnostic ?",
-    a: "Le support (bateau/van/camping-car), votre objectif, et si possible : type de batteries, source(s) de charge, et les équipements principaux.",
+    q: "Intervenez-vous hors Rhône ?",
+    a: "Oui selon le projet. Sinon la visio permet déjà de cadrer et sécuriser beaucoup de choses.",
   },
   {
-    q: "Vous vous déplacez ou intervenez-vous à distance ?",
-    a: "Les deux. Pour aller vite, la visio conseil permet déjà de clarifier l’architecture, la liste matériel et les étapes.",
+    q: "Travaillez-vous sur lithium / 230V / solaire / DC-DC ?",
+    a: "Oui. On valide la cohérence et la sécurité avant modification.",
   },
   {
-    q: "La visio, c’est pour quel type de besoin ?",
-    a: "Pour comprendre une installation, éviter les erreurs, préparer une refonte, dimensionner protections/câbles, ou valider un schéma.",
+    q: "Quels délais ?",
+    a: "Réponse sous 24–48h ouvrées. Les délais d’intervention sont confirmés après cadrage.",
+  },
+  {
+    q: "La visio suffit-elle ?",
+    a: "Pour diagnostiquer, cadrer une refonte ou valider un schéma, souvent oui. Sinon on bascule sur site.",
   },
 ];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.a,
+    },
+  })),
+};
 
 const phoneHref = "tel:+33698247722";
 const emailHref = "mailto:fabien.lages@fabsystem.fr";
@@ -41,17 +60,28 @@ export default async function ContactPage() {
 
   return (
     <main className="bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       <section
         className="relative min-h-[48vh] bg-cover bg-center"
         style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
       >
         <div className="absolute inset-0 bg-black/55" />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-20 text-white sm:py-24">
-          <h1 className="text-4xl font-semibold sm:text-5xl">Contact</h1>
-          <p className="mt-4 max-w-2xl text-white/90">
+        <div className="relative z-10 mx-auto max-w-6xl px-6 py-14 text-white sm:py-16 lg:py-20">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
+            Contact
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
             Un doute sur votre installation électrique ? Parlons-en simplement.
           </p>
+
+          <div className="mt-4">
+            <ServiceAssurance tone="inverse" />
+          </div>
         </div>
       </section>
 
@@ -115,21 +145,23 @@ export default async function ContactPage() {
                 <div className="mt-3 space-y-2 text-sm text-neutral-700">
                   <p>
                     <span className="font-medium text-neutral-900">Téléphone :</span>{" "}
-                    <a
+                    <TrackedLink
                       href={phoneHref}
+                      event="click_tel"
                       className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                     >
                       06 98 24 77 22
-                    </a>
+                    </TrackedLink>
                   </p>
                   <p>
                     <span className="font-medium text-neutral-900">Email :</span>{" "}
-                    <a
+                    <TrackedLink
                       href={emailHref}
+                      event="click_email"
                       className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                     >
                       fabien.lages@fabsystem.fr
-                    </a>
+                    </TrackedLink>
                   </p>
                   <p>
                     <span className="font-medium text-neutral-900">Adresse :</span>{" "}
@@ -149,19 +181,21 @@ export default async function ContactPage() {
                 </div>
 
                 <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
-                  <a
+                  <TrackedLink
                     href="/contact.vcf"
+                    event="download_vcf"
                     className="inline-flex min-h-11 items-center justify-center rounded-lg bg-neutral-900 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                   >
                     Ajouter à mes contacts
-                  </a>
-                  <a
+                  </TrackedLink>
+                  <TrackedLink
                     href="/contact.vcf"
+                    event="download_vcf"
                     download
                     className="inline-flex min-h-11 items-center justify-center rounded-lg border border-neutral-300 px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                   >
                     Télécharger la vCard
-                  </a>
+                  </TrackedLink>
                 </div>
 
                 <div className="mt-4 flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-3">
@@ -187,44 +221,45 @@ export default async function ContactPage() {
           </aside>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:mt-8">
-          <h3 className="text-lg font-semibold">Mini FAQ</h3>
+      </section>
 
-          <div className="mt-4 divide-y divide-neutral-200">
-            {FAQ.map((item, idx) => (
-              <details key={idx} className="group py-3">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-neutral-900">
-                  <span>{item.q}</span>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-200 text-neutral-600 transition group-open:rotate-180">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path
-                        d="M6 9l6 6 6-6"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                </summary>
+      <section
+        aria-labelledby="contact-faq"
+        className="border-t border-neutral-200 bg-white py-8 sm:py-10"
+      >
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-4xl">
+            <h2
+              id="contact-faq"
+              className="text-base font-semibold text-neutral-950 sm:text-lg"
+            >
+              FAQ
+            </h2>
 
-                <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-                  {item.a}
-                </p>
-              </details>
-            ))}
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {FAQ.map((item) => (
+                <details
+                  key={item.q}
+                  className="group rounded-xl border border-neutral-200 bg-white p-3 sm:p-4"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-neutral-900">
+                    <span>{item.q}</span>
+                    <span className="text-neutral-500 transition group-open:rotate-180">
+                      ⌄
+                    </span>
+                  </summary>
+                  <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+                    {item.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+
+            <p className="mt-3 text-xs text-neutral-500">
+              Vous ne trouvez pas votre réponse ? Envoyez votre message via le
+              formulaire.
+            </p>
           </div>
-
-          <p className="mt-4 text-xs text-neutral-500">
-            Vous ne trouvez pas votre réponse ? Envoyez votre message via le
-            formulaire, je vous réponds clairement.
-          </p>
         </div>
       </section>
     </main>

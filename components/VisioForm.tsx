@@ -7,9 +7,6 @@ export default function VisioForm() {
   const [status, setStatus] = useState<null | "ok" | "error">(null);
   const [startedAt] = useState(() => String(Date.now()));
 
-  // UX: on cache les détails techniques par défaut
-  const [showTech, setShowTech] = useState(false);
-
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
@@ -36,7 +33,6 @@ export default function VisioForm() {
 
       setStatus("ok");
       form.reset();
-      setShowTech(false);
     } catch (err) {
       console.error("VISIO FORM ERROR:", err);
       setStatus("error");
@@ -50,6 +46,7 @@ export default function VisioForm() {
   const fieldClass =
     "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-base leading-snug placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-300";
   const labelClass = "text-xs font-medium text-neutral-700";
+  const alignedLabelClass = "block min-h-[2.5rem] text-xs font-medium leading-tight text-neutral-700";
   const hintClass = "text-xs text-neutral-500";
   const sectionTitleClass = "text-sm font-semibold text-neutral-900";
 
@@ -73,130 +70,133 @@ export default function VisioForm() {
         <input name="startedAt" type="hidden" value={startedAt} readOnly />
       </div>
 
-      {/* INTRO */}
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
-        <p className="text-sm leading-relaxed text-neutral-700">
-          Remplissez le <strong>minimum</strong> ci-dessous. Vous pouvez ensuite ajouter des détails techniques (optionnels)
-          et joindre des photos : ça rend la visio beaucoup plus efficace.
-        </p>
-      </div>
-
       {/* ✅ ÉTAPE 1 — ESSENTIEL */}
       <section className="rounded-xl border border-neutral-200 p-6">
         <h4 className={sectionTitleClass}>Essentiel</h4>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="space-y-1">
-            <label className={labelClass}>Nom *</label>
+            <label className={alignedLabelClass}>Nom *</label>
             <input name="name" required type="text" placeholder="Votre nom" className={fieldClass} />
           </div>
 
           <div className="space-y-1">
-            <label className={labelClass}>Email *</label>
+            <label className={alignedLabelClass}>Email *</label>
             <input name="email" required type="email" placeholder="Votre email" className={fieldClass} />
           </div>
 
           <div className="space-y-1">
-            <label className={labelClass}>Téléphone (optionnel)</label>
+            <label className={alignedLabelClass}>Téléphone (optionnel)</label>
             <input name="phone" type="text" placeholder="Ex: 06..." className={fieldClass} />
           </div>
 
           <div className="space-y-1">
-            <label className={labelClass}>Date/heure Cal.com (si déjà réservé)</label>
+            <label className={alignedLabelClass}>Date/heure Cal.com (si déjà réservé)</label>
             <input name="bookingDate" type="text" placeholder="Ex: mardi 18h" className={fieldClass} />
           </div>
+        </div>
 
-          <div className="space-y-1 sm:col-span-2">
-            <label className={labelClass}>Support concerné</label>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <select name="supportType" className={fieldClass} defaultValue="">
-                {supportOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+        <details className="group mt-4 rounded-xl border border-neutral-200 bg-white">
+          <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-4 py-3 text-left hover:bg-neutral-50">
+            <div>
+              <p className="text-sm font-semibold text-neutral-900">
+                Support + objectif + resume
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+                A ouvrir pour preciser le support et completer le resume obligatoire.
+              </p>
+            </div>
+            <span className="mt-0.5 text-base leading-none text-neutral-700 transition group-open:rotate-180">
+              ⌄
+            </span>
+          </summary>
 
+          <div className="space-y-4 border-t border-neutral-200 px-4 py-4">
+            <div className="space-y-1">
+              <label className={labelClass}>Support concerné</label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <select name="supportType" className={fieldClass} defaultValue="">
+                  {supportOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  name="supportModel"
+                  type="text"
+                  placeholder="Modèle / référence (optionnel)"
+                  className={fieldClass}
+                />
+              </div>
+              <p className={hintClass}>Ex: Bayliner 2556 / fourgon L2H2 / etc.</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className={labelClass}>Votre objectif principal</label>
               <input
-                name="supportModel"
+                name="goal"
                 type="text"
-                placeholder="Modèle / référence (optionnel)"
+                placeholder="Ex: autonomie / sécuriser / ajouter du solaire / refaire la distribution…"
                 className={fieldClass}
               />
             </div>
-            <p className={hintClass}>Ex: Bayliner 2556 / fourgon L2H2 / etc.</p>
-          </div>
 
-          <div className="space-y-1 sm:col-span-2">
-            <label className={labelClass}>Votre objectif principal</label>
-            <input
-              name="goal"
-              type="text"
-              placeholder="Ex: autonomie / sécuriser / ajouter du solaire / refaire la distribution…"
-              className={fieldClass}
-            />
+            <div className="space-y-1">
+              <label className={labelClass}>Résumé (obligatoire) *</label>
+              <textarea
+                name="message"
+                required
+                rows={5}
+                placeholder="Décrivez votre situation + ce que vous attendez de la visio (2-5 lignes suffisent) *"
+                className={fieldClass}
+              />
+              <p className={hintClass}>
+                Conseil : écrivez comme si vous m&apos;envoyiez un message WhatsApp. Simple, direct.
+              </p>
+            </div>
           </div>
-
-          <div className="space-y-1 sm:col-span-2">
-            <label className={labelClass}>Résumé (obligatoire) *</label>
-            <textarea
-              name="message"
-              required
-              rows={5}
-              placeholder="Décrivez votre situation + ce que vous attendez de la visio (2-5 lignes suffisent) *"
-              className={fieldClass}
-            />
-            <p className={hintClass}>
-              Conseil : écrivez comme si vous m&apos;envoyiez un message WhatsApp. Simple, direct.
-            </p>
-          </div>
-        </div>
+        </details>
       </section>
 
-      {/* ✅ NIVEAU 2 — PHOTOS (upload direct) */}
-      <section className="rounded-xl border border-neutral-200 p-6">
-        <h4 className={sectionTitleClass}>Photos (recommandé)</h4>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-          Ajoutez 1 à 3 photos (tableau, batteries, protections, MPPT/chargeur, câblage). Sur mobile, vous pouvez prendre une photo directement.
-        </p>
-
-        <div className="mt-4 space-y-2">
-          <label className={labelClass}>Fichiers (jpg/png) — 3 max</label>
-          <input
-            name="photos"
-            type="file"
-            accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf"
-            multiple
-            className="block w-full text-sm"
-          />
-          <p className={hintClass}>
-            Astuce : si ça échoue (réseau/poids), mets un lien Drive/iCloud dans “Photos / schéma” (section technique).
-          </p>
-        </div>
-      </section>
-
-      {/* ✅ TOGGLE TECH */}
-      <button
-        type="button"
-        onClick={() => setShowTech((v) => !v)}
-        className="w-full rounded-xl border border-neutral-200 bg-white px-6 py-4 text-left hover:bg-neutral-50 active:scale-[0.99] transition"
-      >
-        <div className="flex items-start justify-between gap-4">
+      <details className="group rounded-xl border border-neutral-200 bg-white">
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 text-left hover:bg-neutral-50">
           <div>
             <p className="text-sm font-semibold text-neutral-900">
-              Détails techniques (optionnel mais recommandé)
+              Photos + détails techniques
             </p>
             <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-              Batteries, charge, 230V, équipements, photos… (ça fait gagner du temps en visio)
+              Optionnel, mais utile pour rendre la visio plus efficace.
             </p>
           </div>
-          <span className="mt-0.5 text-lg leading-none text-neutral-700">{showTech ? "−" : "+"}</span>
-        </div>
-      </button>
+          <span className="mt-0.5 text-base leading-none text-neutral-700 transition group-open:rotate-180">
+            ⌄
+          </span>
+        </summary>
 
-      {/* ✅ ÉTAPE 2 — TECH */}
-      {showTech && (
-        <div className="space-y-6">
+        <div className="space-y-6 border-t border-neutral-200 px-5 py-5">
+          <section className="rounded-xl border border-neutral-200 p-5">
+            <h4 className={sectionTitleClass}>Photos (recommandé)</h4>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+              Ajoutez 1 à 3 photos (tableau, batteries, protections, MPPT/chargeur, câblage). Sur mobile, vous pouvez prendre une photo directement.
+            </p>
+
+            <div className="mt-4 space-y-2">
+              <label className={labelClass}>Fichiers (jpg/png) — 3 max</label>
+              <input
+                name="photos"
+                type="file"
+                accept=".png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf"
+                multiple
+                className="block w-full text-sm"
+              />
+              <p className={hintClass}>
+                Astuce : si ça échoue (réseau/poids), mets un lien Drive/iCloud dans “Photos / schéma” (section technique).
+              </p>
+            </div>
+          </section>
+
           <section className="rounded-xl border border-neutral-200 p-6">
             <h4 className={sectionTitleClass}>Contexte / problème</h4>
             <textarea
@@ -296,7 +296,7 @@ export default function VisioForm() {
             />
           </section>
         </div>
-      )}
+      </details>
 
       {/* SUBMIT */}
       <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-6">

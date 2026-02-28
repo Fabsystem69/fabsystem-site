@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/client/track";
 import { useMemo, useState } from "react";
 
 type Status = null | "ok" | "error";
@@ -10,7 +11,7 @@ export default function ContactForm() {
   const [startedAt] = useState(() => String(Date.now()));
 
   const fieldClass =
-    "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm leading-snug text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/20";
+    "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-base leading-snug text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/20";
   const labelClass = "text-xs font-medium text-neutral-700";
   const hintClass = "text-xs text-neutral-500";
 
@@ -62,12 +63,6 @@ export default function ContactForm() {
       return;
     }
 
-    // Confirmation avant envoi
-    const email = String(formData.get("email") || "").trim();
-    if (!window.confirm(`Confirmer l'envoi à ${email} ?`)) {
-      return;
-    }
-
     setLoading(true);
     setStatus(null);
 
@@ -86,6 +81,7 @@ export default function ContactForm() {
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) throw new Error(data?.error || "Erreur serveur");
 
+      track("submit_contact_form");
       setStatus("ok");
       form.reset();
     } catch (err) {

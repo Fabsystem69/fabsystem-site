@@ -1,4 +1,6 @@
 import PageHero from "@/components/PageHero";
+import ProcessSteps from "@/components/ProcessSteps";
+import ServiceAssurance from "@/components/ServiceAssurance";
 import Image from "next/image";
 import type { Metadata } from "next";
 
@@ -54,6 +56,7 @@ export default function HomePage() {
           { href: "/contact", label: "Demander un diagnostic", variant: "primary" },
           { href: "/visio", label: "Découvrir la visio conseil", variant: "secondary" },
         ]}
+        assurance={<ServiceAssurance tone="inverse" />}
       />
 
 {/* PREUVES */}
@@ -113,70 +116,19 @@ export default function HomePage() {
 
       </section>
 
-{/* COMMENT ÇA SE PASSE */}
-<section className="mx-auto max-w-6xl px-6 py-14">
-  <div className="mx-auto max-w-4xl text-center">
-    <h2 className="text-2xl font-semibold text-neutral-900">
-      Comment ça se passe?
-    </h2>
-    <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-      Un accompagnement clair, étape par étape, pour comprendre votre installation
-      et avancer sans prise de risque.
-    </p>
-  </div>
+      {/* PROCESS */}
+      <section className="mx-auto max-w-6xl px-6 py-14">
+        <ProcessSteps />
 
-  <div className="mt-12 grid gap-6 sm:grid-cols-3">
-    {/* Étape 1 */}
-    <div className="rounded-xl border border-neutral-200 p-6">
-      <div className="text-sm font-semibold text-neutral-900">
-        1️⃣ Diagnostic
-      </div>
-      <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-        Analyse de votre installation, repérage des risques et des améliorations prioritaires.
-      </p>
-      <p className="mt-2 text-xs text-neutral-500">
-        → Ce qui est OK / ce qui est risqué / ce qu’il faut corriger
-      </p>
-    </div>
-
-    {/* Étape 2 */}
-    <div className="rounded-xl border border-neutral-200 p-6">
-      <div className="text-sm font-semibold text-neutral-900">
-        2️⃣ Plan d’action
-      </div>
-      <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-        Je vous aide à organiser votre installation de façon logique et sécurisée, en tenant compte de votre usage réel.
-      </p>
-      <p className="mt-2 text-xs text-neutral-500">
-        → Schéma simple, matériel adapté, étapes claires
-      </p>
-    </div>
-
-    {/* Étape 3 */}
-    <div className="rounded-xl border border-neutral-200 p-6">
-      <div className="text-sm font-semibold text-neutral-900">
-        3️⃣ Accompagnement
-      </div>
-      <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-        Intervention sur place ou visio conseil si vous réalisez vous-même
-        l’installation.
-      </p>
-      <p className="mt-2 text-xs text-neutral-500">
-        → Vous avancez sans bricolage dangereux
-      </p>
-    </div>
-  </div>
-
-  {/* CTA */}
-  <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-    <a
-      href="/contact"
-      className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
-    >
-      Demander un diagnostic
-    </a>
-  </div>
-</section>
+        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <a
+            href="/contact"
+            className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
+          >
+            Demander un diagnostic
+          </a>
+        </div>
+      </section>
 
 {/* AUDIT ÉLECTRIQUE NAUTIQUE */}
 <section className="mx-auto max-w-6xl px-6 py-14">

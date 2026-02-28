@@ -1,3 +1,17 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Politique de confidentialité",
+  description: "Politique de confidentialité et traitement des données — FabSystem.",
+  alternates: {
+    canonical: "/confidentialite",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
 export default function ConfidentialitePage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
