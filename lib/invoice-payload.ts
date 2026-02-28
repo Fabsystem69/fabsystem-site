@@ -10,6 +10,7 @@ export const invoiceItemSchema = z.object({
 
 export const invoiceUpsertSchema = z.object({
   customerId: z.string().trim().min(1),
+  sourceQuoteId: z.string().trim().min(1).nullable().optional(),
   issueDate: z.string().datetime().optional(),
   dueDate: z.string().datetime().nullable().optional(),
   serviceDate: z.string().datetime().nullable().optional(),

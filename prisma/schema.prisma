@@ -84,6 +84,7 @@ model Quote {
   signatureTokenExpiresAt  DateTime?
   signatureIp              String?
   signatureUserAgent       String?
+  sourceInvoice            Invoice?    @relation("QuoteToInvoice")
   items                    QuoteItem[]
   createdAt                DateTime    @default(now())
   updatedAt                DateTime    @updatedAt
@@ -122,12 +123,15 @@ model Invoice {
   paidAt        DateTime?
   paymentMethod String?
   paymentRef    String?
+  sourceQuoteId String?       @unique
+  sourceQuote   Quote?        @relation("QuoteToInvoice", fields: [sourceQuoteId], references: [id], onDelete: SetNull)
   items         InvoiceItem[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   @@index([customerId])
   @@index([paidAt])
+  @@index([sourceQuoteId])
 }
 
 model InvoiceItem {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { QuoteConvertButton } from "@/components/dashboard/QuoteConvertButton";
 import { QuoteDeleteButton } from "@/components/dashboard/QuoteDeleteButton";
 import { QuoteSignatureActions } from "@/components/dashboard/QuoteSignatureActions";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
@@ -19,6 +20,12 @@ async function findQuote(id: string) {
     where: { id },
     include: {
       customer: true,
+      sourceInvoice: {
+        select: {
+          id: true,
+          number: true,
+        },
+      },
       items: {
         orderBy: { position: "asc" },
       },
@@ -60,6 +67,10 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
           <QuoteSignatureActions
             quoteId={quote.id}
             disabled={Boolean(quote.signedAt)}
+          />
+          <QuoteConvertButton
+            quoteId={quote.id}
+            existingInvoiceId={quote.sourceInvoice?.id}
           />
           <Link
             href={`/dashboard/quotes/${quote.id}/edit`}
@@ -108,6 +119,17 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
             <p>Mode: {formatDeliveryMode(quote.deliveryMode)}</p>
             <p>Date prestation: {formatDate(quote.serviceDate)}</p>
             <p>Statut: {quote.status}</p>
+            {quote.sourceInvoice ? (
+              <p>
+                Facture liée:{" "}
+                <Link
+                  href={`/dashboard/invoices/${quote.sourceInvoice.id}`}
+                  className="font-medium text-neutral-900 underline underline-offset-2"
+                >
+                  {quote.sourceInvoice.number}
+                </Link>
+              </p>
+            ) : null}
             {quote.signedAt && quote.signedName ? (
               <p className="text-green-700">
                 Signé le {formatDate(quote.signedAt)} par {quote.signedName}

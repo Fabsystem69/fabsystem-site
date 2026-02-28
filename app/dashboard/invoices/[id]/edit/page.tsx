@@ -45,6 +45,7 @@ export default async function DashboardInvoiceEditPage({ params }: Params) {
       ? {
           id: invoiceResult.id,
           customerId: invoiceResult.customerId,
+          sourceQuoteId: invoiceResult.sourceQuoteId,
           issueDate: invoiceResult.issueDate,
           dueDate: invoiceResult.dueDate,
           serviceDate: invoiceResult.serviceDate,

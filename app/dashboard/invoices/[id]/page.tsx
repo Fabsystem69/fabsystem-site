@@ -19,6 +19,12 @@ async function findInvoice(id: string) {
     where: { id },
     include: {
       customer: true,
+      sourceQuote: {
+        select: {
+          id: true,
+          number: true,
+        },
+      },
       items: {
         orderBy: { position: "asc" },
       },
@@ -104,6 +110,17 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
             <p>Mode: {formatDeliveryMode(invoice.deliveryMode)}</p>
             <p>Date prestation: {formatDate(invoice.serviceDate)}</p>
             <p>Statut: {invoice.status}</p>
+            {invoice.sourceQuote ? (
+              <p>
+                Devis source:{" "}
+                <Link
+                  href={`/dashboard/quotes/${invoice.sourceQuote.id}`}
+                  className="font-medium text-neutral-900 underline underline-offset-2"
+                >
+                  {invoice.sourceQuote.number}
+                </Link>
+              </p>
+            ) : null}
             <p>Encaissement: {formatDate(invoice.paidAt)}</p>
             {invoice.paymentMethod ? <p>Mode: {invoice.paymentMethod}</p> : null}
             {invoice.paymentRef ? <p>Référence: {invoice.paymentRef}</p> : null}

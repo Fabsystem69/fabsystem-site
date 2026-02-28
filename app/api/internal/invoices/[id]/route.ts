@@ -57,11 +57,40 @@ export async function PATCH(req: Request, { params }: Params) {
   try {
     const existingInvoice = await prisma.invoice.findUnique({
       where: { id },
-      select: { id: true, paidAt: true, status: true },
+      select: { id: true, paidAt: true, status: true, sourceQuoteId: true },
     });
 
     if (!existingInvoice) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    if (parsed.data.sourceQuoteId) {
+      const sourceQuote = await prisma.quote.findUnique({
+        where: { id: parsed.data.sourceQuoteId },
+        select: { id: true },
+      });
+
+      if (!sourceQuote) {
+        return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+      }
+
+      const existingSourceInvoice = await prisma.invoice.findFirst({
+        where: {
+          sourceQuoteId: parsed.data.sourceQuoteId,
+          NOT: { id },
+        },
+        select: { id: true },
+      });
+
+      if (existingSourceInvoice) {
+        return NextResponse.json(
+          {
+            error: "An invoice already exists for this quote",
+            invoiceId: existingSourceInvoice.id,
+          },
+          { status: 409 }
+        );
+      }
     }
 
     const customer = await prisma.customer.findUnique({
@@ -96,6 +125,7 @@ export async function PATCH(req: Request, { params }: Params) {
         subtotal,
         tax,
         total,
+        sourceQuoteId: parsed.data.sourceQuoteId ?? existingInvoice.sourceQuoteId ?? null,
         paidAt,
         paymentMethod: parsed.data.paymentMethod || null,
         paymentRef: parsed.data.paymentRef || null,

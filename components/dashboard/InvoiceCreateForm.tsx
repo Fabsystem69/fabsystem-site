@@ -1,9 +1,18 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
 import { ItemTemplateCombobox } from "@/components/dashboard/ItemTemplateCombobox";
+import {
+  QuotePicklistCombobox,
+  type QuotePicklistOption,
+} from "@/components/dashboard/QuotePicklistCombobox";
 import { formatDateForInput, formatEuroFromCents } from "@/lib/format";
+import {
+  addDays,
+  normalizePaymentTermsDays,
+  PAYMENT_TERMS_STORAGE_KEY,
+} from "@/lib/payment-terms";
 
 export type InvoiceCustomerOption = {
   id: string;
@@ -21,6 +30,7 @@ type Line = {
 export type InvoiceFormInitialData = {
   id: string;
   customerId: string;
+  sourceQuoteId?: string | null;
   issueDate: string | Date;
   dueDate: string | Date | null;
   serviceDate: string | Date | null;
@@ -42,6 +52,25 @@ export type InvoiceFormInitialData = {
 type InvoiceCreateFormProps = {
   customers: InvoiceCustomerOption[];
   initialData?: InvoiceFormInitialData;
+};
+
+type QuoteDetailsResponse = {
+  quote?: {
+    id: string;
+    customerId: string;
+    number: string;
+    notes: string | null;
+    serviceDate: string | Date | null;
+    serviceType: "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL";
+    deliveryMode: "ONSITE" | "REMOTE";
+    items: Array<{
+      id: string;
+      description: string;
+      quantity: number;
+      unitPrice: number;
+    }>;
+  };
+  error?: string;
 };
 
 function createLine(): Line {
@@ -84,6 +113,11 @@ function createInitialLines(initialData?: InvoiceFormInitialData): Line[] {
   }));
 }
 
+function buildDueDate(issueDateValue: string, paymentTermsDays: 0 | 30) {
+  const baseDate = issueDateValue ? new Date(issueDateValue) : new Date();
+  return formatDateForInput(addDays(baseDate, paymentTermsDays));
+}
+
 export function InvoiceCreateForm({
   customers,
   initialData,
@@ -93,22 +127,31 @@ export function InvoiceCreateForm({
   const [customerId, setCustomerId] = useState(
     initialData?.customerId ?? customers[0]?.id ?? ""
   );
+  const [sourceQuoteId, setSourceQuoteId] = useState(initialData?.sourceQuoteId ?? null);
+  const [sourceQuoteLabel, setSourceQuoteLabel] = useState<string | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [issueDate, setIssueDate] = useState(
     formatDateForInput(initialData?.issueDate ?? new Date())
   );
-  const [dueDate, setDueDate] = useState(formatDateForInput(initialData?.dueDate));
+  const [paymentTermsDays, setPaymentTermsDays] = useState<0 | 30>(30);
+  const [dueDateTouched, setDueDateTouched] = useState(Boolean(initialData?.dueDate));
+  const [dueDate, setDueDate] = useState(
+    formatDateForInput(initialData?.dueDate) ||
+      buildDueDate(
+        formatDateForInput(initialData?.issueDate ?? new Date()),
+        30
+      )
+  );
   const [serviceDate, setServiceDate] = useState(
     formatDateForInput(initialData?.serviceDate)
   );
+  const [showAdvanced, setShowAdvanced] = useState(Boolean(initialData?.serviceDate));
   const [serviceType, setServiceType] = useState<
     "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL"
   >(initialData?.serviceType ?? "INTERVENTION");
   const [deliveryMode, setDeliveryMode] = useState<"ONSITE" | "REMOTE">(
     initialData?.deliveryMode ?? "ONSITE"
   );
-  const [paidAt, setPaidAt] = useState(formatDateForInput(initialData?.paidAt));
-  const [paymentMethod, setPaymentMethod] = useState(initialData?.paymentMethod ?? "");
-  const [paymentRef, setPaymentRef] = useState(initialData?.paymentRef ?? "");
   const [status, setStatus] = useState<
     "DRAFT" | "SENT" | "PAID" | "CANCELLED"
   >(initialData?.status ?? "DRAFT");
@@ -116,6 +159,33 @@ export function InvoiceCreateForm({
   const [lines, setLines] = useState<Line[]>(() => createInitialLines(initialData));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedValue = window.localStorage.getItem(PAYMENT_TERMS_STORAGE_KEY);
+    const nextValue = normalizePaymentTermsDays(storedValue);
+    setPaymentTermsDays(nextValue);
+
+    if (!dueDateTouched && !initialData?.dueDate) {
+      setDueDate(buildDueDate(issueDate, nextValue));
+    }
+  }, [dueDateTouched, initialData?.dueDate, issueDate]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        PAYMENT_TERMS_STORAGE_KEY,
+        String(paymentTermsDays)
+      );
+    }
+
+    if (!dueDateTouched) {
+      setDueDate(buildDueDate(issueDate, paymentTermsDays));
+    }
+  }, [dueDateTouched, issueDate, paymentTermsDays]);
 
   const totals = useMemo(() => {
     const subtotal = lines.reduce((sum, line) => {
@@ -138,7 +208,10 @@ export function InvoiceCreateForm({
     );
   }
 
-  function applyTemplate(id: string, template: { label: string; defaultUnitPriceCents: number | null }) {
+  function applyTemplate(
+    id: string,
+    template: { label: string; defaultUnitPriceCents: number | null }
+  ) {
     setLines((current) =>
       current.map((line) =>
         line.id === id
@@ -161,6 +234,52 @@ export function InvoiceCreateForm({
     );
   }
 
+  async function handleQuoteSelect(quoteOption: QuotePicklistOption) {
+    setQuoteLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/internal/quotes/${quoteOption.id}`);
+      const body = (await response.json().catch(() => ({}))) as QuoteDetailsResponse;
+
+      if (!response.ok || !body.quote) {
+        throw new Error(body.error || "Impossible de charger le devis.");
+      }
+
+      setSourceQuoteId(body.quote.id);
+      setSourceQuoteLabel(`${quoteOption.number} — ${quoteOption.customerName}`);
+      setCustomerId(body.quote.customerId);
+      setServiceType(body.quote.serviceType);
+      setDeliveryMode(body.quote.deliveryMode);
+      setServiceDate(formatDateForInput(body.quote.serviceDate));
+      setShowAdvanced(Boolean(body.quote.serviceDate));
+      setNotes(body.quote.notes ?? "");
+      setLines(
+        body.quote.items.length > 0
+          ? body.quote.items.map((item) => ({
+              id: item.id,
+              description: item.description,
+              quantity: String(item.quantity),
+              unitPrice: centsToEuroInput(item.unitPrice),
+            }))
+          : [createLine()]
+      );
+    } catch (quoteError) {
+      setError(
+        quoteError instanceof Error
+          ? quoteError.message
+          : "Impossible de charger le devis."
+      );
+    } finally {
+      setQuoteLoading(false);
+    }
+  }
+
+  function clearSourceQuote() {
+    setSourceQuoteId(null);
+    setSourceQuoteLabel(null);
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
@@ -172,7 +291,9 @@ export function InvoiceCreateForm({
         quantity: Number.parseInt(line.quantity || "0", 10),
         unitPrice: parseEuroToCents(line.unitPrice),
       }))
-      .filter((line) => line.description && Number.isFinite(line.quantity) && line.quantity > 0);
+      .filter(
+        (line) => line.description && Number.isFinite(line.quantity) && line.quantity > 0
+      );
 
     if (!customerId) {
       setError("Sélectionne un client.");
@@ -187,28 +308,32 @@ export function InvoiceCreateForm({
     }
 
     try {
-      const endpoint = isEdit ? `/api/internal/invoices/${initialData?.id}` : "/api/internal/invoices";
+      const endpoint = isEdit
+        ? `/api/internal/invoices/${initialData?.id}`
+        : "/api/internal/invoices";
       const method = isEdit ? "PATCH" : "POST";
       const res = await fetch(endpoint, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId,
+          sourceQuoteId,
           issueDate: new Date(issueDate).toISOString(),
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
           serviceDate: serviceDate ? new Date(serviceDate).toISOString() : null,
           serviceType,
           deliveryMode,
-          paidAt: paidAt ? new Date(paidAt).toISOString() : null,
-          paymentMethod: paymentMethod.trim() || null,
-          paymentRef: paymentRef.trim() || null,
           notes: notes.trim() || null,
           status,
           items,
         }),
       });
 
-      const json = (await res.json().catch(() => ({}))) as { error?: string; invoice?: { id: string } };
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        invoiceId?: string;
+        invoice?: { id: string };
+      };
 
       if (!res.ok) {
         throw new Error(json.error || "Impossible d'enregistrer la facture.");
@@ -224,7 +349,9 @@ export function InvoiceCreateForm({
       router.refresh();
     } catch (submitError) {
       setError(
-        submitError instanceof Error ? submitError.message : "Erreur d'enregistrement."
+        submitError instanceof Error
+          ? submitError.message
+          : "Erreur d'enregistrement."
       );
     } finally {
       setLoading(false);
@@ -237,98 +364,211 @@ export function InvoiceCreateForm({
         <h2 className="text-lg font-semibold text-neutral-900">
           {isEdit ? "Modifier la facture" : "Nouvelle facture"}
         </h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <select
-            value={customerId}
-            onChange={(event) => setCustomerId(event.target.value)}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          >
-            {customers.map((customer) => (
-              <option key={customer.id} value={customer.id}>
-                {customer.name}
-                {customer.email ? ` (${customer.email})` : ""}
-              </option>
-            ))}
-          </select>
-          <select
-            value={status}
-            onChange={(event) =>
-              setStatus(
-                event.target.value as "DRAFT" | "SENT" | "PAID" | "CANCELLED"
-              )
+        <div className="mt-4 grid gap-3">
+          {!isEdit ? (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-neutral-700">
+                Basé sur le devis
+              </label>
+              <QuotePicklistCombobox
+                disabled={quoteLoading}
+                onSelect={handleQuoteSelect}
+              />
+              {sourceQuoteId && sourceQuoteLabel ? (
+                <div className="flex flex-wrap items-center gap-3 text-sm text-neutral-600">
+                  <p>Prérempli depuis {sourceQuoteLabel}.</p>
+                  <button
+                    type="button"
+                    onClick={clearSourceQuote}
+                    className="font-medium text-neutral-900 underline underline-offset-2"
+                  >
+                    Retirer le devis
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm text-neutral-500">
+                  Optionnel: sélectionne un devis pour préremplir le client, les lignes et les notes.
+                </p>
+              )}
+            </div>
+          ) : null}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-neutral-700">Client</span>
+              <select
+                value={customerId}
+                onChange={(event) => setCustomerId(event.target.value)}
+                className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+              >
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.name}
+                    {customer.email ? ` (${customer.email})` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-neutral-700">Statut</span>
+              <select
+                value={status}
+                onChange={(event) =>
+                  setStatus(
+                    event.target.value as "DRAFT" | "SENT" | "PAID" | "CANCELLED"
+                  )
+                }
+                className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+              >
+                <option value="DRAFT">DRAFT</option>
+                <option value="SENT">SENT</option>
+                <option value="PAID">PAID</option>
+                <option value="CANCELLED">CANCELLED</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-neutral-700">
+                Type de prestation
+              </span>
+              <select
+                value={serviceType}
+                onChange={(event) =>
+                  setServiceType(
+                    event.target.value as
+                      | "INTERVENTION"
+                      | "FORMATION"
+                      | "AUDIT"
+                      | "CONSEIL"
+                  )
+                }
+                className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+              >
+                <option value="INTERVENTION">Intervention</option>
+                <option value="FORMATION">Formation</option>
+                <option value="AUDIT">Audit</option>
+                <option value="CONSEIL">Conseil</option>
+              </select>
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-neutral-700">Mode</span>
+              <select
+                value={deliveryMode}
+                onChange={(event) =>
+                  setDeliveryMode(event.target.value as "ONSITE" | "REMOTE")
+                }
+                className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+              >
+                <option value="ONSITE">Sur site</option>
+                <option value="REMOTE">Visio</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-neutral-700">
+                Date d&apos;émission
+              </span>
+              <input
+                type="date"
+                value={issueDate}
+                onChange={(event) => setIssueDate(event.target.value)}
+                className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+              />
+              <span className="text-sm text-neutral-500">
+                Date affichée sur la facture.
+              </span>
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-neutral-700">Échéance</span>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(event) => {
+                  setDueDate(event.target.value);
+                  setDueDateTouched(true);
+                }}
+                className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+              />
+              <span className="text-sm text-neutral-500">
+                Date limite de paiement (par défaut: émission + {paymentTermsDays} jour
+                {paymentTermsDays > 1 ? "s" : ""}).
+              </span>
+            </label>
+          </div>
+
+          <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+            <p className="text-sm font-medium text-neutral-700">
+              Conditions de paiement mémorisées
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentTermsDays(0);
+                  setDueDateTouched(false);
+                }}
+                className={`rounded-full px-3 py-2 text-sm font-medium ${
+                  paymentTermsDays === 0
+                    ? "bg-neutral-900 text-white"
+                    : "border border-neutral-300 bg-white text-neutral-700"
+                }`}
+              >
+                Paiement immédiat (0j)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPaymentTermsDays(30);
+                  setDueDateTouched(false);
+                }}
+                className={`rounded-full px-3 py-2 text-sm font-medium ${
+                  paymentTermsDays === 30
+                    ? "bg-neutral-900 text-white"
+                    : "border border-neutral-300 bg-white text-neutral-700"
+                }`}
+              >
+                30 jours
+              </button>
+            </div>
+          </div>
+
+          <details
+            open={showAdvanced}
+            onToggle={(event) =>
+              setShowAdvanced((event.currentTarget as HTMLDetailsElement).open)
             }
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className="rounded-lg border border-neutral-200 bg-neutral-50 p-3"
           >
-            <option value="DRAFT">DRAFT</option>
-            <option value="SENT">SENT</option>
-            <option value="PAID">PAID</option>
-            <option value="CANCELLED">CANCELLED</option>
-          </select>
-          <input
-            type="date"
-            value={issueDate}
-            onChange={(event) => setIssueDate(event.target.value)}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          />
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(event) => setDueDate(event.target.value)}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          />
-          <select
-            value={serviceType}
-            onChange={(event) =>
-              setServiceType(
-                event.target.value as "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL"
-              )
-            }
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          >
-            <option value="INTERVENTION">Intervention</option>
-            <option value="FORMATION">Formation</option>
-            <option value="AUDIT">Audit</option>
-            <option value="CONSEIL">Conseil</option>
-          </select>
-          <select
-            value={deliveryMode}
-            onChange={(event) => setDeliveryMode(event.target.value as "ONSITE" | "REMOTE")}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          >
-            <option value="ONSITE">Sur site</option>
-            <option value="REMOTE">Visio</option>
-          </select>
-          <input
-            type="date"
-            value={serviceDate}
-            onChange={(event) => setServiceDate(event.target.value)}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          />
-          <input
-            type="date"
-            value={paidAt}
-            onChange={(event) => setPaidAt(event.target.value)}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          />
-          <select
-            value={paymentMethod}
-            onChange={(event) => setPaymentMethod(event.target.value)}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
-          >
-            <option value="">Mode de paiement</option>
-            <option value="Virement">Virement</option>
-            <option value="CB">CB</option>
-            <option value="Espèces">Espèces</option>
-            <option value="Chèque">Chèque</option>
-          </select>
-          <input
-            value={paymentRef}
-            onChange={(event) => setPaymentRef(event.target.value)}
-            placeholder="Référence paiement"
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base sm:col-span-2"
-          />
+            <summary className="cursor-pointer text-sm font-medium text-neutral-700">
+              Avancé
+            </summary>
+            <div className="mt-3 grid gap-3 sm:max-w-sm">
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-neutral-700">
+                  Date de prestation
+                </span>
+                <input
+                  type="date"
+                  value={serviceDate}
+                  onChange={(event) => setServiceDate(event.target.value)}
+                  className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+                />
+                <span className="text-sm text-neutral-500">
+                  Optionnel: date de réalisation de la prestation.
+                </span>
+              </label>
+            </div>
+          </details>
         </div>
-        <p className="mt-3 text-sm text-neutral-600">
+
+        <p className="mt-4 text-sm text-neutral-600">
           TVA non applicable – article 293 B du CGI
         </p>
         <textarea
@@ -408,10 +648,14 @@ export function InvoiceCreateForm({
         ) : null}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || quoteLoading}
           className="mt-4 hidden rounded-md bg-neutral-900 px-4 py-3 text-base font-semibold text-white disabled:opacity-60 md:inline-flex"
         >
-          {loading ? "Enregistrement..." : isEdit ? "Enregistrer les modifications" : "Créer la facture"}
+          {loading
+            ? "Enregistrement..."
+            : isEdit
+              ? "Enregistrer les modifications"
+              : "Créer la facture"}
         </button>
       </section>
 
@@ -426,7 +670,7 @@ export function InvoiceCreateForm({
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || quoteLoading}
             className="h-11 flex-[1.3] rounded-md bg-neutral-900 px-4 text-base font-semibold text-white disabled:opacity-60"
           >
             {loading ? "Enregistrement..." : isEdit ? "Enregistrer" : "Créer"}

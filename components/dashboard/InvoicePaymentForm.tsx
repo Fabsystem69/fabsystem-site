@@ -104,6 +104,9 @@ export function InvoicePaymentForm({
           className="h-11 rounded-md border border-neutral-300 px-3 text-base"
         />
       </div>
+      <p className="mt-3 text-sm text-neutral-500">
+        Date d&apos;encaissement (URSSAF).
+      </p>
       {message ? <p className="mt-3 text-sm text-green-700">{message}</p> : null}
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
       <button

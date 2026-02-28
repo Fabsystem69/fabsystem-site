@@ -48,6 +48,32 @@ export async function POST(req: Request) {
   }
 
   try {
+    if (parsed.data.sourceQuoteId) {
+      const sourceQuote = await prisma.quote.findUnique({
+        where: { id: parsed.data.sourceQuoteId },
+        select: { id: true },
+      });
+
+      if (!sourceQuote) {
+        return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+      }
+
+      const existingInvoice = await prisma.invoice.findUnique({
+        where: { sourceQuoteId: parsed.data.sourceQuoteId },
+        select: { id: true },
+      });
+
+      if (existingInvoice) {
+        return NextResponse.json(
+          {
+            error: "An invoice already exists for this quote",
+            invoiceId: existingInvoice.id,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const customer = await prisma.customer.findUnique({
       where: { id: parsed.data.customerId },
       select: { id: true },
@@ -80,6 +106,7 @@ export async function POST(req: Request) {
         subtotal,
         tax,
         total,
+        sourceQuoteId: parsed.data.sourceQuoteId || null,
         paidAt,
         paymentMethod: parsed.data.paymentMethod || null,
         paymentRef: parsed.data.paymentRef || null,
