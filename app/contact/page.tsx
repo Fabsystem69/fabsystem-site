@@ -1,7 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
 import ContactForm from "../../components/ContactForm";
-import PhoneReveal from "../../components/PhoneReveal";
 import type { Metadata } from "next";
 import { generateQrDataUrl } from "@/lib/server/qrcode";
 
@@ -38,12 +36,11 @@ const vcardPageUrl = "https://www.fabsystem.fr/vcard";
 export default async function ContactPage() {
   const qrDataUrl = await generateQrDataUrl(vcardPageUrl, {
     margin: 1,
-    width: 240,
+    width: 200,
   });
 
   return (
     <main className="bg-white">
-      {/* HERO */}
       <section
         className="relative min-h-[48vh] bg-cover bg-center"
         style={{ backgroundImage: "url('/hero-fabsystem.png')" }}
@@ -58,201 +55,9 @@ export default async function ContactPage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-12 max-w-3xl px-6">
-        <div className="space-y-6 rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
-          <div>
-            <h2 className="text-2xl font-semibold text-neutral-950">
-              Carte de visite digitale
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-white">
-              <Image
-                src="/logo.png"
-                alt="Logo FabSystem"
-                width={56}
-                height={56}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
-
-          <div className="h-px bg-neutral-200" />
-
-          <div className="space-y-2">
-            <p className="text-lg font-semibold text-neutral-950">
-              Fabien Lages
-            </p>
-            <p className="font-medium text-neutral-900">FabSystem</p>
-            <p className="text-sm text-neutral-500">
-              Électricité embarquée • Audit • Formation
-            </p>
-          </div>
-
-          <div className="space-y-3 text-sm text-neutral-700">
-            <p>
-              <span className="font-medium text-neutral-900">Téléphone :</span>{" "}
-              <a href={phoneHref} className="underline underline-offset-4">
-                06 98 24 77 22
-              </a>
-            </p>
-            <p>
-              <span className="font-medium text-neutral-900">Email :</span>{" "}
-              <a href={emailHref} className="underline underline-offset-4">
-                fabien.lages@fabsystem.fr
-              </a>
-            </p>
-            <p>
-              <span className="font-medium text-neutral-900">Adresse :</span>{" "}
-              48 rue Rey Loras, Bât. E, 69250 Neuville-sur-Saône
-            </p>
-            <p>
-              <span className="font-medium text-neutral-900">Site :</span>{" "}
-              <a
-                href={websiteHref}
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-4"
-              >
-                www.fabsystem.fr
-              </a>
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <a
-              href="/contact.vcf"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
-            >
-              Ajouter à mes contacts
-            </a>
-            <a
-              href="/contact.vcf"
-              download
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
-            >
-              Télécharger la vCard (.vcf)
-            </a>
-          </div>
-
-          <div className="pt-2 text-center">
-            <Image
-              src={qrDataUrl}
-              alt="QR code vers la carte digitale FabSystem"
-              width={128}
-              height={128}
-              unoptimized
-              className="mx-auto h-32 w-32"
-            />
-            <p className="mt-3 text-sm text-neutral-500">
-              Scanner pour enregistrer mes coordonnées
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CONTENU */}
       <section className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
         <div className="grid items-start gap-6 sm:grid-cols-12 sm:gap-8">
-          {/* COLONNE GAUCHE : INFOS + FAQ */}
-          <aside className="sm:col-span-5">
-            <div className="space-y-6 sm:sticky sm:top-24">
-              {/* Carte infos */}
-              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <h2 className="text-2xl font-semibold">FabSystem</h2>
-                <p className="mt-3 text-neutral-700 leading-relaxed">
-                  Électricité et systèmes embarqués pour bateaux, vans et camping-cars.
-                </p>
-
-                <div className="mt-6 space-y-4">
-                  {/* Email */}
-                  <div className="flex items-start gap-3">
-                    <span className="mt-[2px]">📧</span>
-                    <div>
-                      <div className="text-sm font-semibold text-neutral-900">Email</div>
-                      <a
-                        href="mailto:fabien.lages@fabsystem.fr"
-                        className="text-sm text-neutral-700 underline underline-offset-4 hover:text-neutral-900"
-                      >
-                        fabien.lages@fabsystem.fr
-                      </a>
-                    </div>
-                  </div>
-
-                  {/* Téléphone (caché) */}
-                  <div className="flex items-start gap-3">
-                    <span className="mt-[2px]">📞</span>
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-neutral-900">
-                        Téléphone
-                      </div>
-                      <PhoneReveal />
-                      <p className="mt-2 text-xs text-neutral-500">
-                        Appel téléphonique après premier échange si nécessaire.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* CTA */}
-                <div className="mt-6">
-                  <Link
-                    href="/visio"
-                    className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
-                  >
-                    Prendre un rendez-vous
-                  </Link>
-                  <p className="mt-3 text-xs text-neutral-500 leading-relaxed">
-                    Intervention sur rendez-vous. Diagnostic clair et conseils adaptés à votre usage.
-                  </p>
-                </div>
-              </div>
-
-              {/* Carte FAQ */}
-              <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-semibold">Mini FAQ</h3>
-
-                <div className="mt-4 divide-y divide-neutral-200">
-                  {FAQ.map((item, idx) => (
-                    <details key={idx} className="group py-3">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-neutral-900">
-                        <span>{item.q}</span>
-                        <span className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-200 text-neutral-600 transition group-open:rotate-180">
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <path
-                              d="M6 9l6 6 6-6"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </summary>
-
-                      <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-                        {item.a}
-                      </p>
-                    </details>
-                  ))}
-                </div>
-
-                <p className="mt-4 text-xs text-neutral-500">
-                  Vous ne trouvez pas votre réponse ? Envoyez votre message via le formulaire, je vous réponds clairement.
-                </p>
-              </div>
-            </div>
-          </aside>
-
-          {/* COLONNE DROITE : FORMULAIRE */}
-          <div className="sm:col-span-7">
+          <div className="order-1 sm:col-span-7">
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 shadow-sm sm:p-8">
               <h3 className="text-lg font-semibold">Décrire votre besoin</h3>
               <p className="mt-2 text-sm text-neutral-600">
@@ -264,6 +69,162 @@ export default async function ContactPage() {
               </div>
             </div>
           </div>
+
+          <aside
+            aria-labelledby="contact-vcard"
+            className="order-2 sm:col-span-5"
+          >
+            <div className="sm:sticky sm:top-24">
+              <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <h2
+                      id="contact-vcard"
+                      className="text-base font-semibold text-neutral-950"
+                    >
+                      Carte de visite digitale
+                    </h2>
+                    <p className="text-sm text-neutral-500">
+                      Accès rapide à la fiche contact et à la vCard.
+                    </p>
+                  </div>
+
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-white">
+                    <Image
+                      src="/logo.png"
+                      alt="Logo FabSystem"
+                      width={40}
+                      height={40}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 h-px bg-neutral-200" />
+
+                <div className="mt-3 space-y-1">
+                  <p className="text-base font-semibold text-neutral-950">
+                    Fabien Lages
+                  </p>
+                  <p className="text-sm font-medium text-neutral-900">FabSystem</p>
+                  <p className="text-sm text-neutral-500">
+                    Électricité embarquée • Audit • Formation
+                  </p>
+                </div>
+
+                <div className="mt-3 space-y-2 text-sm text-neutral-700">
+                  <p>
+                    <span className="font-medium text-neutral-900">Téléphone :</span>{" "}
+                    <a
+                      href={phoneHref}
+                      className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                    >
+                      06 98 24 77 22
+                    </a>
+                  </p>
+                  <p>
+                    <span className="font-medium text-neutral-900">Email :</span>{" "}
+                    <a
+                      href={emailHref}
+                      className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                    >
+                      fabien.lages@fabsystem.fr
+                    </a>
+                  </p>
+                  <p>
+                    <span className="font-medium text-neutral-900">Adresse :</span>{" "}
+                    Neuville-sur-Saône
+                  </p>
+                  <p>
+                    <span className="font-medium text-neutral-900">Site :</span>{" "}
+                    <a
+                      href={websiteHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                    >
+                      www.fabsystem.fr
+                    </a>
+                  </p>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
+                  <a
+                    href="/contact.vcf"
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg bg-neutral-900 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                  >
+                    Ajouter à mes contacts
+                  </a>
+                  <a
+                    href="/contact.vcf"
+                    download
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-neutral-300 px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
+                  >
+                    Télécharger la vCard
+                  </a>
+                </div>
+
+                <div className="mt-4 flex items-center gap-3 rounded-xl bg-neutral-50 px-3 py-3">
+                  <Image
+                    src={qrDataUrl}
+                    alt="QR code vers la carte digitale FabSystem"
+                    width={104}
+                    height={104}
+                    unoptimized
+                    className="h-24 w-24 shrink-0 rounded-lg border border-neutral-200 bg-white p-1 sm:h-28 sm:w-28"
+                  />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-neutral-900">
+                      Scanner pour enregistrer mes coordonnées
+                    </p>
+                    <p className="text-xs leading-relaxed text-neutral-500">
+                      Ouvre la carte mobile et le téléchargement de la vCard.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:mt-8">
+          <h3 className="text-lg font-semibold">Mini FAQ</h3>
+
+          <div className="mt-4 divide-y divide-neutral-200">
+            {FAQ.map((item, idx) => (
+              <details key={idx} className="group py-3">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-neutral-900">
+                  <span>{item.q}</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-md border border-neutral-200 text-neutral-600 transition group-open:rotate-180">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M6 9l6 6 6-6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                </summary>
+
+                <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+                  {item.a}
+                </p>
+              </details>
+            ))}
+          </div>
+
+          <p className="mt-4 text-xs text-neutral-500">
+            Vous ne trouvez pas votre réponse ? Envoyez votre message via le
+            formulaire, je vous réponds clairement.
+          </p>
         </div>
       </section>
     </main>

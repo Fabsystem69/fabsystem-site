@@ -12,6 +12,15 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./lib/generated/prisma/**/*"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/contacst",
+        destination: "/contact",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

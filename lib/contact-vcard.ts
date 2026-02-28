@@ -1,4 +1,17 @@
-export const contactVcardFilename = "FabSystem-Fabien-Lages.vcf";
+const contactPhotoUrl = "https://www.fabsystem.fr/logo.png";
+const contactWebsiteUrl = "https://www.fabsystem.fr";
+const contactCity = "Neuville-sur-Saône";
+const contactCountry = "France";
+
+export const contactVcardFilename = "Fabien-Lages-FabSystem.vcf";
+
+function escapeVcardValue(value: string) {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,");
+}
 
 export function buildContactVcard() {
   const vcardLines = [
@@ -9,8 +22,16 @@ export function buildContactVcard() {
     "ORG:FabSystem",
     "TITLE:Électricité embarquée • Audit • Formation",
     "TEL;TYPE=CELL:+33698247722",
-    "EMAIL;TYPE=WORK:fabien.lages@fabsystem.fr",
-    "URL:https://fabsystem.fr",
+    "EMAIL;TYPE=INTERNET:fabien.lages@fabsystem.fr",
+    `ADR;TYPE=WORK:;;;${escapeVcardValue(contactCity)};;;${contactCountry}`,
+    `URL:${contactWebsiteUrl}`,
+    `PHOTO;VALUE=URI:${contactPhotoUrl}`,
+    `NOTE:${escapeVcardValue(
+      "Électricité embarquée • Audit • Formation\nÉlectricité et systèmes embarqués pour bateaux, vans et camping-cars. Diagnostic clair et conseils adaptés."
+    )}`,
+    `CATEGORIES:${escapeVcardValue(
+      "Électricité embarquée,Audit,Formation,Nautisme,Vanlife"
+    )}`,
     "END:VCARD",
   ];
 
