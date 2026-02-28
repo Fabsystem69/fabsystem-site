@@ -125,7 +125,7 @@ export default function AProposPage() {
 
       {/* CTA FINAL */}
       <section className="mx-auto max-w-6xl px-6 pb-24">
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/contact"
             className="inline-flex items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
@@ -138,6 +138,13 @@ export default function AProposPage() {
             className="inline-flex items-center justify-center rounded-md border border-neutral-300 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
           >
             Découvrir la visio conseil
+          </Link>
+
+          <Link
+            href="/vcard"
+            className="inline-flex items-center justify-center rounded-md border border-neutral-300 bg-neutral-50 px-6 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
+          >
+            Carte de visite
           </Link>
         </div>
       </section>

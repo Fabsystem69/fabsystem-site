@@ -23,9 +23,9 @@ export async function GET(_: Request, { params }: Params) {
   const { id } = await params;
 
   try {
-    const qrDataUrl = await QRCode.toDataURL("https://fabsystem.fr", {
+    const qrDataUrl = await QRCode.toDataURL("https://fabsystem.fr/vcard", {
       margin: 0,
-      width: 128,
+      width: 256,
     });
 
     const invoice = await prisma.invoice.findUnique({

@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingLeft: 18,
     paddingRight: 18,
-    paddingBottom: 60,
+    paddingBottom: 88,
     fontSize: 10,
     color: "#171717",
     fontFamily: "Helvetica",
@@ -298,13 +298,14 @@ const styles = StyleSheet.create({
     borderTopColor: "#bdbdbd",
     paddingTop: 6,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
   },
   footerBody: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    marginRight: 10,
+    marginRight: 12,
+    paddingBottom: 4,
   },
   footerTextWrap: {
     flex: 1,
@@ -319,10 +320,28 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: "#444444",
   },
+  footerQrWrap: {
+    width: 78,
+    alignItems: "center",
+  },
   footerQr: {
-    width: 28,
-    height: 28,
-    marginLeft: 10,
+    width: 60,
+    height: 60,
+    objectFit: "contain",
+  },
+  footerQrLabel: {
+    fontSize: 7,
+    color: "#444444",
+    marginTop: 4,
+    textAlign: "center",
+    lineHeight: 1.15,
+  },
+  footerQrUrl: {
+    fontSize: 6.8,
+    color: "#444444",
+    marginTop: 2,
+    textAlign: "center",
+    lineHeight: 1.1,
   },
   cgvPage: {
     paddingTop: 16,
@@ -417,8 +436,12 @@ function PdfFooter({
           <Text style={styles.footerUrl}>{sanitize("www.fabsystem.fr")}</Text>
         </View>
       </View>
-      {/* eslint-disable-next-line jsx-a11y/alt-text */}
-      <Image src={qrDataUrl} style={styles.footerQr} />
+      <View style={styles.footerQrWrap}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text */}
+        <Image src={qrDataUrl} style={styles.footerQr} />
+        <Text style={styles.footerQrLabel}>{sanitize("Ajouter au contact")}</Text>
+        <Text style={styles.footerQrUrl}>{sanitize("www.fabsystem.fr")}</Text>
+      </View>
     </View>
   );
 }

@@ -1,4 +1,3 @@
-import QRCode from "qrcode";
 import { renderDocumentPdf } from "@/lib/pdf-documents";
 import { prisma } from "@/lib/prisma";
 
@@ -14,17 +13,12 @@ export async function getQuoteForPdf(quoteId: string) {
   });
 }
 
-export async function generateQuotePdfBuffer(quoteId: string) {
+export async function generateQuotePdfBuffer(quoteId: string, qrDataUrl: string) {
   const quote = await getQuoteForPdf(quoteId);
 
   if (!quote) {
     throw new Error("Quote not found");
   }
-
-  const qrDataUrl = await QRCode.toDataURL("https://fabsystem.fr", {
-    margin: 0,
-    width: 128,
-  });
 
   const { buffer, filename } = await renderDocumentPdf(
     {
