@@ -227,11 +227,25 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
   totalsWrap: {
-    marginLeft: "auto",
     width: 220,
     borderWidth: 1,
     borderColor: "#cbd5e1",
     backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    padding: 12,
+    gap: 4,
+  },
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    marginTop: 12,
+  },
+  mentionsBox: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#fafaf9",
     borderRadius: 12,
     padding: 12,
     gap: 4,
@@ -246,13 +260,14 @@ const styles = StyleSheet.create({
     color: "#0f172a",
   },
   notesWrap: {
-    marginTop: 16,
+    marginTop: 12,
     gap: 4,
   },
   signatureContainer: {
     width: 292,
-    alignSelf: "center",
-    marginTop: 16,
+    alignSelf: "flex-end",
+    marginTop: 14,
+    marginBottom: 4,
     paddingTop: 8,
     paddingBottom: 8,
     paddingLeft: 10,
@@ -320,7 +335,7 @@ const styles = StyleSheet.create({
   mention: {
     color: "#525252",
     fontSize: 7.8,
-    lineHeight: 1.3,
+    lineHeight: 1.35,
   },
   footer: {
     position: "absolute",
@@ -355,25 +370,25 @@ const styles = StyleSheet.create({
     color: "#444444",
   },
   footerQrWrap: {
-    width: 78,
+    width: 70,
     alignItems: "center",
   },
   footerQr: {
-    width: 60,
-    height: 60,
+    width: 48,
+    height: 48,
     objectFit: "contain",
   },
   footerQrLabel: {
-    fontSize: 7,
+    fontSize: 6.6,
     color: "#444444",
-    marginTop: 4,
+    marginTop: 3,
     textAlign: "center",
     lineHeight: 1.15,
   },
   footerQrUrl: {
-    fontSize: 6.8,
+    fontSize: 6.2,
     color: "#444444",
-    marginTop: 2,
+    marginTop: 1,
     textAlign: "center",
     lineHeight: 1.1,
   },
@@ -433,6 +448,18 @@ async function loadPdfLogo() {
   } catch {
     return null;
   }
+}
+
+function buildMentions(data: DocumentData) {
+  if (data.kind === "quote") {
+    return ["Devis valable 30 jours à compter de sa date d'émission."];
+  }
+
+  return [
+    data.dueDate
+      ? `Facture payable au plus tard le ${formatDate(data.dueDate)}.`
+      : "Facture payable à réception.",
+  ];
 }
 
 function buildFilename(kind: DocumentData["kind"], number: string) {
@@ -503,6 +530,7 @@ function PdfDocument({
   logoSrc: string | null;
   qrDataUrl: string;
 }) {
+  const mentions = buildMentions(data);
   const title = data.kind === "quote" ? "DEVIS" : "FACTURE";
   const { totalHt, totalTtc } = getPdfTotals(data);
   const cgvBlocks = CGV_PARAGRAPHS.map(splitCgvParagraph);
@@ -518,14 +546,14 @@ function PdfDocument({
         <View style={styles.continuationHeader} fixed>
           <Text
             style={styles.continuationTitle}
-            render={({ subPageNumber }) =>
-              subPageNumber && subPageNumber > 1 ? continuationTitle : ""
+            render={({ pageNumber }) =>
+              pageNumber && pageNumber > 1 ? continuationTitle : ""
             }
           />
           <Text
             style={styles.continuationMeta}
-            render={({ subPageNumber }) =>
-              subPageNumber && subPageNumber > 1 ? continuationMeta : ""
+            render={({ pageNumber }) =>
+              pageNumber && pageNumber > 1 ? continuationMeta : ""
             }
           />
         </View>
@@ -593,7 +621,11 @@ function PdfDocument({
               <Text style={styles.label}>
                 {data.kind === "quote" ? "Validité: " : "Échéance: "}
               </Text>
-              {formatDate(data.dueDate)}
+              {data.kind === "quote"
+                ? "30 jours à compter de la date d'émission"
+                : data.dueDate
+                  ? formatDate(data.dueDate)
+                  : "À réception"}
             </Text>
           </View>
         </View>
@@ -639,7 +671,16 @@ function PdfDocument({
           ))}
         </View>
 
-        <View wrap={false}>
+        <View style={styles.bottomRow}>
+          <View style={styles.mentionsBox}>
+            <Text style={styles.cardTitle}>Mentions</Text>
+            {mentions.map((mention) => (
+              <Text key={mention} style={styles.mention}>
+                {mention}
+              </Text>
+            ))}
+          </View>
+
           <View style={styles.totalsWrap}>
             <View style={styles.totalRow}>
               <Text>Total HT</Text>
@@ -651,15 +692,21 @@ function PdfDocument({
             </View>
             <Text style={styles.vatNotice}>TVA non applicable – article 293 B du CGI</Text>
           </View>
+        </View>
 
-          {data.notes ? (
-            <View style={styles.notesWrap}>
-              <Text style={styles.cardTitle}>Notes</Text>
-              <Text style={styles.mention}>{data.notes}</Text>
-            </View>
-          ) : null}
+        {data.notes ? (
+          <View style={styles.notesWrap}>
+            <Text style={styles.cardTitle}>Notes</Text>
+            <Text style={styles.mention}>{data.notes}</Text>
+          </View>
+        ) : null}
 
-          {data.kind === "quote" ? (
+        {data.kind === "quote" ? (
+          <View style={{ flexGrow: 1 }} />
+        ) : null}
+
+        {data.kind === "quote" ? (
+          <View wrap={false}>
             <View style={styles.signatureContainer}>
               <Text style={styles.signatureTitle}>BON POUR ACCORD</Text>
               <Text style={styles.signatureIntro}>
@@ -692,8 +739,8 @@ function PdfDocument({
                 )}
               </View>
             </View>
-          ) : null}
-        </View>
+          </View>
+        ) : null}
 
         <PdfFooter logoSrc={logoSrc} qrDataUrl={qrDataUrl} />
       </Page>
