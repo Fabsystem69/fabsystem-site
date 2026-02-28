@@ -1,5 +1,5 @@
+import LightboxImage from "@/components/LightboxImage";
 import TrackedLink from "@/components/TrackedLink";
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -73,12 +73,6 @@ const cases = [
   },
 ] as const;
 
-const methodItems = [
-  "Priorités sécurité d’abord",
-  "Plan d’action clair",
-  "Installation lisible et documentée si nécessaire",
-] as const;
-
 export default function RealisationsPage() {
   return (
     <main>
@@ -96,10 +90,10 @@ export default function RealisationsPage() {
             Trois cas types pour montrer le niveau d’analyse, d’intervention et de résultat.
           </p>
 
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
             <Link
               href="/contact"
-              className="inline-flex min-h-10 w-full items-center justify-center rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-black hover:bg-white/90 sm:w-auto"
+              className="inline-flex min-h-9 w-full items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-black hover:bg-white/90 sm:w-auto"
             >
               Parler de votre projet
             </Link>
@@ -107,7 +101,7 @@ export default function RealisationsPage() {
             <TrackedLink
               href="/visio"
               event="click_rdv"
-              className="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-white/70 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
+              className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-white/70 px-3 py-2 text-sm font-semibold text-white hover:bg-white/10 sm:w-auto"
             >
               Visio conseil
             </TrackedLink>
@@ -180,7 +174,7 @@ export default function RealisationsPage() {
                     <p className="mb-1 text-xs font-medium text-neutral-600">
                       Avant
                     </p>
-                    <Image
+                    <LightboxImage
                       src={item.beforeImage}
                       alt={item.beforeImageAlt}
                       width={500}
@@ -194,7 +188,7 @@ export default function RealisationsPage() {
                     <p className="mb-1 text-xs font-medium text-neutral-600">
                       Après
                     </p>
-                    <Image
+                    <LightboxImage
                       src={item.afterImage}
                       alt={item.afterImageAlt}
                       width={500}
@@ -207,7 +201,7 @@ export default function RealisationsPage() {
                 </div>
               ) : (
                 <div className="mt-auto pt-4">
-                  <Image
+                  <LightboxImage
                     src={item.image}
                     alt={item.imageAlt}
                     width={640}
@@ -222,25 +216,41 @@ export default function RealisationsPage() {
 
         <div className="mx-auto mt-5 max-w-3xl rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
           <h3 className="text-sm font-semibold text-neutral-950">
-            Méthode
+            Exemples / études de cas
           </h3>
-          <ul className="mt-3 space-y-1.5 text-sm text-neutral-700">
-            {methodItems.map((item) => (
-              <li key={item}>• {item}</li>
-            ))}
+          <p className="mt-2 text-sm text-neutral-700">
+            Quelques cas réels pour comprendre l’approche et le niveau de détail.
+          </p>
+          <ul className="mt-3 space-y-2">
+            <li>
+              <Link
+                href="/probleme-charge-batterie-bateau"
+                className="inline-flex text-sm font-semibold text-neutral-900 underline underline-offset-4"
+              >
+                Charge batterie bateau
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/installation-12v-bateau"
+                className="inline-flex text-sm font-semibold text-neutral-900 underline underline-offset-4"
+              >
+                Installation 12V bateau
+              </Link>
+            </li>
           </ul>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/contact"
-              className="inline-flex min-h-10 w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
+              className="inline-flex min-h-9 w-full items-center justify-center rounded-md bg-neutral-900 px-3 py-2 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
             >
               Parler de votre projet
             </Link>
             <TrackedLink
               href="/visio"
               event="click_rdv"
-              className="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
+              className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
             >
               Visio conseil
             </TrackedLink>

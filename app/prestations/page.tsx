@@ -96,6 +96,62 @@ export default function PrestationsPage() {
         assurance={<ServiceAssurance tone="inverse" />}
       />
 
+      <section className="border-t border-neutral-200 bg-white py-8 sm:py-10">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-4xl">
+            <h2 className="text-base font-semibold text-neutral-950 sm:text-lg">
+              3 niveaux d’intervention
+            </h2>
+            <p className="mt-2 text-sm text-neutral-700">
+              Une approche progressive selon votre situation et votre budget.
+            </p>
+
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-950">Diagnostic</h3>
+              <p className="mt-2 text-sm text-neutral-700">
+                Analyse de l’installation existante, mesures, identification des incohérences.
+              </p>
+              <Link
+                href="/probleme-charge-batterie-bateau"
+                className="mt-2 inline-flex text-sm font-semibold text-neutral-900 underline underline-offset-4"
+              >
+                Voir le diagnostic
+              </Link>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-950">
+                Sécurisation / correction
+              </h3>
+              <p className="mt-2 text-sm text-neutral-700">
+                Corrections ciblées, protections adaptées, fiabilisation des circuits.
+              </p>
+              <Link
+                href="/securisation-correction-bateau"
+                className="mt-2 inline-flex text-sm font-semibold text-neutral-900 underline underline-offset-4"
+              >
+                Voir un exemple réel
+              </Link>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-neutral-950">
+                Refonte complète 12V
+              </h3>
+              <p className="mt-2 text-sm text-neutral-700">
+                Architecture propre, distribution structurée, installation prête à évoluer.
+              </p>
+              <Link
+                href="/installation-12v-bateau"
+                className="mt-2 inline-flex text-sm font-semibold text-neutral-900 underline underline-offset-4"
+              >
+                Voir l’installation 12V
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="offres" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="max-w-3xl">
           <h2 className="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
