@@ -79,6 +79,12 @@ export const CustomerScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   address: 'address',
+  assetType: 'assetType',
+  assetBrand: 'assetBrand',
+  assetModel: 'assetModel',
+  registration: 'registration',
+  odometerKm: 'odometerKm',
+  engineHours: 'engineHours',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

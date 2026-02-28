@@ -904,6 +904,12 @@ export const CustomerScalarFieldEnum = {
   email: 'email',
   phone: 'phone',
   address: 'address',
+  assetType: 'assetType',
+  assetBrand: 'assetBrand',
+  assetModel: 'assetModel',
+  registration: 'registration',
+  odometerKm: 'odometerKm',
+  engineHours: 'engineHours',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1040,6 +1046,34 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
+ * Reference to a field of type 'AssetType'
+ */
+export type EnumAssetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssetType'>
+    
+
+
+/**
+ * Reference to a field of type 'AssetType[]'
+ */
+export type ListEnumAssetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssetType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1064,20 +1098,6 @@ export type EnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'QuoteStatus[]'
  */
 export type ListEnumQuoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QuoteStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 

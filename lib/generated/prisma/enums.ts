@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const AssetType = {
+  VEHICLE: 'VEHICLE',
+  BOAT: 'BOAT',
+  OTHER: 'OTHER'
+} as const
+
+export type AssetType = (typeof AssetType)[keyof typeof AssetType]
+
+
 export const QuoteStatus = {
   DRAFT: 'DRAFT',
   SENT: 'SENT',

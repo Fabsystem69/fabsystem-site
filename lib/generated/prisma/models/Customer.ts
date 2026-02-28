@@ -20,8 +20,20 @@ export type CustomerModel = runtime.Types.Result.DefaultSelection<Prisma.$Custom
 
 export type AggregateCustomer = {
   _count: CustomerCountAggregateOutputType | null
+  _avg: CustomerAvgAggregateOutputType | null
+  _sum: CustomerSumAggregateOutputType | null
   _min: CustomerMinAggregateOutputType | null
   _max: CustomerMaxAggregateOutputType | null
+}
+
+export type CustomerAvgAggregateOutputType = {
+  odometerKm: number | null
+  engineHours: number | null
+}
+
+export type CustomerSumAggregateOutputType = {
+  odometerKm: number | null
+  engineHours: number | null
 }
 
 export type CustomerMinAggregateOutputType = {
@@ -30,6 +42,12 @@ export type CustomerMinAggregateOutputType = {
   email: string | null
   phone: string | null
   address: string | null
+  assetType: $Enums.AssetType | null
+  assetBrand: string | null
+  assetModel: string | null
+  registration: string | null
+  odometerKm: number | null
+  engineHours: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +58,12 @@ export type CustomerMaxAggregateOutputType = {
   email: string | null
   phone: string | null
   address: string | null
+  assetType: $Enums.AssetType | null
+  assetBrand: string | null
+  assetModel: string | null
+  registration: string | null
+  odometerKm: number | null
+  engineHours: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,11 +74,27 @@ export type CustomerCountAggregateOutputType = {
   email: number
   phone: number
   address: number
+  assetType: number
+  assetBrand: number
+  assetModel: number
+  registration: number
+  odometerKm: number
+  engineHours: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type CustomerAvgAggregateInputType = {
+  odometerKm?: true
+  engineHours?: true
+}
+
+export type CustomerSumAggregateInputType = {
+  odometerKm?: true
+  engineHours?: true
+}
 
 export type CustomerMinAggregateInputType = {
   id?: true
@@ -62,6 +102,12 @@ export type CustomerMinAggregateInputType = {
   email?: true
   phone?: true
   address?: true
+  assetType?: true
+  assetBrand?: true
+  assetModel?: true
+  registration?: true
+  odometerKm?: true
+  engineHours?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +118,12 @@ export type CustomerMaxAggregateInputType = {
   email?: true
   phone?: true
   address?: true
+  assetType?: true
+  assetBrand?: true
+  assetModel?: true
+  registration?: true
+  odometerKm?: true
+  engineHours?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +134,12 @@ export type CustomerCountAggregateInputType = {
   email?: true
   phone?: true
   address?: true
+  assetType?: true
+  assetBrand?: true
+  assetModel?: true
+  registration?: true
+  odometerKm?: true
+  engineHours?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -125,6 +183,18 @@ export type CustomerAggregateArgs<ExtArgs extends runtime.Types.Extensions.Inter
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: CustomerAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: CustomerSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: CustomerMinAggregateInputType
@@ -155,6 +225,8 @@ export type CustomerGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   _count?: CustomerCountAggregateInputType | true
+  _avg?: CustomerAvgAggregateInputType
+  _sum?: CustomerSumAggregateInputType
   _min?: CustomerMinAggregateInputType
   _max?: CustomerMaxAggregateInputType
 }
@@ -165,9 +237,17 @@ export type CustomerGroupByOutputType = {
   email: string | null
   phone: string | null
   address: string | null
+  assetType: $Enums.AssetType
+  assetBrand: string | null
+  assetModel: string | null
+  registration: string | null
+  odometerKm: number | null
+  engineHours: number | null
   createdAt: Date
   updatedAt: Date
   _count: CustomerCountAggregateOutputType | null
+  _avg: CustomerAvgAggregateOutputType | null
+  _sum: CustomerSumAggregateOutputType | null
   _min: CustomerMinAggregateOutputType | null
   _max: CustomerMaxAggregateOutputType | null
 }
@@ -196,6 +276,12 @@ export type CustomerWhereInput = {
   email?: Prisma.StringNullableFilter<"Customer"> | string | null
   phone?: Prisma.StringNullableFilter<"Customer"> | string | null
   address?: Prisma.StringNullableFilter<"Customer"> | string | null
+  assetType?: Prisma.EnumAssetTypeFilter<"Customer"> | $Enums.AssetType
+  assetBrand?: Prisma.StringNullableFilter<"Customer"> | string | null
+  assetModel?: Prisma.StringNullableFilter<"Customer"> | string | null
+  registration?: Prisma.StringNullableFilter<"Customer"> | string | null
+  odometerKm?: Prisma.IntNullableFilter<"Customer"> | number | null
+  engineHours?: Prisma.IntNullableFilter<"Customer"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   quotes?: Prisma.QuoteListRelationFilter
@@ -208,6 +294,12 @@ export type CustomerOrderByWithRelationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
+  assetType?: Prisma.SortOrder
+  assetBrand?: Prisma.SortOrderInput | Prisma.SortOrder
+  assetModel?: Prisma.SortOrderInput | Prisma.SortOrder
+  registration?: Prisma.SortOrderInput | Prisma.SortOrder
+  odometerKm?: Prisma.SortOrderInput | Prisma.SortOrder
+  engineHours?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   quotes?: Prisma.QuoteOrderByRelationAggregateInput
@@ -223,6 +315,12 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   email?: Prisma.StringNullableFilter<"Customer"> | string | null
   phone?: Prisma.StringNullableFilter<"Customer"> | string | null
   address?: Prisma.StringNullableFilter<"Customer"> | string | null
+  assetType?: Prisma.EnumAssetTypeFilter<"Customer"> | $Enums.AssetType
+  assetBrand?: Prisma.StringNullableFilter<"Customer"> | string | null
+  assetModel?: Prisma.StringNullableFilter<"Customer"> | string | null
+  registration?: Prisma.StringNullableFilter<"Customer"> | string | null
+  odometerKm?: Prisma.IntNullableFilter<"Customer"> | number | null
+  engineHours?: Prisma.IntNullableFilter<"Customer"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   quotes?: Prisma.QuoteListRelationFilter
@@ -235,11 +333,19 @@ export type CustomerOrderByWithAggregationInput = {
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
+  assetType?: Prisma.SortOrder
+  assetBrand?: Prisma.SortOrderInput | Prisma.SortOrder
+  assetModel?: Prisma.SortOrderInput | Prisma.SortOrder
+  registration?: Prisma.SortOrderInput | Prisma.SortOrder
+  odometerKm?: Prisma.SortOrderInput | Prisma.SortOrder
+  engineHours?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CustomerCountOrderByAggregateInput
+  _avg?: Prisma.CustomerAvgOrderByAggregateInput
   _max?: Prisma.CustomerMaxOrderByAggregateInput
   _min?: Prisma.CustomerMinOrderByAggregateInput
+  _sum?: Prisma.CustomerSumOrderByAggregateInput
 }
 
 export type CustomerScalarWhereWithAggregatesInput = {
@@ -251,6 +357,12 @@ export type CustomerScalarWhereWithAggregatesInput = {
   email?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  assetType?: Prisma.EnumAssetTypeWithAggregatesFilter<"Customer"> | $Enums.AssetType
+  assetBrand?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  assetModel?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  registration?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  odometerKm?: Prisma.IntNullableWithAggregatesFilter<"Customer"> | number | null
+  engineHours?: Prisma.IntNullableWithAggregatesFilter<"Customer"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
 }
@@ -261,6 +373,12 @@ export type CustomerCreateInput = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteCreateNestedManyWithoutCustomerInput
@@ -273,6 +391,12 @@ export type CustomerUncheckedCreateInput = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutCustomerInput
@@ -285,6 +409,12 @@ export type CustomerUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUpdateManyWithoutCustomerNestedInput
@@ -297,6 +427,12 @@ export type CustomerUncheckedUpdateInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutCustomerNestedInput
@@ -309,6 +445,12 @@ export type CustomerCreateManyInput = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -319,6 +461,12 @@ export type CustomerUpdateManyMutationInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -329,6 +477,12 @@ export type CustomerUncheckedUpdateManyInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -339,8 +493,19 @@ export type CustomerCountOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  assetType?: Prisma.SortOrder
+  assetBrand?: Prisma.SortOrder
+  assetModel?: Prisma.SortOrder
+  registration?: Prisma.SortOrder
+  odometerKm?: Prisma.SortOrder
+  engineHours?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type CustomerAvgOrderByAggregateInput = {
+  odometerKm?: Prisma.SortOrder
+  engineHours?: Prisma.SortOrder
 }
 
 export type CustomerMaxOrderByAggregateInput = {
@@ -349,6 +514,12 @@ export type CustomerMaxOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  assetType?: Prisma.SortOrder
+  assetBrand?: Prisma.SortOrder
+  assetModel?: Prisma.SortOrder
+  registration?: Prisma.SortOrder
+  odometerKm?: Prisma.SortOrder
+  engineHours?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -359,8 +530,19 @@ export type CustomerMinOrderByAggregateInput = {
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  assetType?: Prisma.SortOrder
+  assetBrand?: Prisma.SortOrder
+  assetModel?: Prisma.SortOrder
+  registration?: Prisma.SortOrder
+  odometerKm?: Prisma.SortOrder
+  engineHours?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type CustomerSumOrderByAggregateInput = {
+  odometerKm?: Prisma.SortOrder
+  engineHours?: Prisma.SortOrder
 }
 
 export type CustomerScalarRelationFilter = {
@@ -374,6 +556,18 @@ export type StringFieldUpdateOperationsInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type EnumAssetTypeFieldUpdateOperationsInput = {
+  set?: $Enums.AssetType
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -414,6 +608,12 @@ export type CustomerCreateWithoutQuotesInput = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   invoices?: Prisma.InvoiceCreateNestedManyWithoutCustomerInput
@@ -425,6 +625,12 @@ export type CustomerUncheckedCreateWithoutQuotesInput = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCustomerInput
@@ -452,6 +658,12 @@ export type CustomerUpdateWithoutQuotesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invoices?: Prisma.InvoiceUpdateManyWithoutCustomerNestedInput
@@ -463,6 +675,12 @@ export type CustomerUncheckedUpdateWithoutQuotesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCustomerNestedInput
@@ -474,6 +692,12 @@ export type CustomerCreateWithoutInvoicesInput = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteCreateNestedManyWithoutCustomerInput
@@ -485,6 +709,12 @@ export type CustomerUncheckedCreateWithoutInvoicesInput = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutCustomerInput
@@ -512,6 +742,12 @@ export type CustomerUpdateWithoutInvoicesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUpdateManyWithoutCustomerNestedInput
@@ -523,6 +759,12 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quotes?: Prisma.QuoteUncheckedUpdateManyWithoutCustomerNestedInput
@@ -574,6 +816,12 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   email?: boolean
   phone?: boolean
   address?: boolean
+  assetType?: boolean
+  assetBrand?: boolean
+  assetModel?: boolean
+  registration?: boolean
+  odometerKm?: boolean
+  engineHours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   quotes?: boolean | Prisma.Customer$quotesArgs<ExtArgs>
@@ -587,6 +835,12 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   phone?: boolean
   address?: boolean
+  assetType?: boolean
+  assetBrand?: boolean
+  assetModel?: boolean
+  registration?: boolean
+  odometerKm?: boolean
+  engineHours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["customer"]>
@@ -597,6 +851,12 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   email?: boolean
   phone?: boolean
   address?: boolean
+  assetType?: boolean
+  assetBrand?: boolean
+  assetModel?: boolean
+  registration?: boolean
+  odometerKm?: boolean
+  engineHours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["customer"]>
@@ -607,11 +867,17 @@ export type CustomerSelectScalar = {
   email?: boolean
   phone?: boolean
   address?: boolean
+  assetType?: boolean
+  assetBrand?: boolean
+  assetModel?: boolean
+  registration?: boolean
+  odometerKm?: boolean
+  engineHours?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "assetType" | "assetBrand" | "assetModel" | "registration" | "odometerKm" | "engineHours" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   quotes?: boolean | Prisma.Customer$quotesArgs<ExtArgs>
   invoices?: boolean | Prisma.Customer$invoicesArgs<ExtArgs>
@@ -632,6 +898,12 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     email: string | null
     phone: string | null
     address: string | null
+    assetType: $Enums.AssetType
+    assetBrand: string | null
+    assetModel: string | null
+    registration: string | null
+    odometerKm: number | null
+    engineHours: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["customer"]>
@@ -1064,6 +1336,12 @@ export interface CustomerFieldRefs {
   readonly email: Prisma.FieldRef<"Customer", 'String'>
   readonly phone: Prisma.FieldRef<"Customer", 'String'>
   readonly address: Prisma.FieldRef<"Customer", 'String'>
+  readonly assetType: Prisma.FieldRef<"Customer", 'AssetType'>
+  readonly assetBrand: Prisma.FieldRef<"Customer", 'String'>
+  readonly assetModel: Prisma.FieldRef<"Customer", 'String'>
+  readonly registration: Prisma.FieldRef<"Customer", 'String'>
+  readonly odometerKm: Prisma.FieldRef<"Customer", 'Int'>
+  readonly engineHours: Prisma.FieldRef<"Customer", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Customer", 'DateTime'>
 }

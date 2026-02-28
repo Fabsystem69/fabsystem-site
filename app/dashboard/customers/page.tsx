@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CustomerCreateForm } from "@/components/dashboard/CustomerCreateForm";
+import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 
@@ -52,13 +53,15 @@ export default async function DashboardCustomersPage({
               <th className="px-4 py-3 font-medium">Nom</th>
               <th className="px-4 py-3 font-medium">Email</th>
               <th className="px-4 py-3 font-medium">Téléphone</th>
+              <th className="px-4 py-3 font-medium">Équipement</th>
               <th className="px-4 py-3 font-medium">Créé le</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200">
             {customers.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-neutral-500">
+                <td colSpan={6} className="px-4 py-6 text-neutral-500">
                   Aucun client pour l’instant.
                 </td>
               </tr>
@@ -66,7 +69,12 @@ export default async function DashboardCustomersPage({
               customers.map((customer) => (
                 <tr key={customer.id}>
                   <td className="px-4 py-3 font-medium text-neutral-900">
-                    {customer.name}
+                    <Link
+                      href={`/dashboard/customers/${customer.id}`}
+                      className="underline underline-offset-2"
+                    >
+                      {customer.name}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-neutral-600">
                     {customer.email || "-"}
@@ -75,7 +83,18 @@ export default async function DashboardCustomersPage({
                     {customer.phone || "-"}
                   </td>
                   <td className="px-4 py-3 text-neutral-600">
+                    {formatCustomerAssetSummary(customer) || "-"}
+                  </td>
+                  <td className="px-4 py-3 text-neutral-600">
                     {new Intl.DateTimeFormat("fr-FR").format(customer.createdAt)}
+                  </td>
+                  <td className="px-4 py-3 text-neutral-600">
+                    <Link
+                      href={`/dashboard/customers/${customer.id}/edit`}
+                      className="underline underline-offset-2"
+                    >
+                      Modifier
+                    </Link>
                   </td>
                 </tr>
               ))

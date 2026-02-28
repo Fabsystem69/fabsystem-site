@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InvoiceDeleteButton } from "@/components/dashboard/InvoiceDeleteButton";
+import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
@@ -40,6 +41,8 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
   if (!invoice) {
     notFound();
   }
+
+  const customerAssetSummary = formatCustomerAssetSummary(invoice.customer);
 
   return (
     <main className="space-y-6 pb-28 md:pb-0">
@@ -86,6 +89,7 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
             {invoice.customer.address ? <p className="whitespace-pre-line">{invoice.customer.address}</p> : null}
             {invoice.customer.email ? <p>{invoice.customer.email}</p> : null}
             {invoice.customer.phone ? <p>{invoice.customer.phone}</p> : null}
+            {customerAssetSummary ? <p>{customerAssetSummary}</p> : null}
           </div>
         </div>
 

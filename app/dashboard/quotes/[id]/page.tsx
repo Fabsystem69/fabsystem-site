@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuoteDeleteButton } from "@/components/dashboard/QuoteDeleteButton";
 import { QuoteSignatureActions } from "@/components/dashboard/QuoteSignatureActions";
+import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
@@ -41,6 +42,8 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
   if (!quote) {
     notFound();
   }
+
+  const customerAssetSummary = formatCustomerAssetSummary(quote.customer);
 
   return (
     <main className="space-y-6 pb-28 md:pb-0">
@@ -91,6 +94,7 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
             {quote.customer.address ? <p className="whitespace-pre-line">{quote.customer.address}</p> : null}
             {quote.customer.email ? <p>{quote.customer.email}</p> : null}
             {quote.customer.phone ? <p>{quote.customer.phone}</p> : null}
+            {customerAssetSummary ? <p>{customerAssetSummary}</p> : null}
           </div>
         </div>
 

@@ -11,14 +11,22 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { CGV_PARAGRAPHS, sanitize } from "@/lib/cgv";
+import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { formatAddressLines, formatDate, formatEuroFromCents } from "@/lib/format";
 import { site } from "@/lib/site";
+import type { AssetType } from "@/lib/generated/prisma/client";
 
 type CustomerInfo = {
   name: string;
   email: string | null;
   phone: string | null;
   address: string | null;
+  assetType: AssetType;
+  assetBrand: string | null;
+  assetModel: string | null;
+  registration: string | null;
+  odometerKm: number | null;
+  engineHours: number | null;
 };
 
 type DocumentItem = {
@@ -399,6 +407,7 @@ function PdfDocument({
   const totalHt = data.subtotal;
   const totalTtc = data.subtotal;
   const cgvBlocks = CGV_PARAGRAPHS.map(splitCgvParagraph);
+  const customerAssetSummary = formatCustomerAssetSummary(data.customer);
 
   return (
     <Document title={`${title} ${data.number}`}>
@@ -435,6 +444,7 @@ function PdfDocument({
             ))}
             {data.customer.email ? <Text>{data.customer.email}</Text> : null}
             {data.customer.phone ? <Text>{data.customer.phone}</Text> : null}
+            {customerAssetSummary ? <Text>{sanitize(customerAssetSummary)}</Text> : null}
           </View>
 
           <View style={styles.card}>

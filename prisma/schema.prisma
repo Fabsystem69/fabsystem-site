@@ -9,6 +9,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AssetType {
+  VEHICLE
+  BOAT
+  OTHER
+}
+
 enum QuoteStatus {
   DRAFT
   SENT
@@ -24,15 +30,23 @@ enum InvoiceStatus {
 }
 
 model Customer {
-  id        String    @id @default(cuid())
-  name      String
-  email     String?
-  phone     String?
-  address   String?
-  quotes    Quote[]
-  invoices  Invoice[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  address      String?
+  assetType    AssetType @default(OTHER)
+  assetBrand   String?
+  assetModel   String?
+  registration String?
+  odometerKm   Int?
+  engineHours  Int?
+  quotes       Quote[]
+  invoices     Invoice[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([registration])
 }
 
 model Quote {
