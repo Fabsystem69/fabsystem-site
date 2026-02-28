@@ -59,15 +59,15 @@ type DocumentData = {
   signatureDataUrl?: string | null;
 };
 
-const MIN_EMPTY_DESIGNATION_ROWS = 5;
+const MIN_EMPTY_DESIGNATION_ROWS = 0;
 
 const styles = StyleSheet.create({
   pageWithFooter: {
-    paddingTop: 24,
-    paddingLeft: 24,
-    paddingRight: 24,
-    paddingBottom: 96,
-    fontSize: 10,
+    paddingTop: 18,
+    paddingLeft: 18,
+    paddingRight: 18,
+    paddingBottom: 88,
+    fontSize: 9,
     color: "#171717",
     fontFamily: "Helvetica",
   },
@@ -77,15 +77,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 32,
-    gap: 24,
-    paddingBottom: 14,
+    marginBottom: 18,
+    gap: 20,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#e7e5e4",
   },
   companyWrap: {
     flexDirection: "row",
-    gap: 14,
+    gap: 12,
     maxWidth: 320,
     alignItems: "center",
   },
@@ -104,47 +104,64 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   companyEyebrow: {
-    fontSize: 7.5,
+    fontSize: 7,
     color: "#78716c",
     letterSpacing: 0.6,
   },
   companyName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 700,
     color: "#111827",
   },
   companyMeta: {
     color: "#525252",
-    fontSize: 8,
+    fontSize: 7.5,
   },
   titleWrap: {
     alignItems: "flex-end",
-    gap: 8,
+    gap: 6,
     minWidth: 170,
   },
   titleBadge: {
-    fontSize: 7.2,
+    fontSize: 6.8,
     color: "#0f172a",
     backgroundColor: "#e2e8f0",
     borderRadius: 999,
-    paddingTop: 4,
-    paddingBottom: 4,
+    paddingTop: 3,
+    paddingBottom: 3,
     paddingLeft: 8,
     paddingRight: 8,
   },
   title: {
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: 700,
     color: "#0f172a",
   },
   titleNumber: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#475569",
+  },
+  continuationHeader: {
+    position: "absolute",
+    top: 8,
+    left: 18,
+    right: 18,
+    alignItems: "center",
+  },
+  continuationTitle: {
+    fontSize: 7.2,
+    fontWeight: 700,
+    color: "#374151",
+  },
+  continuationMeta: {
+    marginTop: 1,
+    fontSize: 6.6,
+    color: "#6b7280",
   },
   columns: {
     flexDirection: "row",
-    gap: 18,
-    marginBottom: 28,
+    gap: 14,
+    marginBottom: 16,
   },
   card: {
     flex: 1,
@@ -152,32 +169,32 @@ const styles = StyleSheet.create({
     borderColor: "#e7e5e4",
     backgroundColor: "#fcfcfb",
     borderRadius: 12,
-    padding: 16,
-    gap: 8,
+    padding: 12,
+    gap: 6,
   },
   cardTitle: {
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: 700,
-    marginBottom: 6,
+    marginBottom: 4,
     color: "#44403c",
   },
   label: {
     color: "#737373",
-    fontSize: 8,
+    fontSize: 7.2,
   },
   table: {
     borderWidth: 1,
     borderColor: "#e7e5e4",
     borderRadius: 12,
     overflow: "hidden",
-    marginBottom: 24,
+    marginBottom: 16,
   },
   tableHeader: {
     flexDirection: "row",
     backgroundColor: "#f3f4f6",
     borderBottomWidth: 1,
     borderBottomColor: "#e7e5e4",
-    fontSize: 8.2,
+    fontSize: 7.6,
     fontWeight: 700,
     color: "#374151",
   },
@@ -191,22 +208,22 @@ const styles = StyleSheet.create({
   },
   cellDescription: {
     flex: 1.8,
-    padding: 12,
-    lineHeight: 1.35,
+    padding: 8,
+    lineHeight: 1.25,
   },
   cellQty: {
     flex: 0.5,
-    padding: 12,
+    padding: 8,
     textAlign: "right",
   },
   cellPrice: {
     flex: 0.8,
-    padding: 12,
+    padding: 8,
     textAlign: "right",
   },
   cellTotal: {
     flex: 0.8,
-    padding: 12,
+    padding: 8,
     textAlign: "right",
   },
   totalsWrap: {
@@ -216,8 +233,8 @@ const styles = StyleSheet.create({
     borderColor: "#cbd5e1",
     backgroundColor: "#f8fafc",
     borderRadius: 12,
-    padding: 16,
-    gap: 6,
+    padding: 12,
+    gap: 4,
   },
   totalRow: {
     flexDirection: "row",
@@ -225,85 +242,85 @@ const styles = StyleSheet.create({
   },
   totalStrong: {
     fontWeight: 700,
-    fontSize: 11,
+    fontSize: 10,
     color: "#0f172a",
   },
   notesWrap: {
-    marginTop: 28,
-    gap: 6,
+    marginTop: 16,
+    gap: 4,
   },
   signatureContainer: {
     width: 292,
     alignSelf: "center",
-    marginTop: 24,
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 12,
-    paddingRight: 12,
+    marginTop: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 10,
+    paddingRight: 10,
     borderWidth: 1,
     borderColor: "#E5E5E5",
     borderRadius: 8,
   },
   signatureTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 700,
     textAlign: "center",
-    marginBottom: 4,
+    marginBottom: 3,
     color: "#171717",
   },
   signatureIntro: {
-    fontSize: 7.5,
+    fontSize: 7,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 6,
     color: "#525252",
-    lineHeight: 1.4,
+    lineHeight: 1.25,
   },
   signatureMetaRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 8,
   },
   signatureMetaBlock: {
     flex: 1,
     marginBottom: 0,
   },
   signatureMetaLabel: {
-    fontSize: 6.5,
+    fontSize: 6,
     color: "#737373",
     marginBottom: 2,
     textTransform: "uppercase",
     letterSpacing: 0.4,
   },
   signatureMetaValue: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: "#171717",
-    minHeight: 12,
+    minHeight: 10,
   },
   signatureImageWrap: {
-    marginTop: 8,
+    marginTop: 6,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 42,
+    minHeight: 36,
   },
   signatureImage: {
     width: 128,
-    height: 48,
+    height: 42,
     objectFit: "contain",
   },
   signatureLine: {
-    marginTop: 12,
+    marginTop: 8,
     height: 1,
     backgroundColor: "#999999",
     width: "100%",
   },
   vatNotice: {
-    marginTop: 10,
+    marginTop: 6,
     color: "#525252",
-    fontSize: 8,
+    fontSize: 7.5,
   },
   mention: {
     color: "#525252",
-    fontSize: 8.5,
-    lineHeight: 1.5,
+    fontSize: 7.8,
+    lineHeight: 1.3,
   },
   footer: {
     position: "absolute",
@@ -313,6 +330,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: "#bdbdbd",
     paddingTop: 6,
+    paddingBottom: 8,
     flexDirection: "row",
     alignItems: "flex-end",
   },
@@ -359,37 +377,46 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 1.1,
   },
+  footerPageNumber: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    fontSize: 6.6,
+    color: "#444444",
+    textAlign: "center",
+  },
   cgvPage: {
-    paddingTop: 16,
+    paddingTop: 12,
   },
   cgvContainer: {
-    width: 430,
+    width: 442,
     alignSelf: "center",
   },
   cgvTitle: {
-    fontSize: 11.4,
+    fontSize: 10.6,
     fontWeight: 700,
     textAlign: "center",
     marginBottom: 3,
   },
   cgvSubtitle: {
-    fontSize: 9.4,
+    fontSize: 8.6,
     fontWeight: 500,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 6,
     color: "#444444",
   },
   cgvBlock: {
-    marginBottom: 6,
+    marginBottom: 4,
   },
   cgvHeading: {
-    fontSize: 8.5,
+    fontSize: 7.8,
     fontWeight: 600,
-    marginBottom: 1.5,
+    marginBottom: 1,
   },
   cgvBody: {
-    fontSize: 8.1,
-    lineHeight: 1.25,
+    fontSize: 7.7,
+    lineHeight: 1.13,
     textAlign: "justify",
   },
   cgvParagraph: {
@@ -458,6 +485,11 @@ function PdfFooter({
         <Text style={styles.footerQrLabel}>{sanitize("Ajouter au contact")}</Text>
         <Text style={styles.footerQrUrl}>{sanitize("www.fabsystem.fr")}</Text>
       </View>
+      <Text
+        style={styles.footerPageNumber}
+        render={({ pageNumber, totalPages }) => `Page ${pageNumber} / ${totalPages}`}
+        fixed
+      />
     </View>
   );
 }
@@ -492,12 +524,29 @@ function PdfDocument({
   const { totalHt, totalTtc } = getPdfTotals(data);
   const cgvBlocks = CGV_PARAGRAPHS.map(splitCgvParagraph);
   const customerAssetSummary = formatCustomerAssetSummary(data.customer);
-  const fillerRowCount = data.items.length <= 4 ? MIN_EMPTY_DESIGNATION_ROWS : 0;
+  const fillerRowCount = data.items.length <= 2 ? MIN_EMPTY_DESIGNATION_ROWS : 0;
   const fillerRows = Array.from({ length: fillerRowCount }, (_, index) => index);
+  const continuationTitle = sanitize(`${title} ${data.number}`);
+  const continuationMeta = sanitize(data.customer.name);
 
   return (
     <Document title={`${title} ${data.number}`}>
       <Page size="A4" style={[styles.pageWithFooter, styles.page]}>
+        <View style={styles.continuationHeader} fixed>
+          <Text
+            style={styles.continuationTitle}
+            render={({ subPageNumber }) =>
+              subPageNumber && subPageNumber > 1 ? continuationTitle : ""
+            }
+          />
+          <Text
+            style={styles.continuationMeta}
+            render={({ subPageNumber }) =>
+              subPageNumber && subPageNumber > 1 ? continuationMeta : ""
+            }
+          />
+        </View>
+
         <View style={styles.header}>
           <View style={styles.companyWrap}>
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
@@ -607,68 +656,70 @@ function PdfDocument({
           ))}
         </View>
 
-        <View style={styles.totalsWrap}>
-          <View style={styles.totalRow}>
-            <Text>Total HT</Text>
-            <Text>{formatEuroFromCents(totalHt)}</Text>
+        <View wrap={false}>
+          <View style={styles.totalsWrap}>
+            <View style={styles.totalRow}>
+              <Text>Total HT</Text>
+              <Text>{formatEuroFromCents(totalHt)}</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalStrong}>Total TTC</Text>
+              <Text style={styles.totalStrong}>{formatEuroFromCents(totalTtc)}</Text>
+            </View>
+            <Text style={styles.vatNotice}>TVA non applicable – article 293 B du CGI</Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalStrong}>Total TTC</Text>
-            <Text style={styles.totalStrong}>{formatEuroFromCents(totalTtc)}</Text>
-          </View>
-          <Text style={styles.vatNotice}>TVA non applicable – article 293 B du CGI</Text>
-        </View>
 
-        <View style={styles.notesWrap}>
-          {data.notes ? (
-            <>
-              <Text style={styles.cardTitle}>Notes</Text>
-              <Text style={styles.mention}>{data.notes}</Text>
-            </>
+          <View style={styles.notesWrap}>
+            {data.notes ? (
+              <>
+                <Text style={styles.cardTitle}>Notes</Text>
+                <Text style={styles.mention}>{data.notes}</Text>
+              </>
+            ) : null}
+
+            <Text style={styles.cardTitle}>Mentions</Text>
+            {mentions.map((mention) => (
+              <Text key={mention} style={styles.mention}>
+                {mention}
+              </Text>
+            ))}
+          </View>
+
+          {data.kind === "quote" ? (
+            <View style={styles.signatureContainer}>
+              <Text style={styles.signatureTitle}>BON POUR ACCORD</Text>
+              <Text style={styles.signatureIntro}>
+                Je reconnais avoir pris connaissance du présent devis et des
+                conditions générales de vente.
+              </Text>
+
+              <View style={styles.signatureMetaRow}>
+                <View style={styles.signatureMetaBlock}>
+                  <Text style={styles.signatureMetaLabel}>Nom</Text>
+                  <Text style={styles.signatureMetaValue}>
+                    {data.signedName || " "}
+                  </Text>
+                </View>
+
+                <View style={styles.signatureMetaBlock}>
+                  <Text style={styles.signatureMetaLabel}>Date</Text>
+                  <Text style={styles.signatureMetaValue}>
+                    {data.signedAt ? formatDate(data.signedAt) : " "}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.signatureImageWrap}>
+                {data.signatureDataUrl ? (
+                  // eslint-disable-next-line jsx-a11y/alt-text
+                  <Image src={data.signatureDataUrl} style={styles.signatureImage} />
+                ) : (
+                  <View style={styles.signatureLine} />
+                )}
+              </View>
+            </View>
           ) : null}
-
-          <Text style={styles.cardTitle}>Mentions</Text>
-          {mentions.map((mention) => (
-            <Text key={mention} style={styles.mention}>
-              {mention}
-            </Text>
-          ))}
         </View>
-
-        {data.kind === "quote" ? (
-          <View style={styles.signatureContainer}>
-            <Text style={styles.signatureTitle}>BON POUR ACCORD</Text>
-            <Text style={styles.signatureIntro}>
-              Je reconnais avoir pris connaissance du présent devis et des
-              conditions générales de vente.
-            </Text>
-
-            <View style={styles.signatureMetaRow}>
-              <View style={styles.signatureMetaBlock}>
-                <Text style={styles.signatureMetaLabel}>Nom</Text>
-                <Text style={styles.signatureMetaValue}>
-                  {data.signedName || " "}
-                </Text>
-              </View>
-
-              <View style={styles.signatureMetaBlock}>
-                <Text style={styles.signatureMetaLabel}>Date</Text>
-                <Text style={styles.signatureMetaValue}>
-                  {data.signedAt ? formatDate(data.signedAt) : " "}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.signatureImageWrap}>
-              {data.signatureDataUrl ? (
-                // eslint-disable-next-line jsx-a11y/alt-text
-                <Image src={data.signatureDataUrl} style={styles.signatureImage} />
-              ) : (
-                <View style={styles.signatureLine} />
-              )}
-            </View>
-          </View>
-        ) : null}
 
         <PdfFooter logoSrc={logoSrc} qrDataUrl={qrDataUrl} />
       </Page>
