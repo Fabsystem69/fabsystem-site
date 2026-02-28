@@ -1,14 +1,8 @@
 import Link from "next/link";
 import type { Customer, Quote, QuoteItem } from "@/lib/generated/prisma/client";
+import { formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
-
-function formatEuroFromCents(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(value / 100);
-}
 
 export default async function DashboardQuotesPage() {
   let quotes: Array<
@@ -63,12 +57,13 @@ export default async function DashboardQuotesPage() {
               <th className="px-4 py-3 font-medium">Statut</th>
               <th className="px-4 py-3 font-medium">Lignes</th>
               <th className="px-4 py-3 font-medium">Total</th>
+              <th className="px-4 py-3 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200">
             {quotes.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-neutral-500">
+                <td colSpan={6} className="px-4 py-6 text-neutral-500">
                   Aucun devis pour l’instant.
                 </td>
               </tr>
@@ -76,7 +71,12 @@ export default async function DashboardQuotesPage() {
               quotes.map((quote) => (
                 <tr key={quote.id}>
                   <td className="px-4 py-3 font-medium text-neutral-900">
-                    {quote.number}
+                    <Link
+                      href={`/dashboard/quotes/${quote.id}`}
+                      className="underline underline-offset-2"
+                    >
+                      {quote.number}
+                    </Link>
                   </td>
                   <td className="px-4 py-3 text-neutral-600">
                     {quote.customer.name}
@@ -85,6 +85,14 @@ export default async function DashboardQuotesPage() {
                   <td className="px-4 py-3 text-neutral-600">{quote.items.length}</td>
                   <td className="px-4 py-3 text-neutral-600">
                     {formatEuroFromCents(quote.total)}
+                  </td>
+                  <td className="px-4 py-3 text-neutral-600">
+                    <Link
+                      href={`/dashboard/quotes/${quote.id}/edit`}
+                      className="underline underline-offset-2"
+                    >
+                      Modifier
+                    </Link>
                   </td>
                 </tr>
               ))

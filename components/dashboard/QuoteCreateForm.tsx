@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { formatDateForInput, formatEuroFromCents } from "@/lib/format";
 
 export type CustomerOption = {
   id: string;
@@ -16,8 +17,24 @@ type Line = {
   unitPrice: string;
 };
 
+export type QuoteFormInitialData = {
+  id: string;
+  customerId: string;
+  issueDate: string | Date;
+  validUntil: string | Date | null;
+  notes: string | null;
+  status: "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED";
+  items: Array<{
+    id: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+  }>;
+};
+
 type QuoteCreateFormProps = {
   customers: CustomerOption[];
+  initialData?: QuoteFormInitialData;
 };
 
 function createLine(): Line {
@@ -27,6 +44,10 @@ function createLine(): Line {
     quantity: "1",
     unitPrice: "0",
   };
+}
+
+function centsToEuroInput(value: number) {
+  return (value / 100).toFixed(2).replace(".", ",");
 }
 
 function parseEuroToCents(value: string) {
@@ -43,21 +64,39 @@ function parseEuroToCents(value: string) {
   return Math.round(amount * 100);
 }
 
-function formatEuroFromCents(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(value / 100);
+function createInitialLines(initialData?: QuoteFormInitialData): Line[] {
+  if (!initialData || initialData.items.length === 0) {
+    return [createLine()];
+  }
+
+  return initialData.items.map((item) => ({
+    id: item.id,
+    description: item.description,
+    quantity: String(item.quantity),
+    unitPrice: centsToEuroInput(item.unitPrice),
+  }));
 }
 
-export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
+export function QuoteCreateForm({
+  customers,
+  initialData,
+}: QuoteCreateFormProps) {
   const router = useRouter();
-  const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
-  const [validUntil, setValidUntil] = useState("");
-  const [tax, setTax] = useState("0");
-  const [notes, setNotes] = useState("");
-  const [lines, setLines] = useState<Line[]>([createLine()]);
+  const isEdit = Boolean(initialData);
+  const [customerId, setCustomerId] = useState(
+    initialData?.customerId ?? customers[0]?.id ?? ""
+  );
+  const [issueDate, setIssueDate] = useState(
+    formatDateForInput(initialData?.issueDate ?? new Date())
+  );
+  const [validUntil, setValidUntil] = useState(
+    formatDateForInput(initialData?.validUntil)
+  );
+  const [status, setStatus] = useState<
+    "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED"
+  >(initialData?.status ?? "DRAFT");
+  const [notes, setNotes] = useState(initialData?.notes ?? "");
+  const [lines, setLines] = useState<Line[]>(() => createInitialLines(initialData));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,14 +111,12 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
 
       return sum + quantity * unitPrice;
     }, 0);
-    const taxCents = parseEuroToCents(tax);
 
     return {
       subtotal,
-      tax: taxCents,
-      total: subtotal + taxCents,
+      total: subtotal,
     };
-  }, [lines, tax]);
+  }, [lines]);
 
   function updateLine(id: string, field: keyof Line, value: string) {
     setLines((current) =>
@@ -88,7 +125,9 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
   }
 
   function removeLine(id: string) {
-    setLines((current) => (current.length > 1 ? current.filter((line) => line.id !== id) : current));
+    setLines((current) =>
+      current.length > 1 ? current.filter((line) => line.id !== id) : current
+    );
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -117,29 +156,39 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
     }
 
     try {
-      const res = await fetch("/api/internal/quotes", {
-        method: "POST",
+      const endpoint = isEdit ? `/api/internal/quotes/${initialData?.id}` : "/api/internal/quotes";
+      const method = isEdit ? "PATCH" : "POST";
+      const res = await fetch(endpoint, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId,
           issueDate: new Date(issueDate).toISOString(),
           validUntil: validUntil ? new Date(validUntil).toISOString() : null,
           notes: notes.trim() || null,
-          tax: totals.tax,
+          status,
           items,
         }),
       });
 
-      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      const json = (await res.json().catch(() => ({}))) as { error?: string; quote?: { id: string } };
 
       if (!res.ok) {
-        throw new Error(json.error || "Impossible de créer le devis.");
+        throw new Error(json.error || "Impossible d'enregistrer le devis.");
       }
 
-      router.push("/dashboard/quotes");
+      const destination = isEdit
+        ? `/dashboard/quotes/${initialData?.id}`
+        : json.quote?.id
+          ? `/dashboard/quotes/${json.quote.id}`
+          : "/dashboard/quotes";
+
+      router.push(destination);
       router.refresh();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Erreur");
+      setError(
+        submitError instanceof Error ? submitError.message : "Erreur d'enregistrement."
+      );
     } finally {
       setLoading(false);
     }
@@ -148,7 +197,9 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <section className="rounded-lg border border-neutral-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-neutral-900">Nouveau devis</h2>
+        <h2 className="text-lg font-semibold text-neutral-900">
+          {isEdit ? "Modifier le devis" : "Nouveau devis"}
+        </h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <select
             value={customerId}
@@ -162,6 +213,20 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
               </option>
             ))}
           </select>
+          <select
+            value={status}
+            onChange={(event) =>
+              setStatus(
+                event.target.value as "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED"
+              )
+            }
+            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
+          >
+            <option value="DRAFT">DRAFT</option>
+            <option value="SENT">SENT</option>
+            <option value="ACCEPTED">ACCEPTED</option>
+            <option value="REJECTED">REJECTED</option>
+          </select>
           <input
             type="date"
             value={issueDate}
@@ -174,14 +239,10 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
             onChange={(event) => setValidUntil(event.target.value)}
             className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
           />
-          <input
-            value={tax}
-            onChange={(event) => setTax(event.target.value)}
-            inputMode="decimal"
-            placeholder="TVA / taxe (€)"
-            className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
-          />
         </div>
+        <p className="mt-3 text-sm text-neutral-600">
+          TVA non applicable – article 293 B du CGI
+        </p>
         <textarea
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
@@ -210,9 +271,7 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
             >
               <input
                 value={line.description}
-                onChange={(event) =>
-                  updateLine(line.id, "description", event.target.value)
-                }
+                onChange={(event) => updateLine(line.id, "description", event.target.value)}
                 placeholder={`Description ligne ${index + 1}`}
                 className="rounded-md border border-neutral-300 px-3 py-2 text-sm"
               />
@@ -244,10 +303,9 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
 
       <section className="rounded-lg border border-neutral-200 bg-white p-4">
         <div className="space-y-2 text-sm text-neutral-700">
-          <p>Sous-total: {formatEuroFromCents(totals.subtotal)}</p>
-          <p>Taxe: {formatEuroFromCents(totals.tax)}</p>
+          <p>Total HT: {formatEuroFromCents(totals.subtotal)}</p>
           <p className="text-base font-semibold text-neutral-900">
-            Total: {formatEuroFromCents(totals.total)}
+            Total TTC: {formatEuroFromCents(totals.total)}
           </p>
         </div>
         {error ? (
@@ -260,7 +318,7 @@ export function QuoteCreateForm({ customers }: QuoteCreateFormProps) {
           disabled={loading}
           className="mt-4 rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
         >
-          {loading ? "Création..." : "Créer le devis"}
+          {loading ? "Enregistrement..." : isEdit ? "Enregistrer les modifications" : "Créer le devis"}
         </button>
       </section>
     </form>

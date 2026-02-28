@@ -1,14 +1,8 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { requireApiSession } from "@/lib/internal-api";
+import { createQuoteTotals, quoteUpsertSchema } from "@/lib/quote-payload";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse, isDatabaseConnectionError } from "@/lib/prisma-errors";
-
-const quotePatchSchema = z.object({
-  status: z.enum(["DRAFT", "SENT", "ACCEPTED", "REJECTED"]).optional(),
-  validUntil: z.string().datetime().nullable().optional(),
-  notes: z.string().trim().nullable().optional(),
-});
 
 type Params = {
   params: Promise<{
@@ -52,25 +46,50 @@ export async function PATCH(req: Request, { params }: Params) {
 
   const { id } = await params;
   const json = await req.json().catch(() => null);
-  const parsed = quotePatchSchema.safeParse(json);
+  const parsed = quoteUpsertSchema.safeParse(json);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid quote payload" }, { status: 400 });
   }
 
   try {
+    const existingQuote = await prisma.quote.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existingQuote) {
+      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+    }
+
+    const customer = await prisma.customer.findUnique({
+      where: { id: parsed.data.customerId },
+      select: { id: true },
+    });
+
+    if (!customer) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    }
+
+    const { normalizedItems, subtotal, tax, total } = createQuoteTotals(parsed.data.items);
+
     const quote = await prisma.quote.update({
       where: { id },
       data: {
-        status: parsed.data.status,
-        validUntil:
-          parsed.data.validUntil === undefined
-            ? undefined
-            : parsed.data.validUntil
-              ? new Date(parsed.data.validUntil)
-              : null,
-        notes:
-          parsed.data.notes === undefined ? undefined : parsed.data.notes || null,
+        customerId: parsed.data.customerId,
+        issueDate: parsed.data.issueDate ? new Date(parsed.data.issueDate) : new Date(),
+        status: parsed.data.status ?? "DRAFT",
+        validUntil: parsed.data.validUntil ? new Date(parsed.data.validUntil) : null,
+        notes: parsed.data.notes || null,
+        subtotal,
+        tax,
+        total,
+        items: {
+          deleteMany: {},
+          createMany: {
+            data: normalizedItems,
+          },
+        },
       },
       include: {
         customer: true,
@@ -81,6 +100,45 @@ export async function PATCH(req: Request, { params }: Params) {
     });
 
     return NextResponse.json({ ok: true, quote });
+  } catch (error) {
+    if (isDatabaseConnectionError(error)) {
+      return databaseErrorResponse(error);
+    }
+
+    return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+  }
+}
+
+export async function DELETE(_: Request, { params }: Params) {
+  const unauthorized = await requireApiSession();
+  if (unauthorized) {
+    return unauthorized;
+  }
+
+  const { id } = await params;
+
+  try {
+    const quote = await prisma.quote.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    });
+
+    if (!quote) {
+      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+    }
+
+    if (quote.status !== "DRAFT") {
+      return NextResponse.json(
+        { error: "Only draft quotes can be deleted" },
+        { status: 409 }
+      );
+    }
+
+    await prisma.quote.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ ok: true });
   } catch (error) {
     if (isDatabaseConnectionError(error)) {
       return databaseErrorResponse(error);

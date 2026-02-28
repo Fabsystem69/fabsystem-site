@@ -28,6 +28,16 @@ export default function DashboardPage() {
             Créer des devis simples avec lignes et totaux stockés en centimes.
           </p>
         </Link>
+
+        <Link
+          href="/dashboard/invoices"
+          className="rounded-lg border border-neutral-200 bg-white p-5"
+        >
+          <h2 className="text-lg font-semibold text-neutral-900">Factures</h2>
+          <p className="mt-2 text-sm text-neutral-600">
+            Consulter les factures et générer leur PDF côté serveur.
+          </p>
+        </Link>
       </div>
     </main>
   );
