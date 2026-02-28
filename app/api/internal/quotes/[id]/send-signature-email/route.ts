@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import QRCode from "qrcode";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { requireApiSession } from "@/lib/internal-api";
 import { generateQuotePdfBuffer } from "@/lib/quote-pdf";
@@ -42,9 +43,14 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
+    const qrDataUrl = await QRCode.toDataURL("https://fabsystem.fr/vcard", {
+      margin: 0,
+      width: 256,
+    });
+
     const [{ url }, pdf] = await Promise.all([
       createQuoteSignatureLink(id, { request }),
-      generateQuotePdfBuffer(id),
+      generateQuotePdfBuffer(id, qrDataUrl),
     ]);
 
     const transporter = nodemailer.createTransport({
