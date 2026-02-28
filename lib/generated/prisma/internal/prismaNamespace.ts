@@ -394,7 +394,8 @@ export const ModelName = {
   Quote: 'Quote',
   QuoteItem: 'QuoteItem',
   Invoice: 'Invoice',
-  InvoiceItem: 'InvoiceItem'
+  InvoiceItem: 'InvoiceItem',
+  ItemTemplate: 'ItemTemplate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -410,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem"
+    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "itemTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -784,6 +785,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ItemTemplate: {
+      payload: Prisma.$ItemTemplatePayload<ExtArgs>
+      fields: Prisma.ItemTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ItemTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ItemTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.ItemTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ItemTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.ItemTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.ItemTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.ItemTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ItemTemplateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>[]
+        }
+        delete: {
+          args: Prisma.ItemTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>
+        }
+        update: {
+          args: Prisma.ItemTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.ItemTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ItemTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ItemTemplateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>[]
+        }
+        upsert: {
+          args: Prisma.ItemTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ItemTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.ItemTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateItemTemplate>
+        }
+        groupBy: {
+          args: Prisma.ItemTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ItemTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ItemTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ItemTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -904,6 +979,20 @@ export const InvoiceItemScalarFieldEnum = {
 } as const
 
 export type InvoiceItemScalarFieldEnum = (typeof InvoiceItemScalarFieldEnum)[keyof typeof InvoiceItemScalarFieldEnum]
+
+
+export const ItemTemplateScalarFieldEnum = {
+  id: 'id',
+  label: 'label',
+  unit: 'unit',
+  defaultUnitPriceCents: 'defaultUnitPriceCents',
+  lastUsedAt: 'lastUsedAt',
+  useCount: 'useCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ItemTemplateScalarFieldEnum = (typeof ItemTemplateScalarFieldEnum)[keyof typeof ItemTemplateScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1118,6 +1207,7 @@ export type GlobalOmitConfig = {
   quoteItem?: Prisma.QuoteItemOmit
   invoice?: Prisma.InvoiceOmit
   invoiceItem?: Prisma.InvoiceItemOmit
+  itemTemplate?: Prisma.ItemTemplateOmit
 }
 
 /* Types for Logging */

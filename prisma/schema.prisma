@@ -106,3 +106,14 @@ model InvoiceItem {
 
   @@index([invoiceId])
 }
+
+model ItemTemplate {
+  id                    String   @id @default(cuid())
+  label                 String   @unique
+  unit                  String?
+  defaultUnitPriceCents Int?
+  lastUsedAt            DateTime @default(now())
+  useCount              Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}

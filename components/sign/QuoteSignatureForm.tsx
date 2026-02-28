@@ -26,6 +26,7 @@ export function QuoteSignatureForm({
   quoteId,
   token,
 }: QuoteSignatureFormProps) {
+  const formRef = useRef<HTMLFormElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawingRef = useRef(false);
   const hasSignatureRef = useRef(false);
@@ -235,7 +236,7 @@ export function QuoteSignatureForm({
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 pb-28 md:pb-8">
       <section className="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
         <h1 className="text-2xl font-semibold text-neutral-900">Signature du devis</h1>
         <p className="mt-2 text-sm text-neutral-600">
@@ -263,7 +264,7 @@ export function QuoteSignatureForm({
           </div>
         </div>
 
-        <div className="mt-5 rounded-lg border border-neutral-200">
+        <div className="mt-5 hidden rounded-lg border border-neutral-200 md:block">
           <table className="min-w-full divide-y divide-neutral-200 text-sm">
             <thead className="bg-neutral-50 text-left text-neutral-600">
               <tr>
@@ -290,12 +291,42 @@ export function QuoteSignatureForm({
           </table>
         </div>
 
+        <div className="mt-5 space-y-3 md:hidden">
+          {quote.items.map((item) => (
+            <article
+              key={`${item.description}-${item.quantity}-${item.lineTotal}`}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 p-4"
+            >
+              <h3 className="text-base font-semibold text-neutral-900">{item.description}</h3>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-lg bg-white px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Qté</p>
+                  <p className="mt-1 font-medium text-neutral-900">{item.quantity}</p>
+                </div>
+                <div className="rounded-lg bg-white px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">PU</p>
+                  <p className="mt-1 font-medium text-neutral-900">
+                    {formatEuroFromCents(item.unitPrice)}
+                  </p>
+                </div>
+                <div className="col-span-2 rounded-lg bg-white px-3 py-2">
+                  <p className="text-xs uppercase tracking-wide text-neutral-500">Total</p>
+                  <p className="mt-1 font-medium text-neutral-900">
+                    {formatEuroFromCents(item.lineTotal)}
+                  </p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
         <p className="mt-4 text-right text-lg font-semibold text-neutral-900">
           Total TTC: {formatEuroFromCents(quote.total)}
         </p>
       </section>
 
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         className="space-y-5 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm"
       >
@@ -359,11 +390,22 @@ export function QuoteSignatureForm({
         <button
           type="submit"
           disabled={submitting || Boolean(success)}
-          className="w-full rounded-md bg-neutral-900 px-4 py-3 text-base font-semibold text-white disabled:opacity-60"
+          className="hidden w-full rounded-md bg-neutral-900 px-4 py-3 text-base font-semibold text-white disabled:opacity-60 md:block"
         >
           {submitting ? "Signature en cours..." : success ? "Devis signé" : "Signer"}
         </button>
       </form>
+
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur md:hidden">
+        <button
+          type="button"
+          onClick={() => formRef.current?.requestSubmit()}
+          disabled={submitting || Boolean(success)}
+          className="mx-auto flex h-11 w-full max-w-3xl items-center justify-center rounded-md bg-neutral-900 px-4 text-base font-semibold text-white disabled:opacity-60"
+        >
+          {submitting ? "Signature en cours..." : success ? "Devis signé" : "Signer le devis"}
+        </button>
+      </div>
     </div>
   );
 }

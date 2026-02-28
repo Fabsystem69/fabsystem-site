@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createInvoiceTotals, invoiceUpsertSchema } from "@/lib/invoice-payload";
 import { requireApiSession } from "@/lib/internal-api";
+import { rememberItemTemplates } from "@/lib/item-templates";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse, isDatabaseConnectionError } from "@/lib/prisma-errors";
 
@@ -99,6 +100,8 @@ export async function PATCH(req: Request, { params }: Params) {
         },
       },
     });
+
+    await rememberItemTemplates(normalizedItems).catch(() => undefined);
 
     return NextResponse.json({ ok: true, invoice });
   } catch (error) {

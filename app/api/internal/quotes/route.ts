@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateDocumentNumber } from "@/lib/document-number";
 import { requireApiSession } from "@/lib/internal-api";
+import { rememberItemTemplates } from "@/lib/item-templates";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
 import { createQuoteTotals, quoteUpsertSchema } from "@/lib/quote-payload";
@@ -77,6 +78,8 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    await rememberItemTemplates(normalizedItems).catch(() => undefined);
 
     return NextResponse.json({ ok: true, quote }, { status: 201 });
   } catch (error) {

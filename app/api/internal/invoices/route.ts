@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { generateDocumentNumber } from "@/lib/document-number";
 import { createInvoiceTotals, invoiceUpsertSchema } from "@/lib/invoice-payload";
 import { requireApiSession } from "@/lib/internal-api";
+import { rememberItemTemplates } from "@/lib/item-templates";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
 
@@ -75,6 +76,8 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    await rememberItemTemplates(normalizedItems).catch(() => undefined);
 
     return NextResponse.json({ ok: true, invoice }, { status: 201 });
   } catch (error) {

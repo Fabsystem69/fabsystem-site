@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiSession } from "@/lib/internal-api";
+import { rememberItemTemplates } from "@/lib/item-templates";
 import { createQuoteTotals, quoteUpsertSchema } from "@/lib/quote-payload";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse, isDatabaseConnectionError } from "@/lib/prisma-errors";
@@ -98,6 +99,8 @@ export async function PATCH(req: Request, { params }: Params) {
         },
       },
     });
+
+    await rememberItemTemplates(normalizedItems).catch(() => undefined);
 
     return NextResponse.json({ ok: true, quote });
   } catch (error) {

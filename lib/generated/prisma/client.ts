@@ -66,3 +66,8 @@ export type Invoice = Prisma.InvoiceModel
  * 
  */
 export type InvoiceItem = Prisma.InvoiceItemModel
+/**
+ * Model ItemTemplate
+ * 
+ */
+export type ItemTemplate = Prisma.ItemTemplateModel
