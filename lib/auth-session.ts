@@ -16,7 +16,9 @@ export async function setSession() {
     .setExpirationTime("7d")
     .sign(getSecret());
 
-  cookies().set(COOKIE_NAME, token, {
+  const cookieStore = await cookies();
+
+  cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -24,8 +26,10 @@ export async function setSession() {
   });
 }
 
-export function clearSession() {
-  cookies().set(COOKIE_NAME, "", {
+export async function clearSession() {
+  const cookieStore = await cookies();
+
+  cookieStore.set(COOKIE_NAME, "", {
     httpOnly: true,
     expires: new Date(0),
     path: "/",
@@ -43,6 +47,7 @@ export async function isAuthedFromRequestCookie(cookieValue?: string) {
 }
 
 export async function isAuthedServer() {
-  const token = cookies().get(COOKIE_NAME)?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
   return isAuthedFromRequestCookie(token);
 }

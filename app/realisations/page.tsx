@@ -196,7 +196,7 @@ export default function RealisationsPage() {
                     </p>
                     <LightboxImage
                       src={item.beforeImage}
-                      alt={item.beforeImageAlt}
+                      alt={item.beforeImageAlt ?? "Installation avant sécurisation"}
                       width={500}
                       height={350}
                       quality={75}
@@ -210,7 +210,7 @@ export default function RealisationsPage() {
                     </p>
                     <LightboxImage
                       src={item.afterImage}
-                      alt={item.afterImageAlt}
+                      alt={item.afterImageAlt ?? "Installation après sécurisation"}
                       width={500}
                       height={350}
                       quality={75}
