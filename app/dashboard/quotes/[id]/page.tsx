@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { QuoteConvertButton } from "@/components/dashboard/QuoteConvertButton";
 import { QuoteDeleteButton } from "@/components/dashboard/QuoteDeleteButton";
+import { QuotePdfButton } from "@/components/dashboard/QuotePdfButton";
 import { QuoteSignatureActions } from "@/components/dashboard/QuoteSignatureActions";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
@@ -84,13 +85,12 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
           >
             Retour aux devis
           </Link>
-          <Link
-            href={`/api/internal/quotes/${quote.id}/pdf`}
-            target="_blank"
+          <QuotePdfButton
+            quoteId={quote.id}
             className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white"
           >
             Télécharger PDF
-          </Link>
+          </QuotePdfButton>
           <QuoteDeleteButton
             quoteId={quote.id}
             disabled={quote.status !== "DRAFT"}
@@ -225,13 +225,12 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
           >
             Modifier
           </Link>
-          <Link
-            href={`/api/internal/quotes/${quote.id}/pdf`}
-            target="_blank"
+          <QuotePdfButton
+            quoteId={quote.id}
             className="flex h-11 flex-[1.2] items-center justify-center rounded-md bg-neutral-900 px-4 text-base font-semibold text-white"
           >
             PDF
-          </Link>
+          </QuotePdfButton>
         </div>
       </div>
     </main>

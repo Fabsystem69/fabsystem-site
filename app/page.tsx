@@ -1,5 +1,4 @@
 import PageHero from "@/components/PageHero";
-import ProcessSteps from "@/components/ProcessSteps";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -126,20 +125,6 @@ export default function HomePage() {
           </div>
         </div>
 
-      </section>
-
-      {/* PROCESS */}
-      <section className="mx-auto max-w-6xl px-6 py-14">
-        <ProcessSteps />
-
-        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <a
-            href="/contact"
-            className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-6 py-3 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
-          >
-            Demander un diagnostic
-          </a>
-        </div>
       </section>
 
 {/* AUDIT ÉLECTRIQUE NAUTIQUE */}

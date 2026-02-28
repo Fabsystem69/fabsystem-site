@@ -435,22 +435,6 @@ async function loadPdfLogo() {
   }
 }
 
-function buildMentions(data: DocumentData) {
-  if (data.kind === "quote") {
-    return [
-      data.dueDate
-        ? `Devis valable jusqu'au ${formatDate(data.dueDate)}.`
-        : "Devis valable 30 jours à compter de sa date d'émission.",
-    ];
-  }
-
-  return [
-    data.dueDate
-      ? `Facture payable au plus tard le ${formatDate(data.dueDate)}.`
-      : "Facture payable à réception.",
-  ];
-}
-
 function buildFilename(kind: DocumentData["kind"], number: string) {
   const normalizedPrefix =
     kind === "quote" ? number.replace(/^QUO-/, "DEV-") : number.replace(/^INV-/, "FAC-");
@@ -519,7 +503,6 @@ function PdfDocument({
   logoSrc: string | null;
   qrDataUrl: string;
 }) {
-  const mentions = buildMentions(data);
   const title = data.kind === "quote" ? "DEVIS" : "FACTURE";
   const { totalHt, totalTtc } = getPdfTotals(data);
   const cgvBlocks = CGV_PARAGRAPHS.map(splitCgvParagraph);
@@ -669,21 +652,12 @@ function PdfDocument({
             <Text style={styles.vatNotice}>TVA non applicable – article 293 B du CGI</Text>
           </View>
 
-          <View style={styles.notesWrap}>
-            {data.notes ? (
-              <>
-                <Text style={styles.cardTitle}>Notes</Text>
-                <Text style={styles.mention}>{data.notes}</Text>
-              </>
-            ) : null}
-
-            <Text style={styles.cardTitle}>Mentions</Text>
-            {mentions.map((mention) => (
-              <Text key={mention} style={styles.mention}>
-                {mention}
-              </Text>
-            ))}
-          </View>
+          {data.notes ? (
+            <View style={styles.notesWrap}>
+              <Text style={styles.cardTitle}>Notes</Text>
+              <Text style={styles.mention}>{data.notes}</Text>
+            </View>
+          ) : null}
 
           {data.kind === "quote" ? (
             <View style={styles.signatureContainer}>
