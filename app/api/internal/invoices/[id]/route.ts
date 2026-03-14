@@ -57,7 +57,16 @@ export async function PATCH(req: Request, { params }: Params) {
   try {
     const existingInvoice = await prisma.invoice.findUnique({
       where: { id },
-      select: { id: true, paidAt: true, status: true, sourceQuoteId: true },
+      select: {
+        id: true,
+        paidAt: true,
+        status: true,
+        sourceQuoteId: true,
+        currency: true,
+        customerReference: true,
+        projectReference: true,
+        serviceReference: true,
+      },
     });
 
     if (!existingInvoice) {
@@ -117,6 +126,19 @@ export async function PATCH(req: Request, { params }: Params) {
         customerId: parsed.data.customerId,
         issueDate: parsed.data.issueDate ? new Date(parsed.data.issueDate) : new Date(),
         dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
+        currency: parsed.data.currency ?? existingInvoice.currency,
+        customerReference:
+          parsed.data.customerReference === undefined
+            ? existingInvoice.customerReference
+            : parsed.data.customerReference || null,
+        projectReference:
+          parsed.data.projectReference === undefined
+            ? existingInvoice.projectReference
+            : parsed.data.projectReference || null,
+        serviceReference:
+          parsed.data.serviceReference === undefined
+            ? existingInvoice.serviceReference
+            : parsed.data.serviceReference || null,
         serviceDate: parsed.data.serviceDate ? new Date(parsed.data.serviceDate) : null,
         serviceType: parsed.data.serviceType ?? "INTERVENTION",
         deliveryMode: parsed.data.deliveryMode ?? "ONSITE",

@@ -33,6 +33,10 @@ export type InvoiceFormInitialData = {
   sourceQuoteId?: string | null;
   issueDate: string | Date;
   dueDate: string | Date | null;
+  currency: string;
+  customerReference: string | null;
+  projectReference: string | null;
+  serviceReference: string | null;
   serviceDate: string | Date | null;
   serviceType: "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL";
   deliveryMode: "ONSITE" | "REMOTE";
@@ -145,16 +149,40 @@ export function InvoiceCreateForm({
   const [serviceDate, setServiceDate] = useState(
     formatDateForInput(initialData?.serviceDate)
   );
-  const [showAdvanced, setShowAdvanced] = useState(Boolean(initialData?.serviceDate));
+  const [showAdvanced, setShowAdvanced] = useState(
+    Boolean(
+      initialData?.serviceDate ||
+        initialData?.paymentMethod ||
+        initialData?.paymentRef ||
+        initialData?.customerReference ||
+        initialData?.projectReference ||
+        initialData?.serviceReference ||
+        (initialData?.currency && initialData.currency !== "EUR")
+    )
+  );
   const [serviceType, setServiceType] = useState<
     "INTERVENTION" | "FORMATION" | "AUDIT" | "CONSEIL"
   >(initialData?.serviceType ?? "INTERVENTION");
   const [deliveryMode, setDeliveryMode] = useState<"ONSITE" | "REMOTE">(
     initialData?.deliveryMode ?? "ONSITE"
   );
+  const [currency, setCurrency] = useState(initialData?.currency ?? "EUR");
+  const [customerReference, setCustomerReference] = useState(
+    initialData?.customerReference ?? ""
+  );
+  const [projectReference, setProjectReference] = useState(
+    initialData?.projectReference ?? ""
+  );
+  const [serviceReference, setServiceReference] = useState(
+    initialData?.serviceReference ?? ""
+  );
   const [status, setStatus] = useState<
     "DRAFT" | "SENT" | "PAID" | "CANCELLED"
   >(initialData?.status ?? "DRAFT");
+  const [paymentMethod, setPaymentMethod] = useState(
+    initialData?.paymentMethod ?? ""
+  );
+  const [paymentRef, setPaymentRef] = useState(initialData?.paymentRef ?? "");
   const [notes, setNotes] = useState(initialData?.notes ?? "");
   const [lines, setLines] = useState<Line[]>(() => createInitialLines(initialData));
   const [loading, setLoading] = useState(false);
@@ -320,9 +348,15 @@ export function InvoiceCreateForm({
           sourceQuoteId,
           issueDate: new Date(issueDate).toISOString(),
           dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+          currency: currency.trim().toUpperCase() || "EUR",
+          customerReference: customerReference.trim() || null,
+          projectReference: projectReference.trim() || null,
+          serviceReference: serviceReference.trim() || null,
           serviceDate: serviceDate ? new Date(serviceDate).toISOString() : null,
           serviceType,
           deliveryMode,
+          paymentMethod: paymentMethod.trim() || null,
+          paymentRef: paymentRef.trim() || null,
           notes: notes.trim() || null,
           status,
           items,
@@ -549,7 +583,21 @@ export function InvoiceCreateForm({
             <summary className="cursor-pointer text-sm font-medium text-neutral-700">
               Avancé
             </summary>
-            <div className="mt-3 grid gap-3 sm:max-w-sm">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-2 sm:max-w-[140px]">
+                <span className="text-sm font-medium text-neutral-700">Devise</span>
+                <input
+                  value={currency}
+                  onChange={(event) => setCurrency(event.target.value.toUpperCase())}
+                  placeholder="EUR"
+                  maxLength={3}
+                  className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+                />
+                <span className="text-sm text-neutral-500">
+                  Code ISO, par défaut EUR.
+                </span>
+              </label>
+
               <label className="grid gap-2">
                 <span className="text-sm font-medium text-neutral-700">
                   Date de prestation
@@ -562,6 +610,74 @@ export function InvoiceCreateForm({
                 />
                 <span className="text-sm text-neutral-500">
                   Optionnel: date de réalisation de la prestation.
+                </span>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-neutral-700">
+                  Mode de paiement
+                </span>
+                <input
+                  value={paymentMethod}
+                  onChange={(event) => setPaymentMethod(event.target.value)}
+                  placeholder="Virement, CB, chèque…"
+                  className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+                />
+                <span className="text-sm text-neutral-500">
+                  Optionnel: libellé libre stocké sur la facture.
+                </span>
+              </label>
+
+              <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-neutral-700">
+                    Réf. client
+                  </span>
+                  <input
+                    value={customerReference}
+                    onChange={(event) => setCustomerReference(event.target.value)}
+                    placeholder="Commande ou compte client"
+                    className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-neutral-700">
+                    Réf. projet
+                  </span>
+                  <input
+                    value={projectReference}
+                    onChange={(event) => setProjectReference(event.target.value)}
+                    placeholder="Projet, dossier…"
+                    className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+                  />
+                </label>
+
+                <label className="grid gap-2 sm:col-span-2">
+                  <span className="text-sm font-medium text-neutral-700">
+                    Réf. prestation
+                  </span>
+                  <input
+                    value={serviceReference}
+                    onChange={(event) => setServiceReference(event.target.value)}
+                    placeholder="Intervention, ticket, mission…"
+                    className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+                  />
+                </label>
+              </div>
+
+              <label className="grid gap-2 sm:col-span-2">
+                <span className="text-sm font-medium text-neutral-700">
+                  Référence de paiement
+                </span>
+                <input
+                  value={paymentRef}
+                  onChange={(event) => setPaymentRef(event.target.value)}
+                  placeholder="Référence virement, chèque, mandat…"
+                  className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+                />
+                <span className="text-sm text-neutral-500">
+                  Optionnel: utile pour le rapprochement et les futurs exports.
                 </span>
               </label>
             </div>

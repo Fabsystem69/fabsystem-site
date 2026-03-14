@@ -62,40 +62,40 @@ model Customer {
 }
 
 model Quote {
-  id                       String      @id @default(cuid())
-  number                   String      @unique
-  status                   QuoteStatus @default(DRAFT)
-  customerId               String
-  customer                 Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  issueDate                DateTime
-  validUntil               DateTime?
-  notes                    String?
-  subtotal                 Int
-  tax                      Int
-  total                    Int
-  serviceType              ServiceType   @default(INTERVENTION)
-  deliveryMode             DeliveryMode  @default(ONSITE)
-  serviceDate              DateTime?
-  signedAt                 DateTime?
-  signedName               String?
-  agreementChecked         Boolean     @default(false)
-  signatureDataUrl         String?
-  signatureTokenHash       String?
-  signatureTokenExpiresAt  DateTime?
-  signatureIp              String?
-  signatureUserAgent       String?
-  sourceInvoice            Invoice?    @relation("QuoteToInvoice")
-  items                    QuoteItem[]
-  createdAt                DateTime    @default(now())
-  updatedAt                DateTime    @updatedAt
+  id                      String       @id @default(cuid())
+  number                  String       @unique
+  status                  QuoteStatus  @default(DRAFT)
+  customerId              String
+  customer                Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  issueDate               DateTime
+  validUntil              DateTime?
+  notes                   String?
+  subtotal                Int
+  tax                     Int
+  total                   Int
+  serviceType             ServiceType  @default(INTERVENTION)
+  deliveryMode            DeliveryMode @default(ONSITE)
+  serviceDate             DateTime?
+  signedAt                DateTime?
+  signedName              String?
+  agreementChecked        Boolean      @default(false)
+  signatureDataUrl        String?
+  signatureTokenHash      String?
+  signatureTokenExpiresAt DateTime?
+  signatureIp             String?
+  signatureUserAgent      String?
+  sourceInvoice           Invoice?     @relation("QuoteToInvoice")
+  items                   QuoteItem[]
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
 
   @@index([customerId])
 }
 
 model QuoteItem {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   quoteId     String
-  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quote       Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   description String
   quantity    Int
   unitPrice   Int
@@ -106,28 +106,32 @@ model QuoteItem {
 }
 
 model Invoice {
-  id            String        @id @default(cuid())
-  number        String        @unique
-  status        InvoiceStatus @default(DRAFT)
-  customerId    String
-  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  issueDate     DateTime
-  dueDate       DateTime?
-  notes         String?
-  subtotal      Int
-  tax           Int
-  total         Int
-  serviceType   ServiceType   @default(INTERVENTION)
-  deliveryMode  DeliveryMode  @default(ONSITE)
-  serviceDate   DateTime?
-  paidAt        DateTime?
-  paymentMethod String?
-  paymentRef    String?
-  sourceQuoteId String?       @unique
-  sourceQuote   Quote?        @relation("QuoteToInvoice", fields: [sourceQuoteId], references: [id], onDelete: SetNull)
-  items         InvoiceItem[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  number            String        @unique
+  status            InvoiceStatus @default(DRAFT)
+  customerId        String
+  customer          Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  issueDate         DateTime
+  dueDate           DateTime?
+  currency          String        @default("EUR")
+  customerReference String?
+  projectReference  String?
+  serviceReference  String?
+  notes             String?
+  subtotal          Int
+  tax               Int
+  total             Int
+  serviceType       ServiceType   @default(INTERVENTION)
+  deliveryMode      DeliveryMode  @default(ONSITE)
+  serviceDate       DateTime?
+  paidAt            DateTime?
+  paymentMethod     String?
+  paymentRef        String?
+  sourceQuoteId     String?       @unique
+  sourceQuote       Quote?        @relation("QuoteToInvoice", fields: [sourceQuoteId], references: [id], onDelete: SetNull)
+  items             InvoiceItem[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@index([customerId])
   @@index([paidAt])
