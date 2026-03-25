@@ -13,6 +13,53 @@ const heroBenefits = [
   "Décisions sûres avant achat ou recâblage.",
 ];
 
+const visioOptions = [
+  {
+    id: "decouverte",
+    badge: "Gratuit",
+    badgeColor: "bg-green-100 text-green-700",
+    borderColor: "border-green-200",
+    bg: "bg-green-50",
+    title: "Coaching découverte",
+    duration: "20 minutes",
+    price: "Gratuit",
+    priceColor: "text-green-700",
+    description:
+      "Vous avancez sur les modules ou vous hésitez encore sur votre projet. On fait le point ensemble sans engagement.",
+    items: [
+      "Clarifier une situation ou un doute",
+      "Savoir si une visio conseil vous correspond",
+      "100 % en visio, sans préparation requise",
+    ],
+    cta: "Réserver 20 min — Gratuit",
+    ctaStyle:
+      "bg-green-700 text-white hover:bg-green-600",
+    isBooking: true,
+  },
+  {
+    id: "conseil",
+    badge: "Recommandé",
+    badgeColor: "bg-neutral-900 text-white",
+    borderColor: "border-neutral-900",
+    bg: "bg-white",
+    title: "Visio conseil",
+    duration: "1 heure",
+    price: "50 €",
+    priceColor: "text-neutral-900",
+    description:
+      "On analyse votre installation en détail. Schéma, dimensionnement, sécurité, liste matériel — vous repartez avec un plan d’action clair.",
+    items: [
+      "Diagnostic complet 12V / 230V",
+      "Architecture recommandée + matériel",
+      "Synthèse écrite après la session",
+    ],
+    cta: "Réserver la visio — 50 €",
+    ctaStyle:
+      "bg-neutral-900 text-white hover:bg-neutral-800",
+    isBooking: true,
+  },
+] as const;
+
 const faqItems = [
   {
     q: "Que vais-je obtenir à la fin ?",
@@ -80,25 +127,32 @@ export default function VisioPage() {
         {/* Contenu */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 py-8 text-white sm:py-10">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
-            Visio conseil en électricité embarquée
+            Visio en électricité embarquée
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
-            Comprendre, sécuriser et décider — en 1 heure.
+            Deux formules selon votre situation — 20 min gratuits pour démarrer,
+            ou 1 heure pour aller en profondeur.
           </p>
 
           <p className="mt-2 max-w-2xl text-xs leading-relaxed text-white/75 sm:text-sm">
-            Bateau, van ou camping-car : on clarifie rapidement la situation et la
-            meilleure suite à donner.
+            Bateau, van ou camping-car · On clarifie rapidement la situation et la meilleure suite.
           </p>
 
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={openBooking}
-              className="inline-flex min-h-9 w-full items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-black transition hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 sm:w-auto"
+              className="inline-flex min-h-9 items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-bold text-black transition hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
             >
-              Réserver ma visio à 50 €
+              Visio conseil — 50 €
+            </button>
+            <button
+              type="button"
+              onClick={openBooking}
+              className="inline-flex min-h-9 items-center justify-center rounded-md border border-white/40 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              Découverte gratuite — 20 min
             </button>
           </div>
 
@@ -112,6 +166,67 @@ export default function VisioPage() {
 
           <div className="mt-4">
             <ServiceAssurance items={visioAssuranceItems} tone="inverse" />
+          </div>
+        </div>
+      </section>
+
+      {/* CHOIX DE VISIO */}
+      <section className="border-b border-neutral-200 bg-white py-10 sm:py-12">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+            Deux formules disponibles
+          </p>
+          <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
+            Quelle visio vous correspond ?
+          </h2>
+          <p className="mt-2 text-sm text-neutral-600">
+            Choisissez selon votre situation — vous pouvez toujours commencer par la découverte
+            gratuite.
+          </p>
+
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            {visioOptions.map((option) => (
+              <div
+                key={option.id}
+                className={`flex flex-col rounded-2xl border-2 p-6 shadow-sm ${option.borderColor} ${option.bg}`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className={`inline-flex rounded-full px-3 py-0.5 text-xs font-bold ${option.badgeColor}`}
+                  >
+                    {option.badge}
+                  </span>
+                  <span className="text-xs text-neutral-400">{option.duration}</span>
+                </div>
+
+                <h3 className="mt-4 text-lg font-bold text-neutral-950">{option.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-neutral-600">
+                  {option.description}
+                </p>
+
+                <ul className="mt-4 space-y-2">
+                  {option.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-sm text-neutral-700">
+                      <span className="mt-0.5 text-green-600">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-6 flex items-center justify-between border-t border-black/5 pt-4">
+                  <span className={`text-2xl font-bold ${option.priceColor}`}>
+                    {option.price}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={openBooking}
+                    className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold transition ${option.ctaStyle}`}
+                  >
+                    {option.cta}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
