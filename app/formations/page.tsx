@@ -257,39 +257,54 @@ export default function FormationsPage() {
         </div>
       </section>
 
-      {/* ── COACHING VISIO ── */}
+      {/* ── COACHING DÉCOUVERTE ── */}
       <section id="coaching" className="border-t border-neutral-200 bg-neutral-50 py-8 sm:py-10">
         <div className="mx-auto max-w-6xl scroll-mt-20 px-6">
-          <div className="max-w-3xl">
-            <h2 className="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-              Vous avez un projet concret ?
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Les modules couvrent les fondamentaux. Pour aller plus loin sur votre installation
-              réelle — dimensionnement, schéma, choix du matériel — une visio conseil permet
-              d'analyser votre situation précise.
-            </p>
-          </div>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-10 lg:gap-16">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                Gratuit · Sans engagement
+              </div>
+              <h2 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
+                Coaching découverte — 20 min offerts
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+                Vous avancez sur les modules et bloquez sur un point, ou vous voulez savoir si
+                une visio conseil correspond à votre situation ? On échange 20 minutes
+                gratuitement pour faire le point ensemble.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-neutral-600">
+                {[
+                  "100 % en visio, où que vous soyez",
+                  "Aucune préparation requise",
+                  "Sans engagement — on discute, vous décidez",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="mt-0.5 text-green-600">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <TrackedLink
-              href="/visio"
-              event="click_rdv"
-              className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
-            >
-              Réserver une visio conseil — 50 €
-            </TrackedLink>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-white"
-            >
-              Poser une question
-            </Link>
+            <div className="shrink-0 rounded-2xl border border-green-200 bg-white p-5 shadow-sm sm:min-w-[220px]">
+              <p className="text-2xl font-bold text-green-700">Gratuit</p>
+              <p className="mt-0.5 text-sm text-neutral-500">20 minutes · Visio</p>
+              <TrackedLink
+                href="/visio"
+                event="click_rdv"
+                className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
+              >
+                Réserver mon créneau
+              </TrackedLink>
+              <Link
+                href="/contact"
+                className="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
+              >
+                Poser une question
+              </Link>
+            </div>
           </div>
-
-          <p className="mt-3 text-xs text-neutral-500">
-            Bateau · van · camping-car &nbsp;•&nbsp; Réponse sous 24–48h ouvrées
-          </p>
         </div>
       </section>
     </main>
