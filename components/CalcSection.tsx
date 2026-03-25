@@ -619,7 +619,7 @@ function CalcAWG() {
   const filteredExemples = EXEMPLES_MARINE.filter(
     (e) =>
       e.equipement.toLowerCase().includes(search.toLowerCase()) ||
-      e.notes.toLowerCase().includes(search.toLowerCase())
+      (e.notes ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
