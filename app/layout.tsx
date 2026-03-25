@@ -1,7 +1,15 @@
 import "./globals.css";
+import { Space_Grotesk } from "next/font/google";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import type { Metadata, Viewport } from "next";
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-space-grotesk",
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fabsystem.fr"),
@@ -68,8 +76,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
-      <body className="bg-white text-neutral-900">
+    <html lang="fr" className={spaceGrotesk.variable}>
+      <body className="bg-white font-sans text-neutral-900 antialiased">
         {/* structured data for SEO */}
         <script
           type="application/ld+json"

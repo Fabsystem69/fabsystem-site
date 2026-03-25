@@ -38,11 +38,11 @@ export default function PageHero({
       <div className={`absolute inset-0 ${overlay}`} />
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 py-14 text-white sm:py-16 lg:py-20">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
           {title}
         </h1>
 
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">
           {subtitle}
         </p>
 
@@ -56,9 +56,9 @@ export default function PageHero({
           <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:items-center">
             {ctas.map((cta) => {
               const base =
-                "inline-flex min-h-9 w-full items-center justify-center rounded-md px-3 py-2 text-sm font-semibold sm:w-auto";
-              const primary = "bg-white text-black hover:bg-white/90";
-              const secondary = "border border-white/70 text-white hover:bg-white/10";
+                "inline-flex min-h-10 w-full items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold transition-colors duration-150 sm:w-auto";
+              const primary = "bg-brand-400 text-neutral-900 hover:bg-brand-300 shadow-sm";
+              const secondary = "border border-white/50 text-white hover:bg-white/10";
 
               const className =
                 base + " " + (cta.variant === "secondary" ? secondary : primary);

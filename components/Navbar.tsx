@@ -9,22 +9,19 @@ const nav = [
   { href: "/", label: "Accueil" },
   { href: "/prestations", label: "Prestations" },
   { href: "/formations", label: "Formations" },
+  { href: "/outils", label: "Outils" },
   { href: "/realisations", label: "Réalisations" },
-  { href: "/visio", label: "Visio" },
-  { href: "/audit-nautique", label: "Audit nautique" },
+  { href: "/audit-nautique", label: "Audit" },
   { href: "/a-propos", label: "À propos" },
-  { href: "/contact", label: "Contact" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const isHome = pathname === "/";
   const [open, setOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    // focus trap + escape key
     if (open && drawerRef.current) {
       const focusable = Array.from(
         drawerRef.current.querySelectorAll<HTMLElement>(
@@ -34,9 +31,7 @@ export default function Navbar() {
       if (focusable.length) focusable[0].focus();
 
       const handleKey = (e: KeyboardEvent) => {
-        if (e.key === "Escape") {
-          setOpen(false);
-        }
+        if (e.key === "Escape") setOpen(false);
         if (e.key === "Tab" && focusable.length) {
           const first = focusable[0];
           const last = focusable[focusable.length - 1];
@@ -57,31 +52,6 @@ export default function Navbar() {
     };
   }, [open]);
 
-  const theme = useMemo(() => {
-    if (isHome) {
-      // same white banner as other pages, except we still want
-      // links in light mode (white) to contrast with the background
-      return {
-        header: "sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur",
-        link: "text-neutral-800 hover:text-neutral-500",
-        linkActive: "text-neutral-950",
-        burger: "text-neutral-900",
-        drawerBg: "bg-white",
-        drawerText: "text-neutral-900",
-        overlay: "bg-black/55",
-      };
-    }
-    return {
-      header: "sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur",
-      link: "text-neutral-800 hover:text-neutral-500",
-      linkActive: "text-neutral-950",
-      burger: "text-neutral-900",
-      drawerBg: "bg-white",
-      drawerText: "text-neutral-900",
-      overlay: "bg-black/55",
-    };
-  }, [isHome]);
-
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname?.startsWith(href + "/");
@@ -89,8 +59,11 @@ export default function Navbar() {
 
   return (
     <>
-      <header role="navigation" className={theme.header}>
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2 sm:py-3">
+      <header
+        role="navigation"
+        className="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur-md"
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2.5 sm:py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <span className="relative block h-9 w-[180px] overflow-hidden">
@@ -106,13 +79,15 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-4 text-xs font-medium sm:flex sm:text-sm sm:gap-6">
+          <nav className="hidden items-center gap-1 text-sm font-medium sm:flex">
             {nav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`${theme.link} ${
-                  isActive(item.href) ? theme.linkActive : ""
+                className={`rounded-md px-3 py-1.5 transition-colors duration-150 ${
+                  isActive(item.href)
+                    ? "bg-neutral-100 text-neutral-950 font-semibold"
+                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
                 }`}
               >
                 {item.label}
@@ -120,11 +95,27 @@ export default function Navbar() {
             ))}
           </nav>
 
+          {/* Desktop CTA */}
+          <div className="hidden items-center gap-3 sm:flex">
+            <Link
+              href="/contact"
+              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-150"
+            >
+              Contact
+            </Link>
+            <Link
+              href="/visio"
+              className="inline-flex items-center justify-center rounded-lg bg-brand-400 px-4 py-1.5 text-sm font-bold text-neutral-900 transition-colors duration-150 hover:bg-brand-300"
+            >
+              Réserver
+            </Link>
+          </div>
+
           {/* Burger */}
           <button
             type="button"
             aria-label="Ouvrir le menu"
-            className={`sm:hidden rounded-md p-1.5 ${theme.burger}`}
+            className="rounded-md p-1.5 text-neutral-900 sm:hidden"
             onClick={() => setOpen(true)}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -145,13 +136,13 @@ export default function Navbar() {
           {/* overlay */}
           <button
             aria-label="Fermer le menu"
-            className={`fixed inset-0 ${theme.overlay}`}
+            className="fixed inset-0 bg-black/55"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
 
           {/* panel */}
-          <div className={`fixed right-0 top-0 h-full w-[85%] max-w-sm ${theme.drawerBg} p-6 shadow-xl`}>
+          <div className="fixed right-0 top-0 flex h-full w-[85%] max-w-sm flex-col bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="relative block h-9 w-[160px] overflow-hidden">
                 <Image
@@ -179,14 +170,14 @@ export default function Navbar() {
               </button>
             </div>
 
-            <nav className={`mt-8 flex flex-col text-base font-medium ${theme.drawerText}`}>
-              {nav.map((item) => (
+            <nav className="mt-6 flex flex-col gap-1 text-base font-medium text-neutral-900">
+              {[...nav, { href: "/contact", label: "Contact" }].map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-md px-3 py-3 ${
+                  className={`rounded-lg px-3 py-3 transition-colors duration-150 ${
                     isActive(item.href)
-                      ? "bg-neutral-100 text-neutral-950"
+                      ? "bg-neutral-100 font-semibold text-neutral-950"
                       : "hover:bg-neutral-50"
                   }`}
                   onClick={() => setOpen(false)}
@@ -195,6 +186,17 @@ export default function Navbar() {
                 </Link>
               ))}
             </nav>
+
+            {/* Mobile CTA */}
+            <div className="mt-auto pt-6">
+              <Link
+                href="/visio"
+                className="flex w-full items-center justify-center rounded-xl bg-brand-400 py-3 text-base font-bold text-neutral-900 transition-colors duration-150 hover:bg-brand-300"
+                onClick={() => setOpen(false)}
+              >
+                ⚡ Réserver une visio
+              </Link>
+            </div>
           </div>
         </div>
       )}
