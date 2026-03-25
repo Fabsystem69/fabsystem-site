@@ -11,7 +11,6 @@ type ServiceAssuranceProps = {
 const defaultItems = [
   "Basé à Neuville-sur-Saône. Déplacements Rhône / Auvergne-Rhône-Alpes sur rendez-vous. Visio partout en France.",
   "Réponse sous 24–48h ouvrées.",
-  "Visio 50 €. Interventions sur devis. Diagnostic sur site à partir de 89 € selon périmètre.",
 ];
 
 export default function ServiceAssurance({
@@ -47,11 +46,6 @@ export default function ServiceAssurance({
           className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none sm:text-xs ${pillClass}`}
         >
           24–48h
-        </p>
-        <p
-          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none sm:text-xs ${pillClass}`}
-        >
-          89 €+ · Visio 50 €
         </p>
         <button
           type="button"
