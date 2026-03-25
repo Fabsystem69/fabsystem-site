@@ -8,14 +8,14 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Formations électricité embarquée — bateau, van, camping-car | FabSystem",
   description:
-    "Modules e-learning gratuits et premium + coaching visio en électricité embarquée. Comprenez votre installation 12V, batteries, solaire et 230V à votre rythme.",
+    "Modules e-learning gratuits en électricité embarquée. Comprenez votre installation 12V, batteries, solaire et 230V à votre rythme.",
   alternates: {
     canonical: "/formations",
   },
   openGraph: {
     title: "Formations électricité embarquée | FabSystem",
     description:
-      "Apprenez l'électricité embarquée à votre rythme : modules e-learning (gratuits & premium) + coaching visio personnalisé.",
+      "Apprenez l'électricité embarquée à votre rythme : modules e-learning gratuits + coaching visio personnalisé.",
     url: "https://www.fabsystem.fr/formations",
   },
 };
@@ -50,74 +50,30 @@ const modulesGratuits = [
   },
 ] as const;
 
-const modulesPremium = [
+const modulesAVenir = [
   {
-    tag: "Premium",
     title: "Dimensionner un banc de batteries",
     description:
-      "Calculer votre bilan de consommation, choisir la capacité, gérer la charge et le BMS. Exercices inclus.",
-    duration: "~1h",
+      "Calculer votre bilan de consommation, choisir la capacité, gérer la charge et le BMS.",
     level: "Intermédiaire",
-    price: "29 €",
   },
   {
-    tag: "Premium",
     title: "Architecture de distribution 12V",
     description:
-      "Concevoir une distribution claire : barres omnibus, fusibles, sectionneurs, points de masse. Exemples réels.",
-    duration: "~1h30",
+      "Concevoir une distribution claire : barres omnibus, fusibles, sectionneurs, points de masse.",
     level: "Intermédiaire",
-    price: "39 €",
   },
   {
-    tag: "Premium",
     title: "Intégration solaire & alternateur",
     description:
-      "MPPT, régulateurs, coupleurs, combineurs — comment tout brancher proprement et éviter les erreurs classiques.",
-    duration: "~1h",
+      "MPPT, régulateurs, coupleurs, combineurs — comment tout brancher proprement.",
     level: "Intermédiaire",
-    price: "29 €",
   },
   {
-    tag: "Premium",
     title: "Sécuriser le 230V à bord",
     description:
-      "Onduleur, chargeur, disjoncteur différentiel, prise de quai — les règles de sécurité AC indispensables.",
-    duration: "~45 min",
+      "Onduleur, chargeur, disjoncteur différentiel, prise de quai — les règles de sécurité AC.",
     level: "Avancé",
-    price: "29 €",
-  },
-  {
-    tag: "Premium",
-    title: "Pack complet : De zéro à l'installation",
-    description:
-      "Tous les modules premium + accès prioritaire au coaching visio. Le parcours complet pour une installation maîtrisée.",
-    duration: "Accès illimité",
-    level: "Tous niveaux",
-    price: "99 €",
-    highlight: true,
-  },
-] as const;
-
-const coachingOptions = [
-  {
-    title: "Coaching e-learning",
-    description:
-      "Vous avancez sur les modules, j'aide à débloquer les points difficiles. Session 30 min pour clarifier vos questions après un module.",
-    duration: "30 min",
-    price: "30 €",
-    ctaLabel: "Réserver une session",
-    href: "/visio",
-  },
-  {
-    title: "Coaching sur votre projet",
-    description:
-      "On analyse votre installation réelle ensemble. Schéma, dimensionnement, priorités. Adapté à votre bateau ou camping-car.",
-    duration: "60 min",
-    price: "50 €",
-    ctaLabel: "Réserver une visio",
-    href: "/visio",
-    highlight: true,
   },
 ] as const;
 
@@ -125,7 +81,6 @@ const levelColors: Record<string, string> = {
   Débutant: "bg-green-50 text-green-700",
   Intermédiaire: "bg-blue-50 text-blue-700",
   Avancé: "bg-orange-50 text-orange-700",
-  "Tous niveaux": "bg-neutral-100 text-neutral-700",
 };
 
 export default function FormationsPage() {
@@ -133,13 +88,13 @@ export default function FormationsPage() {
     <main>
       <PageHero
         title="Formations électricité embarquée"
-        subtitle="Apprenez à votre rythme avec des modules e-learning clairs — ou avancez avec un coaching visio personnalisé."
-        micro="12V · Batteries · Solaire · 230V · Sécurité — bateau, van, camping-car."
+        subtitle="Des modules e-learning gratuits pour comprendre votre installation 12V — à votre rythme, sans inscription."
+        micro="12V · Batteries · Solaire · 230V — bateau, van, camping-car."
         background="/hero-fabsystem.png"
         overlay="bg-black/55"
         ctas={[
           { href: "#modules-gratuits", label: "Voir les modules gratuits", variant: "primary" },
-          { href: "#coaching", label: "Coaching visio", variant: "secondary" },
+          { href: "#quiz", label: "Tester mes connaissances", variant: "secondary" },
         ]}
         assurance={<ServiceAssurance tone="inverse" />}
       />
@@ -159,8 +114,8 @@ export default function FormationsPage() {
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {[
-                { label: "Modules gratuits", value: "3", desc: "pour démarrer" },
-                { label: "Modules premium", value: "4+", desc: "pour aller plus loin" },
+                { label: "Modules disponibles", value: "3", desc: "100 % gratuits" },
+                { label: "Modules à venir", value: "4+", desc: "en préparation" },
                 { label: "Coaching visio", value: "Sur RDV", desc: "sur votre projet réel" },
               ].map((stat) => (
                 <div
@@ -184,13 +139,13 @@ export default function FormationsPage() {
       >
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-            Accès libre
+            Accès libre · Aucune inscription
           </div>
           <h2 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-            Modules gratuits — Les fondamentaux
+            Modules disponibles — Les fondamentaux
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-            Pour comprendre les bases avant d'aller plus loin. Aucune inscription requise.
+            Pour comprendre les bases avant d'aller plus loin. Gratuit, sans compte requis.
           </p>
         </div>
 
@@ -234,191 +189,58 @@ export default function FormationsPage() {
         </div>
       </section>
 
-      {/* ── MODULES PREMIUM ── */}
-      <section
-        id="modules-premium"
-        className="border-t border-neutral-100 bg-neutral-50 py-8 sm:py-10"
-      >
+      {/* ── MODULES À VENIR ── */}
+      <section className="border-t border-neutral-100 bg-neutral-50 py-8 sm:py-10">
         <div className="mx-auto max-w-6xl scroll-mt-20 px-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-3 py-1 text-xs font-semibold text-white">
-              Premium
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold text-neutral-500">
+              ⏳ À venir
             </div>
             <h2 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-              Modules premium — Aller plus loin
+              Prochains modules en préparation
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Des modules approfondis avec exercices, schémas annotés et exemples d'installations
-              réelles. Accès à vie après achat.
+              Ces modules sont en cours de rédaction. Ils seront disponibles gratuitement
+              dès leur mise en ligne.
             </p>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {modulesPremium.map((module) => (
-              <article
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {modulesAVenir.map((module) => (
+              <div
                 key={module.title}
-                className={`flex h-full flex-col rounded-2xl border p-4 shadow-sm sm:p-5 ${
-                  module.highlight
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-200 bg-white"
-                }`}
+                className="flex flex-col rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-4 opacity-70"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      module.highlight
-                        ? "bg-white/10 text-white"
-                        : "bg-neutral-100 text-neutral-700"
-                    }`}
-                  >
-                    {module.tag}
+                  <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-500">
+                    À venir
                   </span>
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      module.highlight
-                        ? "bg-white/10 text-white"
-                        : levelColors[module.level]
-                    }`}
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${levelColors[module.level]}`}
                   >
                     {module.level}
                   </span>
                 </div>
-
-                <h3
-                  className={`mt-3 text-sm font-semibold ${
-                    module.highlight ? "text-white" : "text-neutral-950"
-                  }`}
-                >
-                  {module.title}
-                </h3>
-                <p
-                  className={`mt-2 flex-1 text-sm leading-relaxed ${
-                    module.highlight ? "text-white/80" : "text-neutral-600"
-                  }`}
-                >
+                <h3 className="mt-3 text-sm font-semibold text-neutral-700">{module.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-500">
                   {module.description}
                 </p>
-
-                <div
-                  className={`mt-4 flex items-center justify-between border-t pt-3 ${
-                    module.highlight ? "border-white/10" : "border-neutral-100"
-                  }`}
-                >
-                  <span
-                    className={`text-xs ${module.highlight ? "text-white/60" : "text-neutral-500"}`}
-                  >
-                    {module.duration}
-                  </span>
-                  <span
-                    className={`text-sm font-bold ${
-                      module.highlight ? "text-white" : "text-neutral-900"
-                    }`}
-                  >
-                    {module.price}
-                  </span>
-                </div>
-
-                <div className="mt-3">
-                  <Link
-                    href="/contact"
-                    className={`inline-flex min-h-9 w-full items-center justify-center rounded-md px-3 py-2 text-sm font-semibold ${
-                      module.highlight
-                        ? "bg-white text-neutral-900 hover:bg-neutral-100"
-                        : "bg-neutral-900 text-white hover:bg-neutral-800"
-                    }`}
-                  >
-                    {module.highlight ? "Voir le pack complet" : "Accéder au module"}
-                  </Link>
-                </div>
-              </article>
+              </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* ── COACHING VISIO ── */}
-      <section id="coaching" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-8 sm:py-10">
-        <div className="max-w-3xl">
-          <h2 className="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-            Coaching visio — Sur votre projet
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-            Vous avancez dans les modules et bloquez sur un point précis, ou vous voulez analyser
-            votre installation réelle ensemble. Les sessions visio sont courtes, ciblées et
-            directement actionnables.
-          </p>
-        </div>
-
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          {coachingOptions.map((option) => (
-            <article
-              key={option.title}
-              className={`flex h-full flex-col rounded-2xl border p-4 shadow-sm sm:p-5 ${
-                option.highlight
-                  ? "border-neutral-900 bg-neutral-900"
-                  : "border-neutral-200 bg-white"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span
-                  className={`text-xs font-medium ${
-                    option.highlight ? "text-white/60" : "text-neutral-500"
-                  }`}
-                >
-                  {option.duration}
-                </span>
-                <span
-                  className={`text-base font-bold ${
-                    option.highlight ? "text-white" : "text-neutral-900"
-                  }`}
-                >
-                  {option.price}
-                </span>
-              </div>
-
-              <h3
-                className={`mt-3 text-sm font-semibold ${
-                  option.highlight ? "text-white" : "text-neutral-950"
-                }`}
-              >
-                {option.title}
-              </h3>
-              <p
-                className={`mt-2 flex-1 text-sm leading-relaxed ${
-                  option.highlight ? "text-white/80" : "text-neutral-600"
-                }`}
-              >
-                {option.description}
-              </p>
-
-              <div className="mt-4">
-                <TrackedLink
-                  href={option.href}
-                  event="click_rdv"
-                  className={`inline-flex min-h-9 w-full items-center justify-center rounded-md px-3 py-2 text-sm font-semibold ${
-                    option.highlight
-                      ? "bg-white text-neutral-900 hover:bg-neutral-100"
-                      : "bg-neutral-900 text-white hover:bg-neutral-800"
-                  }`}
-                >
-                  {option.ctaLabel}
-                </TrackedLink>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <p className="text-sm text-neutral-700">
-            <span className="font-semibold text-neutral-900">Pas sûr par où commencer ?</span>{" "}
-            Démarrez par les modules gratuits pour vous situer, puis choisissez le module ou le
-            coaching adapté à votre projet.
+          <p className="mt-5 text-xs text-neutral-400">
+            Vous souhaitez être notifié à la sortie d'un module ?{" "}
+            <Link href="/contact" className="underline underline-offset-4 hover:text-neutral-600">
+              Contactez-nous
+            </Link>
+            .
           </p>
         </div>
       </section>
 
       {/* ── QUIZ ── */}
-      <section id="quiz" className="border-t border-neutral-100 bg-neutral-50 py-8 sm:py-10">
+      <section id="quiz" className="border-t border-neutral-100 bg-white py-8 sm:py-10">
         <div className="mx-auto max-w-6xl scroll-mt-20 px-6">
           <div className="mx-auto max-w-3xl">
             <div className="mb-5 max-w-xl">
@@ -426,8 +248,8 @@ export default function FormationsPage() {
                 Testez vos connaissances
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                10 questions sur les 3 modules gratuits — loi d&apos;Ohm, schémas, batteries. Idéal pour
-                vérifier vos acquis avant de passer aux modules premium.
+                10 questions sur les 3 modules — loi d&apos;Ohm, schémas, batteries. Idéal pour
+                vérifier vos acquis après avoir parcouru les modules.
               </p>
             </div>
             <QuizFormations />
@@ -435,37 +257,38 @@ export default function FormationsPage() {
         </div>
       </section>
 
-      {/* ── CTA FINAL ── */}
-      <section className="border-t border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+      {/* ── COACHING VISIO ── */}
+      <section id="coaching" className="border-t border-neutral-200 bg-neutral-50 py-8 sm:py-10">
+        <div className="mx-auto max-w-6xl scroll-mt-20 px-6">
           <div className="max-w-3xl">
             <h2 className="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-              Une question avant de commencer ?
+              Vous avez un projet concret ?
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Si vous ne savez pas quel module correspond à votre niveau ou votre projet, décrivez
-              votre situation et vous recevrez une recommandation claire.
+              Les modules couvrent les fondamentaux. Pour aller plus loin sur votre installation
+              réelle — dimensionnement, schéma, choix du matériel — une visio conseil permet
+              d'analyser votre situation précise.
             </p>
           </div>
 
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/contact"
-              className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
-            >
-              Poser une question
-            </Link>
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <TrackedLink
               href="/visio"
               event="click_rdv"
-              className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
+              className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
             >
-              Réserver une visio conseil
+              Réserver une visio conseil — 50 €
             </TrackedLink>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-xl border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-900 hover:bg-white"
+            >
+              Poser une question
+            </Link>
           </div>
 
           <p className="mt-3 text-xs text-neutral-500">
-            Bateau · van · camping-car • Réponse sous 24–48h ouvrées
+            Bateau · van · camping-car &nbsp;•&nbsp; Réponse sous 24–48h ouvrées
           </p>
         </div>
       </section>
