@@ -313,13 +313,17 @@ function CalcBilanConso() {
   );
 }
 
-/* ─── Calculateur 3 : Autonomie batterie ───────────────────────────────── */
+/* ─── Calculateur 3 : Autonomie batterie + solaire ─────────────────────── */
 function CalcAutonomie() {
   const [capacite, setCapacite] = useState("");
   const [etat, setEtat] = useState("100");
   const [conso, setConso] = useState("");
   const [dod, setDod] = useState("50");
   const [tension, setTension] = useState("12");
+  // Solaire
+  const [withSolar, setWithSolar] = useState(false);
+  const [panneauxWc, setPanneauxWc] = useState("");
+  const [psh, setPsh] = useState("4");
 
   const cap = parseFloat(capacite) || 0;
   const consoW = parseFloat(conso) || 0;
@@ -327,10 +331,24 @@ function CalcAutonomie() {
   const etatPct = parseFloat(etat) / 100;
   const t = parseFloat(tension);
 
+  // Énergie batterie disponible (Wh)
   const energieDisponibleWh = cap * t * dodPct * etatPct;
-  const consoAh = consoW / t;
-  const heures = consoW > 0 ? energieDisponibleWh / consoW : 0;
-  const ahParHeure = consoAh;
+
+  // Production solaire journalière (Wh/j) avec rendement système 0.75
+  const productionWh = withSolar
+    ? (parseFloat(panneauxWc) || 0) * parseFloat(psh) * 0.75
+    : 0;
+  // Puissance solaire moyenne équivalente sur 24h
+  const productionMoyenneW = productionWh / 24;
+
+  // Consommation nette après solaire
+  const consoNetteW = Math.max(0, consoW - productionMoyenneW);
+  const solarCoversAll = withSolar && productionMoyenneW >= consoW && consoW > 0;
+
+  // Autonomie sans solaire / avec solaire
+  const heuresSansSolaire = consoW > 0 ? energieDisponibleWh / consoW : 0;
+  const heuresAvecSolaire = consoNetteW > 0 ? energieDisponibleWh / consoNetteW : 0;
+  const heures = withSolar ? heuresAvecSolaire : heuresSansSolaire;
 
   const formatDuree = (h: number) => {
     if (h <= 0) return "—";
@@ -338,52 +356,47 @@ function CalcAutonomie() {
     const hReste = Math.floor(h % 24);
     const m = Math.round((h - Math.floor(h)) * 60);
     if (j > 0) return `${j}j ${hReste}h`;
-    if (hReste > 0) return `${hReste}h ${m > 0 ? `${m}min` : ""}`;
+    if (hReste > 0) return `${hReste}h${m > 0 ? ` ${m}min` : ""}`;
     return `${m} min`;
   };
 
-  const niveau = (h: number) => {
+  const niveau = (h: number, infini: boolean) => {
+    if (infini) return { color: "text-green-600", label: "☀️ Autonomie illimitée" };
     if (h <= 0) return null;
     if (h < 12) return { color: "text-red-600", label: "Autonomie faible" };
     if (h < 48) return { color: "text-yellow-600", label: "Autonomie correcte" };
-    return { color: "text-green-600", label: "Bonne autonomie" };
+    if (h < 120) return { color: "text-green-600", label: "Bonne autonomie" };
+    return { color: "text-green-600", label: "Très bonne autonomie" };
   };
 
-  const niv = niveau(heures);
+  const niv = niveau(heures, solarCoversAll);
+  const hasResult = cap > 0 && consoW > 0;
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
-      <div className="space-y-4">
+      {/* ── Inputs ── */}
+      <div className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Capacité batterie (Ah)</label>
             <input
-              type="number"
-              min="0"
-              placeholder="ex : 200"
-              value={capacite}
-              onChange={(e) => setCapacite(e.target.value)}
+              type="number" min="0" placeholder="ex : 200"
+              value={capacite} onChange={(e) => setCapacite(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
             />
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Tension (V)</label>
-            <select
-              value={tension}
-              onChange={(e) => setTension(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
-            >
+            <select value={tension} onChange={(e) => setTension(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20">
               <option value="12">12 V</option>
               <option value="24">24 V</option>
             </select>
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">État de charge (%)</label>
-            <select
-              value={etat}
-              onChange={(e) => setEtat(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
-            >
+            <select value={etat} onChange={(e) => setEtat(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20">
               {[100, 90, 80, 70, 60, 50].map((n) => (
                 <option key={n} value={String(n)}>{n} %</option>
               ))}
@@ -391,11 +404,8 @@ function CalcAutonomie() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Profondeur de décharge max</label>
-            <select
-              value={dod}
-              onChange={(e) => setDod(e.target.value)}
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
-            >
+            <select value={dod} onChange={(e) => setDod(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20">
               <option value="50">50 % — AGM / GEL</option>
               <option value="80">80 % — Lithium LiFePO₄</option>
               <option value="100">100 % — Lithium (max absolu)</option>
@@ -404,39 +414,131 @@ function CalcAutonomie() {
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Consommation totale (W)</label>
             <input
-              type="number"
-              min="0"
-              placeholder="ex : 85"
-              value={conso}
-              onChange={(e) => setConso(e.target.value)}
+              type="number" min="0" placeholder="ex : 85"
+              value={conso} onChange={(e) => setConso(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
             />
             <p className="mt-1 text-xs text-neutral-400">Utilisez le calculateur de bilan pour trouver cette valeur.</p>
           </div>
         </div>
+
+        {/* Toggle solaire */}
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+          <label className="flex cursor-pointer items-center gap-3">
+            <div
+              onClick={() => setWithSolar((v) => !v)}
+              className={`relative h-5 w-9 rounded-full transition-colors duration-200 ${withSolar ? "bg-brand-400" : "bg-neutral-300"}`}
+            >
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${withSolar ? "translate-x-4" : "translate-x-0.5"}`}
+              />
+            </div>
+            <span className="text-sm font-semibold text-neutral-800">
+              ☀️ Ajouter la production solaire
+            </span>
+          </label>
+
+          {withSolar && (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Puissance panneaux (Wc)
+                </label>
+                <input
+                  type="number" min="0" placeholder="ex : 400"
+                  value={panneauxWc} onChange={(e) => setPanneauxWc(e.target.value)}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
+                />
+                <p className="mt-1 text-xs text-neutral-400">Total Wc-crête installés</p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Ensoleillement (h/j)
+                </label>
+                <select value={psh} onChange={(e) => setPsh(e.target.value)}
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20">
+                  <option value="2.5">2,5 h — Hiver / nord France</option>
+                  <option value="3.5">3,5 h — Printemps / automne</option>
+                  <option value="4">4 h — Été / façade atlantique</option>
+                  <option value="5">5 h — Été / Méditerranée</option>
+                  <option value="6">6 h — Été / plein soleil tropical</option>
+                </select>
+                <p className="mt-1 text-xs text-neutral-400">Heures de pic solaire (PSH)</p>
+              </div>
+              {panneauxWc && (
+                <div className="sm:col-span-2 rounded-lg bg-white border border-brand-200 px-4 py-3 text-sm">
+                  <span className="font-semibold text-neutral-700">Production estimée : </span>
+                  <span className="font-bold text-brand-600">
+                    {productionWh.toFixed(0)} Wh/j
+                  </span>
+                  <span className="text-neutral-400 text-xs ml-2">
+                    (rendement système 75 % appliqué)
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* ── Résultat ── */}
       <div>
-        {cap > 0 && consoW > 0 ? (
+        {hasResult ? (
           <div className="rounded-2xl border-2 border-brand-400 bg-brand-50 p-6 space-y-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">Résultat</p>
-            <div>
-              <p className="text-xs text-neutral-500">Autonomie estimée</p>
-              <p className="text-4xl font-bold text-neutral-950">{formatDuree(heures)}</p>
-              {niv && <p className={`mt-1 text-sm font-semibold ${niv.color}`}>{niv.label}</p>}
-            </div>
+
+            {solarCoversAll ? (
+              <div>
+                <p className="text-xs text-neutral-500">Autonomie estimée</p>
+                <p className="text-4xl font-bold text-green-700">∞</p>
+                <p className="mt-1 text-sm font-semibold text-green-600">
+                  ☀️ Le solaire couvre toute la consommation
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-neutral-500">
+                  Autonomie estimée{withSolar ? " (avec solaire)" : ""}
+                </p>
+                <p className="text-4xl font-bold text-neutral-950">{formatDuree(heures)}</p>
+                {niv && <p className={`mt-1 text-sm font-semibold ${niv.color}`}>{niv.label}</p>}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3 border-t border-brand-200 pt-4">
               <div>
-                <p className="text-xs text-neutral-500">Énergie disponible</p>
+                <p className="text-xs text-neutral-500">Énergie batterie dispo.</p>
                 <p className="text-lg font-bold text-neutral-900">{energieDisponibleWh.toFixed(0)} Wh</p>
               </div>
               <div>
                 <p className="text-xs text-neutral-500">Décharge</p>
-                <p className="text-lg font-bold text-neutral-900">{ahParHeure.toFixed(1)} A/h</p>
+                <p className="text-lg font-bold text-neutral-900">{(consoW / t).toFixed(1)} A/h</p>
               </div>
+              {withSolar && productionWh > 0 && (
+                <>
+                  <div>
+                    <p className="text-xs text-neutral-500">Production solaire/j</p>
+                    <p className="text-lg font-bold text-green-700">{productionWh.toFixed(0)} Wh</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-neutral-500">Conso nette/j</p>
+                    <p className={`text-lg font-bold ${solarCoversAll ? "text-green-700" : "text-neutral-900"}`}>
+                      {solarCoversAll ? "0 Wh" : `${(consoNetteW * 24).toFixed(0)} Wh`}
+                    </p>
+                  </div>
+                  {!solarCoversAll && (
+                    <div className="col-span-2 rounded-lg bg-white border border-neutral-200 px-3 py-2">
+                      <p className="text-xs text-neutral-500">Autonomie sans solaire (ref)</p>
+                      <p className="text-base font-bold text-neutral-500">{formatDuree(heuresSansSolaire)}</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
             <p className="text-xs text-neutral-500">
-              Estimation sans pertes ni recharge solaire/alternateur.
+              {withSolar
+                ? "Rendement système 75 % appliqué sur la production solaire. Résultat indicatif — varie selon météo, orientation et ombrage."
+                : "Estimation sans recharge. Activez le solaire pour simuler avec panneaux."}
             </p>
           </div>
         ) : (
