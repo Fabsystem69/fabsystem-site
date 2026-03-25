@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Outils & Calculateurs électricité embarquée — bateau, van, camping-car",
   description:
-    "Calculateurs gratuits : section de câble 12V, bilan de consommation, autonomie batterie. Dimensionnez votre installation électrique embarquée en quelques clics.",
+    "Calculateurs gratuits : section de câble 12V, bilan de consommation, autonomie batterie, table AWG/mm² avec usages typiques bateau. Dimensionnez votre installation électrique embarquée.",
   alternates: { canonical: "/outils" },
   openGraph: {
     title: "Calculateurs électricité embarquée | FabSystem",
@@ -37,7 +37,14 @@ const outils = [
     emoji: "⏱️",
     title: "Autonomie batterie",
     description: "Estimez combien de temps votre batterie tient selon votre consommation et sa capacité.",
-    tag: "Rapide",
+    tag: "Avec solaire ☀️",
+  },
+  {
+    id: "awg",
+    emoji: "📐",
+    title: "AWG ↔ mm²",
+    description: "Convertisseur AWG/mm² + sections recommandées par équipement bateau (guindeau, frigo, pilote…).",
+    tag: "Référence",
   },
 ];
 
@@ -47,7 +54,7 @@ export default function OutilsPage() {
       <PageHero
         title="Outils & Calculateurs"
         subtitle="Des calculateurs gratuits pour dimensionner votre installation électrique embarquée — sans inscription, sans prise de tête."
-        micro="Section de câble · Bilan de consommation · Autonomie batterie"
+        micro="Section de câble · Bilan de consommation · Autonomie batterie · AWG ↔ mm²"
         background="/hero-fabsystem.png"
         overlay="bg-black/55"
         ctas={[
