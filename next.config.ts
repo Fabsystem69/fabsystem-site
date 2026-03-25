@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: [
     "@prisma/adapter-pg",
     "@react-pdf/renderer",
+    "@simplewebauthn/server",
     "nodemailer",
     "pg",
     "qrcode",

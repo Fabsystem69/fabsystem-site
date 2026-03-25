@@ -25,7 +25,7 @@ export async function GET() {
     const options = await generateRegistrationOptions({
       rpID,
       rpName: "FabSystem",
-      userID: "admin-fabien",
+      userID: new TextEncoder().encode("admin-fabien"),
       userName: process.env.ADMIN_EMAIL || "admin@fabsystem.fr",
       attestationType: "none",
       authenticatorSelection: {
@@ -51,8 +51,7 @@ export async function GET() {
     rpID,
     userVerification: "preferred",
     allowCredentials: creds.map((c) => ({
-      id: Buffer.from(c.credentialID, "base64url"),
-      type: "public-key",
+      id: c.credentialID,
       transports: c.transports,
     })),
   });

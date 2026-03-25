@@ -3,10 +3,14 @@ import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "fabsystem_session";
 
-function b64urlToBytes(s: string): Uint8Array {
+function b64urlToBuffer(s: string): ArrayBuffer {
   s = s.replace(/-/g, "+").replace(/_/g, "/");
   while (s.length % 4) s += "=";
-  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  const binary = atob(s);
+  const buf = new ArrayBuffer(binary.length);
+  const arr = new Uint8Array(buf);
+  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+  return buf;
 }
 
 async function isValidSession(token: string): Promise<boolean> {
@@ -30,13 +34,13 @@ async function isValidSession(token: string): Promise<boolean> {
     const valid = await crypto.subtle.verify(
       "HMAC",
       key,
-      b64urlToBytes(sig),
+      b64urlToBuffer(sig),
       enc.encode(body)
     );
     if (!valid) return false;
 
     const payload = JSON.parse(
-      new TextDecoder().decode(b64urlToBytes(body))
+      new TextDecoder().decode(b64urlToBuffer(body))
     ) as { exp?: number };
     const now = Math.floor(Date.now() / 1000);
     return typeof payload.exp === "number" && payload.exp > now;
