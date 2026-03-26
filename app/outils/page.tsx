@@ -67,12 +67,12 @@ export default function OutilsPage() {
       {/* Index des outils */}
       <section className="border-b border-neutral-200 bg-white py-8">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {outils.map((o) => (
               <a
                 key={o.id}
                 href={`#${o.id}`}
-                className="group flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-all duration-150 hover:border-brand-400 hover:shadow-md"
+                className="group flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm transition-all duration-150 hover:border-brand-400 hover:shadow-md"
               >
                 <span className="text-2xl">{o.emoji}</span>
                 <div>
