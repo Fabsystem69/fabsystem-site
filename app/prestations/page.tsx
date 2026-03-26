@@ -346,13 +346,13 @@ export default function PrestationsPage() {
             {[
               {
                 name: "Pascal M.",
-                boat: "Voilier 38 pieds — Brest",
+                boat: "Yacht — Rhone-Alpes",
                 text: "Diagnostic rapide et précis. En 2h Fabien avait identifié 4 problèmes que je n'avais pas vus en 3 ans. Schéma livré 48h après.",
                 stars: 5,
               },
               {
                 name: "Isabelle & François",
-                boat: "Van aménagé — Bretagne",
+                boat: "Van aménagé — Rhone-Alpes",
                 text: "Visio conseil avant l'achat du matériel. On a évité une erreur de dimensionnement qui aurait coûté cher. Très pédagogue.",
                 stars: 5,
               },

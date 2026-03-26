@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     q: "Quelle est la zone d'intervention ?",
-    a: "L'intervention physique se fait principalement en Bretagne et sur le littoral atlantique. La visio conseil et le conseil par schéma sont disponibles partout en France.",
+    a: "L'intervention physique se fait principalement en Rhone-Alpes . La visio conseil et le conseil par schéma sont disponibles partout en France.",
   },
 ];
 
