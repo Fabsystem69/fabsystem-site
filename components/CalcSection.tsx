@@ -28,7 +28,7 @@ function CalcSectionCable() {
   const [longueur, setLongueur] = useState("");
   const [chute, setChute] = useState("3");
   const [tension, setTension] = useState("12");
-  const [result, setResult] = useState<{ sMin: string; section: number; fusible: string } | null>(null);
+  const [result, setResult] = useState<{ sMin: string; section: number; fusible: string; intensite: number } | null>(null);
 
   const calculate = () => {
     const i = parseFloat(intensite);
@@ -37,7 +37,7 @@ function CalcSectionCable() {
     const t = parseFloat(tension);
     if (!i || !l || !c || !t || i <= 0 || l <= 0) return;
     const { sMin, section } = calcSection(i, l, c, t);
-    setResult({ sMin, section, fusible: fusibleRecommande(i) });
+    setResult({ sMin, section, fusible: fusibleRecommande(i), intensite: i });
   };
 
   return (
@@ -59,7 +59,7 @@ function CalcSectionCable() {
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-              Longueur aller-retour (m)
+              Longueur simple aller (m)
             </label>
             <input
               type="number"
@@ -69,6 +69,7 @@ function CalcSectionCable() {
               onChange={(e) => setLongueur(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
             />
+            <p className="mt-1 text-xs text-neutral-400">Le calcul applique automatiquement le facteur ×2 (aller-retour).</p>
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
@@ -125,6 +126,30 @@ function CalcSectionCable() {
                 <p className="text-xl font-bold text-neutral-900">{result.fusible}</p>
               </div>
             </div>
+            {/* Avertissements section */}
+            {(() => {
+              const sMinNum = parseFloat(result.sMin);
+              if (result.section < 1.5) return (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs font-semibold text-red-700">
+                  ⚠️ Section inférieure à 1,5 mm² — minimum recommandé en marine (norme ABYC E-11)
+                </div>
+              );
+              if (result.section < sMinNum * 1.5) return (
+                <div className="rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-xs font-semibold text-orange-700">
+                  ⚡ Section juste — majorez d'un calibre si câble en conduit ou température &gt; 40°C
+                </div>
+              );
+              return (
+                <div className="rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-xs font-semibold text-green-700">
+                  ✅ Section confortable pour cette application
+                </div>
+              );
+            })()}
+            {result.intensite > 100 && (
+              <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs font-semibold text-red-700">
+                ⚠️ Intensité &gt; 100 A — prévoyez un câble direct sur batterie avec fusible ANL.
+              </div>
+            )}
             <p className="mt-4 text-xs text-neutral-500">
               Calcul basé sur la résistivité du cuivre (ρ = 0,0175 Ω·mm²/m).
               Majorez d'une section si câble en conduit ou forte chaleur.
@@ -179,6 +204,124 @@ function CalcBilanConso() {
 
   const totalAh = totalWh / parseFloat(tension);
   const capaciteRecommandee = (totalAh * parseFloat(autonomie)) / 0.5; // 50% DOD
+
+  const exportPDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const rows = appareils
+      .filter(a => a.nom || a.puissance)
+      .map(a => {
+        const wh = (parseFloat(a.puissance) || 0) * (parseFloat(a.heures) || 0);
+        return `
+          <tr>
+            <td>${a.nom || '—'}</td>
+            <td>${a.puissance || 0} W</td>
+            <td>${a.heures || 0} h</td>
+            <td><strong>${wh} Wh</strong></td>
+          </tr>`;
+      }).join('');
+
+    const capaciteRecommandeeVal = ((totalWh / parseFloat(tension)) * parseFloat(autonomie)) / 0.5;
+    const date = new Date().toLocaleDateString('fr-FR');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="fr">
+      <head>
+        <meta charset="UTF-8">
+        <title>Bilan de consommation — FabSystem</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; padding: 40px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 3px solid #111; }
+          .logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+          .logo span { color: #f59e0b; }
+          .meta { text-align: right; font-size: 11px; color: #666; }
+          .meta strong { display: block; font-size: 14px; color: #111; margin-bottom: 2px; }
+          h1 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+          .subtitle { font-size: 12px; color: #666; margin-bottom: 28px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 13px; }
+          thead tr { background: #111; color: white; }
+          thead th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+          tbody tr:nth-child(even) { background: #f9f9f9; }
+          tbody td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+          tfoot tr { background: #fef3c7; }
+          tfoot td { padding: 10px 14px; font-weight: 700; font-size: 14px; }
+          .results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+          .card { border: 2px solid #e5e7eb; border-radius: 10px; padding: 16px; }
+          .card.highlight { border-color: #f59e0b; background: #fffbeb; }
+          .card .label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+          .card .value { font-size: 22px; font-weight: 900; color: #111; }
+          .card .sub { font-size: 10px; color: #aaa; margin-top: 4px; }
+          .footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid #eee; font-size: 10px; color: #aaa; display: flex; justify-content: space-between; }
+          .note { background: #f3f4f6; border-radius: 8px; padding: 12px 16px; font-size: 11px; color: #555; margin-bottom: 20px; }
+          .note strong { color: #111; }
+          @media print { body { padding: 20px; } @page { margin: 1cm; size: A4; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">Fab<span>System</span></div>
+          <div class="meta">
+            <strong>Bilan de consommation électrique</strong>
+            Généré le ${date}
+          </div>
+        </div>
+        <h1>Bilan de consommation</h1>
+        <p class="subtitle">Tension : ${tension}V · Autonomie souhaitée : ${autonomie} jour(s)</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Appareil</th>
+              <th>Puissance (W)</th>
+              <th>Durée (h/j)</th>
+              <th>Consommation (Wh/j)</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total journalier</td>
+              <td>${totalWh.toFixed(0)} Wh/j</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="results">
+          <div class="card">
+            <div class="label">Consommation / jour</div>
+            <div class="value">${totalWh.toFixed(0)} Wh</div>
+            <div class="sub">${(totalWh / parseFloat(tension)).toFixed(1)} Ah à ${tension}V</div>
+          </div>
+          <div class="card">
+            <div class="label">Pour ${autonomie}j d'autonomie</div>
+            <div class="value">${((totalWh / parseFloat(tension)) * parseFloat(autonomie)).toFixed(0)} Ah</div>
+            <div class="sub">consommation brute</div>
+          </div>
+          <div class="card highlight">
+            <div class="label">Capacité batterie recommandée</div>
+            <div class="value">${capaciteRecommandeeVal.toFixed(0)} Ah</div>
+            <div class="sub">DOD 50% — AGM/GEL</div>
+          </div>
+        </div>
+        <div class="note">
+          <strong>Note :</strong> DOD 50% appliqué pour batteries AGM/GEL.
+          Pour du lithium LiFePO₄ (DOD 80%), la capacité recommandée est
+          <strong>${(capaciteRecommandeeVal / 1.6).toFixed(0)} Ah</strong>.
+          Ces valeurs sont indicatives — consultez un installateur qualifié pour votre installation.
+        </div>
+        <div class="footer">
+          <span>FabSystem — Électricité marine & camping-car</span>
+          <span>Document généré automatiquement · Non contractuel</span>
+        </div>
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); }, 500);
+  };
 
   return (
     <div className="space-y-6">
@@ -305,6 +448,14 @@ function CalcBilanConso() {
             </div>
           ))}
         </div>
+      )}
+      {totalWh > 0 && (
+        <button
+          onClick={exportPDF}
+          className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-neutral-900 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-neutral-700"
+        >
+          📄 Exporter en PDF
+        </button>
       )}
       <p className="text-xs text-neutral-400">
         DOD 50 % appliqué pour AGM/GEL. Pour du lithium LiFePO₄ (DOD 80 %), divisez par 1,6.
@@ -563,6 +714,181 @@ function CalcAutonomie() {
   );
 }
 
+/* ─── Calculateur 4 : Dimensionnement MPPT ─────────────────────────────── */
+function CalcMPPT() {
+  const [tensionBat, setTensionBat] = useState("12");
+  const [puissanceWc, setPuissanceWc] = useState("");
+  const [voc, setVoc] = useState("");
+  const [vmp, setVmp] = useState("");
+  const [nbSerie, setNbSerie] = useState("1");
+  const [nbParallele, setNbParallele] = useState("1");
+  const [longueurMPPT, setLongueurMPPT] = useState("2");
+
+  const wc = parseFloat(puissanceWc) || 0;
+  const vocN = parseFloat(voc) || 0;
+  const vmpN = parseFloat(vmp) || 0;
+  const serie = parseInt(nbSerie) || 1;
+  const parallele = parseInt(nbParallele) || 1;
+  const t = parseFloat(tensionBat);
+
+  const vocString = vocN * serie;
+  const vmpString = vmpN * serie;
+  const iscTotal = vmpN > 0 ? (wc / vmpN) * parallele : 0;
+  const iSortieMPPT = t > 0 ? wc / t : 0;
+  const puissanceMPPT = wc * 1.25;
+
+  const sectionPanneaux = wc > 0 && vmpString > 0
+    ? calcSection(iscTotal, 3, 3, vmpString)
+    : null;
+  const sectionMPPTBat = wc > 0
+    ? calcSection(iSortieMPPT, parseFloat(longueurMPPT) || 2, 3, t)
+    : null;
+
+  const hasResult = wc > 0 && vocN > 0 && vmpN > 0;
+
+  type Alert = { color: "red" | "orange" | "yellow"; msg: string };
+  const alerts: Alert[] = [];
+  if (vocString > 150) alerts.push({ color: "red", msg: "Tension Voc trop élevée pour un MPPT standard — vérifiez la fiche technique de votre régulateur" });
+  else if (vocString > 100) alerts.push({ color: "orange", msg: "Tension élevée — vérifiez la limite Voc max de votre MPPT" });
+  if (iSortieMPPT > 60) alerts.push({ color: "orange", msg: "Courant de sortie élevé — envisagez deux régulateurs MPPT en parallèle" });
+  if (serie > 1 && tensionBat === "12") alerts.push({ color: "orange", msg: "Panneaux en série sur batterie 12V — assurez-vous que Vmp_string reste compatible avec votre MPPT" });
+
+  const alertClass = (color: Alert["color"]) => {
+    if (color === "red") return "bg-red-50 border border-red-200 text-red-700";
+    return "bg-orange-50 border border-orange-200 text-orange-700";
+  };
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-2">
+      {/* ── Inputs ── */}
+      <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Tension batterie (V)</label>
+            <select value={tensionBat} onChange={(e) => setTensionBat(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20">
+              <option value="12">12 V</option>
+              <option value="24">24 V</option>
+              <option value="48">48 V</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Puissance totale panneaux (Wc)</label>
+            <input type="number" min="0" placeholder="ex : 400"
+              value={puissanceWc} onChange={(e) => setPuissanceWc(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Tension Voc panneau (V)</label>
+            <input type="number" min="0" placeholder="ex : 44"
+              value={voc} onChange={(e) => setVoc(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+            <p className="mt-1 text-xs text-neutral-400">Tension circuit ouvert — fiche technique panneau</p>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Tension Vmp panneau (V)</label>
+            <input type="number" min="0" placeholder="ex : 36"
+              value={vmp} onChange={(e) => setVmp(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+            <p className="mt-1 text-xs text-neutral-400">Tension point de puissance max</p>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Panneaux en série</label>
+            <input type="number" min="1" placeholder="ex : 1"
+              value={nbSerie} onChange={(e) => setNbSerie(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Strings en parallèle</label>
+            <input type="number" min="1" placeholder="ex : 2"
+              value={nbParallele} onChange={(e) => setNbParallele(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Longueur câble MPPT → batterie (m)</label>
+            <input type="number" min="0" placeholder="ex : 2"
+              value={longueurMPPT} onChange={(e) => setLongueurMPPT(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Résultat ── */}
+      <div>
+        {hasResult ? (
+          <div className="rounded-2xl border-2 border-brand-400 bg-brand-50 p-6 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">Résultat</p>
+
+            {/* Puissance MPPT — card principale */}
+            <div>
+              <p className="text-xs text-neutral-500">Puissance MPPT recommandée</p>
+              <p className="text-4xl font-bold text-neutral-950">{puissanceMPPT.toFixed(0)} W</p>
+              <p className="mt-1 text-sm font-semibold text-brand-700">
+                Choisissez un MPPT ≥ {Math.ceil(iSortieMPPT)} A / {puissanceMPPT.toFixed(0)} W
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 border-t border-brand-200 pt-4">
+              <div>
+                <p className="text-xs text-neutral-500">Voc string</p>
+                <p className={`text-lg font-bold ${vocString > 150 ? "text-red-600" : vocString > 100 ? "text-orange-600" : "text-neutral-900"}`}>
+                  {vocString.toFixed(1)} V
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500">Vmp string</p>
+                <p className="text-lg font-bold text-neutral-900">{vmpString.toFixed(1)} V</p>
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500">Courant sortie MPPT</p>
+                <p className={`text-lg font-bold ${iSortieMPPT > 60 ? "text-orange-600" : "text-neutral-900"}`}>
+                  {Math.ceil(iSortieMPPT)} A
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500">Courant Isc total</p>
+                <p className="text-lg font-bold text-neutral-900">{iscTotal.toFixed(1)} A</p>
+              </div>
+              {sectionPanneaux && (
+                <div>
+                  <p className="text-xs text-neutral-500">Câble panneaux → MPPT</p>
+                  <p className="text-lg font-bold text-neutral-900">{sectionPanneaux.section} mm²</p>
+                </div>
+              )}
+              {sectionMPPTBat && (
+                <div>
+                  <p className="text-xs text-neutral-500">Câble MPPT → batterie</p>
+                  <p className="text-lg font-bold text-neutral-900">{sectionMPPTBat.section} mm²</p>
+                </div>
+              )}
+            </div>
+
+            {alerts.length > 0 && (
+              <div className="space-y-2 border-t border-brand-200 pt-4">
+                {alerts.map((a, i) => (
+                  <div key={i} className={`rounded-lg px-3 py-2 text-xs font-semibold ${alertClass(a.color)}`}>
+                    {a.color === "red" ? "🔴" : "🟡"} {a.msg}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-xs text-neutral-500">
+              Marge sécurité 25% appliquée sur la puissance MPPT. Sections câbles calculées avec chute de tension 3%.
+            </p>
+          </div>
+        ) : (
+          <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 p-8">
+            <p className="text-center text-sm text-neutral-400">
+              Renseignez la puissance, Voc et Vmp pour dimensionner votre régulateur MPPT.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Table AWG ↔ mm² ──────────────────────────────────────────────────── */
 const AWG_TABLE = [
   { awg: "28", mm2: 0.08, a_max: 0.5 },
@@ -621,8 +947,7 @@ function CalcAWG() {
   const mm2ToAwg = () => {
     const val = parseFloat(mm2Input);
     if (!val) return null;
-    const row = AWG_TABLE.slice().reverse().find((r) => r.mm2 >= val) ??
-                AWG_TABLE.find((r) => r.mm2 >= val);
+    const row = AWG_TABLE.find((r) => r.mm2 >= val);
     return row ? `AWG ${row.awg}  (I max ≈ ${row.a_max} A)` : "Câble > AWG 4/0 — hors table standard";
   };
 
@@ -824,6 +1149,13 @@ const calculateurs = [
     title: "Autonomie batterie",
     description: "Estimez combien de temps votre installation tient sur batterie selon votre consommation.",
     component: <CalcAutonomie />,
+  },
+  {
+    id: "mppt",
+    emoji: "☀️",
+    title: "Dimensionnement régulateur MPPT",
+    description: "Calculez la puissance MPPT nécessaire selon vos panneaux solaires et votre batterie.",
+    component: <CalcMPPT />,
   },
   {
     id: "awg",
