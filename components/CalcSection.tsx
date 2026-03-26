@@ -326,7 +326,8 @@ function CalcAutonomie() {
   const [psh, setPsh] = useState("4");
 
   const cap = parseFloat(capacite) || 0;
-  const consoW = parseFloat(conso) || 0;
+  const consoWh = parseFloat(conso) || 0;   // Wh/j saisis par l'utilisateur
+  const consoW = consoWh / 24;              // équivalent puissance moyenne sur 24h
   const dodPct = parseFloat(dod) / 100;
   const etatPct = parseFloat(etat) / 100;
   const t = parseFloat(tension);
@@ -370,7 +371,7 @@ function CalcAutonomie() {
   };
 
   const niv = niveau(heures, solarCoversAll);
-  const hasResult = cap > 0 && consoW > 0;
+  const hasResult = cap > 0 && consoWh > 0;
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -412,13 +413,22 @@ function CalcAutonomie() {
             </select>
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Consommation totale (W)</label>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              Consommation journalière (Wh/j)
+            </label>
             <input
-              type="number" min="0" placeholder="ex : 85"
+              type="number" min="0" placeholder="ex : 500"
               value={conso} onChange={(e) => setConso(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
             />
-            <p className="mt-1 text-xs text-neutral-400">Utilisez le calculateur de bilan pour trouver cette valeur.</p>
+            <p className="mt-1.5 text-xs text-neutral-400 leading-relaxed">
+              Total d'énergie consommée sur une journée complète (24 h).{" "}
+              <span className="font-medium text-neutral-500">
+                Exemples : frigo 12V seul ≈ 600 Wh/j · éclairage + instruments ≈ 200 Wh/j · installation complète ≈ 800–1 500 Wh/j.
+              </span>
+              <br />
+              Utilisez le <span className="font-semibold text-brand-600">Bilan de consommation</span> ci-dessus pour obtenir cette valeur précisément.
+            </p>
           </div>
         </div>
 
@@ -511,8 +521,8 @@ function CalcAutonomie() {
                 <p className="text-lg font-bold text-neutral-900">{energieDisponibleWh.toFixed(0)} Wh</p>
               </div>
               <div>
-                <p className="text-xs text-neutral-500">Décharge</p>
-                <p className="text-lg font-bold text-neutral-900">{(consoW / t).toFixed(1)} A/h</p>
+                <p className="text-xs text-neutral-500">Conso moy. (24 h)</p>
+                <p className="text-lg font-bold text-neutral-900">{consoW.toFixed(1)} W moy.</p>
               </div>
               {withSolar && productionWh > 0 && (
                 <>
@@ -523,7 +533,7 @@ function CalcAutonomie() {
                   <div>
                     <p className="text-xs text-neutral-500">Conso nette/j</p>
                     <p className={`text-lg font-bold ${solarCoversAll ? "text-green-700" : "text-neutral-900"}`}>
-                      {solarCoversAll ? "0 Wh" : `${(consoNetteW * 24).toFixed(0)} Wh`}
+                      {solarCoversAll ? "0 Wh/j" : `${(consoNetteW * 24).toFixed(0)} Wh/j`}
                     </p>
                   </div>
                   {!solarCoversAll && (
