@@ -121,10 +121,10 @@ export default function RealisationsPage() {
 
       <section className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="max-w-3xl">
-          <h2 className="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
+          <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
             Études de cas
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+          <p className="mt-2 text-sm leading-relaxed text-neutral-500">
             Format court : contexte, problème, intervention et résultat.
           </p>
         </div>
@@ -135,44 +135,44 @@ export default function RealisationsPage() {
               key={item.title}
               className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5"
             >
-              <h3 className="text-sm font-semibold text-neutral-950">
+              <h3 className="text-base font-bold text-neutral-950">
                 {item.title}
               </h3>
 
-              <div className="mt-3 space-y-2 text-sm text-neutral-700">
+              <div className="mt-3 space-y-1.5 text-sm text-neutral-600">
                 <p>
-                  <span className="font-medium text-neutral-900">Contexte :</span>{" "}
+                  <span className="font-semibold text-neutral-900">Contexte :</span>{" "}
                   {item.context}
                 </p>
                 <p>
-                  <span className="font-medium text-neutral-900">Problème :</span>{" "}
+                  <span className="font-semibold text-neutral-900">Problème :</span>{" "}
                   {item.problem}
                 </p>
               </div>
 
               <div className="mt-3">
-                <p className="text-sm font-medium text-neutral-900">Intervention :</p>
-                <ul className="mt-2 space-y-1 text-sm text-neutral-700">
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">Intervention :</p>
+                <ul className="mt-1.5 space-y-1 text-sm text-neutral-600">
                   {item.actions.map((action) => (
                     <li key={action}>• {action}</li>
                   ))}
                 </ul>
               </div>
 
-              <p className="mt-3 text-sm text-neutral-700">
-                <span className="font-medium text-neutral-900">Résultat :</span>{" "}
+              <p className="mt-3 text-sm text-neutral-600">
+                <span className="font-semibold text-neutral-900">Résultat :</span>{" "}
                 {item.result}
               </p>
 
-              <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3 sm:p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
+              <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
                   Détails
                 </p>
-                <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
+                <dl className="mt-2 space-y-1.5">
                   {item.details.map((detail) => (
-                    <div key={detail.label} className="flex gap-2">
-                      <dt className="text-neutral-600">{detail.label}</dt>
-                      <dd className="font-medium text-neutral-900">{detail.value}</dd>
+                    <div key={detail.label} className="flex items-baseline gap-2">
+                      <dt className="shrink-0 text-xs text-neutral-500">{detail.label}</dt>
+                      <dd className="text-xs font-semibold text-neutral-900">{detail.value}</dd>
                     </div>
                   ))}
                 </dl>
