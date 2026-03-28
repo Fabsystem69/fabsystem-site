@@ -52,9 +52,9 @@ const cases: CaseStudy[] = [
     ],
     image: "/realisations/realisation-avant.jpg",
     imageAlt: "Miniature d'une intervention de sécurisation électrique sur bateau",
-    beforeImage: "/preuves/bateau-apres.jpg",
+    beforeImage: "/preuves/bateau-avant.jpg",
     beforeImageAlt: "Installation avant sécurisation",
-    afterImage: "/preuves/bateau-avant.jpg",
+    afterImage: "/preuves/bateau-apres.jpg",
     afterImageAlt: "Installation après sécurisation",
   },
   {

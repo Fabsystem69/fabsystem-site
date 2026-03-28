@@ -68,7 +68,7 @@ export default function HomePage() {
           <div className="relative overflow-hidden rounded-xl border border-neutral-200">
             <Image
               src="/preuves/cable.png"
-              alt=""
+              alt="Câble électrique embarqué lors d'un diagnostic d'installation"
               fill
               sizes="(max-width: 640px) 100vw, 33vw"
               className="object-cover"
@@ -88,7 +88,7 @@ export default function HomePage() {
           <div className="relative overflow-hidden rounded-xl border border-neutral-200">
             <Image
               src="/preuves/fuse-out.jpg"
-              alt=""
+              alt="Fusible sorti d'un tableau électrique lors d'un diagnostic embarqué"
               fill
               sizes="(max-width: 640px) 100vw, 33vw"
               className="object-cover"
@@ -108,7 +108,7 @@ export default function HomePage() {
           <div className="relative overflow-hidden rounded-xl border border-neutral-200">
             <Image
               src="/preuves/install-victron.jpg"
-              alt=""
+              alt="Installation Victron Energy sur un bateau, accompagnement personnalisé"
               fill
               sizes="(max-width: 640px) 100vw, 33vw"
               className="object-cover"

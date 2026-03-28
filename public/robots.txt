@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /sign/
+Disallow: /api/
+
+Sitemap: https://www.fabsystem.fr/sitemap.xml
