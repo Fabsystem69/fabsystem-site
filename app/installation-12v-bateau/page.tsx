@@ -55,6 +55,15 @@ const webPageJsonLd = {
   },
 };
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
+    { "@type": "ListItem", position: 2, name: "Installation 12V bateau", item: "https://www.fabsystem.fr/installation-12v-bateau" },
+  ],
+};
+
 function hasPublicAsset(assetPath: string) {
   return existsSync(path.join(process.cwd(), "public", assetPath.replace(/^\//, "")));
 }
@@ -72,6 +81,10 @@ export default function Installation12VBateauPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <PageHero

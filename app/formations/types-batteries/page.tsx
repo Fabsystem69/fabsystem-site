@@ -296,16 +296,32 @@ const steps = [
   },
 ];
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
+    { "@type": "ListItem", position: 2, name: "Formations", item: "https://www.fabsystem.fr/formations" },
+    { "@type": "ListItem", position: 3, name: "Batteries AGM, GEL, Lithium", item: "https://www.fabsystem.fr/formations/types-batteries" },
+  ],
+};
+
 export default function Module3Page() {
   return (
-    <ModuleStepper
-      moduleNum={3}
-      moduleTitle="Batteries AGM, GEL, Lithium — comprendre les différences"
-      tag="Gratuit"
-      duration="~25 min"
-      level="Débutant"
-      steps={steps}
-      prevModule={{ href: "/formations/lire-schema", label: "Lire un schéma électrique" }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <ModuleStepper
+        moduleNum={3}
+        moduleTitle="Batteries AGM, GEL, Lithium — comprendre les différences"
+        tag="Gratuit"
+        duration="~25 min"
+        level="Débutant"
+        steps={steps}
+        prevModule={{ href: "/formations/lire-schema", label: "Lire un schéma électrique" }}
+      />
+    </>
   );
 }

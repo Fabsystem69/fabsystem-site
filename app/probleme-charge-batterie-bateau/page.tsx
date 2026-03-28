@@ -44,12 +44,25 @@ const webPageJsonLd = {
   },
 };
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
+    { "@type": "ListItem", position: 2, name: "Problème de charge batterie bateau", item: "https://www.fabsystem.fr/probleme-charge-batterie-bateau" },
+  ],
+};
+
 export default function ProblemeChargeBatterieBateauPage() {
   return (
     <main className="bg-white text-neutral-900">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <PageHero

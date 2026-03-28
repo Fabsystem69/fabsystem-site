@@ -265,17 +265,33 @@ const steps = [
   },
 ];
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
+    { "@type": "ListItem", position: 2, name: "Formations", item: "https://www.fabsystem.fr/formations" },
+    { "@type": "ListItem", position: 3, name: "Lire un schéma électrique embarqué", item: "https://www.fabsystem.fr/formations/lire-schema" },
+  ],
+};
+
 export default function Module2Page() {
   return (
-    <ModuleStepper
-      moduleNum={2}
-      moduleTitle="Lire un schéma électrique embarqué"
-      tag="Gratuit"
-      duration="~20 min"
-      level="Débutant"
-      steps={steps}
-      prevModule={{ href: "/formations/bases-12v", label: "Les bases du 12V" }}
-      nextModule={{ href: "/formations/types-batteries", label: "Types de batteries" }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <ModuleStepper
+        moduleNum={2}
+        moduleTitle="Lire un schéma électrique embarqué"
+        tag="Gratuit"
+        duration="~20 min"
+        level="Débutant"
+        steps={steps}
+        prevModule={{ href: "/formations/bases-12v", label: "Les bases du 12V" }}
+        nextModule={{ href: "/formations/types-batteries", label: "Types de batteries" }}
+      />
+    </>
   );
 }

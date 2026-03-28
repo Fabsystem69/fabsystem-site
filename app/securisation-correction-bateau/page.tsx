@@ -47,6 +47,15 @@ const webPageJsonLd = {
   },
 };
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
+    { "@type": "ListItem", position: 2, name: "Sécurisation électrique bateau", item: "https://www.fabsystem.fr/securisation-correction-bateau" },
+  ],
+};
+
 function hasPublicAsset(assetPath: string) {
   return existsSync(path.join(process.cwd(), "public", assetPath.replace(/^\//, "")));
 }
@@ -63,6 +72,10 @@ export default function SecurisationCorrectionBateauPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <PageHero

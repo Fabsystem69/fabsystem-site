@@ -372,16 +372,32 @@ const steps = [
   },
 ];
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
+    { "@type": "ListItem", position: 2, name: "Formations", item: "https://www.fabsystem.fr/formations" },
+    { "@type": "ListItem", position: 3, name: "Les bases du 12V embarqué", item: "https://www.fabsystem.fr/formations/bases-12v" },
+  ],
+};
+
 export default function Module1Page() {
   return (
-    <ModuleStepper
-      moduleNum={1}
-      moduleTitle="Les bases du 12V embarqué"
-      tag="Gratuit"
-      duration="~30 min"
-      level="Débutant"
-      steps={steps}
-      nextModule={{ href: "/formations/lire-schema", label: "Lire un schéma électrique" }}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <ModuleStepper
+        moduleNum={1}
+        moduleTitle="Les bases du 12V embarqué"
+        tag="Gratuit"
+        duration="~30 min"
+        level="Débutant"
+        steps={steps}
+        nextModule={{ href: "/formations/lire-schema", label: "Lire un schéma électrique" }}
+      />
+    </>
   );
 }
