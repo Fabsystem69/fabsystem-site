@@ -146,7 +146,7 @@ export default function PrestationsPage() {
   return (
     <main>
       <PageHero
-        title="L'électrique embarqué,\nsans mauvaise surprise."
+        title="L'électrique embarqué, sans mauvaise surprise."
         subtitle="Diagnostic, sécurisation, refonte ou simple conseil visio — une intervention adaptée à votre situation réelle, pas un devis au forfait."
         micro="Bateau · Van · Camping-car"
         background="/hero-fabsystem.png"
