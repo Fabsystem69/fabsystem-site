@@ -42,6 +42,12 @@ enum DeliveryMode {
   REMOTE
 }
 
+enum RemiseStatus {
+  DRAFT
+  SENT
+  APPLIED
+}
+
 model Customer {
   id           String    @id @default(cuid())
   name         String
@@ -56,6 +62,7 @@ model Customer {
   engineHours  Int?
   quotes       Quote[]
   invoices     Invoice[]
+  remises      Remise[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -131,6 +138,7 @@ model Invoice {
   sourceQuoteId     String?       @unique
   sourceQuote       Quote?        @relation("QuoteToInvoice", fields: [sourceQuoteId], references: [id], onDelete: SetNull)
   items             InvoiceItem[]
+  remises           Remise[]
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -149,6 +157,24 @@ model InvoiceItem {
   lineTotal   Int
   position    Int
 
+  @@index([invoiceId])
+}
+
+model Remise {
+  id         String       @id @default(cuid())
+  number     String       @unique
+  status     RemiseStatus @default(DRAFT)
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  invoiceId  String?
+  invoice    Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  amount     Int
+  reason     String?
+  date       DateTime
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([customerId])
   @@index([invoiceId])
 }
 

@@ -1,6 +1,17 @@
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
+function buildRemiseSearchWhere(search: string): Prisma.RemiseWhereInput {
+  if (!search) return {};
+  return {
+    OR: [
+      { number: { contains: search, mode: "insensitive" } },
+      { customer: { name: { contains: search, mode: "insensitive" } } },
+      { reason: { contains: search, mode: "insensitive" } },
+    ],
+  };
+}
+
 export const DOCUMENTS_PAGE_SIZE = 10;
 
 export function normalizeSearchQuery(value: string | null | undefined) {
@@ -119,4 +130,26 @@ export async function getInvoicesPage(search: string, page: number) {
     totalPages,
     currentPage,
   };
+}
+
+export async function getRemisesPage(search: string, page: number) {
+  const where = buildRemiseSearchWhere(search);
+  const requestedPage = Math.max(page, 1);
+  const totalCount = await prisma.remise.count({ where });
+  const totalPages = Math.max(1, Math.ceil(totalCount / DOCUMENTS_PAGE_SIZE));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const skip = (currentPage - 1) * DOCUMENTS_PAGE_SIZE;
+
+  const remises = await prisma.remise.findMany({
+    where,
+    include: {
+      customer: { select: { id: true, name: true, email: true } },
+      invoice: { select: { id: true, number: true } },
+    },
+    orderBy: { date: "desc" },
+    skip,
+    take: DOCUMENTS_PAGE_SIZE,
+  });
+
+  return { remises, totalCount, totalPages, currentPage };
 }

@@ -54,3 +54,12 @@ export const DeliveryMode = {
 } as const
 
 export type DeliveryMode = (typeof DeliveryMode)[keyof typeof DeliveryMode]
+
+
+export const RemiseStatus = {
+  DRAFT: 'DRAFT',
+  SENT: 'SENT',
+  APPLIED: 'APPLIED'
+} as const
+
+export type RemiseStatus = (typeof RemiseStatus)[keyof typeof RemiseStatus]

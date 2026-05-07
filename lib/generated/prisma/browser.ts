@@ -43,6 +43,11 @@ export type Invoice = Prisma.InvoiceModel
  */
 export type InvoiceItem = Prisma.InvoiceItemModel
 /**
+ * Model Remise
+ * 
+ */
+export type Remise = Prisma.RemiseModel
+/**
  * Model ItemTemplate
  * 
  */

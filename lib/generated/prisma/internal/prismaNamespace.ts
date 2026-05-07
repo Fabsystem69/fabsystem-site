@@ -395,6 +395,7 @@ export const ModelName = {
   QuoteItem: 'QuoteItem',
   Invoice: 'Invoice',
   InvoiceItem: 'InvoiceItem',
+  Remise: 'Remise',
   ItemTemplate: 'ItemTemplate',
   DocumentSequence: 'DocumentSequence'
 } as const
@@ -412,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "itemTemplate" | "documentSequence"
+    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -786,6 +787,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Remise: {
+      payload: Prisma.$RemisePayload<ExtArgs>
+      fields: Prisma.RemiseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RemiseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RemiseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>
+        }
+        findFirst: {
+          args: Prisma.RemiseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RemiseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>
+        }
+        findMany: {
+          args: Prisma.RemiseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>[]
+        }
+        create: {
+          args: Prisma.RemiseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>
+        }
+        createMany: {
+          args: Prisma.RemiseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RemiseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>[]
+        }
+        delete: {
+          args: Prisma.RemiseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>
+        }
+        update: {
+          args: Prisma.RemiseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>
+        }
+        deleteMany: {
+          args: Prisma.RemiseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RemiseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RemiseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>[]
+        }
+        upsert: {
+          args: Prisma.RemiseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RemisePayload>
+        }
+        aggregate: {
+          args: Prisma.RemiseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRemise>
+        }
+        groupBy: {
+          args: Prisma.RemiseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RemiseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RemiseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RemiseCountAggregateOutputType> | number
+        }
+      }
+    }
     ItemTemplate: {
       payload: Prisma.$ItemTemplatePayload<ExtArgs>
       fields: Prisma.ItemTemplateFieldRefs
@@ -1076,6 +1151,22 @@ export const InvoiceItemScalarFieldEnum = {
 export type InvoiceItemScalarFieldEnum = (typeof InvoiceItemScalarFieldEnum)[keyof typeof InvoiceItemScalarFieldEnum]
 
 
+export const RemiseScalarFieldEnum = {
+  id: 'id',
+  number: 'number',
+  status: 'status',
+  customerId: 'customerId',
+  invoiceId: 'invoiceId',
+  amount: 'amount',
+  reason: 'reason',
+  date: 'date',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type RemiseScalarFieldEnum = (typeof RemiseScalarFieldEnum)[keyof typeof RemiseScalarFieldEnum]
+
+
 export const ItemTemplateScalarFieldEnum = {
   id: 'id',
   label: 'label',
@@ -1252,6 +1343,20 @@ export type ListEnumInvoiceStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'RemiseStatus'
+ */
+export type EnumRemiseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RemiseStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'RemiseStatus[]'
+ */
+export type ListEnumRemiseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RemiseStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1356,6 +1461,7 @@ export type GlobalOmitConfig = {
   quoteItem?: Prisma.QuoteItemOmit
   invoice?: Prisma.InvoiceOmit
   invoiceItem?: Prisma.InvoiceItemOmit
+  remise?: Prisma.RemiseOmit
   itemTemplate?: Prisma.ItemTemplateOmit
   documentSequence?: Prisma.DocumentSequenceOmit
 }
