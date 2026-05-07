@@ -1,7 +1,7 @@
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
-type DocumentPrefix = "QUO" | "INV";
+type DocumentPrefix = "QUO" | "INV" | "REM";
 
 type SequenceRow = {
   currentValue: number | bigint;
