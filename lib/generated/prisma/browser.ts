@@ -57,3 +57,8 @@ export type ItemTemplate = Prisma.ItemTemplateModel
  * 
  */
 export type DocumentSequence = Prisma.DocumentSequenceModel
+/**
+ * Model EbookOrder
+ * 
+ */
+export type EbookOrder = Prisma.EbookOrderModel

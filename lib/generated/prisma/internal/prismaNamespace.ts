@@ -397,7 +397,8 @@ export const ModelName = {
   InvoiceItem: 'InvoiceItem',
   Remise: 'Remise',
   ItemTemplate: 'ItemTemplate',
-  DocumentSequence: 'DocumentSequence'
+  DocumentSequence: 'DocumentSequence',
+  EbookOrder: 'EbookOrder'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence"
+    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "ebookOrder"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1009,6 +1010,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    EbookOrder: {
+      payload: Prisma.$EbookOrderPayload<ExtArgs>
+      fields: Prisma.EbookOrderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EbookOrderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EbookOrderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>
+        }
+        findFirst: {
+          args: Prisma.EbookOrderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EbookOrderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>
+        }
+        findMany: {
+          args: Prisma.EbookOrderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>[]
+        }
+        create: {
+          args: Prisma.EbookOrderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>
+        }
+        createMany: {
+          args: Prisma.EbookOrderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EbookOrderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>[]
+        }
+        delete: {
+          args: Prisma.EbookOrderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>
+        }
+        update: {
+          args: Prisma.EbookOrderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>
+        }
+        deleteMany: {
+          args: Prisma.EbookOrderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EbookOrderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EbookOrderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>[]
+        }
+        upsert: {
+          args: Prisma.EbookOrderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EbookOrderPayload>
+        }
+        aggregate: {
+          args: Prisma.EbookOrderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEbookOrder>
+        }
+        groupBy: {
+          args: Prisma.EbookOrderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EbookOrderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EbookOrderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EbookOrderCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1193,6 +1268,26 @@ export const DocumentSequenceScalarFieldEnum = {
 export type DocumentSequenceScalarFieldEnum = (typeof DocumentSequenceScalarFieldEnum)[keyof typeof DocumentSequenceScalarFieldEnum]
 
 
+export const EbookOrderScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  stripeSessionId: 'stripeSessionId',
+  stripePaymentIntentId: 'stripePaymentIntentId',
+  status: 'status',
+  desktopBlobPath: 'desktopBlobPath',
+  pocketBlobPath: 'pocketBlobPath',
+  downloadCount: 'downloadCount',
+  emailSentAt: 'emailSentAt',
+  emailError: 'emailError',
+  failureReason: 'failureReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EbookOrderScalarFieldEnum = (typeof EbookOrderScalarFieldEnum)[keyof typeof EbookOrderScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1357,6 +1452,20 @@ export type ListEnumRemiseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
+ * Reference to a field of type 'EbookOrderStatus'
+ */
+export type EnumEbookOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EbookOrderStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'EbookOrderStatus[]'
+ */
+export type ListEnumEbookOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EbookOrderStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1464,6 +1573,7 @@ export type GlobalOmitConfig = {
   remise?: Prisma.RemiseOmit
   itemTemplate?: Prisma.ItemTemplateOmit
   documentSequence?: Prisma.DocumentSequenceOmit
+  ebookOrder?: Prisma.EbookOrderOmit
 }
 
 /* Types for Logging */

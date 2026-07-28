@@ -24,13 +24,16 @@ function hmac(data: string, secret: string) {
   return enc(crypto.createHmac("sha256", secret).update(data).digest());
 }
 
-export function signSession(payload: SessionPayload, secret: string) {
+export function signSession<T extends { exp: number }>(payload: T, secret: string) {
   const body = enc(Buffer.from(JSON.stringify(payload), "utf8"));
   const sig = hmac(body, secret);
   return `${body}.${sig}`;
 }
 
-export function verifySession(token: string, secret: string): SessionPayload | null {
+export function verifySession<T extends { exp: number } = SessionPayload>(
+  token: string,
+  secret: string
+): T | null {
   const [body, sig] = token.split(".");
   if (!body || !sig) return null;
   const expected = hmac(body, secret);
@@ -41,7 +44,7 @@ export function verifySession(token: string, secret: string): SessionPayload | n
   if (!crypto.timingSafeEqual(a, b)) return null;
 
   try {
-    const payload = JSON.parse(dec(body).toString("utf8")) as SessionPayload;
+    const payload = JSON.parse(dec(body).toString("utf8")) as T;
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp <= now) return null;
     return payload;

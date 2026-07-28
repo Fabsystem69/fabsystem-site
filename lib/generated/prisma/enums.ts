@@ -63,3 +63,14 @@ export const RemiseStatus = {
 } as const
 
 export type RemiseStatus = (typeof RemiseStatus)[keyof typeof RemiseStatus]
+
+
+export const EbookOrderStatus = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  GENERATING: 'GENERATING',
+  READY: 'READY',
+  FAILED: 'FAILED'
+} as const
+
+export type EbookOrderStatus = (typeof EbookOrderStatus)[keyof typeof EbookOrderStatus]

@@ -56,7 +56,8 @@ export const ModelName = {
   InvoiceItem: 'InvoiceItem',
   Remise: 'Remise',
   ItemTemplate: 'ItemTemplate',
-  DocumentSequence: 'DocumentSequence'
+  DocumentSequence: 'DocumentSequence',
+  EbookOrder: 'EbookOrder'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -218,6 +219,26 @@ export const DocumentSequenceScalarFieldEnum = {
 } as const
 
 export type DocumentSequenceScalarFieldEnum = (typeof DocumentSequenceScalarFieldEnum)[keyof typeof DocumentSequenceScalarFieldEnum]
+
+
+export const EbookOrderScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  stripeSessionId: 'stripeSessionId',
+  stripePaymentIntentId: 'stripePaymentIntentId',
+  status: 'status',
+  desktopBlobPath: 'desktopBlobPath',
+  pocketBlobPath: 'pocketBlobPath',
+  downloadCount: 'downloadCount',
+  emailSentAt: 'emailSentAt',
+  emailError: 'emailError',
+  failureReason: 'failureReason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EbookOrderScalarFieldEnum = (typeof EbookOrderScalarFieldEnum)[keyof typeof EbookOrderScalarFieldEnum]
 
 
 export const SortOrder = {

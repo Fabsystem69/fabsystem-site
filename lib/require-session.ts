@@ -26,7 +26,7 @@ export async function getSessionFromCookies(): Promise<SessionPayload | null> {
     return null;
   }
 
-  return verifySession(token, secret);
+  return verifySession<SessionPayload>(token, secret);
 }
 
 export async function requireSession(options?: {

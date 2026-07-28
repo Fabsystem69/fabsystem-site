@@ -199,3 +199,30 @@ model DocumentSequence {
 
   @@unique([prefix, year])
 }
+
+enum EbookOrderStatus {
+  PENDING
+  PAID
+  GENERATING
+  READY
+  FAILED
+}
+
+model EbookOrder {
+  id                    String           @id @default(cuid())
+  email                 String
+  name                  String
+  stripeSessionId       String           @unique
+  stripePaymentIntentId String?
+  status                EbookOrderStatus @default(PENDING)
+  desktopBlobPath       String?
+  pocketBlobPath        String?
+  downloadCount         Int              @default(0)
+  emailSentAt           DateTime?
+  emailError            String?
+  failureReason         String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  @@index([email])
+}
