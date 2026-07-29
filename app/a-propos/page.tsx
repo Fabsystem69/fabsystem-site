@@ -6,7 +6,7 @@ import ServiceAssurance from "@/components/ServiceAssurance";
 export const metadata: Metadata = {
   title: "À propos",
   description:
-    "FabSystem : audit, diagnostic et sécurisation d’installations électriques embarquées (bateau, van, camping-car).",
+    "FabSystem : diagnostic et sécurisation d’installations électriques embarquées (bateau, van, camping-car).",
   alternates: {
     canonical: "/a-propos",
   },
@@ -47,7 +47,7 @@ export default function AProposPage() {
                 Fabien Lages intervient sur des systèmes électriques embarqués
                 qui exigent à la fois compréhension globale, précision
                 technique et capacité d&apos;adaptation au réel.
-                L&apos;activité s&apos;articule autour de l&apos;audit
+                L&apos;activité s&apos;articule autour du diagnostic
                 électrique, de l&apos;installation, de l&apos;optimisation et
                 de la formation technique.
               </p>

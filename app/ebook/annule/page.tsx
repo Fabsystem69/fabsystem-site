@@ -14,7 +14,7 @@ export default function EbookAnnulePage() {
         Votre paiement n&apos;a pas été finalisé, vous n&apos;avez rien été
         débité.
       </p>
-      <Link href="/ebook" className="mt-6 inline-block underline">
+      <Link href="/ebook/cabler-son-van" className="mt-6 inline-block underline">
         Retourner à la page de l&apos;ebook
       </Link>
     </main>

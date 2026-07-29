@@ -143,7 +143,7 @@ export default async function ContactPage() {
                   </p>
                   <p className="text-sm font-medium text-neutral-900">FabSystem</p>
                   <p className="text-sm text-neutral-500">
-                    Électricité embarquée • Audit • Formation
+                    Électricité embarquée • Diagnostic • Formation
                   </p>
                 </div>
 

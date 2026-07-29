@@ -20,10 +20,6 @@ const faqs = [
     a: "Oui. La prestation Schéma & documentation produit un plan complet de votre installation avec repérage, couleurs normalisées et nomenclature. Indispensable pour la maintenance, la vente ou une mise en conformité.",
   },
   {
-    q: "C'est quoi la Division 240 / 245 ?",
-    a: "Ce sont les réglementations françaises qui encadrent la sécurité électrique à bord des bateaux de plaisance. L'audit nautique vérifie la conformité de votre installation vis-à-vis de ces normes, et émet des recommandations documentées.",
-  },
-  {
     q: "Combien de temps dure une intervention ?",
     a: "Ça dépend du niveau : une visio conseil dure 45 à 60 min, un diagnostic sur site 2 à 3h selon la complexité. Une installation complète s'étale généralement sur une ou deux journées. Tout est planifié à l'avance sur rendez-vous.",
   },

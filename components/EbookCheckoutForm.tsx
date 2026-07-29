@@ -57,10 +57,14 @@ export default function EbookCheckoutForm() {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-neutral-900 px-6 py-3 text-white disabled:opacity-60"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 transition-colors duration-150 hover:bg-yellow-300 disabled:opacity-60"
       >
-        {loading ? "Redirection vers le paiement…" : "Acheter l'ebook"}
+        {loading ? "Redirection vers le paiement…" : "Acheter l'ebook — 49,99 €"}
       </button>
+
+      <p className="text-center text-xs text-neutral-500">
+        Paiement sécurisé par Stripe · téléchargement immédiat par email
+      </p>
     </form>
   );
 }

@@ -96,7 +96,6 @@ const contactRows: ContactRow[] = [
 ];
 
 const domains = [
-  "Audit",
   "Diagnostic",
   "Formation",
   "Bateaux",
@@ -112,7 +111,6 @@ const trustPills = [
 
 const links = [
   { label: "Réalisations", href: "/realisations" },
-  { label: "Audit nautique", href: "/audit-nautique" },
   { label: "Page contact", href: "/contact" },
   { label: "Prestations", href: "/prestations" },
 ];
@@ -162,7 +160,7 @@ export default async function VCardPage() {
                   Fabien Lages
                 </h1>
                 <p className="text-sm font-medium text-neutral-700 sm:text-[15px]">
-                  Électricité embarquée — Audit • Diagnostic • Formation
+                  Électricité embarquée — Diagnostic • Formation
                 </p>
                 <p className="mx-auto max-w-sm text-sm leading-relaxed text-neutral-500">
                   Solutions claires et adaptées à votre usage pour bateaux, vans et camping-cars.

@@ -90,19 +90,6 @@ const offers = [
     href: "/contact",
     highlight: false,
   },
-  {
-    icon: "⚓",
-    title: "Audit nautique — Division 240/245",
-    tag: "Réglementation",
-    audience: "Préparer ou fiabiliser une installation selon la réglementation française",
-    deliverable: "Audit documenté + recommandations de mise en conformité",
-    pricing: "Sur devis",
-    ctaLabel: "Voir l'audit nautique",
-    href: "/audit-nautique",
-    secondaryCtaLabel: "Demander un audit",
-    secondaryHref: "/contact",
-    highlight: false,
-  },
 ] as const;
 
 const scenarios = [
@@ -314,15 +301,6 @@ export default function PrestationsPage() {
                       }`}
                     >
                       {offer.ctaLabel}
-                    </Link>
-                  )}
-
-                  {"secondaryCtaLabel" in offer && (
-                    <Link
-                      href={(offer as { secondaryHref: string }).secondaryHref}
-                      className="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50"
-                    >
-                      {(offer as { secondaryCtaLabel: string }).secondaryCtaLabel}
                     </Link>
                   )}
                 </div>

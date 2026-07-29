@@ -10,8 +10,8 @@ const nav = [
   { href: "/prestations", label: "Prestations" },
   { href: "/formations", label: "Formations" },
   { href: "/outils", label: "Outils" },
+  { href: "/ebook", label: "Ebook" },
   { href: "/realisations", label: "Réalisations" },
-  { href: "/audit-nautique", label: "Audit" },
   { href: "/a-propos", label: "À propos" },
 ];
 
