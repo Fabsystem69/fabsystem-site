@@ -65,6 +65,10 @@ async function generateAndDeliver(
       to: email,
       from: process.env.SMTP_USER,
       subject: "Votre ebook « Câbler son van sans se planter »",
+      // encoding: "base64" évite que le lien (~200+ caractères) soit coupé
+      // par un retour à la ligne "souple" en quoted-printable (défaut
+      // nodemailer), ce qui invaliderait la signature du token.
+      encoding: "base64",
       text: [
         `Bonjour ${name},`,
         "",

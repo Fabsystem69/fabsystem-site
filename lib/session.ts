@@ -30,25 +30,41 @@ export function signSession<T extends { exp: number }>(payload: T, secret: strin
   return `${body}.${sig}`;
 }
 
+export type SessionRejectReason = "malformed" | "bad-signature" | "expired" | "invalid-payload";
+
 export function verifySession<T extends { exp: number } = SessionPayload>(
   token: string,
-  secret: string
+  secret: string,
+  options?: { onReject?: (reason: SessionRejectReason) => void }
 ): T | null {
   const [body, sig] = token.split(".");
-  if (!body || !sig) return null;
+  if (!body || !sig) {
+    options?.onReject?.("malformed");
+    return null;
+  }
   const expected = hmac(body, secret);
   // timing-safe compare
   const a = Buffer.from(sig);
   const b = Buffer.from(expected);
-  if (a.length !== b.length) return null;
-  if (!crypto.timingSafeEqual(a, b)) return null;
+  if (a.length !== b.length) {
+    options?.onReject?.("bad-signature");
+    return null;
+  }
+  if (!crypto.timingSafeEqual(a, b)) {
+    options?.onReject?.("bad-signature");
+    return null;
+  }
 
   try {
     const payload = JSON.parse(dec(body).toString("utf8")) as T;
     const now = Math.floor(Date.now() / 1000);
-    if (payload.exp <= now) return null;
+    if (payload.exp <= now) {
+      options?.onReject?.("expired");
+      return null;
+    }
     return payload;
   } catch {
+    options?.onReject?.("invalid-payload");
     return null;
   }
 }

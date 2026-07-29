@@ -1,5 +1,6 @@
 import "server-only";
 import { signSession, verifySession } from "@/lib/session";
+import { logServerEvent } from "@/lib/server-log";
 
 export type EbookTokenPayload = {
   sub: string; // orderId
@@ -25,5 +26,13 @@ export function signEbookToken(orderId: string, email: string) {
 }
 
 export function verifyEbookToken(token: string): EbookTokenPayload | null {
-  return verifySession<EbookTokenPayload>(token, getSecret());
+  const payload = verifySession<EbookTokenPayload>(token, getSecret(), {
+    onReject: (reason) => {
+      logServerEvent("warn", "ebook token rejected", {
+        reason,
+        tokenLength: token.length,
+      });
+    },
+  });
+  return payload;
 }

@@ -1,5 +1,6 @@
 import { verifyEbookToken } from "@/lib/ebook-token";
 import { prisma } from "@/lib/prisma";
+import { logServerEvent } from "@/lib/server-log";
 
 type Params = {
   params: Promise<{
@@ -25,6 +26,10 @@ export default async function EbookAccessPage({ params }: Params) {
   const order = await prisma.ebookOrder.findUnique({ where: { id: payload.sub } });
 
   if (!order || order.email !== payload.email) {
+    logServerEvent("warn", "ebook access: order mismatch", {
+      orderId: payload.sub,
+      orderFound: Boolean(order),
+    });
     return (
       <main className="mx-auto max-w-lg px-6 py-16 text-center">
         <h1 className="text-xl font-semibold">Commande introuvable</h1>

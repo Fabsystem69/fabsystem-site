@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm list:*)"
+      "Bash(npm list:*)",
+      "Bash(npx vercel *)",
+      "Read(//tmp/**)",
+      "Bash(node -e ' *)"
     ]
   }
 }
