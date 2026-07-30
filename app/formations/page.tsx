@@ -2,6 +2,7 @@ import PageHero from "@/components/PageHero";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import TrackedLink from "@/components/TrackedLink";
 import QuizFormations from "@/components/QuizFormations";
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -236,6 +237,74 @@ export default function FormationsPage() {
             </Link>
             .
           </p>
+          <p className="mt-2 text-xs text-neutral-400">
+            En attendant, la plomberie, la VASP et la mise en service sont déjà traitées en
+            détail dans{" "}
+            <Link
+              href="/ebook"
+              className="underline underline-offset-4 hover:text-neutral-600"
+            >
+              nos ebooks
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
+
+      {/* ── EBOOK ── */}
+      <section id="ebook" className="border-t border-neutral-100 bg-white py-8 sm:py-10">
+        <div className="mx-auto max-w-6xl scroll-mt-20 px-6">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-10 lg:gap-16">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700">
+                Pour aller plus loin
+              </div>
+              <h2 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
+                Envie de tout avoir au même endroit ?
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+                Les modules gratuits posent les bases. Nos ebooks vont plus loin : dimensionnement,
+                ordre de pose, VASP et assurance, plomberie embarquée, mise en service — le tout
+                structuré, avec un exemplaire personnalisé à garder sur le chantier. Le premier,{" "}
+                <strong>Câbler son van sans se planter</strong>, est disponible dès maintenant —
+                d&apos;autres suivront.
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-neutral-600">
+                {[
+                  "8 parties, dans l'ordre du chantier",
+                  "Version bureau et version poche",
+                  "Exemplaire personnalisé à ton nom",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="mt-0.5 text-yellow-600">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-5 shadow-sm sm:min-w-[260px]">
+              <div className="w-20 shrink-0 overflow-hidden rounded-lg border border-neutral-200">
+                <Image
+                  src="/ebook/couverture.jpg"
+                  alt="Couverture du livre « Câbler son van sans se planter »"
+                  width={200}
+                  height={266}
+                  className="h-auto w-full object-cover"
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">Câbler son van</p>
+                <p className="text-xs text-neutral-500">+ d&apos;autres ebooks à venir</p>
+                <Link
+                  href="/ebook"
+                  className="mt-3 inline-flex min-h-9 w-full items-center justify-center rounded-xl bg-yellow-400 px-4 py-2 text-sm font-bold text-neutral-900 hover:bg-yellow-300"
+                >
+                  Voir les ebooks
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
