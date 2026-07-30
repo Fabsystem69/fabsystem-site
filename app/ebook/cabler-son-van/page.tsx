@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import EbookCheckoutForm from "@/components/EbookCheckoutForm";
+import { EbookCheckoutProvider, BuyButton } from "@/components/EbookCheckoutModal";
 import FaqEbook from "@/components/FaqEbook";
 
 export const metadata: Metadata = {
@@ -84,6 +84,7 @@ const formats = [
 export default function EbookPage() {
   return (
     <main>
+      <EbookCheckoutProvider>
       {/* HERO */}
       <section className="relative overflow-hidden bg-neutral-950">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14">
@@ -104,12 +105,9 @@ export default function EbookPage() {
             </p>
 
             <div className="mt-7">
-              <Link
-                href="#acheter"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 shadow-sm transition-colors duration-150 hover:bg-yellow-300 sm:w-auto"
-              >
+              <BuyButton className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 shadow-sm transition-colors duration-150 hover:bg-yellow-300 sm:w-auto">
                 Acheter l&apos;ebook — 49,99 €
-              </Link>
+              </BuyButton>
             </div>
           </div>
 
@@ -227,12 +225,9 @@ export default function EbookPage() {
               ensemble.
             </p>
             <div className="mt-6">
-              <Link
-                href="#acheter"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 shadow-sm transition-colors duration-150 hover:bg-yellow-300 sm:w-auto"
-              >
+              <BuyButton className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 shadow-sm transition-colors duration-150 hover:bg-yellow-300 sm:w-auto">
                 Acheter l&apos;ebook — 49,99 €
-              </Link>
+              </BuyButton>
             </div>
           </div>
         </div>
@@ -253,25 +248,7 @@ export default function EbookPage() {
         </div>
       </section>
 
-      {/* FORMULAIRE */}
-      <section id="acheter" className="scroll-mt-20 bg-white py-14 sm:py-16">
-        <div className="mx-auto max-w-lg px-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-            Recevoir mon exemplaire
-          </p>
-          <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
-            Câbler son van sans se planter — 49,99 €
-          </h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            Ton nom et ton email suffisent : ton exemplaire personnalisé arrive par email juste
-            après le paiement.
-          </p>
-
-          <div className="mt-8 rounded-2xl border border-neutral-200 p-6 shadow-sm sm:p-8">
-            <EbookCheckoutForm />
-          </div>
-        </div>
-      </section>
+      </EbookCheckoutProvider>
     </main>
   );
 }
