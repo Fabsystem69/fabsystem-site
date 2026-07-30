@@ -27,6 +27,18 @@ const faqs = [
     q: "Quelle est la zone d'intervention ?",
     a: "L'intervention physique se fait principalement en Rhone-Alpes . La visio conseil et le conseil par schéma sont disponibles partout en France.",
   },
+  {
+    q: "Accompagnement à distance (Instal') : je débute complètement, c'est pour moi ?",
+    a: "Oui. L'accompagnement part de votre niveau réel et avance à votre rythme — le diagnostic initial sert justement à cadrer ce qui est faisable seul et ce qui demande plus d'attention.",
+  },
+  {
+    q: "Et si mon chantier dure plus de 2 mois ?",
+    a: "Le suivi mensuel prend le relais après les 2 mois, mois par mois, tant que le chantier avance.",
+  },
+  {
+    q: "Comment se passe le suivi à distance concrètement (photo/message/vocal) ?",
+    a: "Vous envoyez des photos et des messages au fil du chantier, avec des points vidéo réguliers pour faire le bilan et valider les étapes avant de continuer.",
+  },
 ];
 
 export default function FaqPrestations() {

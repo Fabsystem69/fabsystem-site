@@ -248,6 +248,14 @@ export default function RealisationsPage() {
                 Installation 12V bateau
               </Link>
             </li>
+            <li>
+              <Link
+                href="/securisation-correction-bateau"
+                className="inline-flex text-sm font-semibold text-neutral-900 underline underline-offset-4"
+              >
+                Sécurisation / correction électrique bateau
+              </Link>
+            </li>
           </ul>
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row">

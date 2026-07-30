@@ -2,6 +2,7 @@ import PageHero from "@/components/PageHero";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import TrackedLink from "@/components/TrackedLink";
 import FaqPrestations from "@/components/FaqPrestations";
+import { CalBookingProvider, BookButton } from "@/components/CalBooking";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -35,18 +36,6 @@ const avantApres = [
 
 const offers = [
   {
-    icon: "🎯",
-    title: "Visio conseil",
-    tag: "Depuis chez vous",
-    audience: "Cadrer un projet, éviter une erreur d'achat, décider de la suite",
-    deliverable: "Synthèse écrite + plan d'action",
-    pricing: "50 €",
-    ctaLabel: "Réserver une visio",
-    href: "/visio",
-    trackEvent: "click_rdv",
-    highlight: false,
-  },
-  {
     icon: "🔍",
     title: "Diagnostic sur site",
     tag: "Sur rendez-vous",
@@ -56,6 +45,7 @@ const offers = [
     ctaLabel: "Demander un diagnostic",
     href: "/contact",
     highlight: false,
+    pedagogique: true,
   },
   {
     icon: "⚡",
@@ -67,6 +57,8 @@ const offers = [
     ctaLabel: "Demander un devis",
     href: "/contact",
     highlight: true,
+    pedagogique: false,
+    anchorId: "installation",
   },
   {
     icon: "🛡️",
@@ -78,6 +70,7 @@ const offers = [
     ctaLabel: "Sécuriser mon installation",
     href: "/contact",
     highlight: false,
+    pedagogique: true,
   },
   {
     icon: "📐",
@@ -89,45 +82,9 @@ const offers = [
     ctaLabel: "Mettre au propre",
     href: "/contact",
     highlight: false,
+    pedagogique: true,
   },
 ] as const;
-
-const scenarios = [
-  {
-    emoji: "🤔",
-    situation: "Je ne sais pas par où commencer",
-    solution: "Visio conseil",
-    href: "/visio",
-    detail: "30–60 min pour cadrer votre projet et définir les priorités",
-  },
-  {
-    emoji: "🔧",
-    situation: "Mon installation existe déjà mais je ne fais plus confiance",
-    solution: "Diagnostic sur site",
-    href: "/contact",
-    detail: "Analyse complète, mesures réelles, rapport d'état",
-  },
-  {
-    emoji: "🚨",
-    situation: "Fusible qui saute, câble chaud, odeur suspecte",
-    solution: "Diagnostic urgent → Sécurisation",
-    href: "/contact",
-    detail: "Intervention prioritaire ciblée sur le problème",
-  },
-  {
-    emoji: "⛵",
-    situation: "Je refais ou achète un bateau et repars de zéro",
-    solution: "Installation / refonte électrique",
-    href: "/contact",
-    detail: "Conception + câblage + documentation complète",
-  },
-];
-
-const stats = [
-  { value: "12V / 230V", label: "DC et AC maîtrisés" },
-  { value: "Bateaux · Vans · CC", label: "Tous types de véhicules" },
-  { value: "24–48h", label: "Délai de réponse" },
-];
 
 export default function PrestationsPage() {
   return (
@@ -145,22 +102,223 @@ export default function PrestationsPage() {
         assurance={<ServiceAssurance tone="inverse" />}
       />
 
-      {/* Stats */}
-      <section className="border-b border-neutral-200 bg-neutral-950">
-        <div className="mx-auto max-w-6xl px-6 py-6">
-          <div className="grid grid-cols-3 divide-x divide-neutral-700">
-            {stats.map((s) => (
-              <div key={s.value} className="px-4 text-center first:pl-0 last:pr-0">
-                <p className="text-base font-bold text-yellow-400 sm:text-xl">{s.value}</p>
-                <p className="mt-0.5 text-xs text-neutral-400">{s.label}</p>
-              </div>
+      {/* Deux parcours */}
+      <section className="border-b border-neutral-200 bg-white py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-2 px-6 text-sm sm:gap-3">
+          <span className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+            Deux parcours
+          </span>
+          <a
+            href="#offres"
+            className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-neutral-700 transition hover:border-yellow-400 hover:text-neutral-950 sm:text-sm"
+          >
+            🔧 Sur place
+          </a>
+          <a
+            href="#instal"
+            className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-neutral-700 transition hover:border-yellow-400 hover:text-neutral-950 sm:text-sm"
+          >
+            💻 À distance
+          </a>
+        </div>
+      </section>
+
+      {/* Les offres */}
+      <section id="offres" className="scroll-mt-20 bg-white py-10 sm:py-14">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+            🔧 Sur place
+          </p>
+          <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
+            Chaque intervention a un livrable concret
+          </h2>
+          <p className="mt-2 text-sm text-neutral-600">
+            Pas de forfait standardisé. Chaque situation est différente — le niveau d'intervention aussi.
+          </p>
+          <p className="mt-2 text-xs text-neutral-500">
+            Vous n&apos;êtes pas sur place ?{" "}
+            <a href="#instal" className="underline underline-offset-2 hover:text-neutral-700">
+              Voir l&apos;accompagnement à distance
+            </a>
+            .
+          </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {offers.map((offer) => (
+              <article
+                key={offer.title}
+                id={"anchorId" in offer ? offer.anchorId : undefined}
+                className={`relative flex h-full scroll-mt-24 flex-col rounded-2xl border p-5 shadow-sm ${
+                  offer.highlight
+                    ? "border-yellow-400 bg-yellow-50"
+                    : "border-neutral-200 bg-white"
+                }`}
+              >
+                {offer.highlight && (
+                  <span className="absolute -top-3 left-5 rounded-full bg-yellow-400 px-3 py-0.5 text-xs font-bold text-neutral-900">
+                    Le plus demandé
+                  </span>
+                )}
+
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{offer.icon}</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-neutral-950">{offer.title}</h3>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      <span className="inline-block rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
+                        {offer.tag}
+                      </span>
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-xs ${
+                          offer.pedagogique
+                            ? "bg-green-50 text-green-700"
+                            : "bg-neutral-900 text-white"
+                        }`}
+                      >
+                        {offer.pedagogique ? "🎓 Vous comprenez votre installation" : "🔧 On s'occupe de tout"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2 text-sm text-neutral-700">
+                  <p>
+                    <span className="font-semibold text-neutral-900">Pour :</span>{" "}
+                    {offer.audience}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-neutral-900">Livrable :</span>{" "}
+                    {offer.deliverable}
+                  </p>
+                  <p className="text-base font-bold text-neutral-950">{offer.pricing}</p>
+                </div>
+
+                <div className="mt-auto space-y-2 pt-5">
+                  <Link
+                    href={offer.href}
+                    className={`inline-flex min-h-10 w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                      offer.highlight
+                        ? "bg-yellow-400 text-neutral-900 hover:bg-yellow-300"
+                        : "bg-neutral-900 text-white hover:bg-neutral-800"
+                    }`}
+                  >
+                    {offer.ctaLabel}
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
+      {/* À distance — Instal' */}
+      <section id="instal" className="scroll-mt-20 border-t border-neutral-200 bg-neutral-50 py-10 sm:py-14">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+            💻 À distance
+          </p>
+          <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
+            Accompagnement à distance — Instal&apos;
+          </h2>
+          <p className="mt-2 text-sm text-neutral-600">
+            Pas besoin d&apos;être sur place. Diagnostic, suivi de chantier, mise en service — tout
+            se fait par photo, message, vocal et points vidéo.
+          </p>
+        </div>
+
+        <div className="my-8 bg-neutral-900 py-6">
+          <p className="mx-auto max-w-3xl px-6 text-center text-lg font-bold text-yellow-400 sm:text-xl">
+            Je vends de la tranquillité, en plus de la technique.
+          </p>
+        </div>
+
+        <div className="mx-auto max-w-6xl px-6">
+          <CalBookingProvider>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {/* Diagnostic & Schéma */}
+              <article className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+                <span className="inline-flex w-fit items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-semibold text-neutral-600">
+                  Étape 1
+                </span>
+                <h3 className="mt-3 text-sm font-bold text-neutral-950">Diagnostic & Schéma</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-700">
+                  On part de ton besoin réel, on dimensionne ta batterie et ton solaire, et je te
+                  livre un schéma de principe clair pour ton installation.
+                </p>
+                <p className="mt-3 text-lg font-bold text-neutral-950">
+                  99,99 €
+                </p>
+                <div className="mt-2 rounded-lg border border-yellow-300 bg-yellow-50 p-3 text-xs leading-relaxed text-neutral-700">
+                  📖 Tu as déjà{" "}
+                  <Link href="/ebook" className="font-semibold underline underline-offset-2">
+                    le livre
+                  </Link>{" "}
+                  ? Le montant réellement payé est déduit — précise-le en réservant.
+                </div>
+                <BookButton
+                  offer="Diagnostic & Schéma"
+                  className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-800"
+                >
+                  Réserver le diagnostic
+                </BookButton>
+              </article>
+
+              {/* Accompagnement complet */}
+              <article className="relative flex h-full flex-col rounded-2xl border-2 border-yellow-400 bg-yellow-50 p-5 pt-7 shadow-sm">
+                <span className="absolute -top-3 left-5 rounded-full bg-yellow-400 px-3 py-0.5 text-xs font-bold text-neutral-900">
+                  Étape 2 · la suite logique
+                </span>
+                <h3 className="text-sm font-bold text-neutral-950">Accompagnement complet</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-700">
+                  Suivi pas à pas de ton chantier jusqu&apos;à la mise en service : photo, message,
+                  vocal, avec des points vidéo réguliers pour faire le bilan.
+                </p>
+                <p className="mt-3 text-lg font-bold text-neutral-950">
+                  250 € <span className="text-xs font-medium text-neutral-500">/ 2 mois</span>
+                </p>
+                <BookButton
+                  offer="Accompagnement complet"
+                  className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-neutral-900 transition hover:bg-yellow-300"
+                >
+                  Démarrer l&apos;accompagnement
+                </BookButton>
+              </article>
+
+              {/* Suivi mensuel */}
+              <article className="flex h-full flex-col rounded-2xl border border-dashed border-neutral-300 bg-white/60 p-5">
+                <span className="inline-flex w-fit items-center rounded-full bg-neutral-100 px-2.5 py-0.5 text-xs font-medium text-neutral-500">
+                  Si besoin, au-delà de 2 mois
+                </span>
+                <h3 className="mt-3 text-sm font-bold text-neutral-800">Suivi mensuel</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-600">
+                  Le chantier continue plus longtemps que prévu ? Le même accompagnement se
+                  poursuit, mois par mois.
+                </p>
+                <p className="mt-3 text-lg font-bold text-neutral-800">
+                  80 € <span className="text-xs font-medium text-neutral-500">/ mois</span>
+                </p>
+                <BookButton
+                  offer="Suivi mensuel"
+                  className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50"
+                >
+                  Prolonger le suivi
+                </BookButton>
+              </article>
+            </div>
+
+            <p className="mt-6 text-center text-xs text-neutral-500">
+              Juste une question ponctuelle, sans engagement ?{" "}
+              <Link href="/visio" className="underline underline-offset-2 hover:text-neutral-700">
+                La visio conseil à l&apos;unité (50 €/h)
+              </Link>{" "}
+              reste disponible.
+            </p>
+          </CalBookingProvider>
+        </div>
+      </section>
+
       {/* Avant / Après */}
-      <section className="bg-white py-10 sm:py-14">
+      <section className="border-t border-neutral-200 bg-white py-10 sm:py-14">
         <div className="mx-auto max-w-6xl px-6">
           <p className="text-xs font-semibold uppercase tracking-widest text-yellow-600">
             Avant / Après
@@ -193,118 +351,6 @@ export default function PrestationsPage() {
                   {item.apres}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Par où commencer */}
-      <section className="border-t border-neutral-200 bg-neutral-50 py-10 sm:py-14">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-            Par où commencer ?
-          </p>
-          <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
-            Choisissez votre situation
-          </h2>
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            {scenarios.map((s) => (
-              <Link
-                key={s.situation}
-                href={s.href}
-                className="group flex gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-yellow-400 hover:shadow-md"
-              >
-                <span className="text-2xl">{s.emoji}</span>
-                <div>
-                  <p className="text-sm font-semibold text-neutral-900">{s.situation}</p>
-                  <p className="mt-1 text-xs font-bold text-yellow-600">→ {s.solution}</p>
-                  <p className="mt-1 text-xs text-neutral-500">{s.detail}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Les offres */}
-      <section id="offres" className="bg-white py-10 sm:py-14">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-            Les prestations
-          </p>
-          <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
-            Chaque intervention a un livrable concret
-          </h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            Pas de forfait standardisé. Chaque situation est différente — le niveau d'intervention aussi.
-          </p>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {offers.map((offer) => (
-              <article
-                key={offer.title}
-                className={`relative flex h-full flex-col rounded-2xl border p-5 shadow-sm ${
-                  offer.highlight
-                    ? "border-yellow-400 bg-yellow-50"
-                    : "border-neutral-200 bg-white"
-                }`}
-              >
-                {offer.highlight && (
-                  <span className="absolute -top-3 left-5 rounded-full bg-yellow-400 px-3 py-0.5 text-xs font-bold text-neutral-900">
-                    Le plus demandé
-                  </span>
-                )}
-
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl">{offer.icon}</span>
-                  <div>
-                    <h3 className="text-sm font-bold text-neutral-950">{offer.title}</h3>
-                    <span className="inline-block mt-0.5 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500">
-                      {offer.tag}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2 text-sm text-neutral-700">
-                  <p>
-                    <span className="font-semibold text-neutral-900">Pour :</span>{" "}
-                    {offer.audience}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-neutral-900">Livrable :</span>{" "}
-                    {offer.deliverable}
-                  </p>
-                  <p className="text-base font-bold text-neutral-950">{offer.pricing}</p>
-                </div>
-
-                <div className="mt-auto space-y-2 pt-5">
-                  {"trackEvent" in offer ? (
-                    <TrackedLink
-                      href={offer.href}
-                      event={offer.trackEvent}
-                      className={`inline-flex min-h-10 w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                        offer.highlight
-                          ? "bg-yellow-400 text-neutral-900 hover:bg-yellow-300"
-                          : "bg-neutral-900 text-white hover:bg-neutral-800"
-                      }`}
-                    >
-                      {offer.ctaLabel}
-                    </TrackedLink>
-                  ) : (
-                    <Link
-                      href={offer.href}
-                      className={`inline-flex min-h-10 w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                        offer.highlight
-                          ? "bg-yellow-400 text-neutral-900 hover:bg-yellow-300"
-                          : "bg-neutral-900 text-white hover:bg-neutral-800"
-                      }`}
-                    >
-                      {offer.ctaLabel}
-                    </Link>
-                  )}
-                </div>
-              </article>
             ))}
           </div>
         </div>

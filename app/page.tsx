@@ -1,6 +1,7 @@
-import PageHero from "@/components/PageHero";
 import ServiceAssurance from "@/components/ServiceAssurance";
+import { resolveBackgroundImage } from "@/lib/background-image";
 import Image from "next/image";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -11,6 +12,37 @@ export const metadata: Metadata = {
     canonical: "/",
   },
 };
+
+const levels = [
+  {
+    n: "1",
+    title: "Apprendre seul",
+    hook: "Tu veux tout faire toi-même, à ton rythme.",
+    cta: "Découvrir",
+    href: "/ebook",
+  },
+  {
+    n: "2",
+    title: "Être accompagné à distance",
+    hook: "Diagnostic, schéma, suivi de chantier à distance.",
+    cta: "Voir l'offre",
+    href: "/prestations#instal",
+  },
+  {
+    n: "3",
+    title: "Être accompagné sur place",
+    hook: "Je me déplace, pour que tu comprennes ton installation.",
+    cta: "Voir l'offre",
+    href: "/prestations#offres",
+  },
+  {
+    n: "4",
+    title: "Me confier les travaux",
+    hook: "Tu préfères que je m'occupe de tout.",
+    cta: "Demander un devis",
+    href: "/prestations#installation",
+  },
+] as const;
 
 const brands = [
   {
@@ -46,20 +78,53 @@ const brands = [
 ];
 
 export default function HomePage() {
+  const heroBackground = resolveBackgroundImage("/hero-fabsystem.png");
+
   return (
     <main>
-      <PageHero
-        title="Électricité embarquée claire, fiable et maîtrisée"
-        subtitle="Bateaux, vans, camping-cars — diagnostic précis, architecture cohérente, installation sécurisée."
-        micro="Vous comprenez votre installation. Vous avancez en confiance."
-        background="/hero-fabsystem.png"
-        overlay="bg-black/50"
-        ctas={[
-          { href: "/contact", label: "Demander un diagnostic", variant: "primary" },
-          { href: "/visio", label: "Découvrir la visio conseil", variant: "secondary" },
-        ]}
-        assurance={<ServiceAssurance tone="inverse" />}
-      />
+      {/* PARCOURS */}
+      <section
+        className="relative bg-cover bg-center"
+        style={{ backgroundImage: heroBackground }}
+      >
+        <div className="absolute inset-0 bg-black/65" />
+
+        <div className="relative z-10 mx-auto max-w-3xl px-6 py-6 text-white sm:py-8">
+          <div className="text-center">
+            <h1 className="text-lg font-bold tracking-tight sm:text-xl lg:text-2xl">
+              Bateaux, vans, camping-cars — choisis où tu en es.
+            </h1>
+            <p className="mt-1 text-xs text-white/75 sm:text-sm">
+              De l&apos;apprentissage en autonomie à l&apos;installation clé en main.
+            </p>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2">
+            {levels.map((level) => (
+              <Link
+                key={level.n}
+                href={level.href}
+                className="group flex items-center gap-3 rounded-xl border border-white/15 bg-white/10 p-3 text-left backdrop-blur transition hover:border-yellow-400 hover:bg-white/15"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold text-neutral-900">
+                  {level.n}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-white">{level.title}</p>
+                  <p className="text-xs text-white/70 sm:text-sm">{level.hook}</p>
+                </div>
+                <span className="inline-flex shrink-0 items-center justify-center rounded-lg bg-yellow-400 px-3 py-1.5 text-xs font-bold text-neutral-900 transition-colors group-hover:bg-yellow-300">
+                  {level.cta}
+                </span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-3 flex justify-center">
+            <ServiceAssurance tone="inverse" />
+          </div>
+        </div>
+      </section>
 
 {/* PREUVES */}
       <section className="mx-auto max-w-6xl px-6 py-12">
@@ -125,32 +190,6 @@ export default function HomePage() {
           </div>
         </div>
 
-      </section>
-
-      {/* EBOOK */}
-      <section className="border-t border-neutral-200 bg-neutral-50 py-14">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-2xl font-semibold text-neutral-900">
-            Ebook — Câbler son van sans se planter
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-            Le manuel complet pour installer l&apos;électricité et la plomberie de votre van
-            comme un pro, écrit par un électricien qui pose ça tous les jours. Format
-            interactif, exemplaire personnalisé à votre nom.
-          </p>
-          <p className="mt-2 text-xs font-medium text-neutral-500">
-            49,99 € — déductibles d&apos;un accompagnement FabSystem si vous allez plus loin
-            ensuite.
-          </p>
-          <div className="mt-8">
-            <a
-              href="/ebook/cabler-son-van"
-              className="inline-flex items-center justify-center rounded-md bg-brand-400 px-6 py-3 text-sm font-bold text-neutral-900 hover:bg-brand-300"
-            >
-              Découvrir l&apos;ebook — 49,99 €
-            </a>
-          </div>
-        </div>
       </section>
 
       {/* PARTENAIRES */}

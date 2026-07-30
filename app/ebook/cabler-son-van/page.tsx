@@ -146,6 +146,14 @@ export default function EbookPage() {
               </div>
             ))}
           </div>
+
+          <p className="mt-6 text-xs text-neutral-500">
+            Envie de dimensionner ton installation avant même d&apos;acheter le livre ?{" "}
+            <Link href="/outils" className="underline underline-offset-2 hover:text-neutral-700">
+              Nos calculateurs gratuits
+            </Link>{" "}
+            (section de câble, autonomie, MPPT…) sont disponibles sans inscription.
+          </p>
         </div>
       </section>
 
@@ -206,10 +214,17 @@ export default function EbookPage() {
               49,99 €<span className="ml-2 text-base font-semibold text-neutral-500">accès immédiat</span>
             </p>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-neutral-700 sm:text-base">
-              Et si tu passes ensuite par un accompagnement FabSystem (coaching Instal&apos; ou
-              visio conseil), les 49,99 € sont déduits de la prestation. Ce livre n&apos;est
-              jamais un coût perdu — au pire, c&apos;est ta meilleure préparation avant qu&apos;on
-              travaille ensemble.
+              Et si tu passes ensuite par un accompagnement FabSystem (
+              <Link href="/prestations#instal" className="font-semibold underline underline-offset-2">
+                l&apos;accompagnement à distance
+              </Link>{" "}
+              ou{" "}
+              <Link href="/visio" className="font-semibold underline underline-offset-2">
+                visio conseil
+              </Link>
+              ), les 49,99 € sont déduits de la prestation. Ce livre n&apos;est jamais un coût
+              perdu — au pire, c&apos;est ta meilleure préparation avant qu&apos;on travaille
+              ensemble.
             </p>
             <div className="mt-6">
               <Link

@@ -32,17 +32,17 @@ export default function PageHero({
 
   return (
     <section
-      className="relative min-h-[44vh] bg-cover bg-center sm:min-h-[50vh]"
+      className="relative bg-cover bg-center"
       style={{ backgroundImage: resolvedBackground }}
     >
       <div className={`absolute inset-0 ${overlay}`} />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 py-14 text-white sm:py-16 lg:py-20">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-8 text-white sm:py-10">
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
           {title}
         </h1>
 
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/80 sm:text-lg">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
           {subtitle}
         </p>
 

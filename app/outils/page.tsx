@@ -7,7 +7,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Outils & Calculateurs électricité embarquée — bateau, van, camping-car",
   description:
-    "Calculateurs gratuits : section de câble 12V, bilan de consommation, autonomie batterie, table AWG/mm² avec usages typiques bateau. Dimensionnez votre installation électrique embarquée.",
+    "Calculateurs gratuits : section de câble 12V, bilan de consommation, autonomie batterie, régulateur MPPT, table AWG/mm² avec usages typiques bateau. Dimensionnez votre installation électrique embarquée.",
   alternates: { canonical: "/outils" },
   openGraph: {
     title: "Calculateurs électricité embarquée | FabSystem",
@@ -40,6 +40,13 @@ const outils = [
     tag: "Avec solaire ☀️",
   },
   {
+    id: "mppt",
+    emoji: "☀️",
+    title: "Régulateur MPPT",
+    description: "Calculez la puissance MPPT nécessaire selon vos panneaux solaires et votre batterie.",
+    tag: "Solaire",
+  },
+  {
     id: "awg",
     emoji: "📐",
     title: "AWG ↔ mm²",
@@ -54,7 +61,7 @@ export default function OutilsPage() {
       <PageHero
         title="Outils & Calculateurs"
         subtitle="Des calculateurs gratuits pour dimensionner votre installation électrique embarquée — sans inscription, sans prise de tête."
-        micro="Section de câble · Bilan de consommation · Autonomie batterie · AWG ↔ mm²"
+        micro="Section de câble · Bilan de consommation · Autonomie batterie · MPPT · AWG ↔ mm²"
         background="/hero-fabsystem.png"
         overlay="bg-black/55"
         ctas={[
@@ -118,6 +125,13 @@ export default function OutilsPage() {
               Poser une question
             </Link>
           </div>
+          <p className="mt-4 text-xs text-neutral-500">
+            Pour aller plus loin,{" "}
+            <Link href="/ebook/cabler-son-van" className="underline underline-offset-2 hover:text-neutral-300">
+              le manuel complet
+            </Link>{" "}
+            reprend tous ces calculs, dans l&apos;ordre du chantier.
+          </p>
         </div>
       </section>
     </main>

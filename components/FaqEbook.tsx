@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const faqs = [
   {
@@ -21,7 +22,20 @@ const faqs = [
   },
   {
     q: "Si je prends un accompagnement FabSystem après, les 49,99 € sont perdus ?",
-    a: "Non. Si tu réserves ensuite un coaching Instal' ou une visio conseil sur le site, les 49,99 € de l'ebook sont déduits du montant de la prestation. Il te suffit de le signaler au moment de la réservation.",
+    a: (
+      <>
+        Non. Si tu réserves ensuite{" "}
+        <Link href="/prestations#instal" className="font-semibold underline underline-offset-2">
+          l&apos;accompagnement à distance
+        </Link>{" "}
+        ou une{" "}
+        <Link href="/visio" className="font-semibold underline underline-offset-2">
+          visio conseil
+        </Link>
+        , les 49,99 € de l&apos;ebook sont déduits du montant de la prestation. Il te suffit de le
+        signaler au moment de la réservation.
+      </>
+    ),
   },
   {
     q: "Le paiement est sécurisé ?",

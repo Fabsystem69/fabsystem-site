@@ -7,10 +7,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 const nav = [
   { href: "/", label: "Accueil" },
-  { href: "/prestations", label: "Prestations" },
+  { href: "/ebook", label: "Le manuel" },
+  { href: "/outils", label: "Calculateurs" },
   { href: "/formations", label: "Formations" },
-  { href: "/outils", label: "Outils" },
-  { href: "/ebook", label: "Ebook" },
+  { href: "/prestations", label: "Prestations" },
   { href: "/realisations", label: "Réalisations" },
   { href: "/a-propos", label: "À propos" },
 ];
