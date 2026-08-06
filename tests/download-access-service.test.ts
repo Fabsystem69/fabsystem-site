@@ -335,11 +335,11 @@ test("getDownloadAccessForGrant refuses an order that is not paid", async () => 
 test("getDownloadAccessForGrant authorizes when order.customerId matches the customer", async () => {
   const grant = createDownloadGrantRecord();
   const { db } = createMockDownloadAccessDb({ grant });
-  const calls: Array<{ path: string; ttl?: number }> = [];
+  const calls: Array<{ path: string; ttl?: number; filename?: string }> = [];
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl(path: string, ttl?: number) {
-      calls.push({ path, ttl });
+    async createPrivateAssetSignedUrl(path: string, ttl?: number, filename?: string) {
+      calls.push({ path, ttl, filename });
       return "https://example.test/signed-download";
     },
   });
@@ -355,7 +355,9 @@ test("getDownloadAccessForGrant authorizes when order.customerId matches the cus
   assert.equal(result.url, "https://example.test/signed-download");
   assert.equal(result.expiresInSeconds, 300);
   assert.equal(result.grant.id, grant.id);
-  assert.deepEqual(calls, [{ path: grant.asset.path, ttl: 300 }]);
+  assert.deepEqual(calls, [
+    { path: grant.asset.path, ttl: 300, filename: grant.asset.filename },
+  ]);
 });
 
 test("getDownloadAccessForGrant authorizes fallback on order.customerEmail when customerId is null", async () => {

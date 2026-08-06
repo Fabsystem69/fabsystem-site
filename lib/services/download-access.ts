@@ -40,7 +40,11 @@ type DownloadAccessDb = {
 
 type DownloadAccessDeps = {
   now?: () => Date;
-  createPrivateAssetSignedUrl?: (path: string, expiresInSeconds?: number) => Promise<string>;
+  createPrivateAssetSignedUrl?: (
+    path: string,
+    expiresInSeconds?: number,
+    downloadFilename?: string
+  ) => Promise<string>;
   signedUrlTtlSeconds?: number;
   // Accepte une valeur directe (tests) ou une fonction paresseuse (config
   // Supabase reelle) : la resolution paresseuse evite d'echouer sur une
@@ -219,7 +223,11 @@ export function createDownloadAccessService(
 
       let url: string;
       try {
-        url = await createPrivateAssetSignedUrl(grant.asset.path, signedUrlTtlSeconds);
+        url = await createPrivateAssetSignedUrl(
+          grant.asset.path,
+          signedUrlTtlSeconds,
+          grant.asset.filename
+        );
       } catch {
         throw serviceUnavailable("Download link generation failed");
       }

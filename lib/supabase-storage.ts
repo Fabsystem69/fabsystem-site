@@ -27,7 +27,11 @@ type SignedUrlResult = {
 };
 
 export type SupabaseBucketClient = {
-  createSignedUrl: (path: string, expiresIn: number) => Promise<SignedUrlResult>;
+  createSignedUrl: (
+    path: string,
+    expiresIn: number,
+    options?: { download?: string | boolean }
+  ) => Promise<SignedUrlResult>;
 };
 
 type SignedUrlDeps = {
@@ -85,6 +89,10 @@ export function getSupabaseBucketClient(
 export async function createPrivateAssetSignedUrl(
   path: string,
   expiresInSeconds = DEFAULT_SIGNED_URL_TTL_SECONDS,
+  // Force le navigateur à télécharger le fichier (Content-Disposition: attachment)
+  // au lieu de l'ouvrir inline — indispensable pour les .html, sinon le navigateur
+  // les affiche comme une page web. Fonctionne pour tous les types de fichiers.
+  downloadFilename?: string,
   deps: SignedUrlDeps = {}
 ) {
   const normalizedPath = path.trim();
@@ -101,7 +109,9 @@ export async function createPrivateAssetSignedUrl(
     deps.getBucketClient?.(config) ?? getSupabaseBucketClient(config);
   const expiresIn = normalizeSignedUrlExpiry(expiresInSeconds);
 
-  const { data, error } = await bucketClient.createSignedUrl(normalizedPath, expiresIn);
+  const { data, error } = await bucketClient.createSignedUrl(normalizedPath, expiresIn, {
+    download: downloadFilename?.trim() || true,
+  });
 
   if (error) {
     throw new Error(`Supabase signed URL generation failed: ${error.message}`);
