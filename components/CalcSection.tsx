@@ -136,7 +136,7 @@ function CalcSectionCable() {
               );
               if (result.section < sMinNum * 1.5) return (
                 <div className="rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-xs font-semibold text-orange-700">
-                  ⚡ Section juste — majorez d'un calibre si câble en conduit ou température &gt; 40°C
+                  ⚡ Section juste — majorez d&apos;un calibre si câble en conduit ou température &gt; 40°C
                 </div>
               );
               return (
@@ -152,7 +152,7 @@ function CalcSectionCable() {
             )}
             <p className="mt-4 text-xs text-neutral-500">
               Calcul basé sur la résistivité du cuivre (ρ = 0,0175 Ω·mm²/m).
-              Majorez d'une section si câble en conduit ou forte chaleur.
+              Majorez d&apos;une section si câble en conduit ou forte chaleur.
             </p>
           </div>
         ) : (
@@ -405,7 +405,7 @@ function CalcBilanConso({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Jours d'autonomie souhaités</label>
+          <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Jours d&apos;autonomie souhaités</label>
           <select
             value={autonomie}
             onChange={(e) => setAutonomie(e.target.value)}
@@ -799,7 +799,7 @@ function CalcAutonomie({
               </div>
             )}
             <p className="mt-1.5 text-xs text-neutral-400 leading-relaxed">
-              Total d'énergie consommée sur une journée complète (24 h).{" "}
+              Total d&apos;énergie consommée sur une journée complète (24 h).{" "}
               <span className="font-medium text-neutral-500">
                 Exemples : frigo 12V seul ≈ 600 Wh/j · éclairage + instruments ≈ 200 Wh/j · installation complète ≈ 800–1 500 Wh/j.
               </span>
@@ -935,7 +935,7 @@ function CalcAutonomie({
         ) : (
           <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 p-8">
             <p className="text-center text-sm text-neutral-400">
-              Renseignez la capacité et la consommation pour obtenir l'autonomie estimée.
+              Renseignez la capacité et la consommation pour obtenir l&apos;autonomie estimée.
             </p>
           </div>
         )}
@@ -1341,7 +1341,7 @@ function CalcAWG() {
                 {filteredExemples.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-sm text-neutral-400">
-                      Aucun équipement trouvé pour "{search}"
+                      Aucun équipement trouvé pour &quot;{search}&quot;
                     </td>
                   </tr>
                 )}

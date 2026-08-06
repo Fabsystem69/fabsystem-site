@@ -105,13 +105,13 @@ export default function FormationsPage() {
         <div className="mx-auto max-w-6xl px-6">
           <div className="mx-auto max-w-3xl">
             <h2 className="text-base font-semibold text-neutral-950 sm:text-lg">
-              Comprendre avant d'agir
+              Comprendre avant d&apos;agir
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              L'électricité embarquée s'apprend. Avec les bons repères, vous dimensionnez
+              L&apos;électricité embarquée s&apos;apprend. Avec les bons repères, vous dimensionnez
               correctement, évitez les erreurs coûteuses et maintenez votre installation en
               confiance. Les modules sont pensés pour les non-électriciens — avec des exemples
-              concrets tirés d'installations réelles.
+              concrets tirés d&apos;installations réelles.
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               {[
@@ -146,7 +146,7 @@ export default function FormationsPage() {
             Modules disponibles — Les fondamentaux
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-            Pour comprendre les bases avant d'aller plus loin. Gratuit, sans compte requis.
+            Pour comprendre les bases avant d&apos;aller plus loin. Gratuit, sans compte requis.
           </p>
         </div>
 
@@ -231,7 +231,7 @@ export default function FormationsPage() {
           </div>
 
           <p className="mt-5 text-xs text-neutral-400">
-            Vous souhaitez être notifié à la sortie d'un module ?{" "}
+            Vous souhaitez être notifié à la sortie d&apos;un module ?{" "}
             <Link href="/contact" className="underline underline-offset-4 hover:text-neutral-600">
               Contactez-nous
             </Link>

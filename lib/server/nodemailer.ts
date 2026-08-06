@@ -1,13 +1,15 @@
 import "server-only";
 
+import { parseSmtpPort, parseSmtpSecure, requireServerEnv } from "@/lib/server/env";
+
 function getTransportConfig() {
   return {
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true",
+    host: requireServerEnv("SMTP_HOST", process.env.SMTP_HOST),
+    port: parseSmtpPort(process.env.SMTP_PORT),
+    secure: parseSmtpSecure(process.env.SMTP_SECURE),
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: requireServerEnv("SMTP_USER", process.env.SMTP_USER),
+      pass: requireServerEnv("SMTP_PASS", process.env.SMTP_PASS),
     },
   };
 }

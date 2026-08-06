@@ -1,0 +1,40 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { toErrorResponse } from "@/lib/http-errors";
+import { applyDiscountToCartSummary } from "@/lib/services/discounts";
+import { getCurrentCartFromRequest } from "@/lib/server/cart-session";
+
+const validateDiscountPayloadSchema = z.object({
+  customerEmail: z.string().trim().email(),
+  code: z.string().trim().min(1),
+});
+
+export const dynamic = "force-dynamic";
+
+export async function POST(request: Request) {
+  try {
+    const json = await request.json().catch(() => null);
+    const parsed = validateDiscountPayloadSchema.parse(json);
+    const cart = await getCurrentCartFromRequest();
+
+    if (!cart) {
+      return NextResponse.json(
+        {
+          error: "Cart not found",
+          code: "CART_NOT_FOUND",
+        },
+        { status: 404 }
+      );
+    }
+
+    const summary = await applyDiscountToCartSummary({
+      code: parsed.code,
+      customerEmail: parsed.customerEmail,
+      cartId: cart.id,
+    });
+
+    return NextResponse.json(summary);
+  } catch (error) {
+    return toErrorResponse(error, "api.cart.discounts.validate.post");
+  }
+}

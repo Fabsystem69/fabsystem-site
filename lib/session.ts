@@ -1,4 +1,11 @@
 import crypto from "crypto";
+import {
+  base64UrlToBytes,
+  bytesToBase64Url,
+  decodeUtf8Base64Url,
+  encodeUtf8Base64Url,
+  splitSignedToken,
+} from "@/lib/session-token";
 
 export type SessionPayload = {
   sub: string; // email
@@ -11,21 +18,12 @@ export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 export const SESSION_COOKIE_NAME =
   process.env.AUTH_COOKIE_NAME ?? "fabsystem_session";
 
-const enc = (buf: Buffer) =>
-  buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-
-const dec = (s: string) => {
-  s = s.replace(/-/g, "+").replace(/_/g, "/");
-  while (s.length % 4) s += "=";
-  return Buffer.from(s, "base64");
-};
-
 function hmac(data: string, secret: string) {
-  return enc(crypto.createHmac("sha256", secret).update(data).digest());
+  return bytesToBase64Url(crypto.createHmac("sha256", secret).update(data).digest());
 }
 
 export function signSession<T extends { exp: number }>(payload: T, secret: string) {
-  const body = enc(Buffer.from(JSON.stringify(payload), "utf8"));
+  const body = encodeUtf8Base64Url(JSON.stringify(payload));
   const sig = hmac(body, secret);
   return `${body}.${sig}`;
 }
@@ -37,15 +35,16 @@ export function verifySession<T extends { exp: number } = SessionPayload>(
   secret: string,
   options?: { onReject?: (reason: SessionRejectReason) => void }
 ): T | null {
-  const [body, sig] = token.split(".");
-  if (!body || !sig) {
+  const parts = splitSignedToken(token);
+  if (!parts) {
     options?.onReject?.("malformed");
     return null;
   }
+  const { body, signature } = parts;
   const expected = hmac(body, secret);
   // timing-safe compare
-  const a = Buffer.from(sig);
-  const b = Buffer.from(expected);
+  const a = Buffer.from(base64UrlToBytes(signature));
+  const b = Buffer.from(base64UrlToBytes(expected));
   if (a.length !== b.length) {
     options?.onReject?.("bad-signature");
     return null;
@@ -56,7 +55,7 @@ export function verifySession<T extends { exp: number } = SessionPayload>(
   }
 
   try {
-    const payload = JSON.parse(dec(body).toString("utf8")) as T;
+    const payload = JSON.parse(decodeUtf8Base64Url(body)) as T;
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp <= now) {
       options?.onReject?.("expired");

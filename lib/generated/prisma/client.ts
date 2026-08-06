@@ -82,6 +82,81 @@ export type ItemTemplate = Prisma.ItemTemplateModel
  */
 export type DocumentSequence = Prisma.DocumentSequenceModel
 /**
+ * Model Product
+ * 
+ */
+export type Product = Prisma.ProductModel
+/**
+ * Model ProductPrice
+ * 
+ */
+export type ProductPrice = Prisma.ProductPriceModel
+/**
+ * Model DigitalAsset
+ * 
+ */
+export type DigitalAsset = Prisma.DigitalAssetModel
+/**
+ * Model ProductAsset
+ * 
+ */
+export type ProductAsset = Prisma.ProductAssetModel
+/**
+ * Model BundleItem
+ * 
+ */
+export type BundleItem = Prisma.BundleItemModel
+/**
+ * Model Cart
+ * 
+ */
+export type Cart = Prisma.CartModel
+/**
+ * Model CartItem
+ * 
+ */
+export type CartItem = Prisma.CartItemModel
+/**
+ * Model Order
+ * 
+ */
+export type Order = Prisma.OrderModel
+/**
+ * Model OrderItem
+ * 
+ */
+export type OrderItem = Prisma.OrderItemModel
+/**
+ * Model Payment
+ * 
+ */
+export type Payment = Prisma.PaymentModel
+/**
+ * Model DownloadGrant
+ * 
+ */
+export type DownloadGrant = Prisma.DownloadGrantModel
+/**
+ * Model DiscountCode
+ * 
+ */
+export type DiscountCode = Prisma.DiscountCodeModel
+/**
+ * Model DiscountRedemption
+ * 
+ */
+export type DiscountRedemption = Prisma.DiscountRedemptionModel
+/**
+ * Model MagicLoginToken
+ * 
+ */
+export type MagicLoginToken = Prisma.MagicLoginTokenModel
+/**
+ * Model CustomerSession
+ * 
+ */
+export type CustomerSession = Prisma.CustomerSessionModel
+/**
  * Model EbookOrder
  * 
  */

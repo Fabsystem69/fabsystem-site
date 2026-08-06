@@ -133,7 +133,7 @@ export default function PrestationsPage() {
             Chaque intervention a un livrable concret
           </h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Pas de forfait standardisé. Chaque situation est différente — le niveau d'intervention aussi.
+            Pas de forfait standardisé. Chaque situation est différente — le niveau d&apos;intervention aussi.
           </p>
           <p className="mt-2 text-xs text-neutral-500">
             Vous n&apos;êtes pas sur place ?{" "}
@@ -327,7 +327,7 @@ export default function PrestationsPage() {
             Ce que change une vraie intervention
           </h2>
           <p className="mt-2 text-sm text-neutral-600">
-            De l'incertitude à une installation fiable, documentée, et que vous comprenez.
+            De l&apos;incertitude à une installation fiable, documentée, et que vous comprenez.
           </p>
 
           <div className="mt-8 overflow-hidden rounded-2xl border border-neutral-200">
@@ -363,7 +363,7 @@ export default function PrestationsPage() {
             Ils ont fait appel à FabSystem
           </p>
           <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
-            Ce qu'ils en disent
+            Ce qu&apos;ils en disent
           </h2>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -394,7 +394,7 @@ export default function PrestationsPage() {
                   ))}
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-                  "{t.text}"
+                  &quot;{t.text}&quot;
                 </p>
                 <div className="mt-4 border-t border-neutral-100 pt-3">
                   <p className="text-sm font-semibold text-neutral-900">{t.name}</p>

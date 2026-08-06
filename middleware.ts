@@ -1,25 +1,30 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  base64UrlToBytes,
+  decodeUtf8Base64Url,
+  splitSignedToken,
+} from "@/lib/session-token";
 
 const SESSION_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "fabsystem_session";
+const IS_DEVELOPMENT = process.env.NODE_ENV !== "production";
 
-function b64urlToBuffer(s: string): ArrayBuffer {
-  s = s.replace(/-/g, "+").replace(/_/g, "/");
-  while (s.length % 4) s += "=";
-  const binary = atob(s);
-  const buf = new ArrayBuffer(binary.length);
-  const arr = new Uint8Array(buf);
-  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
-  return buf;
-}
-
-async function isValidSession(token: string): Promise<boolean> {
+async function isValidSession(
+  token: string,
+  options?: { onReject?: (reason: string) => void }
+): Promise<boolean> {
   const secret = process.env.AUTH_SESSION_SECRET;
-  if (!secret) return false;
+  if (!secret) {
+    options?.onReject?.("missing-secret");
+    return false;
+  }
 
-  const parts = token.split(".");
-  if (parts.length !== 2) return false;
-  const [body, sig] = parts;
+  const parts = splitSignedToken(token);
+  if (!parts) {
+    options?.onReject?.("malformed-token");
+    return false;
+  }
+  const { body, signature } = parts;
 
   try {
     const enc = new TextEncoder();
@@ -34,17 +39,29 @@ async function isValidSession(token: string): Promise<boolean> {
     const valid = await crypto.subtle.verify(
       "HMAC",
       key,
-      b64urlToBuffer(sig),
+      base64UrlToBytes(signature),
       enc.encode(body)
     );
-    if (!valid) return false;
+    if (!valid) {
+      options?.onReject?.("bad-signature");
+      return false;
+    }
 
-    const payload = JSON.parse(
-      new TextDecoder().decode(b64urlToBuffer(body))
-    ) as { exp?: number };
+    const payload = JSON.parse(decodeUtf8Base64Url(body)) as { exp?: number };
     const now = Math.floor(Date.now() / 1000);
-    return typeof payload.exp === "number" && payload.exp > now;
+    if (typeof payload.exp !== "number") {
+      options?.onReject?.("missing-exp");
+      return false;
+    }
+
+    if (payload.exp <= now) {
+      options?.onReject?.("expired");
+      return false;
+    }
+
+    return true;
   } catch {
+    options?.onReject?.("invalid-payload");
     return false;
   }
 }
@@ -54,7 +71,31 @@ export async function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/dashboard")) {
     const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-    if (!token || !(await isValidSession(token))) {
+    let rejectReason = "missing-cookie";
+    const hasCookie = Boolean(token);
+    const isValid = token
+      ? await isValidSession(token, {
+          onReject(reason) {
+            rejectReason = reason;
+          },
+        })
+      : false;
+
+    if (IS_DEVELOPMENT) {
+      console.info(
+        JSON.stringify({
+          scope: "admin-middleware",
+          pathname,
+          cookieName: SESSION_COOKIE_NAME,
+          hasCookie,
+          secureMode: process.env.NODE_ENV === "production",
+          sessionValid: isValid,
+          rejectReason: isValid ? null : rejectReason,
+        })
+      );
+    }
+
+    if (!isValid) {
       const url = req.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("next", pathname);

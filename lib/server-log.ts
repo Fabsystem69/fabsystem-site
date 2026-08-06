@@ -1,3 +1,5 @@
+import { redactSensitive } from "@/lib/redact-sensitive";
+
 type LogLevel = "info" | "warn" | "error";
 
 type LogMeta = Record<string, unknown>;
@@ -10,13 +12,13 @@ function normalizeMeta(meta: LogMeta) {
           key,
           {
             name: value.name,
-            message: value.message,
+            message: redactSensitive(value.message),
             stack: process.env.NODE_ENV === "development" ? value.stack : undefined,
           },
         ];
       }
 
-      return [key, value];
+      return [key, redactSensitive(value)];
     })
   );
 }

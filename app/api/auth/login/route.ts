@@ -11,6 +11,7 @@ import {
 
 export async function POST(req: Request) {
   const ip = getClientIp(req);
+  const isDevelopment = process.env.NODE_ENV !== "production";
 
   try {
     enforceRateLimit(req, {
@@ -46,7 +47,25 @@ export async function POST(req: Request) {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    if (normalizedEmail !== adminEmail) {
+    const emailMatch = normalizedEmail === adminEmail;
+
+    if (isDevelopment) {
+      logServerEvent("info", "login debug", {
+        nodeEnv: process.env.NODE_ENV ?? null,
+        hasAdminEmail: Boolean(adminEmail),
+        hasAdminHash: Boolean(adminHash),
+        hasSecret: Boolean(secret),
+        hashLength: adminHash?.length ?? 0,
+        hashPrefix: adminHash ? adminHash.slice(0, 7) : null,
+        normalizedEmail,
+        expectedAdminEmail: adminEmail ?? null,
+        emailMatch,
+        passwordType: typeof password,
+        passwordLength: typeof password === "string" ? password.length : null,
+      });
+    }
+
+    if (!emailMatch) {
       logServerEvent("warn", "login failed: unknown email", {
         ip,
         email: normalizedEmail,
@@ -55,6 +74,17 @@ export async function POST(req: Request) {
     }
 
     const ok = await bcrypt.compare(password, adminHash);
+
+    if (isDevelopment) {
+      logServerEvent("info", "login bcrypt result", {
+        normalizedEmail,
+        emailMatch,
+        passwordType: typeof password,
+        passwordLength: typeof password === "string" ? password.length : null,
+        bcryptCompareOk: ok,
+      });
+    }
+
     if (!ok) {
       logServerEvent("warn", "login failed: bad password", {
         ip,
@@ -82,6 +112,16 @@ export async function POST(req: Request) {
       path: "/",
       maxAge: SESSION_MAX_AGE_SECONDS,
     });
+
+    if (isDevelopment) {
+      logServerEvent("info", "login cookie set", {
+        cookieName: SESSION_COOKIE_NAME,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: SESSION_MAX_AGE_SECONDS,
+      });
+    }
 
     return res;
   } catch (error) {

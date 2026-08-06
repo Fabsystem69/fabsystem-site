@@ -12,6 +12,7 @@ type RateLimitOptions = {
   limit: number;
   windowMs: number;
   blockDurationMs?: number;
+  keyParts?: string[];
 };
 
 const RATE_LIMIT_STORE_KEY = "__fabsystem_rate_limit_store__";
@@ -63,12 +64,23 @@ export function getClientIp(request: Request) {
   return "unknown";
 }
 
+export function createRateLimitKeyPart(value: string) {
+  let hash = 0;
+
+  for (const char of value.trim().toLowerCase()) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+
+  return hash.toString(16).padStart(8, "0");
+}
+
 export function enforceRateLimit(request: Request, options: RateLimitOptions) {
   const now = Date.now();
   pruneStore(now);
 
   const ip = getClientIp(request);
-  const key = `${options.name}:${ip}`;
+  const extraKey = options.keyParts?.filter(Boolean).join(":");
+  const key = [options.name, ip, extraKey].filter(Boolean).join(":");
   const store = getStore();
   const existing = store.get(key);
 

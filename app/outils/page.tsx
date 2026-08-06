@@ -109,7 +109,7 @@ export default function OutilsPage() {
           <p className="mt-3 text-sm leading-relaxed text-neutral-400">
             Ces outils couvrent les cas courants. Pour un dimensionnement précis adapté à votre
             installation réelle — batteries lithium, solaire, 230V — une visio conseil permet
-            d'aller bien plus loin.
+            d&apos;aller bien plus loin.
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link

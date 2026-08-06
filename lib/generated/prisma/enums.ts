@@ -65,6 +65,147 @@ export const RemiseStatus = {
 export type RemiseStatus = (typeof RemiseStatus)[keyof typeof RemiseStatus]
 
 
+export const ProductStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus]
+
+
+export const ProductType = {
+  EBOOK: 'EBOOK',
+  DIGITAL_DOWNLOAD: 'DIGITAL_DOWNLOAD',
+  BUNDLE: 'BUNDLE'
+} as const
+
+export type ProductType = (typeof ProductType)[keyof typeof ProductType]
+
+
+export const PurchaseMode = {
+  BUY_NOW: 'BUY_NOW',
+  REQUEST_ONLY: 'REQUEST_ONLY'
+} as const
+
+export type PurchaseMode = (typeof PurchaseMode)[keyof typeof PurchaseMode]
+
+
+export const PriceStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type PriceStatus = (typeof PriceStatus)[keyof typeof PriceStatus]
+
+
+export const DigitalAssetStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type DigitalAssetStatus = (typeof DigitalAssetStatus)[keyof typeof DigitalAssetStatus]
+
+
+export const DigitalAssetProvider = {
+  SUPABASE: 'SUPABASE'
+} as const
+
+export type DigitalAssetProvider = (typeof DigitalAssetProvider)[keyof typeof DigitalAssetProvider]
+
+
+export const CartStatus = {
+  ACTIVE: 'ACTIVE',
+  CONVERTED: 'CONVERTED',
+  ABANDONED: 'ABANDONED'
+} as const
+
+export type CartStatus = (typeof CartStatus)[keyof typeof CartStatus]
+
+
+export const OrderStatus = {
+  DRAFT: 'DRAFT',
+  PENDING_PAYMENT: 'PENDING_PAYMENT',
+  PAID: 'PAID',
+  CANCELLED: 'CANCELLED',
+  REFUNDED: 'REFUNDED'
+} as const
+
+export type OrderStatus = (typeof OrderStatus)[keyof typeof OrderStatus]
+
+
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED'
+} as const
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
+
+
+export const PaymentProvider = {
+  STRIPE: 'STRIPE'
+} as const
+
+export type PaymentProvider = (typeof PaymentProvider)[keyof typeof PaymentProvider]
+
+
+export const DownloadGrantStatus = {
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type DownloadGrantStatus = (typeof DownloadGrantStatus)[keyof typeof DownloadGrantStatus]
+
+
+export const DiscountCodeStatus = {
+  ACTIVE: 'ACTIVE',
+  DISABLED: 'DISABLED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type DiscountCodeStatus = (typeof DiscountCodeStatus)[keyof typeof DiscountCodeStatus]
+
+
+export const DiscountCodeType = {
+  FIXED_AMOUNT: 'FIXED_AMOUNT',
+  PERCENTAGE: 'PERCENTAGE'
+} as const
+
+export type DiscountCodeType = (typeof DiscountCodeType)[keyof typeof DiscountCodeType]
+
+
+export const CustomerStatus = {
+  ACTIVE: 'ACTIVE',
+  DISABLED: 'DISABLED'
+} as const
+
+export type CustomerStatus = (typeof CustomerStatus)[keyof typeof CustomerStatus]
+
+
+export const MagicLoginTokenStatus = {
+  ACTIVE: 'ACTIVE',
+  USED: 'USED',
+  EXPIRED: 'EXPIRED',
+  REVOKED: 'REVOKED'
+} as const
+
+export type MagicLoginTokenStatus = (typeof MagicLoginTokenStatus)[keyof typeof MagicLoginTokenStatus]
+
+
+export const CustomerSessionStatus = {
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type CustomerSessionStatus = (typeof CustomerSessionStatus)[keyof typeof CustomerSessionStatus]
+
+
 export const EbookOrderStatus = {
   PENDING: 'PENDING',
   PAID: 'PAID',

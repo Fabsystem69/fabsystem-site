@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { EbookCheckoutProvider, BuyButton } from "@/components/EbookCheckoutModal";
 import FaqEbook from "@/components/FaqEbook";
 
 export const metadata: Metadata = {
@@ -81,10 +80,12 @@ const formats = [
   },
 ];
 
+const buyButtonClassName =
+  "inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 shadow-sm transition-colors duration-150 hover:bg-yellow-300 sm:w-auto";
+
 export default function EbookPage() {
   return (
     <main>
-      <EbookCheckoutProvider>
       {/* HERO */}
       <section className="relative overflow-hidden bg-neutral-950">
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14">
@@ -105,9 +106,9 @@ export default function EbookPage() {
             </p>
 
             <div className="mt-7">
-              <BuyButton className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 shadow-sm transition-colors duration-150 hover:bg-yellow-300 sm:w-auto">
+              <Link href="/boutique" className={buyButtonClassName}>
                 Acheter l&apos;ebook — 49,99 €
-              </BuyButton>
+              </Link>
             </div>
           </div>
 
@@ -225,9 +226,9 @@ export default function EbookPage() {
               ensemble.
             </p>
             <div className="mt-6">
-              <BuyButton className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-yellow-400 px-6 py-3 text-sm font-bold text-neutral-900 shadow-sm transition-colors duration-150 hover:bg-yellow-300 sm:w-auto">
+              <Link href="/boutique" className={buyButtonClassName}>
                 Acheter l&apos;ebook — 49,99 €
-              </BuyButton>
+              </Link>
             </div>
           </div>
         </div>
@@ -247,8 +248,6 @@ export default function EbookPage() {
           </div>
         </div>
       </section>
-
-      </EbookCheckoutProvider>
     </main>
   );
 }

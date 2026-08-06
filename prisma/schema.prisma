@@ -5,9 +5,10 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 enum AssetType {
@@ -48,24 +49,124 @@ enum RemiseStatus {
   APPLIED
 }
 
-model Customer {
-  id           String    @id @default(cuid())
-  name         String
-  email        String?
-  phone        String?
-  address      String?
-  assetType    AssetType @default(OTHER)
-  assetBrand   String?
-  assetModel   String?
-  registration String?
-  odometerKm   Int?
-  engineHours  Int?
-  quotes       Quote[]
-  invoices     Invoice[]
-  remises      Remise[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
 
+enum ProductType {
+  EBOOK
+  DIGITAL_DOWNLOAD
+  BUNDLE
+}
+
+enum PurchaseMode {
+  BUY_NOW
+  REQUEST_ONLY
+}
+
+enum PriceStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum DigitalAssetStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum DigitalAssetProvider {
+  SUPABASE
+}
+
+enum CartStatus {
+  ACTIVE
+  CONVERTED
+  ABANDONED
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+}
+
+enum DownloadGrantStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+enum DiscountCodeStatus {
+  ACTIVE
+  DISABLED
+  EXPIRED
+}
+
+enum DiscountCodeType {
+  FIXED_AMOUNT
+  PERCENTAGE
+}
+
+enum CustomerStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum MagicLoginTokenStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  REVOKED
+}
+
+enum CustomerSessionStatus {
+  ACTIVE
+  REVOKED
+  EXPIRED
+}
+
+model Customer {
+  id               String            @id @default(cuid())
+  name             String?
+  email            String            @unique
+  phone            String?
+  address          String?
+  assetType        AssetType         @default(OTHER)
+  assetBrand       String?
+  assetModel       String?
+  registration     String?
+  odometerKm       Int?
+  engineHours      Int?
+  status           CustomerStatus    @default(ACTIVE)
+  lastLoginAt      DateTime?
+  quotes           Quote[]
+  invoices         Invoice[]
+  remises          Remise[]
+  orders           Order[]
+  magicLoginTokens MagicLoginToken[]
+  sessions         CustomerSession[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([email])
+  @@index([status])
   @@index([registration])
 }
 
@@ -198,6 +299,307 @@ model DocumentSequence {
   updatedAt    DateTime @updatedAt
 
   @@unique([prefix, year])
+}
+
+model Product {
+  id                String          @id @default(cuid())
+  slug              String          @unique
+  name              String
+  shortDescription  String?
+  description       String?
+  status            ProductStatus   @default(DRAFT)
+  productType       ProductType
+  purchaseMode      PurchaseMode    @default(BUY_NOW)
+  featuredImage     String?
+  prices            ProductPrice[]
+  assets            ProductAsset[]
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  downloadGrants    DownloadGrant[]
+  discountCodes     DiscountCode[]
+  discountRedemptions DiscountRedemption[]
+  bundleItems       BundleItem[]    @relation("BundleProductItems")
+  includedInBundles BundleItem[]    @relation("IncludedProductItems")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([status])
+  @@index([productType])
+  @@index([purchaseMode])
+}
+
+model ProductPrice {
+  id                   String      @id @default(cuid())
+  productId            String
+  product              Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  currency             String      @default("EUR")
+  unitAmountCents      Int
+  compareAtAmountCents Int?
+  status               PriceStatus @default(ACTIVE)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@index([productId])
+  @@index([status])
+}
+
+model DigitalAsset {
+  id             String               @id @default(cuid())
+  provider       DigitalAssetProvider @default(SUPABASE)
+  bucket         String
+  path           String
+  filename       String
+  contentType    String
+  sizeBytes      Int
+  version        String?
+  status         DigitalAssetStatus   @default(DRAFT)
+  products       ProductAsset[]
+  downloadGrants DownloadGrant[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@unique([bucket, path])
+  @@index([status])
+  @@index([provider])
+}
+
+model ProductAsset {
+  productId String
+  assetId   String
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  asset     DigitalAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  sortOrder Int          @default(0)
+  createdAt DateTime     @default(now())
+
+  @@id([productId, assetId])
+  @@index([assetId])
+}
+
+model BundleItem {
+  bundleProductId   String
+  includedProductId String
+  bundleProduct     Product  @relation("BundleProductItems", fields: [bundleProductId], references: [id], onDelete: Cascade)
+  includedProduct   Product  @relation("IncludedProductItems", fields: [includedProductId], references: [id], onDelete: Restrict)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  @@id([bundleProductId, includedProductId])
+  @@index([includedProductId])
+}
+
+model Cart {
+  id            String     @id @default(cuid())
+  status        CartStatus @default(ACTIVE)
+  sessionId     String?    @unique
+  customerEmail String?
+  items         CartItem[]
+  order         Order?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([status])
+  @@index([customerEmail])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+}
+
+model Order {
+  id             String          @id @default(cuid())
+  orderNumber    String          @unique
+  status         OrderStatus     @default(DRAFT)
+  customerId     String?
+  discountCodeId String?
+  customerEmail  String
+  customerName   String?
+  currency       String          @default("EUR")
+  subtotalCents  Int
+  discountTotalCents Int         @default(0)
+  totalCents     Int
+  cartId         String?         @unique
+  cart           Cart?           @relation(fields: [cartId], references: [id], onDelete: SetNull)
+  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  discountCode   DiscountCode?   @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
+  items          OrderItem[]
+  payments       Payment[]
+  downloadGrants DownloadGrant[]
+  discountRedemptions DiscountRedemption[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  paidAt         DateTime?
+  cancelledAt    DateTime?
+  refundedAt     DateTime?
+
+  @@index([status])
+  @@index([customerId])
+  @@index([customerEmail])
+  @@index([discountCodeId])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id              String          @id @default(cuid())
+  orderId         String
+  productId       String
+  productSlug     String
+  productName     String
+  productType     ProductType
+  quantity        Int             @default(1)
+  currency        String          @default("EUR")
+  unitAmountCents Int
+  lineTotalCents  Int
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  downloadGrants  DownloadGrant[]
+  createdAt       DateTime        @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id                      String          @id @default(cuid())
+  orderId                 String
+  provider                PaymentProvider @default(STRIPE)
+  status                  PaymentStatus   @default(PENDING)
+  amountCents             Int
+  currency                String          @default("EUR")
+  stripeCheckoutSessionId String?         @unique
+  stripePaymentIntentId   String?
+  stripeCustomerId        String?
+  rawProviderStatus       String?
+  order                   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  succeededAt             DateTime?
+  failedAt                DateTime?
+  refundedAt              DateTime?
+
+  @@index([orderId])
+  @@index([status])
+  @@index([provider])
+  @@index([stripePaymentIntentId])
+}
+
+model DownloadGrant {
+  id               String              @id @default(cuid())
+  orderId          String
+  orderItemId      String
+  productId        String
+  assetId          String
+  customerEmail    String
+  status           DownloadGrantStatus @default(ACTIVE)
+  downloadCount    Int                 @default(0)
+  maxDownloads     Int                 @default(10)
+  expiresAt        DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  revokedAt        DateTime?
+  lastDownloadedAt DateTime?
+  order            Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItem        OrderItem           @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  product          Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  asset            DigitalAsset        @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@unique([orderItemId, assetId])
+  @@index([orderId])
+  @@index([orderItemId])
+  @@index([productId])
+  @@index([assetId])
+  @@index([customerEmail])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model DiscountCode {
+  id              String               @id @default(cuid())
+  code            String               @unique
+  status          DiscountCodeStatus   @default(ACTIVE)
+  type            DiscountCodeType
+  amountOffCents  Int?
+  percentOff      Int?
+  currency        String               @default("EUR")
+  maxRedemptions  Int                  @default(1)
+  redeemedCount   Int                  @default(0)
+  startsAt        DateTime?
+  expiresAt       DateTime?
+  productId       String?
+  customerEmail   String?
+  reason          String?
+  product         Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
+  orders          Order[]
+  redemptions     DiscountRedemption[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([status])
+  @@index([productId])
+  @@index([customerEmail])
+  @@index([expiresAt])
+}
+
+model DiscountRedemption {
+  id                    String       @id @default(cuid())
+  discountCodeId        String
+  orderId               String
+  customerEmail         String
+  productId             String?
+  amountDiscountedCents Int
+  redeemedAt            DateTime     @default(now())
+  discountCode          DiscountCode @relation(fields: [discountCodeId], references: [id], onDelete: Restrict)
+  order                 Order        @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  product               Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@unique([discountCodeId, orderId])
+  @@index([discountCodeId])
+  @@index([orderId])
+  @@index([customerEmail])
+  @@index([productId])
+}
+
+model MagicLoginToken {
+  id         String                @id @default(cuid())
+  customerId String
+  email      String
+  tokenHash  String                @unique
+  status     MagicLoginTokenStatus @default(ACTIVE)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime              @default(now())
+  customer   Customer              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([email])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model CustomerSession {
+  id               String                @id @default(cuid())
+  customerId       String
+  sessionTokenHash String                @unique
+  status           CustomerSessionStatus @default(ACTIVE)
+  expiresAt        DateTime
+  createdAt        DateTime              @default(now())
+  lastSeenAt       DateTime?
+  revokedAt        DateTime?
+  customer         Customer              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([status])
+  @@index([expiresAt])
 }
 
 enum EbookOrderStatus {

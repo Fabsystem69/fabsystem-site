@@ -1,4 +1,5 @@
 import { PrismaClient } from "@/lib/generated/prisma/client";
+import { hasRequiredCommerceDelegates } from "@/lib/prisma-client-guards";
 import { getPgModule, getPrismaPgAdapter } from "@/lib/server/prisma-adapter";
 
 const { PrismaPg } = getPrismaPgAdapter();
@@ -37,7 +38,11 @@ function createPrismaClient() {
   });
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+const cachedPrisma = hasRequiredCommerceDelegates(globalForPrisma.prisma)
+  ? globalForPrisma.prisma
+  : undefined;
+
+export const prisma = cachedPrisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
