@@ -21,8 +21,43 @@ const digitalAssetStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
 const digitalAssetProviderSchema = z.enum(["SUPABASE"]);
 const optionalTrimmedString = z.string().trim().optional().nullable().or(z.literal(""));
 
+// Identifiants techniques (slug, bucket, storage path) : jamais d'accent, jamais
+// d'espace. Ils circulent dans des URLs, des clés de stockage Supabase et des
+// chemins de fichiers, contrairement aux titres/noms affichés qui peuvent garder
+// leurs accents. Un slug/bucket est un seul segment ("mon-produit"), un storage
+// path autorise des segments séparés par "/" (ex. "ebooks/mon-produit/v1/f.pdf").
+const SEGMENT_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const STORAGE_PATH_PATTERN = /^[a-z0-9]+([-_./][a-z0-9]+)*$/;
+
+const slugSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(
+    SEGMENT_PATTERN,
+    "Le slug ne doit contenir que des minuscules, des chiffres et des tirets, sans accent ni espace."
+  );
+
+const bucketSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(
+    SEGMENT_PATTERN,
+    "Le bucket ne doit contenir que des minuscules, des chiffres et des tirets, sans accent ni espace."
+  );
+
+const storagePathSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .regex(
+    STORAGE_PATH_PATTERN,
+    "Le storage path ne doit contenir que des minuscules, des chiffres et les séparateurs - _ . /, sans accent ni espace."
+  );
+
 export const createDigitalProductInputSchema = z.object({
-  slug: z.string().trim().min(1),
+  slug: slugSchema,
   name: z.string().trim().min(1),
   shortDescription: optionalTrimmedString,
   description: optionalTrimmedString,
@@ -78,7 +113,7 @@ const productPriceInputSchema = z.object({
 
 const productDetailsInputSchema = z.object({
   name: z.string().trim().min(1),
-  slug: z.string().trim().min(1),
+  slug: slugSchema,
   shortDescription: optionalTrimmedString,
   description: optionalTrimmedString,
   featuredImage: optionalTrimmedString,
@@ -89,8 +124,10 @@ const productDetailsInputSchema = z.object({
 
 const digitalAssetInputSchema = z.object({
   provider: digitalAssetProviderSchema.default("SUPABASE"),
-  bucket: z.string().trim().min(1),
-  path: z.string().trim().min(1),
+  bucket: bucketSchema,
+  path: storagePathSchema,
+  // filename reste un libellé affiché (ex. "Câbler son van.pdf") : les accents
+  // y sont autorisés, contrairement au bucket/path techniques ci-dessus.
   filename: z.string().trim().min(1),
   status: digitalAssetStatusSchema.default("DRAFT"),
 });

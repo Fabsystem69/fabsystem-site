@@ -6,6 +6,10 @@ import { isHttpError } from "@/lib/http-errors";
 import { formatEuroFromCents } from "@/lib/format";
 import { getActivePriceForProduct, getProductBySlug } from "@/lib/services/catalog";
 
+// Même raison que /boutique : le statut/prix/asset d'un produit peut changer
+// à tout moment dans le dashboard, la fiche doit toujours lire la base.
+export const dynamic = "force-dynamic";
+
 type BoutiqueProductPageProps = {
   params: Promise<{
     slug: string;

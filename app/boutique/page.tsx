@@ -6,6 +6,11 @@ import {
   listActiveBuyNowProducts,
 } from "@/lib/services/catalog";
 
+// Le catalogue change dès qu'un produit est activé/désactivé ou qu'un prix
+// change dans le dashboard : jamais de rendu statique figé au build, toujours
+// une lecture fraîche en base à chaque requête.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Boutique",
   description:

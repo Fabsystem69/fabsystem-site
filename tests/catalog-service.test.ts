@@ -430,13 +430,46 @@ test("createDigitalProduct rejects an empty slug", async () => {
   );
 });
 
+test("createDigitalProduct refuses a slug containing an accent", async () => {
+  const { db } = createMockCatalogDb();
+  const service = createCatalogService(db);
+
+  await assert.rejects(
+    () =>
+      service.createDigitalProduct({
+        slug: "câbler-son-van",
+        name: "Câbler son van",
+        productType: "EBOOK",
+        purchaseMode: "BUY_NOW",
+        unitAmountCents: 2900,
+      }),
+    (error: unknown) => error instanceof Error && /slug/i.test(error.message)
+  );
+});
+
+test("createDigitalProduct accepts an accented product name with a clean slug", async () => {
+  const { db } = createMockCatalogDb();
+  const service = createCatalogService(db);
+
+  const product = await service.createDigitalProduct({
+    slug: "cabler-son-van",
+    name: "Câbler son van sans se planter",
+    productType: "EBOOK",
+    purchaseMode: "BUY_NOW",
+    unitAmountCents: 2900,
+  });
+
+  assert.equal(product.slug, "cabler-son-van");
+  assert.equal(product.name, "Câbler son van sans se planter");
+});
+
 test("createProductWithPrice creates a DRAFT product with one ACTIVE price", async () => {
   const { db, state } = createMockCatalogDb();
   const service = createCatalogService(db);
 
   const product = await service.createProductWithPrice({
     name: "Guide Van",
-    slug: "Guide Van",
+    slug: "guide-van",
     shortDescription: "Court",
     description: "Long",
     featuredImage: "",
@@ -509,7 +542,7 @@ test("createProductWithPrice refuses a duplicate slug", async () => {
     () =>
       service.createProductWithPrice({
         name: "Guide Van 2",
-        slug: "Guide Van",
+        slug: "guide-van",
         shortDescription: "",
         description: "",
         featuredImage: "",
@@ -800,7 +833,7 @@ test("updateProductDetails updates name and slug", async () => {
 
   const updated = await service.updateProductDetails(product.id, {
     name: "Nouveau nom",
-    slug: " Nouveau Slug ",
+    slug: "  nouveau-slug  ",
     shortDescription: "Court",
     description: "Long",
     featuredImage: "",
@@ -1049,6 +1082,58 @@ test("createDigitalAsset refuses an empty path", async () => {
       }),
     (error: unknown) => error instanceof Error && /path/i.test(error.message)
   );
+});
+
+test("createDigitalAsset refuses a storage path containing an accent", async () => {
+  const { db } = createMockCatalogDb();
+  const service = createCatalogService(db);
+
+  await assert.rejects(
+    () =>
+      service.createDigitalAsset({
+        provider: "SUPABASE",
+        bucket: "ebooks-private",
+        path: "ebooks/électricité-van/v1/guide.pdf",
+        filename: "guide.pdf",
+        status: "DRAFT",
+      }),
+    (error: unknown) => error instanceof Error && /path/i.test(error.message)
+  );
+});
+
+test("createDigitalAsset refuses a bucket containing an accent", async () => {
+  const { db } = createMockCatalogDb();
+  const service = createCatalogService(db);
+
+  await assert.rejects(
+    () =>
+      service.createDigitalAsset({
+        provider: "SUPABASE",
+        bucket: "ébooks-privé",
+        path: "ebooks/guide.pdf",
+        filename: "guide.pdf",
+        status: "DRAFT",
+      }),
+    (error: unknown) => error instanceof Error && /bucket/i.test(error.message)
+  );
+});
+
+test("createDigitalAsset accepts an accented filename with a clean bucket/path", async () => {
+  const { db, state } = createMockCatalogDb();
+  const service = createCatalogService(db);
+
+  const asset = await service.createDigitalAsset({
+    provider: "SUPABASE",
+    bucket: "ebooks-private",
+    path: "ebooks/cabler-son-van/v1/guide.pdf",
+    filename: "Câbler son van.pdf",
+    status: "DRAFT",
+  });
+
+  assert.equal(asset.bucket, "ebooks-private");
+  assert.equal(asset.path, "ebooks/cabler-son-van/v1/guide.pdf");
+  assert.equal(asset.filename, "Câbler son van.pdf");
+  assert.equal(state.assets.length, 1);
 });
 
 test("createDigitalAsset refuses a duplicate bucket/path", async () => {

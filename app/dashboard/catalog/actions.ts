@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ZodError } from "zod";
 import { isHttpError } from "@/lib/http-errors";
 import { requireSession } from "@/lib/require-session";
 import { getEnumFormValue } from "@/lib/form-enum";
@@ -16,6 +17,10 @@ import {
 } from "@/lib/services/catalog";
 
 function getErrorMessage(error: unknown) {
+  if (error instanceof ZodError) {
+    return error.issues[0]?.message ?? "Donnees de formulaire invalides.";
+  }
+
   if (isHttpError(error)) {
     return error.message;
   }
