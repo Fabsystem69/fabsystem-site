@@ -48,7 +48,7 @@ type DownloadGrantCreateData = {
   expiresAt: Date | null;
 };
 
-type DownloadGrantDb = {
+export type DownloadGrantDb = {
   findOrderForGrantCreation(orderId: string): Promise<OrderWithGrantContext | null>;
   createDownloadGrant(data: DownloadGrantCreateData): Promise<DownloadGrant>;
   findDownloadGrantsForOrder(orderId: string): Promise<DownloadGrantWithRelations[]>;

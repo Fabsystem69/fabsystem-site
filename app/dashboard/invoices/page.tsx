@@ -7,7 +7,7 @@ import {
   normalizeSearchQuery,
   parsePageParam,
 } from "@/lib/document-list";
-import { formatDate, formatEuroFromCents } from "@/lib/format";
+import { formatCustomerDisplayName, formatDate, formatEuroFromCents } from "@/lib/format";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { formatServiceBadge } from "@/lib/service-meta";
 
@@ -77,7 +77,7 @@ async function FacturesTab({
 }) {
   let invoices: Array<
     Invoice & {
-      customer: { id: string; name: string; email: string | null };
+      customer: { id: string; name: string | null; email: string };
       _count: { items: number };
     }
   > = [];
@@ -192,7 +192,7 @@ async function FacturesTab({
                   </td>
                   <td className="px-4 py-3 text-neutral-600">
                     <div>
-                      <p>{invoice.customer.name}</p>
+                      <p>{formatCustomerDisplayName(invoice.customer)}</p>
                       <p className="text-xs text-neutral-500">
                         {formatServiceBadge(
                           invoice.serviceType,
@@ -245,7 +245,7 @@ async function FacturesTab({
                     {invoice.number}
                   </Link>
                   <p className="mt-1 text-sm text-neutral-600">
-                    {invoice.customer.name}
+                    {formatCustomerDisplayName(invoice.customer)}
                   </p>
                   <p className="mt-1 text-xs text-neutral-500">
                     {formatServiceBadge(
@@ -350,7 +350,7 @@ async function FacturesTab({
 async function RemisesTab({ query, page }: { query: string; page: number }) {
   let remises: Array<
     Remise & {
-      customer: { id: string; name: string; email: string | null };
+      customer: { id: string; name: string | null; email: string };
       invoice: { id: string; number: string } | null;
     }
   > = [];
@@ -460,7 +460,7 @@ async function RemisesTab({ query, page }: { query: string; page: number }) {
                     {remise.number}
                   </td>
                   <td className="px-4 py-3 text-neutral-600">
-                    {remise.customer.name}
+                    {formatCustomerDisplayName(remise.customer)}
                   </td>
                   <td className="px-4 py-3 text-neutral-600">
                     {remise.status}
@@ -507,7 +507,7 @@ async function RemisesTab({ query, page }: { query: string; page: number }) {
                     {remise.number}
                   </p>
                   <p className="mt-1 text-sm text-neutral-600">
-                    {remise.customer.name}
+                    {formatCustomerDisplayName(remise.customer)}
                   </p>
                   {remise.reason ? (
                     <p className="mt-1 text-xs text-neutral-500">

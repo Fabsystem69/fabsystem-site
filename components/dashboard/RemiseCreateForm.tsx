@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatDateForInput } from "@/lib/format";
+import { formatCustomerDisplayName, formatDateForInput } from "@/lib/format";
 
 export type RemiseCustomerOption = {
   id: string;
-  name: string;
-  email: string | null;
+  name: string | null;
+  email: string;
 };
 
 export type RemiseInvoiceOption = {
@@ -118,7 +118,7 @@ export function RemiseCreateForm({ customers, invoices }: RemiseCreateFormProps)
             >
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name}{c.email ? ` — ${c.email}` : ""}
+                  {formatCustomerDisplayName(c)}{c.name ? ` — ${c.email}` : ""}
                 </option>
               ))}
             </select>

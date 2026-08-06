@@ -9,18 +9,21 @@ import type {
   ProductAsset,
 } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
-import { createDownloadGrantService } from "@/lib/services/download-grant";
+import {
+  createDownloadGrantService,
+  type DownloadGrantDb,
+} from "@/lib/services/download-grant";
 
 type ProductAssetWithAsset = ProductAsset & {
   asset: DigitalAsset;
 };
 
 type ProductWithAssets = Product & {
-  assets?: ProductAssetWithAsset[];
+  assets: ProductAssetWithAsset[];
 };
 
 type OrderItemWithProduct = OrderItem & {
-  product?: ProductWithAssets;
+  product: ProductWithAssets;
 };
 
 type OrderWithContext = Order & {
@@ -90,10 +93,13 @@ function createOrderRecord(overrides: Partial<Order> = {}): Order {
     id: overrides.id ?? "order_1",
     orderNumber: overrides.orderNumber ?? "FS-20260806-ABC123",
     status: overrides.status ?? "PAID",
+    customerId: overrides.customerId ?? null,
+    discountCodeId: overrides.discountCodeId ?? null,
     customerEmail: overrides.customerEmail ?? "buyer@example.com",
     customerName: overrides.customerName ?? null,
     currency: overrides.currency ?? "EUR",
     subtotalCents: overrides.subtotalCents ?? 2900,
+    discountTotalCents: overrides.discountTotalCents ?? 0,
     totalCents: overrides.totalCents ?? 2900,
     cartId: overrides.cartId ?? "cart_1",
     createdAt: overrides.createdAt ?? now,
@@ -157,16 +163,14 @@ function createMockDownloadGrantDb(seed?: {
     } as Record<string, unknown>,
   };
 
-  const inflateOrder = (order: OrderWithContext): OrderWithContext => ({
+  const inflateOrder = (order: OrderWithContext) => ({
     ...order,
     items: (order.items ?? []).map((item) => ({
       ...item,
-      product: item.product
-        ? {
-            ...item.product,
-            assets: [...(item.product.assets ?? [])],
-          }
-        : undefined,
+      product: {
+        ...item.product,
+        assets: [...item.product.assets],
+      },
     })),
     downloadGrants: state.grants
       .filter((grant) => grant.orderId === order.id)
@@ -293,7 +297,7 @@ function createMockDownloadGrantDb(seed?: {
 
       return count;
     },
-    async transaction<T>(callback: (db: typeof db) => Promise<T>) {
+    async transaction<T>(callback: (db: DownloadGrantDb) => Promise<T>): Promise<T> {
       return callback(db);
     },
   };

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Cart, CartItem, Product, ProductPrice } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
-import { createCartService } from "@/lib/services/cart";
+import { createCartService, type CartDb } from "@/lib/services/cart";
 
 type CartRecord = Cart & {
   items?: CartItem[];
@@ -80,7 +80,7 @@ function createMockCartDb(seed?: {
     prices: [...(seed?.prices ?? [])],
   };
 
-  const inflateCart = (cart: Cart): CartRecord => ({
+  const inflateCart = (cart: Cart) => ({
     ...cart,
     items: state.items.filter((item) => item.cartId === cart.id),
   });
@@ -138,7 +138,7 @@ function createMockCartDb(seed?: {
       cart.updatedAt = new Date("2026-08-06T01:00:00.000Z");
       return cart;
     },
-    async transaction<T>(callback: (db: typeof db) => Promise<T>) {
+    async transaction<T>(callback: (db: CartDb) => Promise<T>): Promise<T> {
       return callback(db);
     },
   };

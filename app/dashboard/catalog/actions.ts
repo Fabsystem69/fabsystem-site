@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isHttpError } from "@/lib/http-errors";
 import { requireSession } from "@/lib/require-session";
+import { getEnumFormValue } from "@/lib/form-enum";
+import { ProductStatus, ProductType, PurchaseMode } from "@/lib/generated/prisma/client";
 import {
   activateProduct,
   archiveProduct,
@@ -120,9 +122,9 @@ function getProductFormPayload(formData: FormData) {
     shortDescription: getRequiredString(formData, "shortDescription"),
     description: getRequiredString(formData, "description"),
     featuredImage: "",
-    productType: getRequiredString(formData, "productType"),
-    purchaseMode: getRequiredString(formData, "purchaseMode"),
-    status: getRequiredString(formData, "status"),
+    productType: getEnumFormValue(ProductType, formData, "productType"),
+    purchaseMode: getEnumFormValue(PurchaseMode, formData, "purchaseMode"),
+    status: getEnumFormValue(ProductStatus, formData, "status"),
   };
 }
 

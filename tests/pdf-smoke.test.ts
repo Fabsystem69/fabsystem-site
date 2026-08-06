@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { renderDocumentPdf } from "@/lib/pdf-documents";
+import { renderDocumentPdf, toCustomerInfo } from "@/lib/pdf-documents";
 
 const QR_DATA_URL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7Z0WQAAAAASUVORK5CYII=";
@@ -107,4 +107,38 @@ test("document PDF renderer handles wrapped description rows", async () => {
 
   assert.ok(result.buffer.length > 0);
   assert.equal(result.filename, "DEV-2026-0002.pdf");
+});
+
+test("toCustomerInfo keeps the customer name when present", () => {
+  const info = toCustomerInfo({
+    name: "Client Test",
+    email: "client@example.com",
+    phone: null,
+    address: null,
+    assetType: "VEHICLE",
+    assetBrand: null,
+    assetModel: null,
+    registration: null,
+    odometerKm: null,
+    engineHours: null,
+  });
+
+  assert.equal(info.name, "Client Test");
+});
+
+test("toCustomerInfo falls back to the email when the customer name is null", () => {
+  const info = toCustomerInfo({
+    name: null,
+    email: "client@example.com",
+    phone: null,
+    address: null,
+    assetType: "VEHICLE",
+    assetBrand: null,
+    assetModel: null,
+    registration: null,
+    odometerKm: null,
+    engineHours: null,
+  });
+
+  assert.equal(info.name, "client@example.com");
 });

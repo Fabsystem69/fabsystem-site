@@ -12,6 +12,7 @@ import {
   MAGIC_LOGIN_TOKEN_TTL_SECONDS,
   hashOpaqueToken,
   normalizeCustomerEmail,
+  type CustomerAuthDb,
 } from "@/lib/services/customer-auth";
 
 type MagicLoginTokenWithCustomer = MagicLoginToken & {
@@ -244,7 +245,7 @@ function createMockCustomerAuthDb(seed?: {
       state.expiredCustomerSessionsCalls.push(now);
       return count;
     },
-    async transaction<T>(callback: (db: typeof db) => Promise<T>) {
+    async transaction<T>(callback: (db: CustomerAuthDb) => Promise<T>): Promise<T> {
       return callback(db);
     },
   };

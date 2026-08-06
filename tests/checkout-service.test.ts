@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Order, OrderItem, Payment, PaymentStatus } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
-import { buildCheckoutSessionParams, createCheckoutService } from "@/lib/services/checkout";
+import {
+  buildCheckoutSessionParams,
+  createCheckoutService,
+  type CheckoutDb,
+} from "@/lib/services/checkout";
 
 type OrderRecord = Order & {
   items?: OrderItem[];
@@ -16,10 +20,13 @@ function createOrderRecord(overrides: Partial<Order> = {}): Order {
     id: overrides.id ?? "order_1",
     orderNumber: overrides.orderNumber ?? "FS-20260806-ABC123",
     status: overrides.status ?? "PENDING_PAYMENT",
+    customerId: overrides.customerId ?? null,
+    discountCodeId: overrides.discountCodeId ?? null,
     customerEmail: overrides.customerEmail ?? "buyer@example.com",
     customerName: overrides.customerName ?? null,
     currency: overrides.currency ?? "EUR",
     subtotalCents: overrides.subtotalCents ?? 2900,
+    discountTotalCents: overrides.discountTotalCents ?? 0,
     totalCents: overrides.totalCents ?? 2900,
     cartId: overrides.cartId ?? "cart_1",
     createdAt: overrides.createdAt ?? now,
@@ -87,7 +94,7 @@ function createMockCheckoutDb(seed?: {
     createdPayments: [] as Payment[],
   };
 
-  const inflateOrder = (order: Order): OrderRecord => ({
+  const inflateOrder = (order: Order) => ({
     ...order,
     items: state.orderItems.filter((item) => item.orderId === order.id),
     payments: state.payments.filter((payment) => payment.orderId === order.id),
@@ -150,7 +157,7 @@ function createMockCheckoutDb(seed?: {
       state.createdPayments.push(payment);
       return payment;
     },
-    async transaction<T>(callback: (db: typeof db) => Promise<T>) {
+    async transaction<T>(callback: (db: CheckoutDb) => Promise<T>): Promise<T> {
       return callback(db);
     },
   };
@@ -163,7 +170,12 @@ function createStripeClientMock() {
   const retrieveCalls: string[] = [];
   const sessions = new Map<
     string,
-    { id: string; url: string | null; status: "open" | "complete" | "expired"; payment_status?: string | null }
+    {
+      id: string;
+      url: string | null;
+      status: "open" | "complete" | "expired";
+      payment_status: "paid" | "unpaid" | "no_payment_required";
+    }
   >();
 
   sessions.set("cs_test_123", {
@@ -185,7 +197,7 @@ function createStripeClientMock() {
             return {
               id: "cs_test_123",
               url: "https://checkout.stripe.com/c/pay/cs_test_123",
-              status: "open",
+              status: "open" as const,
             };
           },
           async retrieve(sessionId: string) {

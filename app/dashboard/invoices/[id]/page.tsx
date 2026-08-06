@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { InvoiceDeleteButton } from "@/components/dashboard/InvoiceDeleteButton";
 import { InvoicePaymentForm } from "@/components/dashboard/InvoicePaymentForm";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
-import { formatDate, formatEuroFromCents } from "@/lib/format";
+import { formatCustomerDisplayName, formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { formatDeliveryMode, formatServiceType } from "@/lib/service-meta";
@@ -58,7 +58,7 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
         <div>
           <h1 className="text-3xl font-semibold text-neutral-900">{invoice.number}</h1>
           <p className="mt-2 text-sm text-neutral-600">
-            Facture {invoice.status} pour {invoice.customer.name}
+            Facture {invoice.status} pour {formatCustomerDisplayName(invoice.customer)}
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export default async function DashboardInvoiceDetailPage({ params }: Params) {
         <div className="rounded-lg border border-neutral-200 bg-white p-4">
           <h2 className="text-lg font-semibold text-neutral-900">Client</h2>
           <div className="mt-3 space-y-1 text-sm text-neutral-700">
-            <p>{invoice.customer.name}</p>
+            <p>{formatCustomerDisplayName(invoice.customer)}</p>
             {invoice.customer.address ? <p className="whitespace-pre-line">{invoice.customer.address}</p> : null}
             {invoice.customer.email ? <p>{invoice.customer.email}</p> : null}
             {invoice.customer.phone ? <p>{invoice.customer.phone}</p> : null}

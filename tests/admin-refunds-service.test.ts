@@ -18,10 +18,12 @@ function createOrderRecord(overrides: Partial<Order> = {}): Order {
     orderNumber: overrides.orderNumber ?? "FS-20260806-AAA111",
     status: overrides.status ?? "PAID",
     customerId: overrides.customerId ?? "customer_1",
+    discountCodeId: overrides.discountCodeId ?? null,
     customerEmail: overrides.customerEmail ?? "buyer@example.com",
     customerName: overrides.customerName ?? "Buyer Example",
     currency: overrides.currency ?? "EUR",
     subtotalCents: overrides.subtotalCents ?? 2900,
+    discountTotalCents: overrides.discountTotalCents ?? 0,
     totalCents: overrides.totalCents ?? 2900,
     cartId: overrides.cartId ?? "cart_1",
     createdAt: overrides.createdAt ?? now,
@@ -363,6 +365,7 @@ test("refundOrderInFull makes refund readiness false after a successful refund",
         ...entry,
         items: [],
         payments: entry.payments.map((currentPayment) => ({ ...currentPayment })),
+        discountCode: null,
       }));
     },
     async findOrderById(orderId: string) {
@@ -377,6 +380,7 @@ test("refundOrderInFull makes refund readiness false after a successful refund",
         items: [],
         payments: current.payments.map((currentPayment) => ({ ...currentPayment })),
         downloadGrants: [],
+        discountCode: null,
       };
     },
   });

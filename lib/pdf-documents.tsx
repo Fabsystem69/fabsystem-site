@@ -30,6 +30,18 @@ type CustomerInfo = {
   engineHours: number | null;
 };
 
+// Customer.name est nullable (espace client e-commerce), mais un PDF ne doit
+// jamais afficher un nom vide : on retombe sur l'email, jamais sur une valeur
+// inventée.
+export function toCustomerInfo<
+  T extends Omit<CustomerInfo, "name" | "email"> & { name: string | null; email: string },
+>(customer: T): CustomerInfo {
+  return {
+    ...customer,
+    name: customer.name ?? customer.email,
+  };
+}
+
 type DocumentItem = {
   description: string;
   quantity: number;

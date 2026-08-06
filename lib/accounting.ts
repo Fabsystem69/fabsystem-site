@@ -82,6 +82,7 @@ export async function getUrssafSummary(year: number): Promise<UrssafSummary> {
         customer: {
           select: {
             name: true,
+            email: true,
           },
         },
       },
@@ -128,7 +129,7 @@ export async function getUrssafSummary(year: number): Promise<UrssafSummary> {
 
       return {
         paidAt: invoice.paidAt,
-        customerName: invoice.customer.name,
+        customerName: invoice.customer.name ?? invoice.customer.email,
         invoiceNumber: invoice.number,
         totalCents: invoice.total,
         paymentMethod: invoice.paymentMethod,

@@ -7,6 +7,7 @@ import {
 } from "@/lib/supabase-storage";
 
 const BASE_ENV: NodeJS.ProcessEnv = {
+  NODE_ENV: "test",
   SUPABASE_URL: "https://project.supabase.co",
   SUPABASE_SERVICE_ROLE_KEY: "service-role-secret",
   SUPABASE_STORAGE_BUCKET_EBOOKS: "ebooks-private",

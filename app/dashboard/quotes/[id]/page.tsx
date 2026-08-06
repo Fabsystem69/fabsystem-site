@@ -5,7 +5,7 @@ import { QuoteDeleteButton } from "@/components/dashboard/QuoteDeleteButton";
 import { QuotePdfButton } from "@/components/dashboard/QuotePdfButton";
 import { QuoteSignatureActions } from "@/components/dashboard/QuoteSignatureActions";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
-import { formatDate, formatEuroFromCents } from "@/lib/format";
+import { formatCustomerDisplayName, formatDate, formatEuroFromCents } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { formatDeliveryMode, formatServiceType } from "@/lib/service-meta";
@@ -60,7 +60,7 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
         <div>
           <h1 className="text-3xl font-semibold text-neutral-900">{quote.number}</h1>
           <p className="mt-2 text-sm text-neutral-600">
-            Devis {quote.status} pour {quote.customer.name}
+            Devis {quote.status} pour {formatCustomerDisplayName(quote.customer)}
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export default async function DashboardQuoteDetailPage({ params }: Params) {
         <div className="rounded-lg border border-neutral-200 bg-white p-4">
           <h2 className="text-lg font-semibold text-neutral-900">Client</h2>
           <div className="mt-3 space-y-1 text-sm text-neutral-700">
-            <p>{quote.customer.name}</p>
+            <p>{formatCustomerDisplayName(quote.customer)}</p>
             {quote.customer.address ? <p className="whitespace-pre-line">{quote.customer.address}</p> : null}
             {quote.customer.email ? <p>{quote.customer.email}</p> : null}
             {quote.customer.phone ? <p>{quote.customer.phone}</p> : null}

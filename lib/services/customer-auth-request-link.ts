@@ -10,6 +10,8 @@ type RequestCustomerMagicLinkInput = {
   baseUrl: string;
 };
 
+type RuntimeEnvironment = NodeJS.ProcessEnv["NODE_ENV"];
+
 type RequestCustomerMagicLinkDeps = {
   requestMagicLoginLink: (
     input: RequestCustomerMagicLinkInput
@@ -19,10 +21,10 @@ type RequestCustomerMagicLinkDeps = {
     magicLink: string;
     expiresAt: Date;
   }) => Promise<void>;
-  runtimeEnvironment?: string;
+  runtimeEnvironment?: RuntimeEnvironment;
 };
 
-function createEmailFailureError(runtimeEnvironment: string, error: unknown) {
+function createEmailFailureError(runtimeEnvironment: RuntimeEnvironment, error: unknown) {
   if (runtimeEnvironment === "production") {
     return internalServerError("Unable to send login email");
   }

@@ -10,7 +10,11 @@ import type {
   ProductPrice,
 } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
-import { createCatalogService, normalizeProductSlug } from "@/lib/services/catalog";
+import {
+  createCatalogService,
+  normalizeProductSlug,
+  type CatalogDb,
+} from "@/lib/services/catalog";
 
 type ProductAssetWithAsset = ProductAsset & {
   asset: DigitalAsset;
@@ -119,7 +123,7 @@ function createMockCatalogDb(seed?: {
     updatedAssets: [] as Array<{ assetId: string; data: Record<string, unknown> }>,
   };
 
-  const inflateProduct = (product: Product): ProductRecord => ({
+  const inflateProduct = (product: Product) => ({
     ...product,
     prices: state.prices.filter((price) => price.productId === product.id),
     assets: state.productAssets.filter((asset) => asset.productId === product.id),
@@ -332,7 +336,7 @@ function createMockCatalogDb(seed?: {
         createdAt: removed.createdAt,
       };
     },
-    async transaction<T>(callback: (db: typeof db) => Promise<T>) {
+    async transaction<T>(callback: (db: CatalogDb) => Promise<T>): Promise<T> {
       return callback(db);
     },
   };

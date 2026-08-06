@@ -12,7 +12,7 @@ import type {
   ProductPrice,
 } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
-import { createOrderService } from "@/lib/services/order";
+import { createOrderService, type OrderDb } from "@/lib/services/order";
 
 type CartRecord = Cart & {
   items?: CartItem[];
@@ -224,12 +224,12 @@ function createMockOrderDb(seed?: {
     discountRedemptions: [] as Array<Record<string, unknown>>,
   };
 
-  const inflateCart = (cart: Cart): CartRecord => ({
+  const inflateCart = (cart: Cart) => ({
     ...cart,
     items: state.items.filter((item) => item.cartId === cart.id),
   });
 
-  const inflateOrder = (order: Order): OrderRecord => ({
+  const inflateOrder = (order: Order) => ({
     ...order,
     items: state.orderItems.filter((item) => item.orderId === order.id),
     payments: state.payments.filter((payment) => payment.orderId === order.id),
@@ -425,7 +425,7 @@ function createMockOrderDb(seed?: {
       order.updatedAt = new Date("2026-08-06T02:00:00.000Z");
       return order;
     },
-    async transaction<T>(callback: (db: typeof db) => Promise<T>) {
+    async transaction<T>(callback: (db: OrderDb) => Promise<T>): Promise<T> {
       return callback(db);
     },
   };

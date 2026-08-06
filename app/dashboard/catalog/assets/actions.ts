@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isHttpError } from "@/lib/http-errors";
 import { requireSession } from "@/lib/require-session";
+import { getEnumFormValue } from "@/lib/form-enum";
+import { DigitalAssetProvider, DigitalAssetStatus } from "@/lib/generated/prisma/client";
 import {
   createDigitalAsset,
   linkAssetToProduct,
@@ -56,11 +58,11 @@ function buildAssetsRedirect(pathname: string, params: { error?: string; success
 
 function getAssetFormPayload(formData: FormData) {
   return {
-    provider: getRequiredString(formData, "provider"),
+    provider: getEnumFormValue(DigitalAssetProvider, formData, "provider"),
     bucket: getRequiredString(formData, "bucket"),
     path: getRequiredString(formData, "path"),
     filename: getRequiredString(formData, "filename"),
-    status: getRequiredString(formData, "status"),
+    status: getEnumFormValue(DigitalAssetStatus, formData, "status"),
   };
 }
 

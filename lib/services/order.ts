@@ -114,7 +114,7 @@ type OrderServiceDeps = {
   randomCode?: () => string;
 };
 
-type OrderDb = {
+export type OrderDb = {
   findCart(where: { id: string }): Promise<CartWithItems | null>;
   findCustomerByEmail(email: string): Promise<Customer | null>;
   findProductWithAssetsById(id: string): Promise<ProductWithAssets | null>;

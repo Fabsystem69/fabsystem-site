@@ -28,6 +28,13 @@ export function formatDateForInput(value: Date | string | null | undefined) {
   return date.toISOString().slice(0, 10);
 }
 
+// Customer.name est nullable (espace client e-commerce). En affichage, on
+// retombe sur l'email (toujours renseigné en base, NOT NULL + unique) plutôt
+// que de laisser un nom vide — jamais un nom inventé.
+export function formatCustomerDisplayName(customer: { name: string | null; email: string }) {
+  return customer.name ?? customer.email;
+}
+
 export function formatAddressLines(value: string | null | undefined) {
   if (!value) {
     return [];

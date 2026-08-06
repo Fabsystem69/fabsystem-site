@@ -1,4 +1,4 @@
-import { renderDocumentPdf } from "@/lib/pdf-documents";
+import { renderDocumentPdf, toCustomerInfo } from "@/lib/pdf-documents";
 import { prisma } from "@/lib/prisma";
 
 export async function getQuoteForPdf(quoteId: string) {
@@ -34,7 +34,7 @@ export async function generateQuotePdfBuffer(quoteId: string, qrDataUrl: string)
       subtotal: quote.subtotal,
       tax: quote.tax,
       total: quote.total,
-      customer: quote.customer,
+      customer: toCustomerInfo(quote.customer),
       items: quote.items,
       signedAt: quote.signedAt,
       signedName: quote.signedName,

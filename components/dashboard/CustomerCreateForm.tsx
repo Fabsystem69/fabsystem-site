@@ -7,8 +7,8 @@ type AssetType = "VEHICLE" | "BOAT" | "OTHER";
 
 export type CustomerFormInitialData = {
   id: string;
-  name: string;
-  email: string | null;
+  name: string | null;
+  email: string;
   phone: string | null;
   address: string | null;
   assetType: AssetType;

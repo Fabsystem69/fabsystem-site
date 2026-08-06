@@ -52,7 +52,7 @@ test("getRequiredBaseUrl falls back to request origin outside production", () =>
   const previousBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const previousNodeEnv = process.env.NODE_ENV;
   process.env.NEXT_PUBLIC_BASE_URL = "";
-  process.env.NODE_ENV = "development";
+  (process.env as Record<string, string | undefined>).NODE_ENV = "development";
 
   assert.equal(
     getRequiredBaseUrl("https://preview.example.com/api/client-auth/request-link"),
@@ -60,14 +60,14 @@ test("getRequiredBaseUrl falls back to request origin outside production", () =>
   );
 
   process.env.NEXT_PUBLIC_BASE_URL = previousBaseUrl;
-  process.env.NODE_ENV = previousNodeEnv;
+  (process.env as Record<string, string | undefined>).NODE_ENV = previousNodeEnv;
 });
 
 test("getRequiredBaseUrl requires NEXT_PUBLIC_BASE_URL in production", () => {
   const previousBaseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const previousNodeEnv = process.env.NODE_ENV;
   process.env.NEXT_PUBLIC_BASE_URL = "";
-  process.env.NODE_ENV = "production";
+  (process.env as Record<string, string | undefined>).NODE_ENV = "production";
 
   assert.throws(
     () => getRequiredBaseUrl("https://preview.example.com/api/client-auth/request-link"),
@@ -78,5 +78,5 @@ test("getRequiredBaseUrl requires NEXT_PUBLIC_BASE_URL in production", () => {
   );
 
   process.env.NEXT_PUBLIC_BASE_URL = previousBaseUrl;
-  process.env.NODE_ENV = previousNodeEnv;
+  (process.env as Record<string, string | undefined>).NODE_ENV = previousNodeEnv;
 });

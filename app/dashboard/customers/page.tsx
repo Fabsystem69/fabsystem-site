@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CustomerCreateForm } from "@/components/dashboard/CustomerCreateForm";
 import { formatCustomerAssetSummary } from "@/lib/customer-asset";
+import { formatCustomerDisplayName } from "@/lib/format";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import {
   getCustomersPage,
@@ -131,7 +132,7 @@ export default async function DashboardCustomersPage({
                       href={`/dashboard/customers/${customer.id}`}
                       className="underline underline-offset-2"
                     >
-                      {customer.name}
+                      {formatCustomerDisplayName(customer)}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-neutral-600">

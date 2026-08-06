@@ -37,7 +37,10 @@ export const createDigitalProductInputSchema = z.object({
   assetSortOrder: z.coerce.number().int().min(0).default(0),
 });
 
-export type CreateDigitalProductInput = z.infer<typeof createDigitalProductInputSchema>;
+// z.input (pas z.infer/z.output) : les champs avec .default() doivent rester
+// optionnels pour l'appelant, puisque createDigitalProduct() les remplit via
+// .parse() au runtime.
+export type CreateDigitalProductInput = z.input<typeof createDigitalProductInputSchema>;
 
 type ProductAssetWithAsset = ProductAsset & {
   asset: DigitalAsset;
@@ -146,7 +149,7 @@ type CatalogQueryOptions = {
   includeBundleItems?: boolean;
 };
 
-type CatalogDb = {
+export type CatalogDb = {
   listProducts(filters: ProductListFilters, options?: CatalogQueryOptions): Promise<CatalogProductSummary[]>;
   findProduct(where: ProductLookup, options?: CatalogQueryOptions): Promise<CatalogProductSummary | null>;
   findProductWithAssets(id: string): Promise<CatalogProductWithAssets | null>;
@@ -277,7 +280,7 @@ function getProductActivationReasons(product: CatalogProductSummary) {
 function buildProductInclude(options?: CatalogQueryOptions) {
   return {
     prices: {
-      where: options?.activePricesOnly ? { status: "ACTIVE" } : undefined,
+      where: options?.activePricesOnly ? { status: "ACTIVE" as const } : undefined,
       orderBy: { createdAt: "desc" as const },
     },
     assets: options?.includeAssets

@@ -5,7 +5,11 @@ const optionalTrimmedString = z.string().trim().optional().or(z.literal(""));
 
 export const customerInputSchema = z.object({
   name: z.string().trim().min(1),
-  email: z.string().trim().email().optional().or(z.literal("")),
+  // Customer.email est NOT NULL + unique en base (migration
+  // normalize-customer-for-client-auth) : ne jamais accepter un email vide ici,
+  // sous peine de faire planter Prisma au lieu de renvoyer une erreur de
+  // validation propre.
+  email: z.string().trim().min(1).email(),
   phone: optionalTrimmedString,
   address: optionalTrimmedString,
   assetType: z.enum(["VEHICLE", "BOAT", "OTHER"]).default("OTHER"),
@@ -23,7 +27,7 @@ function normalizeNullableNumber(value: number | "" | null | undefined) {
 export function normalizeCustomerData(data: z.infer<typeof customerInputSchema>) {
   return {
     name: data.name,
-    email: data.email || null,
+    email: data.email,
     phone: data.phone || null,
     address: data.address || null,
     assetType: data.assetType as AssetType,

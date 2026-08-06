@@ -29,7 +29,7 @@ type PaymentUpdateData = {
   failedAt?: Date | null;
 };
 
-type CheckoutDb = {
+export type CheckoutDb = {
   findOrderById(orderId: string): Promise<OrderWithRelations | null>;
   updatePayment(paymentId: string, data: PaymentUpdateData): Promise<Payment>;
   createPayment(data: {

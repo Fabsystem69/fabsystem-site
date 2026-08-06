@@ -64,7 +64,14 @@ export type DashboardOrderDetail = {
   refundReadiness: RefundReadiness;
 };
 
-export type RefundableOrderDetailRecord = OrderDetailRecord;
+// Ni getPrimaryRefundableStripePayment ni buildRefundReadiness ne lisent
+// autre chose que status/totalCents/payments : garder ce type au plus juste
+// permet de les appeler avec n'importe quel chargement de commande qui
+// inclut au moins ces champs (ex. RefundOrderRecord dans admin-refunds.ts),
+// sans forcer un include Prisma complet (items, discountCode) inutile ici.
+export type RefundableOrderDetailRecord = Pick<Order, "status" | "totalCents"> & {
+  payments: Payment[];
+};
 
 function maskIdentifier(value: string | null | undefined) {
   const normalized = value?.trim();

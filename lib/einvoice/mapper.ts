@@ -115,7 +115,7 @@ function buildSeller(): ElectronicInvoiceParty {
 
 function buildBuyer(invoice: InvoiceForElectronicInvoice): ElectronicInvoiceParty {
   return {
-    displayName: invoice.customer.name,
+    displayName: invoice.customer.name ?? invoice.customer.email,
     // The current customer model stores one generic name only.
     legalName: null,
     address: parseAddress(invoice.customer.address),

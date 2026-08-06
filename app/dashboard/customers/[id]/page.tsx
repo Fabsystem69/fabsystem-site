@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Customer, Invoice, Quote } from "@/lib/generated/prisma/client";
 import { formatCustomerAssetSummary, getCustomerAssetLabel } from "@/lib/customer-asset";
+import { formatCustomerDisplayName } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 
@@ -50,7 +51,7 @@ export default async function DashboardCustomerDetailPage({ params }: Params) {
     <main className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-neutral-900">{customer.name}</h1>
+          <h1 className="text-3xl font-semibold text-neutral-900">{formatCustomerDisplayName(customer)}</h1>
           <p className="mt-2 text-sm text-neutral-600">
             {formatCustomerAssetSummary(customer) || "Aucune information véhicule / bateau"}
           </p>

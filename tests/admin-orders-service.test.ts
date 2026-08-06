@@ -15,6 +15,7 @@ type OrderRecord = Order & {
   items?: OrderItem[];
   payments?: Payment[];
   downloadGrants?: DownloadGrantWithRelations[];
+  discountCode?: { id: string; code: string; reason: string | null } | null;
 };
 
 type DownloadGrantWithRelations = DownloadGrant & {
@@ -153,6 +154,7 @@ function createMockAdminOrdersDb(seed?: { orders?: OrderRecord[] }) {
     items: [...(order.items ?? [])],
     payments: [...(order.payments ?? [])],
     downloadGrants: [...(order.downloadGrants ?? [])],
+    discountCode: order.discountCode ?? null,
   });
 
   const db = {

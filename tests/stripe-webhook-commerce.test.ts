@@ -6,6 +6,7 @@ import { HttpError } from "@/lib/http-errors";
 import {
   createStripeWebhookCommerceService,
   isCommerceCheckoutSession,
+  type CommerceWebhookDb,
 } from "@/lib/services/stripe-webhook-commerce";
 
 type PaymentWithOrder = Payment & {
@@ -19,10 +20,13 @@ function createOrderRecord(overrides: Partial<Order> = {}): Order {
     id: overrides.id ?? "order_1",
     orderNumber: overrides.orderNumber ?? "FS-20260806-ABC123",
     status: overrides.status ?? "PENDING_PAYMENT",
+    customerId: overrides.customerId ?? null,
+    discountCodeId: overrides.discountCodeId ?? null,
     customerEmail: overrides.customerEmail ?? "buyer@example.com",
     customerName: overrides.customerName ?? null,
     currency: overrides.currency ?? "EUR",
     subtotalCents: overrides.subtotalCents ?? 2900,
+    discountTotalCents: overrides.discountTotalCents ?? 0,
     totalCents: overrides.totalCents ?? 2900,
     cartId: overrides.cartId ?? "cart_1",
     createdAt: overrides.createdAt ?? now,
@@ -171,7 +175,7 @@ function createMockCommerceWebhookDb(seed?: { payment?: PaymentWithOrder | null 
       state.orderUpdates.push({ orderId, ...data });
       return payment.order;
     },
-    async transaction<T>(callback: (db: typeof db) => Promise<T>) {
+    async transaction<T>(callback: (db: CommerceWebhookDb) => Promise<T>): Promise<T> {
       return callback(db);
     },
   };

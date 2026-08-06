@@ -19,7 +19,7 @@ type CommerceCheckoutExpiredResult =
   | { status: "ignored_already_terminal"; orderId: string; paymentId: string }
   | { status: "ignored_paid_order"; orderId: string; paymentId: string };
 
-type CommerceWebhookDb = {
+export type CommerceWebhookDb = {
   findPaymentByStripeCheckoutSessionId(sessionId: string): Promise<PaymentWithOrder | null>;
   updatePaymentSuccess(
     paymentId: string,
@@ -212,7 +212,12 @@ export function createStripeWebhookCommerceService(
         };
       }
 
-      const result = await db.transaction(async (tx) => {
+      const result = await db.transaction(async (
+        tx
+      ): Promise<
+        | { status: "already_processed"; orderId: string; paymentId: string }
+        | { status: "processed"; orderId: string; paymentId: string }
+      > => {
         const payment = assertPaymentAndOrderAreEligible(
           await tx.findPaymentByStripeCheckoutSessionId(session.id)
         );

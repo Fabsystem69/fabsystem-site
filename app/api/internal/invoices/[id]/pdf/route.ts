@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
 import { renderInvoicePdf } from "@/lib/server/pdf";
 import { generateQrDataUrl } from "@/lib/server/qrcode";
+import { toCustomerInfo } from "@/lib/pdf-documents";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,7 +57,7 @@ export async function GET(_: Request, { params }: Params) {
         subtotal: invoice.subtotal,
         tax: invoice.tax,
         total: invoice.total,
-        customer: invoice.customer,
+        customer: toCustomerInfo(invoice.customer),
         items: invoice.items,
       },
       qrDataUrl

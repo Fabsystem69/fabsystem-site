@@ -3,12 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ItemTemplateCombobox } from "@/components/dashboard/ItemTemplateCombobox";
-import { formatDateForInput, formatEuroFromCents } from "@/lib/format";
+import { formatCustomerDisplayName, formatDateForInput, formatEuroFromCents } from "@/lib/format";
 
 export type CustomerOption = {
   id: string;
-  name: string;
-  email: string | null;
+  name: string | null;
+  email: string;
 };
 
 type Line = {
@@ -241,8 +241,8 @@ export function QuoteCreateForm({
           >
             {customers.map((customer) => (
               <option key={customer.id} value={customer.id}>
-                {customer.name}
-                {customer.email ? ` (${customer.email})` : ""}
+                {formatCustomerDisplayName(customer)}
+                {customer.name ? ` (${customer.email})` : ""}
               </option>
             ))}
           </select>

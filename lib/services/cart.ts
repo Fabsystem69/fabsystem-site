@@ -60,7 +60,7 @@ export type CartSummary = {
   lines: CartSummaryLine[];
 };
 
-type CartDb = {
+export type CartDb = {
   createCart(data: CartCreateData): Promise<Cart>;
   findCart(where: CartLookup): Promise<CartWithItems | null>;
   findProductById(id: string): Promise<Product | null>;

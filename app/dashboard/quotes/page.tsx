@@ -6,7 +6,7 @@ import {
   normalizeSearchQuery,
   parsePageParam,
 } from "@/lib/document-list";
-import { formatEuroFromCents } from "@/lib/format";
+import { formatCustomerDisplayName, formatEuroFromCents } from "@/lib/format";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { formatServiceBadge } from "@/lib/service-meta";
 
@@ -40,8 +40,8 @@ export default async function DashboardQuotesPage({
     Quote & {
       customer: {
         id: string;
-        name: string;
-        email: string | null;
+        name: string | null;
+        email: string;
       };
       _count: {
         items: number;
@@ -157,7 +157,7 @@ export default async function DashboardQuotesPage({
                   </td>
                   <td className="px-4 py-3 text-neutral-600">
                     <div>
-                      <p>{quote.customer.name}</p>
+                      <p>{formatCustomerDisplayName(quote.customer)}</p>
                       <p className="text-xs text-neutral-500">
                         {formatServiceBadge(quote.serviceType, quote.deliveryMode)}
                       </p>
@@ -199,7 +199,7 @@ export default async function DashboardQuotesPage({
                   >
                     {quote.number}
                   </Link>
-                  <p className="mt-1 text-sm text-neutral-600">{quote.customer.name}</p>
+                  <p className="mt-1 text-sm text-neutral-600">{formatCustomerDisplayName(quote.customer)}</p>
                   <p className="mt-1 text-xs text-neutral-500">
                     {formatServiceBadge(quote.serviceType, quote.deliveryMode)}
                   </p>

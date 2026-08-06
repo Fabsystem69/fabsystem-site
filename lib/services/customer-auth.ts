@@ -37,7 +37,7 @@ type MagicLoginTokenWithCustomer = MagicLoginToken & {
   customer: Customer;
 };
 
-type CustomerAuthDb = {
+export type CustomerAuthDb = {
   findCustomerByEmail(email: string): Promise<Customer | null>;
   createCustomer(data: {
     email: string;
