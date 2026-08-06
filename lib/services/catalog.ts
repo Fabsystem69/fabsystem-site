@@ -934,7 +934,10 @@ export function createCatalogService(db: CatalogDb) {
       const normalizedAssetId = assetId.trim();
 
       return db.transaction(async (tx) => {
-        const product = await tx.findProduct({ id: normalizedProductId });
+        const product = await tx.findProduct(
+          { id: normalizedProductId },
+          { activePricesOnly: false, includeAssets: true, includeBundleItems: false }
+        );
 
         if (!product) {
           throw notFound("Product not found");

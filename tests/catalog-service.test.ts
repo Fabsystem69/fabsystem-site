@@ -14,6 +14,7 @@ import {
   createCatalogService,
   normalizeProductSlug,
   type CatalogDb,
+  type CatalogProductSummary,
 } from "@/lib/services/catalog";
 
 type ProductAssetWithAsset = ProductAsset & {
@@ -123,33 +124,48 @@ function createMockCatalogDb(seed?: {
     updatedAssets: [] as Array<{ assetId: string; data: Record<string, unknown> }>,
   };
 
-  const inflateProduct = (product: Product) => ({
+  // Reflète fidèlement le contrat Prisma réel (lib/services/catalog.ts::buildProductInclude) :
+  // un champ non demandé via `options` est absent du résultat (comme un `include: { assets: false }`
+  // Prisma), pas silencieusement rempli. C'est justement l'écart entre ce mock et la vraie DB qui
+  // laissait passer le crash `product.assets.reduce` sur un `findProduct` appelé sans `includeAssets`.
+  type CatalogQueryOptions = {
+    activePricesOnly?: boolean;
+    includeAssets?: boolean;
+    includeBundleItems?: boolean;
+  };
+
+  const inflateProduct = (product: Product, options?: CatalogQueryOptions) => ({
     ...product,
-    prices: state.prices.filter((price) => price.productId === product.id),
-    assets: state.productAssets.filter((asset) => asset.productId === product.id),
-    bundleItems: [],
+    prices: state.prices.filter(
+      (price) =>
+        price.productId === product.id &&
+        (options?.activePricesOnly ? price.status === "ACTIVE" : true)
+    ),
+    assets: options?.includeAssets
+      ? state.productAssets.filter((asset) => asset.productId === product.id)
+      : undefined,
+    bundleItems: options?.includeBundleItems ? [] : undefined,
   });
 
   const db = {
     async listProducts(
       filters: { status?: Product["status"]; purchaseMode?: Product["purchaseMode"] },
-      options?: unknown
+      options?: CatalogQueryOptions
     ) {
-      void options;
       return state.products
         .filter((product) => (filters.status ? product.status === filters.status : true))
         .filter((product) =>
           filters.purchaseMode ? product.purchaseMode === filters.purchaseMode : true
         )
-        .map(inflateProduct);
+        .map((product) => inflateProduct(product, options)) as CatalogProductSummary[];
     },
-    async findProduct(where: { id?: string; slug?: string }) {
+    async findProduct(where: { id?: string; slug?: string }, options?: CatalogQueryOptions) {
       const product = state.products.find(
         (item) =>
           (where.id ? item.id === where.id : true) &&
           (where.slug ? item.slug === where.slug : true)
       );
-      return product ? inflateProduct(product) : null;
+      return (product ? inflateProduct(product, options) : null) as CatalogProductSummary | null;
     },
     async findProductWithAssets(id: string) {
       const product = state.products.find((item) => item.id === id);
@@ -1136,6 +1152,34 @@ test("linkAssetToProduct links an asset to a product", async () => {
   assert.equal(state.productAssets.length, 1);
 });
 
+test("linkAssetToProduct appends a second asset after an existing link without crashing", async () => {
+  const product = createProductRecord({ id: "prod_link_second" });
+  const firstAsset = createAssetRecord({ id: "asset_first" });
+  const secondAsset = createAssetRecord({ id: "asset_second" });
+  const existingLink = createProductAssetRecord({
+    productId: product.id,
+    assetId: firstAsset.id,
+    asset: firstAsset,
+    sortOrder: 0,
+  });
+  const { db } = createMockCatalogDb({
+    products: [product],
+    prices: [createPriceRecord({ productId: product.id })],
+    assets: [firstAsset, secondAsset],
+    productAssets: [existingLink],
+  });
+  const service = createCatalogService(db);
+
+  // Regression : findProduct doit être appelé avec includeAssets pour ce reduce —
+  // reproduit le crash "Cannot read properties of undefined (reading 'reduce')"
+  // observé en production quand ce n'était pas le cas.
+  const updatedProduct = await service.linkAssetToProduct(product.id, secondAsset.id);
+
+  assert.equal(updatedProduct.assets.length, 2);
+  const linkedSecond = updatedProduct.assets.find((entry) => entry.assetId === secondAsset.id);
+  assert.equal(linkedSecond?.sortOrder, 1);
+});
+
 test("linkAssetToProduct does not create duplicate links", async () => {
   const product = createProductRecord({ id: "prod_link_once" });
   const asset = createAssetRecord({ id: "asset_link_once" });
@@ -1204,6 +1248,41 @@ test("linkAssetToProduct refuses an unknown asset", async () => {
     () => service.linkAssetToProduct(product.id, "missing"),
     (error: unknown) => error instanceof HttpError && error.status === 404
   );
+});
+
+test("listAvailableAssetsForProduct returns every asset when none is linked yet", async () => {
+  const product = createProductRecord({ id: "prod_no_links" });
+  const assetOne = createAssetRecord({ id: "asset_avail_1" });
+  const assetTwo = createAssetRecord({ id: "asset_avail_2" });
+  const { db } = createMockCatalogDb({
+    products: [product],
+    assets: [assetOne, assetTwo],
+  });
+  const service = createCatalogService(db);
+
+  const available = await service.listAvailableAssetsForProduct(product.id);
+
+  assert.equal(available.length, 2);
+});
+
+test("listAvailableAssetsForProduct returns an empty list when every asset is already linked", async () => {
+  const product = createProductRecord({ id: "prod_all_linked" });
+  const asset = createAssetRecord({ id: "asset_already_linked" });
+  const existingLink = createProductAssetRecord({
+    productId: product.id,
+    assetId: asset.id,
+    asset,
+  });
+  const { db } = createMockCatalogDb({
+    products: [product],
+    assets: [asset],
+    productAssets: [existingLink],
+  });
+  const service = createCatalogService(db);
+
+  const available = await service.listAvailableAssetsForProduct(product.id);
+
+  assert.deepEqual(available, []);
 });
 
 test("ebook without an active asset stays non-activable", async () => {
