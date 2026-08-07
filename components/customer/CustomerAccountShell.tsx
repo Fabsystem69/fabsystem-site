@@ -5,6 +5,7 @@ import type { CustomerAccountOverview } from "@/lib/services/customer-account";
 
 type CustomerAccountShellProps = {
   overview: CustomerAccountOverview;
+  downloadError?: string;
 };
 
 function formatOrderAmount(value: number, currency: string) {
@@ -35,7 +36,7 @@ function formatOrderStatus(status: string) {
   }
 }
 
-export function CustomerAccountShell({ overview }: CustomerAccountShellProps) {
+export function CustomerAccountShell({ overview, downloadError }: CustomerAccountShellProps) {
   const { customer, orders } = overview;
 
   return (
@@ -53,6 +54,11 @@ export function CustomerAccountShell({ overview }: CustomerAccountShellProps) {
               Retrouvez ici vos achats numériques FabSystem et les téléchargements encore
               disponibles.
             </p>
+            {downloadError ? (
+              <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                {downloadError}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

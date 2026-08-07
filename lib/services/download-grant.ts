@@ -48,6 +48,13 @@ type DownloadGrantCreateData = {
   expiresAt: Date | null;
 };
 
+// Limite de téléchargements par grant à la création. 10 déclenchait des faux
+// positifs ("Maximum download count reached") pendant des tests légitimes
+// (plusieurs appareils, retéléchargements). Ne nécessite aucune migration :
+// DownloadGrant.maxDownloads est un simple Int mutable, seule la valeur
+// appliquée à la création change ici. N'affecte pas les grants déjà créés.
+export const DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS = 20;
+
 export type DownloadGrantDb = {
   findOrderForGrantCreation(orderId: string): Promise<OrderWithGrantContext | null>;
   createDownloadGrant(data: DownloadGrantCreateData): Promise<DownloadGrant>;
@@ -59,6 +66,8 @@ export type DownloadGrantDb = {
     data: {
       status?: DownloadGrantStatus;
       revokedAt?: Date | null;
+      downloadCount?: number;
+      maxDownloadsIncrement?: number;
     }
   ): Promise<DownloadGrant>;
   expireActiveDownloadGrants(now: Date): Promise<number>;
@@ -210,9 +219,17 @@ function createPrismaDownloadGrantDb(client: PrismaClientLike): DownloadGrantDb 
       }) as Promise<DownloadGrantWithRelations | null>;
     },
     async updateDownloadGrant(grantId, data) {
+      const { maxDownloadsIncrement, ...rest } = data;
+
       return currentClient.downloadGrant.update({
         where: { id: grantId },
-        data,
+        data: {
+          ...rest,
+          maxDownloads:
+            typeof maxDownloadsIncrement === "number"
+              ? { increment: maxDownloadsIncrement }
+              : undefined,
+        },
       });
     },
     async expireActiveDownloadGrants(now) {
@@ -292,7 +309,7 @@ export function createDownloadGrantService(
                 customerEmail: normalizeEmail(order.customerEmail),
                 status: "ACTIVE",
                 downloadCount: 0,
-                maxDownloads: 10,
+                maxDownloads: DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS,
                 expiresAt: null,
               });
 
@@ -364,6 +381,55 @@ export function createDownloadGrantService(
       const effectiveNow = referenceDate ?? now();
       return db.expireActiveDownloadGrants(effectiveNow);
     },
+
+    // Action admin : remet downloadCount à 0 sans toucher au statut, à la
+    // commande ou au paiement. N'importe quel grant existant peut être reset,
+    // qu'il soit ACTIVE ou REVOKED (le statut reste la seule autorité sur le
+    // droit réel de télécharger, voir assertDownloadGrantIsEligible).
+    async resetDownloadGrantCount(grantId: string) {
+      const normalizedGrantId = assertNonEmptyId(grantId, "Grant id");
+      const grant = await db.findDownloadGrantById(normalizedGrantId);
+
+      if (!grant) {
+        throw notFound("Download grant not found");
+      }
+
+      await db.updateDownloadGrant(grant.id, { downloadCount: 0 });
+
+      const updatedGrant = await db.findDownloadGrantById(grant.id);
+
+      if (!updatedGrant) {
+        throw notFound("Download grant not found after update");
+      }
+
+      return updatedGrant;
+    },
+
+    // Action admin : augmente maxDownloads d'un montant fixe, sans jamais
+    // supprimer ni recréer le grant. Aucune migration requise (Int mutable).
+    async increaseDownloadGrantLimit(grantId: string, amount: number) {
+      const normalizedGrantId = assertNonEmptyId(grantId, "Grant id");
+
+      if (!Number.isInteger(amount) || amount <= 0) {
+        throw badRequest("Amount must be a positive integer");
+      }
+
+      const grant = await db.findDownloadGrantById(normalizedGrantId);
+
+      if (!grant) {
+        throw notFound("Download grant not found");
+      }
+
+      await db.updateDownloadGrant(grant.id, { maxDownloadsIncrement: amount });
+
+      const updatedGrant = await db.findDownloadGrantById(grant.id);
+
+      if (!updatedGrant) {
+        throw notFound("Download grant not found after update");
+      }
+
+      return updatedGrant;
+    },
   };
 }
 
@@ -390,4 +456,14 @@ export async function revokeDownloadGrant(grantId: string) {
 export async function markExpiredDownloadGrants(referenceDate?: Date) {
   const service = await getDefaultDownloadGrantService();
   return service.markExpiredDownloadGrants(referenceDate);
+}
+
+export async function resetDownloadGrantCount(grantId: string) {
+  const service = await getDefaultDownloadGrantService();
+  return service.resetDownloadGrantCount(grantId);
+}
+
+export async function increaseDownloadGrantLimit(grantId: string, amount: number) {
+  const service = await getDefaultDownloadGrantService();
+  return service.increaseDownloadGrantLimit(grantId, amount);
 }

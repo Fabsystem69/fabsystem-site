@@ -10,6 +10,7 @@ import type {
 } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
 import {
+  DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS,
   createDownloadGrantService,
   type DownloadGrantDb,
 } from "@/lib/services/download-grant";
@@ -261,6 +262,8 @@ function createMockDownloadGrantDb(seed?: {
       data: {
         status?: DownloadGrant["status"];
         revokedAt?: Date | null;
+        downloadCount?: number;
+        maxDownloadsIncrement?: number;
       }
     ) {
       const grant = state.grants.find((item) => item.id === grantId);
@@ -275,6 +278,14 @@ function createMockDownloadGrantDb(seed?: {
 
       if ("revokedAt" in data) {
         grant.revokedAt = data.revokedAt ?? null;
+      }
+
+      if (typeof data.downloadCount === "number") {
+        grant.downloadCount = data.downloadCount;
+      }
+
+      if (typeof data.maxDownloadsIncrement === "number") {
+        grant.maxDownloads += data.maxDownloadsIncrement;
       }
 
       grant.updatedAt = new Date("2026-08-06T02:00:00.000Z");
@@ -378,6 +389,7 @@ test("createDownloadGrantsForOrder creates one grant for a paid order with one a
   assert.equal(result.grants.length, 1);
   assert.equal(state.grants.length, 1);
   assert.equal(state.grants[0]?.assetId, asset.id);
+  assert.equal(state.grants[0]?.maxDownloads, DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS);
 });
 
 test("createDownloadGrantsForOrder creates multiple grants for multiple active assets", async () => {
@@ -749,4 +761,87 @@ test("download grant service does not touch Supabase, Stripe, or Vercel Blob", a
   assert.equal(state.supabaseTouched, false);
   assert.equal(state.stripeTouched, false);
   assert.equal(state.vercelBlobTouched, false);
+});
+
+function createGrantWithRelations(
+  overrides: Partial<DownloadGrant> = {}
+): DownloadGrantWithRelations {
+  const product = createProductRecord();
+  const asset = createAssetRecord();
+  const order = createOrderRecord();
+  const orderItem = createOrderItemRecord({ orderId: order.id, productId: product.id });
+
+  return {
+    ...createDownloadGrantRecord(overrides),
+    order,
+    orderItem,
+    product,
+    asset,
+  };
+}
+
+test("resetDownloadGrantCount sets downloadCount back to zero without changing status", async () => {
+  const grant = createGrantWithRelations({
+    id: "grant_reset",
+    downloadCount: 8,
+    maxDownloads: 20,
+    status: "ACTIVE",
+  });
+  const { db, state } = createMockDownloadGrantDb({ grants: [grant] });
+  const service = createDownloadGrantService(db);
+
+  const updated = await service.resetDownloadGrantCount("grant_reset");
+
+  assert.equal(updated.downloadCount, 0);
+  assert.equal(updated.status, "ACTIVE");
+  assert.equal(updated.maxDownloads, 20);
+  assert.equal(state.grants[0]?.downloadCount, 0);
+});
+
+test("resetDownloadGrantCount refuses a missing grant", async () => {
+  const { db } = createMockDownloadGrantDb({ grants: [] });
+  const service = createDownloadGrantService(db);
+
+  await assert.rejects(
+    () => service.resetDownloadGrantCount("missing"),
+    (error: unknown) => error instanceof HttpError && error.status === 404
+  );
+});
+
+test("increaseDownloadGrantLimit adds the requested amount to maxDownloads", async () => {
+  const grant = createGrantWithRelations({
+    id: "grant_increase",
+    downloadCount: 20,
+    maxDownloads: 20,
+    status: "ACTIVE",
+  });
+  const { db, state } = createMockDownloadGrantDb({ grants: [grant] });
+  const service = createDownloadGrantService(db);
+
+  const updated = await service.increaseDownloadGrantLimit("grant_increase", 5);
+
+  assert.equal(updated.maxDownloads, 25);
+  assert.equal(updated.downloadCount, 20);
+  assert.equal(state.grants[0]?.maxDownloads, 25);
+});
+
+test("increaseDownloadGrantLimit refuses a non-positive amount", async () => {
+  const grant = createGrantWithRelations({ id: "grant_bad_amount" });
+  const { db } = createMockDownloadGrantDb({ grants: [grant] });
+  const service = createDownloadGrantService(db);
+
+  await assert.rejects(
+    () => service.increaseDownloadGrantLimit("grant_bad_amount", 0),
+    (error: unknown) => error instanceof HttpError && error.status === 400
+  );
+});
+
+test("increaseDownloadGrantLimit refuses a missing grant", async () => {
+  const { db } = createMockDownloadGrantDb({ grants: [] });
+  const service = createDownloadGrantService(db);
+
+  await assert.rejects(
+    () => service.increaseDownloadGrantLimit("missing", 5),
+    (error: unknown) => error instanceof HttpError && error.status === 404
+  );
 });

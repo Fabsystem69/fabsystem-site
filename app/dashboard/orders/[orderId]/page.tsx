@@ -2,7 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { getDashboardOrderDetail } from "@/lib/services/admin-orders";
-import { refundOrderInFullAction } from "./actions";
+import {
+  addDownloadsToGrantAction,
+  refundOrderInFullAction,
+  resendMagicLinkAction,
+  resetDownloadGrantCountAction,
+  revokeDownloadGrantAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -126,6 +132,17 @@ export default async function DashboardOrderDetailPage({
             Commande offerte via code coaching.
           </p>
         ) : null}
+
+        <form action={resendMagicLinkAction} className="mt-4">
+          <input type="hidden" name="orderId" value={order.id} />
+          <input type="hidden" name="customerEmail" value={order.customerEmail} />
+          <button
+            type="submit"
+            className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold text-neutral-800 hover:bg-neutral-50"
+          >
+            Renvoyer le lien de connexion (magic link)
+          </button>
+        </form>
       </section>
 
       <section className="rounded-xl border border-neutral-200 bg-white p-5">
@@ -206,6 +223,41 @@ export default async function DashboardOrderDetailPage({
                   Dernier telechargement : {formatOptionalDate(grant.lastDownloadedAt)}
                 </p>
                 <p className="mt-1">Revoque le : {formatOptionalDate(grant.revokedAt)}</p>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <form action={resetDownloadGrantCountAction}>
+                    <input type="hidden" name="orderId" value={order.id} />
+                    <input type="hidden" name="grantId" value={grant.id} />
+                    <button
+                      type="submit"
+                      className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold text-neutral-800 hover:bg-neutral-50"
+                    >
+                      Reinitialiser le compteur
+                    </button>
+                  </form>
+                  <form action={addDownloadsToGrantAction}>
+                    <input type="hidden" name="orderId" value={order.id} />
+                    <input type="hidden" name="grantId" value={grant.id} />
+                    <button
+                      type="submit"
+                      className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
+                    >
+                      Ajouter 5 telechargements
+                    </button>
+                  </form>
+                  {grant.status !== "REVOKED" ? (
+                    <form action={revokeDownloadGrantAction}>
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <input type="hidden" name="grantId" value={grant.id} />
+                      <button
+                        type="submit"
+                        className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800 hover:bg-red-100"
+                      >
+                        Revoquer l&apos;acces
+                      </button>
+                    </form>
+                  ) : null}
+                </div>
               </article>
             ))
           )}

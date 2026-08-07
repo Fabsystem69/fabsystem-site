@@ -21,6 +21,7 @@ import {
   normalizeCustomerEmail,
   normalizeOptionalCustomerName,
 } from "@/lib/services/customer-auth";
+import { DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS } from "@/lib/services/download-grant";
 
 type PrismaClientLike = PrismaClient;
 
@@ -389,7 +390,7 @@ async function createDownloadGrantsForFreeOrder(
         customerEmail,
         status: "ACTIVE",
         downloadCount: 0,
-        maxDownloads: 10,
+        maxDownloads: DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS,
         expiresAt: null,
       });
     }

@@ -14,7 +14,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function MonComptePage() {
+export default async function MonComptePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ downloadError?: string }>;
+}) {
   const session = await getCustomerSessionFromCookie();
 
   if (!session) {
@@ -22,6 +26,8 @@ export default async function MonComptePage() {
   }
 
   const overview = await getCustomerAccountOverview(session.customer.id);
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const downloadError = resolvedSearchParams?.downloadError;
 
-  return <CustomerAccountShell overview={overview} />;
+  return <CustomerAccountShell overview={overview} downloadError={downloadError} />;
 }

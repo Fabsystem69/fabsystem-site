@@ -12,6 +12,7 @@ import type {
   ProductPrice,
 } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
+import { DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS } from "@/lib/services/download-grant";
 import { createOrderService, type OrderDb } from "@/lib/services/order";
 
 type CartRecord = Cart & {
@@ -679,6 +680,7 @@ test("createOrderFromCart creates a free paid order without Stripe payment and i
   assert.equal(order.paidAt?.toISOString(), "2026-08-06T12:00:00.000Z");
   assert.equal(order.payments.length, 0);
   assert.equal(state.downloadGrants.length, 1);
+  assert.equal(state.downloadGrants[0]?.maxDownloads, DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS);
   assert.equal(state.discountRedemptions.length, 1);
   assert.equal(state.discountCodes[0]?.redeemedCount, 1);
   assert.equal(state.carts[0]?.status, "CONVERTED");
