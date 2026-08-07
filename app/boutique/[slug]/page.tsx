@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import FaqEbook from "@/components/FaqEbook";
 import { isHttpError } from "@/lib/http-errors";
 import { formatEuroFromCents } from "@/lib/format";
 import { findPrestationsPackIncludingEbook, getCategorieLabel } from "@/lib/prestations-packs";
@@ -34,16 +35,21 @@ function getProductTypeLabel(value: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE") {
   }
 }
 
-// Contenu editorial deja existant ailleurs dans le repo (page marketing
-// /ebook/cabler-son-van), reutilise ici tel quel — rien n'est invente. Aucune
-// entree pour l'ebook bateau : aucun contenu/visuel equivalent n'existe
-// encore dans le repo pour ce produit.
+// Contenu editorial fusionne depuis l'ancienne page marketing dediee
+// /ebook/cabler-son-van (supprimee : cette fiche boutique couvre desormais
+// a la fois la vente et l'argumentaire). Rien n'est invente, tout est repris
+// tel quel. Aucune entree pour l'ebook bateau : aucun contenu/visuel
+// equivalent n'existe encore dans le repo pour ce produit.
 const EBOOK_ENRICHMENT: Record<
   string,
   {
     coverSrc: string;
     coverAlt: string;
     sommaire: { n: string; title: string; detail: string }[];
+    benefits: string[];
+    formats: { icon: string; title: string; detail: string }[];
+    reassuranceSuffix: string;
+    showFaq: boolean;
   }
 > = {
   "ebook-electricite-van": {
@@ -59,6 +65,22 @@ const EBOOK_ENRICHMENT: Record<
       { n: "07", title: "Mise en service et diagnostic", detail: "Vérifier son installation et repérer une panne avant qu'elle ne tourne mal." },
       { n: "08", title: "Vivre avec son installation", detail: "Entretien, hivernage, et les questions qui reviennent le plus souvent." },
     ],
+    benefits: [
+      "Dimensionner sa batterie et son solaire sans se tromper",
+      "Poser son installation dans l'ordre qui évite de tout redémonter",
+      "Comprendre la VASP et l'assurance sans y passer trois soirs",
+      "La plomberie embarquée, de la cuve à l'eau chaude",
+      "Mettre en service et repérer une panne avant qu'elle ne tourne mal",
+      "Vivre avec son installation : entretien, hivernage, questions fréquentes",
+    ],
+    formats: [
+      { icon: "🖥️", title: "Version bureau", detail: "Format confortable pour l'écran, schémas en grand format, pour une lecture posée avant de commencer." },
+      { icon: "📖", title: "Version poche", detail: "Format compact, facile à garder sous la main sur le chantier — téléphone ou version imprimée." },
+      { icon: "✍️", title: "Personnalisé & interactif", detail: "Votre nom en couverture, quiz à la fin de chaque partie pour vérifier que vous avez bien tout compris." },
+    ],
+    reassuranceSuffix:
+      " sont déduits de la prestation. Ce livre n'est jamais un coût perdu — au pire, c'est votre meilleure préparation avant qu'on travaille ensemble.",
+    showFaq: true,
   },
 };
 
@@ -207,25 +229,80 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
             </article>
 
             {enrichment ? (
-              <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-semibold text-neutral-950">Sommaire</h2>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {enrichment.sommaire.map((part) => (
-                    <div
-                      key={part.n}
-                      className="flex gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
-                    >
-                      <span className="text-sm font-bold text-yellow-600">{part.n}</span>
-                      <div>
-                        <p className="text-sm font-semibold text-neutral-900">{part.title}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-                          {part.detail}
-                        </p>
+              <>
+                <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-base font-semibold text-neutral-950">
+                    Ce que vous allez apprendre
+                  </h2>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {enrichment.benefits.map((item) => (
+                      <div key={item} className="flex gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                        <span className="mt-0.5 text-green-600" aria-hidden="true">✓</span>
+                        <p className="text-sm leading-relaxed text-neutral-800">{item}</p>
                       </div>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-base font-semibold text-neutral-950">Sommaire</h2>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {enrichment.sommaire.map((part) => (
+                      <div
+                        key={part.n}
+                        className="flex gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
+                      >
+                        <span className="text-sm font-bold text-yellow-600">{part.n}</span>
+                        <div>
+                          <p className="text-sm font-semibold text-neutral-900">{part.title}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+                            {part.detail}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-base font-semibold text-neutral-950">Formats inclus</h2>
+                  <p className="mt-1 text-sm text-neutral-600">Un seul achat, tout est fourni.</p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    {enrichment.formats.map((f) => (
+                      <div key={f.title} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                        <span className="text-xl" aria-hidden="true">{f.icon}</span>
+                        <p className="mt-2 text-sm font-semibold text-neutral-900">{f.title}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-neutral-600">{f.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="rounded-2xl border-2 border-brand-400 bg-brand-50/40 p-6">
+                  <p className="text-sm leading-relaxed text-neutral-800">
+                    Et si vous passez ensuite par{" "}
+                    <Link
+                      href="/prestations#accompagnement-distance"
+                      className="font-semibold underline underline-offset-4"
+                    >
+                      l&apos;accompagnement à distance FabSystem
+                    </Link>
+                    , les {formatEuroFromCents(price.unitAmountCents)}
+                    {enrichment.reassuranceSuffix}
+                  </p>
+                </article>
+
+                {enrichment.showFaq ? (
+                  <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-base font-semibold text-neutral-950">
+                      Questions fréquentes
+                    </h2>
+                    <div className="mt-4">
+                      <FaqEbook />
                     </div>
-                  ))}
-                </div>
-              </article>
+                  </article>
+                ) : null}
+              </>
             ) : null}
           </div>
 

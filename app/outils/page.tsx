@@ -127,7 +127,7 @@ export default function OutilsPage() {
           </div>
           <p className="mt-4 text-xs text-neutral-500">
             Pour aller plus loin,{" "}
-            <Link href="/ebook/cabler-son-van" className="underline underline-offset-2 hover:text-neutral-300">
+            <Link href="/boutique/ebook-electricite-van" className="underline underline-offset-2 hover:text-neutral-300">
               le manuel complet
             </Link>{" "}
             reprend tous ces calculs, dans l&apos;ordre du chantier.

@@ -36,13 +36,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
-      url: `${baseUrl}/ebook`,
+      url: `${baseUrl}/boutique`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/ebook/cabler-son-van`,
+      url: `${baseUrl}/boutique/ebook-electricite-van`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.8,

@@ -391,7 +391,7 @@ export default function FormationsPage() {
           <p className="mt-4 text-xs text-neutral-400">
             En attendant, la plomberie, la VASP et la mise en service sont déjà traitées en détail
             dans{" "}
-            <Link href="/ebook" className="underline underline-offset-4 hover:text-neutral-600">
+            <Link href="/boutique" className="underline underline-offset-4 hover:text-neutral-600">
               nos ebooks
             </Link>
             .
@@ -435,10 +435,10 @@ export default function FormationsPage() {
                 structuré, avec un exemplaire personnalisé à garder sur le chantier.
               </p>
               <Link
-                href="/ebook"
+                href="/boutique/ebook-electricite-van"
                 className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-yellow-400 px-4 py-2 text-sm font-bold text-neutral-900 hover:bg-yellow-300"
               >
-                Voir les ebooks
+                Voir l&apos;ebook
               </Link>
             </div>
 

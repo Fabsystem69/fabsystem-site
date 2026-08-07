@@ -20,6 +20,16 @@ const nextConfig: NextConfig = {
         destination: "/contact",
         permanent: true,
       },
+      {
+        source: "/ebook",
+        destination: "/boutique",
+        permanent: true,
+      },
+      {
+        source: "/ebook/cabler-son-van",
+        destination: "/boutique/ebook-electricite-van",
+        permanent: true,
+      },
     ];
   },
 };
