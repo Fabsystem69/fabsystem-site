@@ -1,7 +1,6 @@
 import "./globals.css";
 import { Space_Grotesk } from "next/font/google";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import { SiteChrome } from "@/components/SiteChrome";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartDrawerProvider } from "@/lib/client/cart-drawer-context";
 import type { Metadata, Viewport } from "next";
@@ -108,9 +107,7 @@ export default function RootLayout({
           }}
         />
         <CartDrawerProvider>
-          <Navbar />
-          {children}
-          <Footer />
+          <SiteChrome>{children}</SiteChrome>
           <CartDrawer />
         </CartDrawerProvider>
       </body>
