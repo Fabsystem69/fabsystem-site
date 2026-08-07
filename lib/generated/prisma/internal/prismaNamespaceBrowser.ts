@@ -72,7 +72,6 @@ export const ModelName = {
   DiscountRedemption: 'DiscountRedemption',
   MagicLoginToken: 'MagicLoginToken',
   CustomerSession: 'CustomerSession',
-  EbookOrder: 'EbookOrder',
   Testimonial: 'Testimonial'
 } as const
 
@@ -473,26 +472,6 @@ export const CustomerSessionScalarFieldEnum = {
 } as const
 
 export type CustomerSessionScalarFieldEnum = (typeof CustomerSessionScalarFieldEnum)[keyof typeof CustomerSessionScalarFieldEnum]
-
-
-export const EbookOrderScalarFieldEnum = {
-  id: 'id',
-  email: 'email',
-  name: 'name',
-  stripeSessionId: 'stripeSessionId',
-  stripePaymentIntentId: 'stripePaymentIntentId',
-  status: 'status',
-  desktopBlobPath: 'desktopBlobPath',
-  pocketBlobPath: 'pocketBlobPath',
-  downloadCount: 'downloadCount',
-  emailSentAt: 'emailSentAt',
-  emailError: 'emailError',
-  failureReason: 'failureReason',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type EbookOrderScalarFieldEnum = (typeof EbookOrderScalarFieldEnum)[keyof typeof EbookOrderScalarFieldEnum]
 
 
 export const TestimonialScalarFieldEnum = {

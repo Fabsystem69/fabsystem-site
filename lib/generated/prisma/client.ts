@@ -157,11 +157,6 @@ export type MagicLoginToken = Prisma.MagicLoginTokenModel
  */
 export type CustomerSession = Prisma.CustomerSessionModel
 /**
- * Model EbookOrder
- * 
- */
-export type EbookOrder = Prisma.EbookOrderModel
-/**
  * Model Testimonial
  * 
  */

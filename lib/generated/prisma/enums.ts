@@ -206,17 +206,6 @@ export const CustomerSessionStatus = {
 export type CustomerSessionStatus = (typeof CustomerSessionStatus)[keyof typeof CustomerSessionStatus]
 
 
-export const EbookOrderStatus = {
-  PENDING: 'PENDING',
-  PAID: 'PAID',
-  GENERATING: 'GENERATING',
-  READY: 'READY',
-  FAILED: 'FAILED'
-} as const
-
-export type EbookOrderStatus = (typeof EbookOrderStatus)[keyof typeof EbookOrderStatus]
-
-
 export const TestimonialCustomerType = {
   VAN: 'VAN',
   CAMPING_CAR: 'CAMPING_CAR',

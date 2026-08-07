@@ -8,7 +8,7 @@ import { generateQrDataUrl } from "@/lib/server/qrcode";
 const phoneHref = "tel:+33698247722";
 const emailHref = "mailto:contact@fabsystem.fr";
 const websiteHref = "https://www.fabsystem.fr";
-const scheduleHref = "/visio";
+const scheduleHref = "/contact";
 const vcardPageUrl = "https://www.fabsystem.fr/vcard";
 
 type ContactRow = {
