@@ -41,6 +41,9 @@ scripts/.tmp-*
 # vercel
 .vercel
 
+# contenu source des ebooks (HTML/EPUB volumineux), jamais commite
+/ebook/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
