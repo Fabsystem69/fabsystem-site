@@ -95,7 +95,11 @@ export default function Installation12VBateauPage() {
         overlay="bg-black/55"
         ctas={[
           { href: "/contact", label: "Demander un devis", variant: "primary" },
-          { href: "/visio", label: "Visio conseil", variant: "secondary" },
+          {
+            href: "/prestations#accompagnement-distance",
+            label: "Accompagnement à distance",
+            variant: "secondary",
+          },
         ]}
         assurance={<ServiceAssurance tone="inverse" />}
       />
@@ -255,10 +259,10 @@ export default function Installation12VBateauPage() {
                 Demander un devis
               </Link>
               <Link
-                href="/visio"
+                href="/prestations#accompagnement-distance"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-white sm:w-auto"
               >
-                Visio conseil
+                Accompagnement à distance
               </Link>
             </div>
           </div>

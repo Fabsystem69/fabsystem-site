@@ -5,7 +5,7 @@ import { useState } from "react";
 const faqs = [
   {
     q: "Je ne sais pas par où commencer. C'est normal ?",
-    a: "Oui, c'est la situation la plus courante. Une visio conseil de 30 min suffit pour cadrer votre projet, identifier les priorités et définir la bonne suite : diagnostic sur site, devis ou simplement quelques conseils. C'est sans engagement.",
+    a: "Oui, c'est la situation la plus courante. Un premier échange (contact niveau 1 ou 2) suffit pour cadrer votre projet, identifier les priorités et définir la bonne suite : diagnostic à distance, intervention terrain ou simplement quelques conseils. Sans engagement.",
   },
   {
     q: "Mon bateau a déjà une installation. Pouvez-vous intervenir dessus ?",
@@ -20,24 +20,24 @@ const faqs = [
     a: "Oui. La prestation Schéma & documentation produit un plan complet de votre installation avec repérage, couleurs normalisées et nomenclature. Indispensable pour la maintenance, la vente ou une mise en conformité.",
   },
   {
-    q: "Combien de temps dure une intervention ?",
-    a: "Ça dépend du niveau : une visio conseil dure 45 à 60 min, un diagnostic sur site 2 à 3h selon la complexité. Une installation complète s'étale généralement sur une ou deux journées. Tout est planifié à l'avance sur rendez-vous.",
+    q: "Combien de temps ça prend ?",
+    a: "Ça dépend du palier choisi et de la complexité du projet, pas d'un forfait horaire figé. AMARRAGE sert à faire le point rapidement ; GRAND LARGE accompagne tout un projet jusqu'aux premiers essais. Le rythme est adapté à votre chantier.",
   },
   {
     q: "Quelle est la zone d'intervention ?",
-    a: "L'intervention physique se fait principalement en Rhone-Alpes . La visio conseil et le conseil par schéma sont disponibles partout en France.",
+    a: "L'intervention physique se fait principalement en Rhône-Alpes. L'accompagnement à distance est disponible partout en France.",
   },
   {
-    q: "Accompagnement à distance (Instal') : je débute complètement, c'est pour moi ?",
-    a: "Oui. L'accompagnement part de votre niveau réel et avance à votre rythme — le diagnostic initial sert justement à cadrer ce qui est faisable seul et ce qui demande plus d'attention.",
+    q: "Accompagnement à distance : je débute complètement, c'est pour moi ?",
+    a: "Oui. L'accompagnement part de votre niveau réel et avance à votre rythme — AMARRAGE sert justement à cadrer ce qui est faisable seul et ce qui demande plus d'attention.",
   },
   {
-    q: "Et si mon chantier dure plus de 2 mois ?",
-    a: "Le suivi mensuel prend le relais après les 2 mois, mois par mois, tant que le chantier avance.",
+    q: "Et si mon projet prend plus de temps que prévu ?",
+    a: "L'accompagnement PASSERELLE et GRAND LARGE suit votre chantier jusqu'aux étapes critiques, pas jusqu'à une date figée à l'avance.",
   },
   {
-    q: "Comment se passe le suivi à distance concrètement (photo/message/vocal) ?",
-    a: "Vous envoyez des photos et des messages au fil du chantier, avec des points vidéo réguliers pour faire le bilan et valider les étapes avant de continuer.",
+    q: "Comment se passe le suivi à distance concrètement (photo/message) ?",
+    a: "Vous envoyez des photos et des messages au fil du chantier, avec des échanges WhatsApp ou Teams pour faire le point et valider les étapes avant de continuer.",
   },
 ];
 

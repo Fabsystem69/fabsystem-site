@@ -110,10 +110,9 @@ export default function RealisationsPage() {
         ctas={[
           { href: "/contact", label: "Parler de votre projet", variant: "primary" },
           {
-            href: "/visio",
-            label: "Visio conseil",
+            href: "/prestations#accompagnement-distance",
+            label: "Accompagnement à distance",
             variant: "secondary",
-            event: "click_rdv",
           },
         ]}
         assurance={<ServiceAssurance tone="inverse" />}
@@ -266,11 +265,11 @@ export default function RealisationsPage() {
               Parler de votre projet
             </Link>
             <TrackedLink
-              href="/visio"
+              href="/prestations#accompagnement-distance"
               event="click_rdv"
               className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
             >
-              Visio conseil
+              Accompagnement à distance
             </TrackedLink>
           </div>
         </div>

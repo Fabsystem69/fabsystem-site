@@ -86,7 +86,7 @@ export default function SecurisationCorrectionBateauPage() {
         overlay="bg-black/55"
         ctas={[
           { href: "/contact", label: "Demander un devis", variant: "primary" },
-          { href: "/visio", label: "Visio conseil", variant: "secondary" },
+          { href: "/contact", label: "Me contacter", variant: "secondary" },
         ]}
         assurance={<ServiceAssurance tone="inverse" />}
       />
@@ -229,10 +229,10 @@ export default function SecurisationCorrectionBateauPage() {
                 Demander un devis
               </Link>
               <Link
-                href="/visio"
+                href="/contact"
                 className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900 hover:bg-white sm:w-auto"
               >
-                Visio conseil
+                Me contacter
               </Link>
             </div>
           </div>

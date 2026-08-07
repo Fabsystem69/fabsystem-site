@@ -73,7 +73,7 @@ export default function ProblemeChargeBatterieBateauPage() {
         overlay="bg-black/55"
         ctas={[
           { href: "/contact", label: "Demander un diagnostic", variant: "primary" },
-          { href: "/visio", label: "Visio conseil", variant: "secondary" },
+          { href: "/contact", label: "Me contacter", variant: "secondary" },
         ]}
         assurance={<ServiceAssurance tone="inverse" />}
       />
@@ -145,10 +145,10 @@ export default function ProblemeChargeBatterieBateauPage() {
                 Demander un diagnostic
               </Link>
               <Link
-                href="/visio"
+                href="/contact"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-white sm:w-auto"
               >
-                Visio conseil
+                Me contacter
               </Link>
             </div>
           </div>

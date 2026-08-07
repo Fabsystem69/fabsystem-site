@@ -18,22 +18,18 @@ const faqs = [
   },
   {
     q: "J'ai un camping-car ou un bateau, ce livre me concerne aussi ?",
-    a: "Le contenu est écrit pour le van, mais les principes de dimensionnement, de câblage et de sécurité s'appliquent largement au camping-car. Pour un bateau, la visio conseil est plus adaptée : les contraintes (VASP, coque, humidité) sont différentes.",
+    a: "Le contenu est écrit pour le van, mais les principes de dimensionnement, de câblage et de sécurité s'appliquent largement au camping-car. Pour un bateau, l'accompagnement à distance est plus adapté : les contraintes (VASP, coque, humidité) sont différentes.",
   },
   {
     q: "Si je prends un accompagnement FabSystem après, les 49,99 € sont perdus ?",
     a: (
       <>
-        Non. Si tu réserves ensuite{" "}
+        Non. Si tu passes ensuite par{" "}
         <Link href="/prestations#accompagnement-distance" className="font-semibold underline underline-offset-2">
           l&apos;accompagnement à distance
         </Link>{" "}
-        ou une{" "}
-        <Link href="/visio" className="font-semibold underline underline-offset-2">
-          visio conseil
-        </Link>
-        , les 49,99 € de l&apos;ebook sont déduits du montant de la prestation. Il te suffit de le
-        signaler au moment de la réservation.
+        FabSystem, les 49,99 € de l&apos;ebook sont déduits du montant de la prestation. Il te
+        suffit de le signaler au moment de la prise de contact.
       </>
     ),
   },

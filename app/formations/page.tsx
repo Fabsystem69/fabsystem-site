@@ -362,8 +362,8 @@ export default function FormationsPage() {
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-neutral-700">
                 Vous avancez sur les modules et bloquez sur un point, ou vous voulez savoir si
-                une visio conseil correspond à votre situation ? On échange 20 minutes
-                gratuitement pour faire le point ensemble.
+                l&apos;accompagnement à distance correspond à votre situation ? On échange 20
+                minutes gratuitement pour faire le point ensemble.
               </p>
               <ul className="mt-4 space-y-2 text-sm text-neutral-600">
                 {[
