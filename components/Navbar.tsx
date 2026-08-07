@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
+import { useCartDrawer } from "@/lib/client/cart-drawer-context";
 
 const nav = [
   { href: "/", label: "Accueil" },
@@ -77,6 +78,7 @@ function CartBadge({ count }: { count: number }) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { open: openCartDrawer } = useCartDrawer();
   const [open, setOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const drawerRef = useRef<HTMLDivElement | null>(null);
@@ -192,10 +194,15 @@ export default function Navbar() {
             <Link href="/mon-compte" aria-label="Mon compte" className={ICON_LINK_CLASS}>
               <AccountIcon />
             </Link>
-            <Link href="/panier" aria-label={cartAriaLabel} className={ICON_LINK_CLASS}>
+            <button
+              type="button"
+              aria-label={cartAriaLabel}
+              className={ICON_LINK_CLASS}
+              onClick={openCartDrawer}
+            >
               <CartIcon />
               <CartBadge count={cartCount} />
-            </Link>
+            </button>
             <Link href="/contact" aria-label="Contact" className={ICON_LINK_CLASS}>
               <ContactIcon />
             </Link>
@@ -264,7 +271,6 @@ export default function Navbar() {
               {[
                 ...nav,
                 { href: "/mon-compte", label: "Mon compte" },
-                { href: "/panier", label: mobileCartLabel },
                 { href: "/contact", label: "Contact" },
               ].map((item) => (
                 <Link
@@ -280,6 +286,16 @@ export default function Navbar() {
                   {item.label}
                 </Link>
               ))}
+              <button
+                type="button"
+                className="rounded-lg px-3 py-3 text-left transition-colors duration-150 hover:bg-neutral-50"
+                onClick={() => {
+                  setOpen(false);
+                  openCartDrawer();
+                }}
+              >
+                {mobileCartLabel}
+              </button>
             </nav>
           </div>
         </div>

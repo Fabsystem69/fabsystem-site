@@ -97,7 +97,7 @@ export default async function MerciCommandePage({ searchParams }: MerciPageProps
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-neutral-700 sm:text-base">
               Cette page donne un acces minimal a votre commande numerique et a ses fichiers,
-              sans exposer directement les URLs signees Supabase.
+              generes de facon securisee et valables uniquement pour vous.
             </p>
           </div>
         </div>
@@ -215,8 +215,8 @@ export default async function MerciCommandePage({ searchParams }: MerciPageProps
                 securisee.
               </p>
               <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-                Chaque clic genere une URL signee courte duree via le serveur, sans exposer la cle
-                Supabase ni stocker le lien en base.
+                Chaque clic genere un lien de telechargement securise et de courte duree,
+                valable uniquement pour vous.
               </p>
               <div className="mt-6 rounded-xl border border-dashed border-neutral-300 bg-white p-4">
                 <p className="text-sm font-semibold text-neutral-950">Besoin d&apos;aide ?</p>

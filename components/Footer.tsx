@@ -44,13 +44,27 @@ export default function Footer() {
             >
               fabien.lages@fabsystem.fr
             </TrackedLink>
+            <TrackedLink
+              href="tel:+33698247722"
+              event="click_phone"
+              className="mt-1 block text-sm font-medium text-neutral-900 hover:text-neutral-700"
+            >
+              06 98 24 77 22
+            </TrackedLink>
 
             <div className="mt-4 grid gap-2">
               {/* CTA 1 */}
               <TrackedLink
+                href="tel:+33698247722"
+                event="click_phone"
+                className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800"
+              >
+                Appeler — 06 98 24 77 22
+              </TrackedLink>
+              <TrackedLink
                 href="mailto:fabien.lages@fabsystem.fr?subject=Demande%20d%27information%20FabSystem"
                 event="click_email"
-                className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800"
+                className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-100"
               >
                 Écrire un message
               </TrackedLink>

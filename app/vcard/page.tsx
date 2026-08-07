@@ -356,7 +356,7 @@ export default async function VCardPage() {
                   className="h-[110px] w-[110px] rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm sm:h-[140px] sm:w-[140px]"
                 />
                 <p className="text-sm text-neutral-500">
-                  Ouvre la carte mobile et le téléchargement de la vCard.
+                  Enregistre directement mes coordonnées dans vos contacts téléphone.
                 </p>
               </div>
             </details>

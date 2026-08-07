@@ -6,9 +6,12 @@ import { notifyCartChanged } from "@/lib/cart-events";
 
 type RemoveCartItemButtonProps = {
   productId: string;
+  // Le drawer panier n'a pas de page a rafraichir : il fournit ce callback
+  // pour recharger son propre etat au lieu de router.refresh().
+  onRemoved?: () => void;
 };
 
-export function RemoveCartItemButton({ productId }: RemoveCartItemButtonProps) {
+export function RemoveCartItemButton({ productId, onRemoved }: RemoveCartItemButtonProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +31,11 @@ export function RemoveCartItemButton({ productId }: RemoveCartItemButtonProps) {
       }
 
       notifyCartChanged();
-      router.refresh();
+      if (onRemoved) {
+        onRemoved();
+      } else {
+        router.refresh();
+      }
     } catch (caughtError) {
       const message =
         caughtError instanceof Error

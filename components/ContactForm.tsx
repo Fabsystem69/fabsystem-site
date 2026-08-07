@@ -8,6 +8,7 @@ type Status = null | "ok" | "error";
 export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<Status>(null);
+  const [urgent, setUrgent] = useState(false);
   const [startedAt] = useState(() => String(Date.now()));
 
   const fieldClass =
@@ -35,16 +36,6 @@ export default function ContactForm() {
       { value: "Tableau / protections / distribution", label: "Tableau / protections / distribution" },
       { value: "Panne / comportement anormal", label: "Panne / comportement anormal" },
       { value: "Autre", label: "Autre" },
-    ],
-    []
-  );
-
-  const urgencyOptions = useMemo(
-    () => [
-      { value: "", label: "Choisir…" },
-      { value: "Pas urgent", label: "Pas urgent" },
-      { value: "Cette semaine", label: "Cette semaine" },
-      { value: "Urgent (sécurité)", label: "Urgent (sécurité)" },
     ],
     []
   );
@@ -84,6 +75,7 @@ export default function ContactForm() {
       track("submit_contact_form");
       setStatus("ok");
       form.reset();
+      setUrgent(false);
     } catch (err) {
       console.error("CONTACT FORM ERROR:", err);
       setStatus("error");
@@ -101,6 +93,11 @@ export default function ContactForm() {
         <input name="startedAt" type="hidden" value={startedAt} readOnly />
       </div>
 
+      <p className={hintClass}>
+        Les champs marqués <span className="font-semibold text-neutral-700">*</span> sont
+        nécessaires pour vous répondre. Le reste est facultatif.
+      </p>
+
       {/* Ligne 1 : Nom / Email */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
@@ -114,64 +111,6 @@ export default function ContactForm() {
         </div>
       </div>
 
-      {/* Ligne 2 : Téléphone / Support */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <label className={labelClass}>Téléphone (optionnel)</label>
-          <input name="phone" type="text" placeholder="Ex : 06..." className={fieldClass} />
-          <p className={hintClass}>Utile si vous souhaitez être rappelé.</p>
-        </div>
-
-        <div className="space-y-1">
-          <label className={labelClass}>Support concerné</label>
-          <select name="supportType" className={fieldClass} defaultValue="">
-            {supportOptions.map((opt) => (
-              <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <p className={hintClass}>Bateau / van / camping-car…</p>
-        </div>
-      </div>
-
-      {/* Ligne 3 : Type / Urgence */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1">
-          <label className={labelClass}>Type de demande</label>
-          <select name="requestType" className={fieldClass} defaultValue="">
-            {requestOptions.map((opt) => (
-              <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-1">
-          <label className={labelClass}>Urgence</label>
-          <select name="urgency" className={fieldClass} defaultValue="">
-            {urgencyOptions.map((opt) => (
-              <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Modèle / infos rapides */}
-      <div className="space-y-1">
-        <label className={labelClass}>Modèle / infos utiles (optionnel)</label>
-        <input
-          name="context"
-          type="text"
-          placeholder="Ex : Bayliner 2556 / fourgon L2H2 / 2 batteries lithium / solaire 400W…"
-          className={fieldClass}
-        />
-        <p className={hintClass}>Une ligne suffit, ça aide énormément.</p>
-      </div>
-
       {/* Message */}
       <div className="space-y-1">
         <label className={labelClass}>Message *</label>
@@ -179,10 +118,77 @@ export default function ContactForm() {
           name="message"
           required
           rows={6}
-          placeholder="Décris le problème / l’objectif en 5–10 lignes : ce qui existe, ce qui ne va pas, ce que vous souhaitez obtenir."
+          placeholder="Expliquez-nous simplement votre besoin — quelques phrases suffisent."
           className={fieldClass}
         />
       </div>
+
+      {/* Champs optionnels, repliés par défaut */}
+      <details className="group rounded-md border border-neutral-200 bg-neutral-50 p-3">
+        <summary className="cursor-pointer list-none text-sm font-medium text-neutral-800 marker:content-none">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="text-neutral-400 transition-transform group-open:rotate-90">›</span>
+            Ajouter plus de détails (optionnel)
+          </span>
+        </summary>
+
+        <div className="mt-4 space-y-4">
+          {/* Téléphone / Support */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <label className={labelClass}>Téléphone</label>
+              <input name="phone" type="text" placeholder="Ex : 06..." className={fieldClass} />
+              <p className={hintClass}>Utile si vous souhaitez être rappelé.</p>
+            </div>
+
+            <div className="space-y-1">
+              <label className={labelClass}>Support concerné</label>
+              <select name="supportType" className={fieldClass} defaultValue="">
+                {supportOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <p className={hintClass}>Bateau / van / camping-car…</p>
+            </div>
+          </div>
+
+          {/* Type de demande + urgence regroupés */}
+          <div className="space-y-1">
+            <label className={labelClass}>Type de demande</label>
+            <select name="requestType" className={fieldClass} defaultValue="">
+              {requestOptions.map((opt) => (
+                <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <label className="mt-2 flex items-center gap-2 text-sm text-neutral-700">
+              <input
+                type="checkbox"
+                checked={urgent}
+                onChange={(e) => setUrgent(e.target.checked)}
+                className="h-4 w-4 rounded border-neutral-300"
+              />
+              C&apos;est urgent (problème de sécurité)
+            </label>
+            <input type="hidden" name="urgency" value={urgent ? "Urgent (sécurité)" : ""} />
+          </div>
+
+          {/* Modèle / infos rapides */}
+          <div className="space-y-1">
+            <label className={labelClass}>Modèle / infos utiles</label>
+            <input
+              name="context"
+              type="text"
+              placeholder="Ex : Bayliner 2556 / fourgon L2H2 / 2 batteries lithium / solaire 400W…"
+              className={fieldClass}
+            />
+            <p className={hintClass}>Une ligne suffit, ça aide énormément.</p>
+          </div>
+        </div>
+      </details>
 
       {/* Submit */}
       <button
@@ -202,7 +208,7 @@ export default function ContactForm() {
 
       {status === "error" && (
         <p className="text-sm text-neutral-700" role="status" aria-live="polite">
-          Erreur d’envoi. Réessaie ou écris directement à{" "}
+          Erreur d’envoi. Réessayez ou écrivez directement à{" "}
           <a className="underline" href="mailto:fabien.lages@fabsystem.fr">
             fabien.lages@fabsystem.fr
           </a>

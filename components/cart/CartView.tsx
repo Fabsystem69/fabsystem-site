@@ -35,8 +35,8 @@ export function CartView({ cart }: CartViewProps) {
               Votre sélection numérique
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-neutral-700 sm:text-base">
-              Consultez les produits déjà ajoutés à votre panier, puis créez votre commande avant
-              la redirection sécurisée vers Stripe Checkout.
+              Consultez les produits déjà ajoutés à votre panier, puis créez votre commande — vous
+              serez ensuite redirigé vers une page de paiement sécurisée.
             </p>
           </div>
         </div>
@@ -58,45 +58,37 @@ export function CartView({ cart }: CartViewProps) {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
-              <div className="border-b border-neutral-200 px-6 py-4">
-                <h2 className="text-base font-semibold text-neutral-950">Produits du panier</h2>
+              <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
+                <h2 className="text-base font-semibold text-neutral-950">
+                  Produits du panier
+                  <span className="ml-2 text-sm font-normal text-neutral-500">
+                    ({cart.itemCount})
+                  </span>
+                </h2>
+                <ClearCartButton className="text-sm font-medium text-neutral-500 underline underline-offset-4 hover:text-neutral-900" />
               </div>
 
               <div className="divide-y divide-neutral-200">
                 {cart.lines.map((line) => (
                   <article
                     key={line.productId}
-                    className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-start sm:justify-between"
+                    className="flex items-center gap-4 px-6 py-4"
                   >
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-base font-semibold text-neutral-950">{line.name}</h3>
+                      <h3 className="text-sm font-semibold text-neutral-950">{line.name}</h3>
                       <Link
                         href={`/boutique/${line.slug}`}
-                        className="mt-1 inline-flex text-sm text-neutral-600 underline underline-offset-4 hover:text-neutral-950"
+                        className="mt-0.5 inline-flex text-xs text-neutral-500 underline underline-offset-4 hover:text-neutral-900"
                       >
-                        /boutique/{line.slug}
+                        Voir la fiche produit
                       </Link>
-                      <dl className="mt-3 grid gap-2 text-sm text-neutral-700 sm:grid-cols-3">
-                        <div>
-                          <dt className="text-neutral-500">Quantité</dt>
-                          <dd className="font-medium text-neutral-900">{line.quantity}</dd>
-                        </div>
-                        <div>
-                          <dt className="text-neutral-500">Prix unitaire</dt>
-                          <dd className="font-medium text-neutral-900">
-                            {formatCartAmount(line.unitAmountCents, cart.currency)}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt className="text-neutral-500">Total ligne</dt>
-                          <dd className="font-medium text-neutral-900">
-                            {formatCartAmount(line.totalCents, cart.currency)}
-                          </dd>
-                        </div>
-                      </dl>
                     </div>
+
+                    <p className="shrink-0 text-sm font-semibold text-neutral-950">
+                      {formatCartAmount(line.totalCents, cart.currency)}
+                    </p>
 
                     <RemoveCartItemButton productId={line.productId} />
                   </article>
@@ -104,31 +96,8 @@ export function CartView({ cart }: CartViewProps) {
               </div>
             </div>
 
-            <aside className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
-              <h2 className="text-base font-semibold text-neutral-950">Récapitulatif</h2>
-              <dl className="mt-4 space-y-3 text-sm">
-                <div className="flex items-start justify-between gap-4">
-                  <dt className="text-neutral-500">Articles</dt>
-                  <dd className="text-right font-medium text-neutral-900">{cart.itemCount}</dd>
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <dt className="text-neutral-500">Devise</dt>
-                  <dd className="text-right font-medium text-neutral-900">{cart.currency}</dd>
-                </div>
-              </dl>
-
-              <div className="mt-6 rounded-xl border border-dashed border-neutral-300 bg-white p-4">
-                <p className="text-sm font-semibold text-neutral-950">Paiement sécurisé</p>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                  Saisissez votre email, appliquez un éventuel code de réduction, puis laissez le
-                  serveur recalculer le total avant tout paiement Stripe.
-                </p>
-                <CheckoutForm cart={cart} />
-              </div>
-
-              <div className="mt-6">
-                <ClearCartButton />
-              </div>
+            <aside>
+              <CheckoutForm cart={cart} />
             </aside>
           </div>
         )}

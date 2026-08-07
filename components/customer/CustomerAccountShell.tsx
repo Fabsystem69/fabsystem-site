@@ -199,10 +199,10 @@ export function CustomerAccountShell({ overview, downloadError }: CustomerAccoun
         <aside className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
           <h2 className="text-base font-semibold text-neutral-950">Espace client</h2>
           <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-white p-4">
-            <p className="text-sm font-semibold text-neutral-950">Accès sécurisé minimal</p>
+            <p className="text-sm font-semibold text-neutral-950">Accès sécurisé</p>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              Cette page est protégée par votre session client. Les liens de téléchargement passent
-              par le serveur et n’exposent pas directement d’URL Supabase signée.
+              Cette page est protégée par votre connexion. Vos liens de téléchargement sont générés
+              de façon sécurisée et ne sont valables que pour vous.
             </p>
           </div>
           <div className="mt-6">

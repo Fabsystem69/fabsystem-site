@@ -120,7 +120,7 @@ export default async function ContactPage() {
                       Carte de visite digitale
                     </h2>
                     <p className="text-sm text-neutral-500">
-                      Accès rapide à la fiche contact et à la vCard.
+                      Enregistrez mes coordonnées directement dans vos contacts téléphone.
                     </p>
                   </div>
 
@@ -199,7 +199,7 @@ export default async function ContactPage() {
                     download
                     className="inline-flex min-h-11 items-center justify-center rounded-lg border border-neutral-300 px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                   >
-                    Télécharger la vCard
+                    Ajouter à mes contacts
                   </TrackedLink>
                 </div>
 
@@ -217,7 +217,7 @@ export default async function ContactPage() {
                       Scanner pour enregistrer mes coordonnées
                     </p>
                     <p className="text-xs leading-relaxed text-neutral-500">
-                      Ouvre la carte mobile et le téléchargement de la vCard.
+                      Enregistre directement mes coordonnées dans vos contacts téléphone.
                     </p>
                   </div>
                 </div>

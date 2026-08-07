@@ -2,6 +2,8 @@ import "./globals.css";
 import { Space_Grotesk } from "next/font/google";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { CartDrawer } from "@/components/cart/CartDrawer";
+import { CartDrawerProvider } from "@/lib/client/cart-drawer-context";
 import type { Metadata, Viewport } from "next";
 
 const spaceGrotesk = Space_Grotesk({
@@ -105,9 +107,12 @@ export default function RootLayout({
             }),
           }}
         />
-        <Navbar />
-        {children}
-        <Footer />
+        <CartDrawerProvider>
+          <Navbar />
+          {children}
+          <Footer />
+          <CartDrawer />
+        </CartDrawerProvider>
       </body>
     </html>
   );

@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Boutique",
   description:
-    "Découvrez les produits numériques FabSystem disponibles à l'achat prochainement.",
+    "Découvrez et achetez les produits numériques FabSystem : ebooks et ressources en téléchargement immédiat.",
   alternates: {
     canonical: "/boutique",
   },
@@ -60,8 +60,8 @@ export default async function BoutiquePage() {
               Ressources numériques pour fiabiliser votre installation embarquée
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-neutral-700 sm:text-base">
-              Une première sélection de contenus numériques FabSystem, en lecture seule pour
-              l&apos;instant. Les achats arriveront dans un prochain sprint.
+              Nos ebooks et ressources numériques, disponibles en téléchargement immédiat après
+              paiement sécurisé.
             </p>
           </div>
         </div>

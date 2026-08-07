@@ -166,124 +166,137 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
   }
 
   return (
-    <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-      <div className="rounded-xl border border-neutral-200 bg-white p-4">
+    <form
+      className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white"
+      onSubmit={handleSubmit}
+    >
+      {/* Totaux */}
+      <div className="p-4">
         <h3 className="text-sm font-semibold text-neutral-950">Récapitulatif</h3>
         <dl className="mt-3 space-y-2 text-sm">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
             <dt className="text-neutral-500">Sous-total</dt>
             <dd className="font-medium text-neutral-900">
               {formatAmount(summary.subtotalCents, summary.currency)}
             </dd>
           </div>
-          <div className="flex items-start justify-between gap-4">
-            <dt className="text-neutral-500">Remise</dt>
-            <dd className="font-medium text-neutral-900">
-              -{formatAmount(summary.discountTotalCents, summary.currency)}
-            </dd>
-          </div>
-          <div className="flex items-start justify-between gap-4 border-t border-neutral-200 pt-2">
-            <dt className="text-neutral-900">Total final</dt>
+          {summary.discountTotalCents > 0 ? (
+            <div className="flex items-center justify-between gap-4">
+              <dt className="text-neutral-500">Remise</dt>
+              <dd className="font-medium text-emerald-700">
+                -{formatAmount(summary.discountTotalCents, summary.currency)}
+              </dd>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between gap-4 border-t border-neutral-200 pt-2">
+            <dt className="font-medium text-neutral-900">Total</dt>
             <dd className="text-base font-semibold text-neutral-950">
               {formatAmount(summary.totalCents, summary.currency)}
             </dd>
           </div>
         </dl>
+      </div>
 
-        <div className="mt-4 space-y-2">
-          <label htmlFor="checkout-discount" className="block text-sm font-medium text-neutral-900">
-            Code de réduction
+      {/* Code de réduction */}
+      <div className="p-4">
+        <label htmlFor="checkout-discount" className="block text-sm font-medium text-neutral-900">
+          Code de réduction
+        </label>
+        <div className="mt-2 flex items-stretch gap-2">
+          <input
+            id="checkout-discount"
+            name="discountCode"
+            type="text"
+            value={discountCode}
+            onChange={(event) => {
+              setDiscountCode(event.target.value);
+              setDiscountError(null);
+              if (summary.appliedCode && event.target.value.trim().toUpperCase() !== summary.appliedCode) {
+                setSummary({
+                  subtotalCents: cart.subtotalCents,
+                  discountTotalCents: 0,
+                  totalCents: cart.subtotalCents,
+                  currency: cart.currency,
+                  appliedCode: null,
+                });
+              }
+            }}
+            disabled={disabled || pending || applyingDiscount}
+            className="h-11 min-w-0 flex-1 rounded-md border border-neutral-300 px-3 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
+            placeholder="COACH-XXXXXX"
+          />
+          <button
+            type="button"
+            onClick={handleApplyDiscount}
+            disabled={disabled || pending || applyingDiscount}
+            className="h-11 shrink-0 whitespace-nowrap rounded-md border border-neutral-300 px-4 text-sm font-medium text-neutral-900 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {applyingDiscount ? "..." : "Appliquer"}
+          </button>
+        </div>
+        {summary.appliedCode ? (
+          <p className="mt-2 text-sm text-emerald-700">Code appliqué : {summary.appliedCode}</p>
+        ) : null}
+        {discountError ? <p className="mt-2 text-sm text-red-600">{discountError}</p> : null}
+      </div>
+
+      {/* Coordonnées */}
+      <div className="space-y-4 p-4">
+        <div>
+          <label htmlFor="checkout-email" className="block text-sm font-medium text-neutral-900">
+            Email
           </label>
-          <div className="flex gap-2">
-            <input
-              id="checkout-discount"
-              name="discountCode"
-              type="text"
-              value={discountCode}
-              onChange={(event) => {
-                setDiscountCode(event.target.value);
-                setDiscountError(null);
-                if (summary.appliedCode && event.target.value.trim().toUpperCase() !== summary.appliedCode) {
-                  setSummary({
-                    subtotalCents: cart.subtotalCents,
-                    discountTotalCents: 0,
-                    totalCents: cart.subtotalCents,
-                    currency: cart.currency,
-                    appliedCode: null,
-                  });
-                }
-              }}
-              disabled={disabled || pending || applyingDiscount}
-              className="block min-h-11 flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
-              placeholder="COACH-XXXXXX"
-            />
-            <button
-              type="button"
-              onClick={handleApplyDiscount}
-              disabled={disabled || pending || applyingDiscount}
-              className="min-h-11 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {applyingDiscount ? "Application..." : "Appliquer"}
-            </button>
-          </div>
-          {summary.appliedCode ? (
-            <p className="text-sm text-emerald-700">Code appliqué : {summary.appliedCode}</p>
-          ) : null}
-          {discountError ? <p className="text-sm text-red-600">{discountError}</p> : null}
+          <input
+            id="checkout-email"
+            name="customerEmail"
+            type="email"
+            autoComplete="email"
+            required
+            value={customerEmail}
+            onChange={(event) => setCustomerEmail(event.target.value)}
+            disabled={disabled || pending}
+            className="mt-2 block h-11 w-full rounded-md border border-neutral-300 px-3 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
+            placeholder="client@example.com"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="checkout-name" className="block text-sm font-medium text-neutral-900">
+            Nom
+            <span className="ml-2 text-neutral-500">(optionnel)</span>
+          </label>
+          <input
+            id="checkout-name"
+            name="customerName"
+            type="text"
+            autoComplete="name"
+            value={customerName}
+            onChange={(event) => setCustomerName(event.target.value)}
+            disabled={disabled || pending}
+            className="mt-2 block h-11 w-full rounded-md border border-neutral-300 px-3 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
+            placeholder="Votre nom"
+          />
         </div>
       </div>
 
-      <div>
-        <label htmlFor="checkout-email" className="block text-sm font-medium text-neutral-900">
-          Email
-        </label>
-        <input
-          id="checkout-email"
-          name="customerEmail"
-          type="email"
-          autoComplete="email"
-          required
-          value={customerEmail}
-          onChange={(event) => setCustomerEmail(event.target.value)}
+      {/* Validation */}
+      <div className="p-4">
+        <button
+          type="submit"
           disabled={disabled || pending}
-          className="mt-2 block min-h-11 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
-          placeholder="client@example.com"
-        />
+          className="inline-flex h-11 w-full items-center justify-center rounded-md bg-brand-400 px-4 text-sm font-bold text-neutral-900 hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {pending
+            ? summary.totalCents === 0
+              ? "Création de la commande..."
+              : "Redirection vers le paiement..."
+            : summary.totalCents === 0
+              ? "Valider ma commande offerte"
+              : "Payer maintenant"}
+        </button>
+
+        {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
       </div>
-
-      <div>
-        <label htmlFor="checkout-name" className="block text-sm font-medium text-neutral-900">
-          Nom
-          <span className="ml-2 text-neutral-500">(optionnel)</span>
-        </label>
-        <input
-          id="checkout-name"
-          name="customerName"
-          type="text"
-          autoComplete="name"
-          value={customerName}
-          onChange={(event) => setCustomerName(event.target.value)}
-          disabled={disabled || pending}
-          className="mt-2 block min-h-11 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
-          placeholder="Votre nom"
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={disabled || pending}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {pending
-          ? summary.totalCents === 0
-            ? "Création de la commande..."
-            : "Redirection vers Stripe..."
-          : summary.totalCents === 0
-            ? "Valider ma commande offerte"
-            : "Payer maintenant"}
-      </button>
-
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
     </form>
   );
 }

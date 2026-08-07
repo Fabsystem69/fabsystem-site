@@ -13,33 +13,35 @@ export const metadata: Metadata = {
   },
 };
 
+// Parcours unique (fusionne l'ancien double bloc "4 niveaux" + "3 chemins",
+// redondants entre eux) : chaque niveau a une destination distincte.
 const levels = [
   {
     n: "1",
-    title: "Apprendre seul",
-    hook: "Tu veux tout faire toi-même, à ton rythme.",
+    title: "Apprendre gratuitement",
+    hook: "Modules gratuits, à votre rythme, sans engagement.",
     cta: "Découvrir",
-    href: "/ebook",
+    href: "/formations",
   },
   {
     n: "2",
+    title: "Acheter le guide complet",
+    hook: "L'ebook complet pour tout faire vous-même, étape par étape.",
+    cta: "Voir le guide",
+    href: "/boutique",
+  },
+  {
+    n: "3",
     title: "Être accompagné à distance",
     hook: "Diagnostic, schéma, suivi de chantier à distance.",
     cta: "Voir l'offre",
     href: "/prestations#accompagnement-distance",
   },
   {
-    n: "3",
-    title: "Être accompagné sur place",
-    hook: "Je me déplace, pour que tu comprennes ton installation.",
-    cta: "Voir l'offre",
-    href: "/prestations#prestations-terrain",
-  },
-  {
     n: "4",
-    title: "Me confier les travaux",
-    hook: "Tu préfères que je m'occupe de tout.",
-    cta: "Demander un devis",
+    title: "Faire intervenir FabSystem",
+    hook: "Sur place, ou clé en main du début à la fin.",
+    cta: "Voir l'offre",
     href: "/prestations#prestations-terrain",
   },
 ] as const;
@@ -92,7 +94,7 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto max-w-3xl px-6 py-6 text-white sm:py-8">
           <div className="text-center">
             <h1 className="text-lg font-bold tracking-tight sm:text-xl lg:text-2xl">
-              Bateaux, vans, camping-cars — choisis où tu en es.
+              Bateaux, vans, camping-cars — choisissez votre point de départ.
             </h1>
             <p className="mt-1 text-xs text-white/75 sm:text-sm">
               De l&apos;apprentissage en autonomie à l&apos;installation clé en main.
@@ -123,30 +125,6 @@ export default function HomePage() {
           <div className="mt-3 flex justify-center">
             <ServiceAssurance tone="inverse" />
           </div>
-        </div>
-      </section>
-
-      {/* 3 CHEMINS */}
-      <section className="border-b border-neutral-200 bg-neutral-50 py-6">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 sm:flex-row sm:justify-center">
-          <Link
-            href="/boutique"
-            className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-semibold text-neutral-900 transition hover:border-yellow-400 sm:max-w-xs"
-          >
-            Acheter un guide
-          </Link>
-          <Link
-            href="/prestations"
-            className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-semibold text-neutral-900 transition hover:border-yellow-400 sm:max-w-xs"
-          >
-            Se faire accompagner
-          </Link>
-          <Link
-            href="/formations"
-            className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-semibold text-neutral-900 transition hover:border-yellow-400 sm:max-w-xs"
-          >
-            Apprendre gratuitement
-          </Link>
         </div>
       </section>
 

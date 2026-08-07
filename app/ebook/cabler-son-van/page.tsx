@@ -76,7 +76,7 @@ const formats = [
   {
     icon: "✍️",
     title: "Personnalisé & interactif",
-    detail: "Ton nom en couverture, quiz à la fin de chaque partie pour vérifier que t'as bien tout compris.",
+    detail: "Votre nom en couverture, quiz à la fin de chaque partie pour vérifier que vous avez bien tout compris.",
   },
 ];
 
@@ -97,12 +97,12 @@ export default function EbookPage() {
               Câbler son van sans se planter
             </h1>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              Le manuel complet pour installer l&apos;électricité et la plomberie de ton van
+              Le manuel complet pour installer l&apos;électricité et la plomberie de votre van
               comme un pro — écrit par un électricien qui pose ça tous les jours, pas par un
               blogueur qui a lu deux forums.
             </p>
             <p className="mt-3 text-sm text-white/60">
-              Format interactif · version bureau et poche · exemplaire personnalisé à ton nom
+              Format interactif · version bureau et poche · exemplaire personnalisé à votre nom
             </p>
 
             <div className="mt-7">
@@ -131,7 +131,7 @@ export default function EbookPage() {
       <section className="bg-white py-14 sm:py-16">
         <div className="mx-auto max-w-5xl px-6">
           <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-            Ce que tu vas apprendre
+            Ce que vous allez apprendre
           </p>
           <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
             Tout ce qu&apos;il faut savoir pour ne pas se planter
@@ -147,7 +147,7 @@ export default function EbookPage() {
           </div>
 
           <p className="mt-6 text-xs text-neutral-500">
-            Envie de dimensionner ton installation avant même d&apos;acheter le livre ?{" "}
+            Envie de dimensionner votre installation avant même d&apos;acheter le livre ?{" "}
             <Link href="/outils" className="underline underline-offset-2 hover:text-neutral-700">
               Nos calculateurs gratuits
             </Link>{" "}
@@ -163,7 +163,7 @@ export default function EbookPage() {
             Aperçu du sommaire
           </p>
           <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
-            8 parties, dans l&apos;ordre où tu en as besoin sur le terrain
+            8 parties, dans l&apos;ordre où vous en avez besoin sur le terrain
           </h2>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -213,12 +213,12 @@ export default function EbookPage() {
               49,99 €<span className="ml-2 text-base font-semibold text-neutral-500">accès immédiat</span>
             </p>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-neutral-700 sm:text-base">
-              Et si tu passes ensuite par{" "}
+              Et si vous passez ensuite par{" "}
               <Link href="/prestations#accompagnement-distance" className="font-semibold underline underline-offset-2">
                 l&apos;accompagnement à distance FabSystem
               </Link>
               , les 49,99 € sont déduits de la prestation. Ce livre n&apos;est jamais un coût
-              perdu — au pire, c&apos;est ta meilleure préparation avant qu&apos;on travaille
+              perdu — au pire, c&apos;est votre meilleure préparation avant qu&apos;on travaille
               ensemble.
             </p>
             <div className="mt-6">

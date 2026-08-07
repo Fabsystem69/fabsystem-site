@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildPrestationsPackSlug,
+  findPrestationsPackIncludingEbook,
   getPrestationsPackDefinitionBySlug,
   getPrestationsPackPriceCents,
   isPrestationsPackSlug,
@@ -85,4 +86,21 @@ test("buildPrestationsPackSlug round-trips through getPrestationsPackDefinitionB
   const definition = getPrestationsPackDefinitionBySlug(slug);
   assert.equal(definition?.palier, "grand-large");
   assert.equal(definition?.categorie, "camping-car");
+});
+
+test("findPrestationsPackIncludingEbook finds a pack for the van ebook", () => {
+  const definition = findPrestationsPackIncludingEbook("ebook-electricite-van");
+  assert.equal(definition?.categorie, "van");
+  assert.notEqual(definition?.palier, "amarrage");
+});
+
+test("findPrestationsPackIncludingEbook finds a pack for the bateau ebook", () => {
+  const definition = findPrestationsPackIncludingEbook("ebook-electricite-bateau");
+  assert.equal(definition?.categorie, "bateau");
+  assert.notEqual(definition?.palier, "amarrage");
+});
+
+test("findPrestationsPackIncludingEbook returns undefined for a product with no matching pack", () => {
+  assert.equal(findPrestationsPackIncludingEbook("ebook-electricite-camping-car"), undefined);
+  assert.equal(findPrestationsPackIncludingEbook("some-unrelated-product"), undefined);
 });

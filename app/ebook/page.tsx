@@ -14,7 +14,7 @@ const ebooks = [
     slug: "cabler-son-van",
     title: "Câbler son van sans se planter",
     pitch:
-      "Le manuel complet pour installer l'électricité et la plomberie de ton van comme un pro.",
+      "Le manuel complet pour installer l'électricité et la plomberie de votre van comme un pro.",
     price: "49,99 €",
     cover: "/ebook/couverture.jpg",
     available: true,
@@ -46,7 +46,7 @@ export default function EbookCatalogPage() {
             FabSystem · Ebooks
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-            Choisis ton ebook
+            Choisissez votre ebook
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-white/80">
             Des manuels écrits par un électricien qui pose ça tous les jours, pas par un

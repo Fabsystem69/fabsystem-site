@@ -132,3 +132,13 @@ export function getPrestationsPackDefinitionBySlug(
 
   return listPrestationsPackDefinitions().find((def) => def.slug === slug) ?? null;
 }
+
+// Sens inverse : quels packs incluent tel ebook (utilise par la fiche
+// boutique de l'ebook pour afficher "déjà inclus si tu prends...").
+export function findPrestationsPackIncludingEbook(
+  ebookSlug: string
+): PrestationsPackDefinition | undefined {
+  return listPrestationsPackDefinitions().find(
+    (definition) => definition.grantsEbookSlug === ebookSlug
+  );
+}
