@@ -4,21 +4,110 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 
 const nav = [
   { href: "/", label: "Accueil" },
-  { href: "/ebook", label: "Le manuel" },
-  { href: "/outils", label: "Calculateurs" },
-  { href: "/formations", label: "Formations" },
-  { href: "/prestations", label: "Prestations" },
-  { href: "/realisations", label: "Réalisations" },
+  { href: "/boutique", label: "Boutique" },
+  { href: "/prestations", label: "Services" },
+  { href: "/formations", label: "Apprendre" },
   { href: "/a-propos", label: "À propos" },
 ];
+
+const ICON_LINK_CLASS =
+  "relative inline-flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900";
+
+function AccountIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CartIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 6h2l1.4 10.2a2 2 0 0 0 2 1.8h7.2a2 2 0 0 0 2-1.7L20 9H6.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="21" r="1.3" fill="currentColor" />
+      <circle cx="17" cy="21" r="1.3" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ContactIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M4.5 7l7.5 6 7.5-6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CartBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-400 px-1 text-[10px] font-bold leading-none text-neutral-900"
+    >
+      {count > 9 ? "9+" : count}
+    </span>
+  );
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const drawerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCartCount() {
+      try {
+        const response = await fetch("/api/cart", { cache: "no-store" });
+        if (!response.ok) return;
+        const body = (await response.json().catch(() => null)) as
+          | { cart?: { itemCount?: number } }
+          | null;
+        if (!cancelled) {
+          setCartCount(body?.cart?.itemCount ?? 0);
+        }
+      } catch {
+        // Le badge panier est une amélioration visuelle : une erreur reseau
+        // ne doit jamais bloquer la navigation.
+      }
+    }
+
+    loadCartCount();
+
+    window.addEventListener(CART_CHANGED_EVENT, loadCartCount);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(CART_CHANGED_EVENT, loadCartCount);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -56,6 +145,9 @@ export default function Navbar() {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname?.startsWith(href + "/");
   };
+
+  const cartAriaLabel = cartCount > 0 ? `Panier, ${cartCount} article(s)` : "Panier";
+  const mobileCartLabel = cartCount > 0 ? `Panier (${cartCount})` : "Panier";
 
   return (
     <>
@@ -95,19 +187,17 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Desktop CTA */}
-          <div className="hidden items-center gap-3 sm:flex">
-            <Link
-              href="/contact"
-              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-150"
-            >
-              Contact
+          {/* Desktop actions */}
+          <div className="hidden items-center gap-1 sm:flex">
+            <Link href="/mon-compte" aria-label="Mon compte" className={ICON_LINK_CLASS}>
+              <AccountIcon />
             </Link>
-            <Link
-              href="/visio"
-              className="inline-flex items-center justify-center rounded-lg bg-brand-400 px-4 py-1.5 text-sm font-bold text-neutral-900 transition-colors duration-150 hover:bg-brand-300"
-            >
-              Réserver
+            <Link href="/panier" aria-label={cartAriaLabel} className={ICON_LINK_CLASS}>
+              <CartIcon />
+              <CartBadge count={cartCount} />
+            </Link>
+            <Link href="/contact" aria-label="Contact" className={ICON_LINK_CLASS}>
+              <ContactIcon />
             </Link>
           </div>
 
@@ -171,7 +261,12 @@ export default function Navbar() {
             </div>
 
             <nav className="mt-6 flex flex-col gap-1 text-base font-medium text-neutral-900">
-              {[...nav, { href: "/contact", label: "Contact" }].map((item) => (
+              {[
+                ...nav,
+                { href: "/mon-compte", label: "Mon compte" },
+                { href: "/panier", label: mobileCartLabel },
+                { href: "/contact", label: "Contact" },
+              ].map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -186,17 +281,6 @@ export default function Navbar() {
                 </Link>
               ))}
             </nav>
-
-            {/* Mobile CTA */}
-            <div className="mt-auto pt-6">
-              <Link
-                href="/visio"
-                className="flex w-full items-center justify-center rounded-xl bg-brand-400 py-3 text-base font-bold text-neutral-900 transition-colors duration-150 hover:bg-brand-300"
-                onClick={() => setOpen(false)}
-              >
-                ⚡ Réserver une visio
-              </Link>
-            </div>
           </div>
         </div>
       )}

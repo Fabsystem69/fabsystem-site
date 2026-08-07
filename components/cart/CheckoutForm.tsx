@@ -250,8 +250,8 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
             ? "Création de la commande..."
             : "Redirection vers Stripe..."
           : summary.totalCents === 0
-            ? "Finaliser la commande offerte"
-            : "Continuer vers le paiement"}
+            ? "Valider ma commande offerte"
+            : "Payer maintenant"}
       </button>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { notifyCartChanged } from "@/lib/cart-events";
 
 type AddToCartButtonProps = {
   productId: string;
@@ -32,6 +33,7 @@ export function AddToCartButton({ productId }: AddToCartButtonProps) {
       }
 
       setSuccess(true);
+      notifyCartChanged();
     } catch (caughtError) {
       const message =
         caughtError instanceof Error

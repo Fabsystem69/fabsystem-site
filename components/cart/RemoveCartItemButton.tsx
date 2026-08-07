@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { notifyCartChanged } from "@/lib/cart-events";
 
 type RemoveCartItemButtonProps = {
   productId: string;
@@ -26,6 +27,7 @@ export function RemoveCartItemButton({ productId }: RemoveCartItemButtonProps) {
         throw new Error(body?.error || "Impossible de retirer ce produit du panier.");
       }
 
+      notifyCartChanged();
       router.refresh();
     } catch (caughtError) {
       const message =

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { notifyCartChanged } from "@/lib/cart-events";
 
 export function ClearCartButton() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export function ClearCartButton() {
         throw new Error(body?.error || "Impossible de vider le panier.");
       }
 
+      notifyCartChanged();
       router.refresh();
     } catch (caughtError) {
       const message =
