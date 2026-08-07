@@ -21,21 +21,21 @@ const faqs = [
     a: "Le contenu est écrit pour le van, mais les principes de dimensionnement, de câblage et de sécurité s'appliquent largement au camping-car. Pour un bateau, l'accompagnement à distance est plus adapté : les contraintes (VASP, coque, humidité) sont différentes.",
   },
   {
-    q: "Si je prends un accompagnement FabSystem après, les 49,99 € sont perdus ?",
+    q: "Si je prends un accompagnement FabSystem après, le prix de l'ebook est perdu ?",
     a: (
       <>
         Non. Si vous passez ensuite par{" "}
         <Link href="/prestations#accompagnement-distance" className="font-semibold underline underline-offset-2">
           l&apos;accompagnement à distance
         </Link>{" "}
-        FabSystem, les 49,99 € de l&apos;ebook sont déduits du montant de la prestation. Il vous
-        suffit de le signaler au moment de la prise de contact.
+        FabSystem, le prix de l&apos;ebook est déduit du montant de la prestation. Il vous suffit
+        de le signaler au moment de la prise de contact.
       </>
     ),
   },
   {
     q: "Le paiement est sécurisé ?",
-    a: "Oui, le paiement passe par Stripe. FabSystem ne stocke aucune donnée de carte bancaire.",
+    a: "Oui, le paiement est sécurisé. FabSystem ne stocke aucune donnée de carte bancaire.",
   },
   {
     q: "Je peux l'imprimer ?",

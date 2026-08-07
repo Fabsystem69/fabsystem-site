@@ -38,18 +38,19 @@ function getProductTypeLabel(value: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE") {
 // Contenu editorial fusionne depuis l'ancienne page marketing dediee
 // /ebook/cabler-son-van (supprimee : cette fiche boutique couvre desormais
 // a la fois la vente et l'argumentaire). Rien n'est invente, tout est repris
-// tel quel. Aucune entree pour l'ebook bateau : aucun contenu/visuel
-// equivalent n'existe encore dans le repo pour ce produit.
+// tel quel. L'ebook bateau n'a que sa couverture pour l'instant (produit en
+// brouillon, contenu source pas encore integre au catalogue numerique) :
+// les champs optionnels ci-dessous ne s'affichent que s'ils sont fournis.
 const EBOOK_ENRICHMENT: Record<
   string,
   {
     coverSrc: string;
     coverAlt: string;
-    sommaire: { n: string; title: string; detail: string }[];
-    benefits: string[];
-    formats: { icon: string; title: string; detail: string }[];
-    reassuranceSuffix: string;
-    showFaq: boolean;
+    sommaire?: { n: string; title: string; detail: string }[];
+    benefits?: string[];
+    formats?: { icon: string; title: string; detail: string }[];
+    reassuranceSuffix?: string;
+    showFaq?: boolean;
   }
 > = {
   "ebook-electricite-van": {
@@ -81,6 +82,10 @@ const EBOOK_ENRICHMENT: Record<
     reassuranceSuffix:
       " sont déduits de la prestation. Ce livre n'est jamais un coût perdu — au pire, c'est votre meilleure préparation avant qu'on travaille ensemble.",
     showFaq: true,
+  },
+  "ebook-electricite-bateau": {
+    coverSrc: "/ebook/couverture-bateau.jpg",
+    coverAlt: "Couverture du livre « De la lampe à pétrole au lithium, ton bateau a tout connu »",
   },
 };
 
@@ -230,67 +235,75 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
 
             {enrichment ? (
               <>
-                <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-base font-semibold text-neutral-950">
-                    Ce que vous allez apprendre
-                  </h2>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {enrichment.benefits.map((item) => (
-                      <div key={item} className="flex gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                        <span className="mt-0.5 text-green-600" aria-hidden="true">✓</span>
-                        <p className="text-sm leading-relaxed text-neutral-800">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-
-                <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-base font-semibold text-neutral-950">Sommaire</h2>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {enrichment.sommaire.map((part) => (
-                      <div
-                        key={part.n}
-                        className="flex gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
-                      >
-                        <span className="text-sm font-bold text-yellow-600">{part.n}</span>
-                        <div>
-                          <p className="text-sm font-semibold text-neutral-900">{part.title}</p>
-                          <p className="mt-1 text-xs leading-relaxed text-neutral-600">
-                            {part.detail}
-                          </p>
+                {enrichment.benefits ? (
+                  <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-base font-semibold text-neutral-950">
+                      Ce que vous allez apprendre
+                    </h2>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {enrichment.benefits.map((item) => (
+                        <div key={item} className="flex gap-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                          <span className="mt-0.5 text-green-600" aria-hidden="true">✓</span>
+                          <p className="text-sm leading-relaxed text-neutral-800">{item}</p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </article>
+                      ))}
+                    </div>
+                  </article>
+                ) : null}
 
-                <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-base font-semibold text-neutral-950">Formats inclus</h2>
-                  <p className="mt-1 text-sm text-neutral-600">Un seul achat, tout est fourni.</p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    {enrichment.formats.map((f) => (
-                      <div key={f.title} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-                        <span className="text-xl" aria-hidden="true">{f.icon}</span>
-                        <p className="mt-2 text-sm font-semibold text-neutral-900">{f.title}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-neutral-600">{f.detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                </article>
+                {enrichment.sommaire ? (
+                  <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-base font-semibold text-neutral-950">Sommaire</h2>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {enrichment.sommaire.map((part) => (
+                        <div
+                          key={part.n}
+                          className="flex gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
+                        >
+                          <span className="text-sm font-bold text-yellow-600">{part.n}</span>
+                          <div>
+                            <p className="text-sm font-semibold text-neutral-900">{part.title}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+                              {part.detail}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ) : null}
 
-                <article className="rounded-2xl border-2 border-brand-400 bg-brand-50/40 p-6">
-                  <p className="text-sm leading-relaxed text-neutral-800">
-                    Et si vous passez ensuite par{" "}
-                    <Link
-                      href="/prestations#accompagnement-distance"
-                      className="font-semibold underline underline-offset-4"
-                    >
-                      l&apos;accompagnement à distance FabSystem
-                    </Link>
-                    , les {formatEuroFromCents(price.unitAmountCents)}
-                    {enrichment.reassuranceSuffix}
-                  </p>
-                </article>
+                {enrichment.formats ? (
+                  <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                    <h2 className="text-base font-semibold text-neutral-950">Formats inclus</h2>
+                    <p className="mt-1 text-sm text-neutral-600">Un seul achat, tout est fourni.</p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {enrichment.formats.map((f) => (
+                        <div key={f.title} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                          <span className="text-xl" aria-hidden="true">{f.icon}</span>
+                          <p className="mt-2 text-sm font-semibold text-neutral-900">{f.title}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-neutral-600">{f.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ) : null}
+
+                {enrichment.reassuranceSuffix ? (
+                  <article className="rounded-2xl border-2 border-brand-400 bg-brand-50/40 p-6">
+                    <p className="text-sm leading-relaxed text-neutral-800">
+                      Et si vous passez ensuite par{" "}
+                      <Link
+                        href="/prestations#accompagnement-distance"
+                        className="font-semibold underline underline-offset-4"
+                      >
+                        l&apos;accompagnement à distance FabSystem
+                      </Link>
+                      , les {formatEuroFromCents(price.unitAmountCents)}
+                      {enrichment.reassuranceSuffix}
+                    </p>
+                  </article>
+                ) : null}
 
                 {enrichment.showFaq ? (
                   <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
