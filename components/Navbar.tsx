@@ -11,7 +11,7 @@ const nav = [
   { href: "/", label: "Accueil" },
   { href: "/boutique", label: "Boutique" },
   { href: "/prestations", label: "Services" },
-  { href: "/formations", label: "Apprendre" },
+  { href: "/formations", label: "Autodidacte" },
   { href: "/a-propos", label: "À propos" },
 ];
 

@@ -83,6 +83,31 @@ const levelColors: Record<string, string> = {
   Avancé: "bg-orange-50 text-orange-700",
 };
 
+const calculateurs = [
+  { emoji: "⚡", title: "Section de câble" },
+  { emoji: "🔋", title: "Bilan de consommation" },
+  { emoji: "⏱️", title: "Autonomie batterie" },
+  { emoji: "☀️", title: "Régulateur MPPT" },
+  { emoji: "📐", title: "AWG ↔ mm²" },
+] as const;
+
+// Échelle pédagogique du site : cette page ne couvre que le 1er niveau
+// (autodidacte). Sert de repère de progression global, cohérent avec les
+// 4 niveaux d'accompagnement proposés sur /prestations.
+type EchelleStep = {
+  n: number;
+  label: string;
+  active: boolean;
+  href?: string;
+};
+
+const echellePedagogique: EchelleStep[] = [
+  { n: 1, label: "Autodidacte", active: true, href: undefined },
+  { n: 2, label: "À distance", active: false, href: "/prestations#accompagnement-distance" },
+  { n: 3, label: "Sur place", active: false, href: "/prestations#prestations-terrain" },
+  { n: 4, label: "Délégué", active: false, href: "/prestations#prestations-terrain" },
+];
+
 export default function FormationsPage() {
   return (
     <main>
@@ -94,9 +119,44 @@ export default function FormationsPage() {
         overlay="bg-black/55"
         ctas={[
           { href: "#modules-outils", label: "Voir les modules", variant: "primary" },
-          { href: "#outils-essentiels", label: "Voir les outils", variant: "secondary" },
+          { href: "#outils", label: "Voir les outils", variant: "secondary" },
         ]}
       />
+
+      {/* ── ÉCHELLE PÉDAGOGIQUE (repère de progression global) ── */}
+      <section className="border-t border-neutral-200 bg-neutral-50 py-4 sm:py-5">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+            Votre parcours d&apos;apprentissage FabSystem
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-2">
+            {echellePedagogique.map((step, i) => {
+              const pillClass = `inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                step.active
+                  ? "bg-brand-400 text-neutral-900"
+                  : "border border-neutral-300 bg-white text-neutral-500 hover:border-neutral-400 hover:text-neutral-700"
+              }`;
+              const badgeClass = `flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
+                step.active ? "bg-neutral-900 text-brand-400" : "bg-neutral-200 text-neutral-600"
+              }`;
+              const content = (
+                <span className={pillClass}>
+                  <span className={badgeClass}>{step.n}</span>
+                  {step.label}
+                </span>
+              );
+              return (
+                <div key={step.label} className="flex items-center gap-2">
+                  {step.href ? <Link href={step.href}>{content}</Link> : content}
+                  {i < echellePedagogique.length - 1 && (
+                    <span className="h-px w-4 bg-neutral-300 sm:w-6" aria-hidden="true" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       {/* ── MODULES & OUTILS ── */}
       <section
@@ -133,134 +193,158 @@ export default function FormationsPage() {
             ))}
           </div>
 
-          {/* Deux blocs au même niveau visuel : modules et outils */}
-          <div className="mt-8 grid gap-8 lg:grid-cols-2">
-            {/* Bloc modules */}
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                Accès libre · Aucune inscription
-              </div>
-              <h3 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-                Modules disponibles
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                Pour comprendre les bases avant d&apos;aller plus loin. Gratuit, sans compte
-                requis.
-              </p>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {modulesGratuits.map((module) => (
-                  <article
-                    key={module.title}
-                    className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">
-                        {module.tag}
-                      </span>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${levelColors[module.level]}`}
-                      >
-                        {module.level}
-                      </span>
-                    </div>
-
-                    <h4 className="mt-3 text-sm font-semibold text-neutral-950">
-                      {module.title}
-                    </h4>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-600">
-                      {module.description}
-                    </p>
-
-                    <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3">
-                      <span className="text-xs text-neutral-500">{module.duration}</span>
-                      <span className="text-sm font-bold text-green-700">Gratuit</span>
-                    </div>
-
-                    <div className="mt-3">
-                      <Link
-                        href={module.href}
-                        className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
-                      >
-                        Accéder au module →
-                      </Link>
-                    </div>
-                  </article>
-                ))}
-
-                {/* Quiz fusionné comme 4e item de la grille */}
-                <a
-                  href="#quiz"
-                  className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-neutral-50 p-4 shadow-sm hover:bg-neutral-100"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center rounded-full bg-neutral-200 px-2.5 py-0.5 text-xs font-semibold text-neutral-700">
-                      Quiz
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-neutral-200 px-2.5 py-0.5 text-xs font-medium text-neutral-700">
-                      10 questions
-                    </span>
-                  </div>
-                  <h4 className="mt-3 text-sm font-semibold text-neutral-950">
-                    Testez vos connaissances
-                  </h4>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-600">
-                    Loi d&apos;Ohm, schémas, batteries — vérifiez vos acquis après avoir parcouru
-                    les modules.
-                  </p>
-                  <div className="mt-4 border-t border-neutral-200 pt-3 text-sm font-semibold text-neutral-900">
-                    Lancer le quiz ↓
-                  </div>
-                </a>
-              </div>
+          {/* Bloc modules : parcours numéroté façon timeline */}
+          <div className="mt-8">
+            <div className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+              Accès libre · Aucune inscription
             </div>
+            <h3 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
+              Modules disponibles
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-700">
+              Pour comprendre les bases avant d&apos;aller plus loin. Gratuit, sans compte requis.
+            </p>
 
-            {/* Bloc outils */}
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700">
-                Pratique
-              </div>
-              <h3 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-                Outils
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                Des calculateurs pour mettre en pratique ce que vous venez d&apos;apprendre, et le
-                matériel physique pour passer à l&apos;action sur le chantier.
-              </p>
-
-              <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-                <h4 className="text-sm font-semibold text-neutral-950">Outils pédagogiques</h4>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-                  Section de câble, capacité de batterie, dimensionnement — trois calculateurs
-                  gratuits, sans inscription.
-                </p>
-                <Link
-                  href="/outils"
-                  className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
-                >
-                  Voir les calculateurs →
-                </Link>
+            <div className="mt-5">
+              {/* Connecteur horizontal + badges numérotés (desktop) */}
+              <div className="mb-3 hidden lg:grid lg:grid-cols-3 lg:gap-4">
+                {modulesGratuits.map((module, i) => (
+                  <div key={module.title} className="flex items-center">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-400 text-sm font-bold text-neutral-900">
+                      {i + 1}
+                    </span>
+                    {i < modulesGratuits.length - 1 && (
+                      <span className="ml-2 h-0.5 flex-1 bg-neutral-200" aria-hidden="true" />
+                    )}
+                  </div>
+                ))}
               </div>
 
-              {/* Section "Outils essentiels" masquée : contenu pas encore finalisé.
-                  Voir components/FormationsEssentialTools.tsx et lib/formations-tools.ts. */}
+              <div className="grid gap-4 lg:grid-cols-3">
+                {modulesGratuits.map((module, i) => (
+                  <div key={module.title} className="flex gap-3 lg:block lg:gap-0">
+                    {/* Badge + connecteur vertical (mobile/tablette) */}
+                    <div className="flex flex-col items-center lg:hidden">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-400 text-sm font-bold text-neutral-900">
+                        {i + 1}
+                      </span>
+                      {i < modulesGratuits.length - 1 && (
+                        <span className="mt-1 w-0.5 flex-1 bg-neutral-200" aria-hidden="true" />
+                      )}
+                    </div>
+
+                    <article className="mb-1 flex flex-1 flex-col rounded-2xl border border-neutral-200 border-t-4 border-t-brand-400 bg-white p-4 shadow-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="inline-flex items-center rounded-full bg-brand-100 px-2.5 py-0.5 text-xs font-semibold text-brand-700">
+                          {module.tag}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${levelColors[module.level]}`}
+                        >
+                          {module.level}
+                        </span>
+                      </div>
+
+                      <h4 className="mt-3 text-sm font-semibold text-neutral-950">
+                        {module.title}
+                      </h4>
+                      <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-600">
+                        {module.description}
+                      </p>
+
+                      <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3">
+                        <span className="text-xs text-neutral-500">{module.duration}</span>
+                        <span className="text-sm font-bold text-brand-700">Gratuit</span>
+                      </div>
+
+                      <div className="mt-3">
+                        <Link
+                          href={module.href}
+                          className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
+                        >
+                          Accéder au module →
+                        </Link>
+                      </div>
+                    </article>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Quiz interactif (ancre stable /formations#quiz, referencee par les modules) */}
-          <div id="quiz" className="mt-10 scroll-mt-20 border-t border-neutral-200 pt-8">
+          {/* Quiz : étape finale, isolée et distincte (validation) */}
+          <div id="quiz" className="mt-10 scroll-mt-20">
             <div className="mx-auto max-w-3xl">
-              <h3 className="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
-                Testez vos connaissances
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-                10 questions sur les 3 modules — loi d&apos;Ohm, schémas, batteries. Idéal pour
-                vérifier vos acquis après avoir parcouru les modules.
-              </p>
-              <div className="mt-4">
-                <QuizFormations />
+              <div className="rounded-3xl bg-neutral-900 p-5 sm:p-6">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-400 text-lg"
+                    aria-hidden="true"
+                  >
+                    🏆
+                  </span>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand-400">
+                    Étape finale — vérifiez vos acquis
+                  </p>
+                </div>
+                <div className="mt-4">
+                  <QuizFormations />
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* Bloc outils : mis en avant, gratuit et actionnable immédiatement */}
+          <div className="mt-10 border-t border-neutral-200 pt-8">
+            <div className="inline-flex items-center gap-2 rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold text-brand-700">
+              Gratuit · Utile tout de suite
+            </div>
+            <h3 className="mt-3 text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
+              Outils
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-700">
+              Des calculateurs pour mettre en pratique ce que vous venez d&apos;apprendre, et le
+              matériel physique pour passer à l&apos;action sur le chantier.
+            </p>
+
+            <div
+              id="outils"
+              className="mt-4 scroll-mt-20 rounded-2xl border-2 border-brand-400 bg-brand-50/40 p-5 shadow-sm sm:max-w-2xl"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-lg text-brand-400"
+                  aria-hidden="true"
+                >
+                  🧮
+                </span>
+                <div>
+                  <h4 className="text-sm font-semibold text-neutral-950">
+                    5 calculateurs gratuits
+                  </h4>
+                  <p className="text-xs text-neutral-600">Sans inscription, résultat immédiat</p>
+                </div>
+              </div>
+
+              <ul className="mt-4 grid gap-2 text-sm text-neutral-700 sm:grid-cols-2">
+                {calculateurs.map((outil) => (
+                  <li key={outil.title} className="flex items-center gap-2">
+                    <span aria-hidden="true">{outil.emoji}</span>
+                    {outil.title}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href="/outils"
+                className="mt-5 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
+              >
+                Voir les calculateurs →
+              </Link>
+            </div>
+
+            {/* Section "Outils essentiels" masquée : contenu pas encore finalisé.
+                Voir components/FormationsEssentialTools.tsx et lib/formations-tools.ts. */}
           </div>
         </div>
       </section>
