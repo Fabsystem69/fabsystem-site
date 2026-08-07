@@ -56,6 +56,12 @@ export default async function DashboardLayout({
           >
             Commandes
           </Link>
+          <Link
+            href="/dashboard/content/testimonials"
+            className="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900"
+          >
+            Témoignages
+          </Link>
         </nav>
 
         <form action="/api/auth/logout" method="post">

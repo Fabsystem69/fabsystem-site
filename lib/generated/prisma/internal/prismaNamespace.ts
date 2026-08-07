@@ -413,7 +413,8 @@ export const ModelName = {
   DiscountRedemption: 'DiscountRedemption',
   MagicLoginToken: 'MagicLoginToken',
   CustomerSession: 'CustomerSession',
-  EbookOrder: 'EbookOrder'
+  EbookOrder: 'EbookOrder',
+  Testimonial: 'Testimonial'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -429,7 +430,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "ebookOrder"
+    modelProps: "customer" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "ebookOrder" | "testimonial"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2209,6 +2210,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Testimonial: {
+      payload: Prisma.$TestimonialPayload<ExtArgs>
+      fields: Prisma.TestimonialFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TestimonialFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TestimonialFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>
+        }
+        findFirst: {
+          args: Prisma.TestimonialFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TestimonialFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>
+        }
+        findMany: {
+          args: Prisma.TestimonialFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>[]
+        }
+        create: {
+          args: Prisma.TestimonialCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>
+        }
+        createMany: {
+          args: Prisma.TestimonialCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TestimonialCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>[]
+        }
+        delete: {
+          args: Prisma.TestimonialDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>
+        }
+        update: {
+          args: Prisma.TestimonialUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>
+        }
+        deleteMany: {
+          args: Prisma.TestimonialDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TestimonialUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TestimonialUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>[]
+        }
+        upsert: {
+          args: Prisma.TestimonialUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TestimonialPayload>
+        }
+        aggregate: {
+          args: Prisma.TestimonialAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTestimonial>
+        }
+        groupBy: {
+          args: Prisma.TestimonialGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TestimonialGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TestimonialCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TestimonialCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2651,6 +2726,26 @@ export const EbookOrderScalarFieldEnum = {
 export type EbookOrderScalarFieldEnum = (typeof EbookOrderScalarFieldEnum)[keyof typeof EbookOrderScalarFieldEnum]
 
 
+export const TestimonialScalarFieldEnum = {
+  id: 'id',
+  displayName: 'displayName',
+  customerType: 'customerType',
+  vehicleModel: 'vehicleModel',
+  region: 'region',
+  rating: 'rating',
+  quote: 'quote',
+  relatedOffer: 'relatedOffer',
+  isVerifiedPurchase: 'isVerifiedPurchase',
+  isPublished: 'isPublished',
+  isFeatured: 'isFeatured',
+  displayOrder: 'displayOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TestimonialScalarFieldEnum = (typeof TestimonialScalarFieldEnum)[keyof typeof TestimonialScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3053,6 +3148,20 @@ export type ListEnumEbookOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'TestimonialCustomerType'
+ */
+export type EnumTestimonialCustomerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TestimonialCustomerType'>
+    
+
+
+/**
+ * Reference to a field of type 'TestimonialCustomerType[]'
+ */
+export type ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TestimonialCustomerType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -3176,6 +3285,7 @@ export type GlobalOmitConfig = {
   magicLoginToken?: Prisma.MagicLoginTokenOmit
   customerSession?: Prisma.CustomerSessionOmit
   ebookOrder?: Prisma.EbookOrderOmit
+  testimonial?: Prisma.TestimonialOmit
 }
 
 /* Types for Logging */

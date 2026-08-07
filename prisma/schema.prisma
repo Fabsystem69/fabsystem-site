@@ -628,3 +628,31 @@ model EbookOrder {
 
   @@index([email])
 }
+
+enum TestimonialCustomerType {
+  VAN
+  CAMPING_CAR
+  BOAT
+  OTHER
+}
+
+model Testimonial {
+  id                 String                  @id @default(cuid())
+  displayName        String
+  customerType       TestimonialCustomerType @default(OTHER)
+  vehicleModel       String?
+  region             String?
+  rating             Int
+  quote              String
+  relatedOffer       String?
+  isVerifiedPurchase Boolean                 @default(false)
+  isPublished        Boolean                 @default(false)
+  isFeatured         Boolean                 @default(false)
+  displayOrder       Int                     @default(0)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  @@index([isPublished])
+  @@index([isFeatured])
+  @@index([displayOrder])
+}

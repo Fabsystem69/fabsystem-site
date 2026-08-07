@@ -593,6 +593,23 @@ export type EnumEbookOrderStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumEbookOrderStatusFilter<$PrismaModel>
 }
 
+export type EnumTestimonialCustomerTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestimonialCustomerType | Prisma.EnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel> | $Enums.TestimonialCustomerType
+}
+
+export type EnumTestimonialCustomerTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestimonialCustomerType | Prisma.EnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestimonialCustomerTypeWithAggregatesFilter<$PrismaModel> | $Enums.TestimonialCustomerType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1183,6 +1200,23 @@ export type NestedEnumEbookOrderStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumEbookOrderStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumEbookOrderStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumTestimonialCustomerTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestimonialCustomerType | Prisma.EnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel> | $Enums.TestimonialCustomerType
+}
+
+export type NestedEnumTestimonialCustomerTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TestimonialCustomerType | Prisma.EnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TestimonialCustomerType[] | Prisma.ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTestimonialCustomerTypeWithAggregatesFilter<$PrismaModel> | $Enums.TestimonialCustomerType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel>
 }
 
 

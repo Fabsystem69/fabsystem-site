@@ -3,6 +3,7 @@ import ServiceAssurance from "@/components/ServiceAssurance";
 import TrackedLink from "@/components/TrackedLink";
 import FaqPrestations from "@/components/FaqPrestations";
 import { PrestationsDistanceOffers } from "@/components/prestations/PrestationsDistanceOffers";
+import { TestimonialsSection } from "@/components/TestimonialsSection";
 import Link from "next/link";
 import type { Metadata } from "next";
 
@@ -275,22 +276,9 @@ export default function PrestationsPage() {
         </div>
       </section>
 
-      {/* Avis clients — pas de témoignage inventé : emplacement prévu, en attente
-          de vrais avis et d'un modèle de données validé (voir proposition Testimonial). */}
-      <section className="border-t border-neutral-200 bg-neutral-50 py-10 sm:py-14">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-            Avis clients
-          </p>
-          <h2 className="mt-2 text-xl font-bold text-neutral-950 sm:text-2xl">
-            Bientôt ici
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-            Les avis clients FabSystem seront publiés ici dès que le suivi des témoignages sera
-            en place.
-          </p>
-        </div>
-      </section>
+      {/* Avis clients : uniquement les temoignages publies depuis le dashboard
+          (isPublished = true) — aucun avis invente. */}
+      <TestimonialsSection />
 
       {/* FAQ */}
       <section className="bg-white py-10 sm:py-14">

@@ -72,7 +72,8 @@ export const ModelName = {
   DiscountRedemption: 'DiscountRedemption',
   MagicLoginToken: 'MagicLoginToken',
   CustomerSession: 'CustomerSession',
-  EbookOrder: 'EbookOrder'
+  EbookOrder: 'EbookOrder',
+  Testimonial: 'Testimonial'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -492,6 +493,26 @@ export const EbookOrderScalarFieldEnum = {
 } as const
 
 export type EbookOrderScalarFieldEnum = (typeof EbookOrderScalarFieldEnum)[keyof typeof EbookOrderScalarFieldEnum]
+
+
+export const TestimonialScalarFieldEnum = {
+  id: 'id',
+  displayName: 'displayName',
+  customerType: 'customerType',
+  vehicleModel: 'vehicleModel',
+  region: 'region',
+  rating: 'rating',
+  quote: 'quote',
+  relatedOffer: 'relatedOffer',
+  isVerifiedPurchase: 'isVerifiedPurchase',
+  isPublished: 'isPublished',
+  isFeatured: 'isFeatured',
+  displayOrder: 'displayOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TestimonialScalarFieldEnum = (typeof TestimonialScalarFieldEnum)[keyof typeof TestimonialScalarFieldEnum]
 
 
 export const SortOrder = {

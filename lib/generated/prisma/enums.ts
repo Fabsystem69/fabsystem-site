@@ -215,3 +215,13 @@ export const EbookOrderStatus = {
 } as const
 
 export type EbookOrderStatus = (typeof EbookOrderStatus)[keyof typeof EbookOrderStatus]
+
+
+export const TestimonialCustomerType = {
+  VAN: 'VAN',
+  CAMPING_CAR: 'CAMPING_CAR',
+  BOAT: 'BOAT',
+  OTHER: 'OTHER'
+} as const
+
+export type TestimonialCustomerType = (typeof TestimonialCustomerType)[keyof typeof TestimonialCustomerType]

@@ -161,3 +161,8 @@ export type CustomerSession = Prisma.CustomerSessionModel
  * 
  */
 export type EbookOrder = Prisma.EbookOrderModel
+/**
+ * Model Testimonial
+ * 
+ */
+export type Testimonial = Prisma.TestimonialModel
