@@ -21,6 +21,12 @@ import {
   normalizeCustomerEmail,
   normalizeOptionalCustomerName,
 } from "@/lib/services/customer-auth";
+import {
+  addMonths,
+  buildAutomaticEbookDiscountCode,
+  evaluateDiscountCodeForCart,
+  AUTOMATIC_EBOOK_DISCOUNT_REASON,
+} from "@/lib/services/discounts";
 import { DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS } from "@/lib/services/download-grant";
 
 type PrismaClientLike = PrismaClient;
@@ -152,6 +158,26 @@ export type OrderDb = {
       redeemedCount: number;
     }
   ): Promise<DiscountCode>;
+  // Upsert par code : ne cree que si absent, jamais d'ecrasement. Utilise
+  // pour la generation automatique d'un code coaching a l'achat d'un ebook
+  // (voir createAutomaticEbookDiscountCodesForFreeOrder ci-dessous) — le code
+  // etant deterministe (derive de l'OrderItem), c'est ce qui garantit qu'un
+  // retry de commande ne cree jamais de doublon.
+  createDiscountCodeIfAbsent(data: {
+    code: string;
+    status: DiscountCode["status"];
+    type: DiscountCode["type"];
+    amountOffCents: number | null;
+    percentOff: number | null;
+    currency: string;
+    maxRedemptions: number;
+    redeemedCount: number;
+    startsAt: Date | null;
+    expiresAt: Date | null;
+    productId: string | null;
+    customerEmail: string | null;
+    reason: string | null;
+  }): Promise<DiscountCode>;
   updateCartStatus(cartId: string, status: Cart["status"]): Promise<Cart>;
   updateOrder(
     orderId: string,
@@ -319,54 +345,25 @@ async function prepareDiscountForOrder(
     throw notFound("Discount code not found");
   }
 
-  if (discountCode.status !== "ACTIVE") {
-    throw conflict("Discount code is not active");
-  }
-
-  if (discountCode.startsAt && discountCode.startsAt.getTime() > Date.now()) {
-    throw conflict("Discount code is not active yet");
-  }
-
-  if (discountCode.expiresAt && discountCode.expiresAt.getTime() <= Date.now()) {
-    throw conflict("Discount code has expired");
-  }
-
-  if (discountCode.redeemedCount >= discountCode.maxRedemptions) {
-    throw conflict("Discount code has already been used");
-  }
-
-  if (
-    discountCode.customerEmail &&
-    normalizeCustomerEmail(discountCode.customerEmail) !== input.customerEmail
-  ) {
-    throw conflict("Discount code is not valid for this customer");
-  }
-
-  if (normalizeCurrency(discountCode.currency) !== input.currency) {
-    throw conflict("Discount code currency does not match cart currency");
-  }
-
-  if (discountCode.productId) {
-    const hasProduct = input.cart.items.some((item) => item.productId === discountCode.productId);
-
-    if (!hasProduct) {
-      throw conflict("Discount code does not apply to this cart");
-    }
-  }
-
-  const rawDiscount =
-    discountCode.type === "FIXED_AMOUNT"
-      ? discountCode.amountOffCents ?? 0
-      : Math.floor(input.subtotalCents * ((discountCode.percentOff ?? 0) / 100));
-
-  const discountTotalCents = Math.max(0, Math.min(input.subtotalCents, rawDiscount));
+  // Regles de validation (statut, fenetre de validite, usage restant, email,
+  // devise, produit cible) et calcul du montant partages avec l'apercu panier
+  // via evaluateDiscountCodeForCart (lib/services/discounts.ts), pour qu'un
+  // seul endroit definisse ces regles.
+  const evaluated = evaluateDiscountCodeForCart({
+    discountCode,
+    customerEmail: input.customerEmail,
+    subtotalCents: input.subtotalCents,
+    currency: input.currency,
+    cartProductIds: input.cart.items.map((item) => item.productId),
+    now: new Date(),
+  });
 
   return {
     discountCodeId: discountCode.id,
     code: discountCode.code,
     productId: discountCode.productId,
-    discountTotalCents,
-    totalCents: Math.max(0, input.subtotalCents - discountTotalCents),
+    discountTotalCents: evaluated.discountTotalCents,
+    totalCents: evaluated.totalCents,
   };
 }
 
@@ -394,6 +391,42 @@ async function createDownloadGrantsForFreeOrder(
         expiresAt: null,
       });
     }
+  }
+}
+
+// A chaque ebook d'une commande gratuite (totalCents=0, donc deja PAID),
+// genere automatiquement un code coaching : meme montant que l'ebook,
+// usage unique, nominatif sur l'acheteur, valable 2 mois, utilisable sur
+// n'importe quel produit du catalogue (typiquement un pack d'accompagnement
+// — cf. le texte deja affiche sur la fiche produit ebook). Miroir exact,
+// pour le chemin gratuit, de createAutomaticEbookDiscountCodesForOrder
+// (lib/services/discounts.ts) qui gere le chemin paye via Stripe.
+async function createAutomaticEbookDiscountCodesForFreeOrder(
+  tx: OrderDb,
+  lines: Array<{ orderItem: OrderItem; product: ProductWithAssets }>,
+  customerEmail: string,
+  createdAt: Date
+) {
+  for (const line of lines) {
+    if (line.product.productType !== "EBOOK") {
+      continue;
+    }
+
+    await tx.createDiscountCodeIfAbsent({
+      code: buildAutomaticEbookDiscountCode(line.orderItem.id),
+      status: "ACTIVE",
+      type: "FIXED_AMOUNT",
+      amountOffCents: line.orderItem.unitAmountCents,
+      percentOff: null,
+      currency: line.orderItem.currency,
+      maxRedemptions: 1,
+      redeemedCount: 0,
+      startsAt: createdAt,
+      expiresAt: addMonths(createdAt, 2),
+      productId: null,
+      customerEmail,
+      reason: AUTOMATIC_EBOOK_DISCOUNT_REASON,
+    });
   }
 }
 
@@ -546,6 +579,13 @@ function createPrismaOrderDb(client: PrismaClientLike): OrderDb {
         data,
       });
     },
+    async createDiscountCodeIfAbsent(data) {
+      return currentClient.discountCode.upsert({
+        where: { code: data.code },
+        create: data,
+        update: {},
+      });
+    },
     async updateCartStatus(cartId, status) {
       return currentClient.cart.update({
         where: { id: cartId },
@@ -667,6 +707,12 @@ export function createOrderService(db: OrderDb, providedDeps?: OrderServiceDeps)
 
         if (isFreeOrder) {
           await createDownloadGrantsForFreeOrder(tx, order, createdOrderLines, normalizedEmail);
+          await createAutomaticEbookDiscountCodesForFreeOrder(
+            tx,
+            createdOrderLines,
+            normalizedEmail,
+            deps.now()
+          );
         } else {
           await tx.createPayment({
             orderId: order.id,

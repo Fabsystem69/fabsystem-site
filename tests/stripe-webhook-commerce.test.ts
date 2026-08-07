@@ -202,6 +202,20 @@ function createMockDownloadGrantDeps() {
   };
 }
 
+function createMockAutoDiscountDeps() {
+  const state = {
+    orderIds: [] as string[],
+  };
+
+  return {
+    state,
+    async createAutomaticEbookDiscountCodesForOrder(orderId: string) {
+      state.orderIds.push(orderId);
+      return [];
+    },
+  };
+}
+
 function createMockNotifyDeps() {
   const state = {
     calls: [] as Array<{ orderId: string; metadata: Stripe.Metadata | null | undefined }>,
@@ -642,6 +656,46 @@ test("handleCommerceCheckoutCompleted sends the Fabien notification with session
   assert.equal(notifyDeps.state.calls.length, 1);
   assert.equal(notifyDeps.state.calls[0]?.orderId, order.id);
   assert.equal(notifyDeps.state.calls[0]?.metadata?.needsVehicle, "Van Ducato");
+});
+
+test("handleCommerceCheckoutCompleted generates the automatic ebook discount code(s) for the order", async () => {
+  const order = createOrderRecord();
+  const payment = { ...createPaymentRecord(), order };
+  const { db } = createMockCommerceWebhookDb({ payment });
+  const autoDiscountDeps = createMockAutoDiscountDeps();
+  const session = createCheckoutSession({
+    metadata: {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      paymentId: payment.id,
+    },
+  });
+  const service = createStripeWebhookCommerceService(db, autoDiscountDeps);
+
+  await service.handleCommerceCheckoutCompleted(session);
+
+  assert.deepEqual(autoDiscountDeps.state.orderIds, [order.id]);
+});
+
+test("handleCommerceCheckoutCompleted also regenerates (idempotently) on an already-processed redelivery", async () => {
+  const order = createOrderRecord({
+    status: "PAID",
+    paidAt: new Date("2026-08-06T12:00:00.000Z"),
+  });
+  const payment = {
+    ...createPaymentRecord({
+      status: "SUCCEEDED",
+      succeededAt: new Date("2026-08-06T12:00:00.000Z"),
+    }),
+    order,
+  };
+  const { db } = createMockCommerceWebhookDb({ payment });
+  const autoDiscountDeps = createMockAutoDiscountDeps();
+  const service = createStripeWebhookCommerceService(db, autoDiscountDeps);
+
+  await service.handleCommerceCheckoutCompleted(createCheckoutSession());
+
+  assert.deepEqual(autoDiscountDeps.state.orderIds, [order.id]);
 });
 
 test("handleCommerceCheckoutCompleted also sends the notification on an already-processed redelivery", async () => {

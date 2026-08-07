@@ -168,6 +168,7 @@ function createMockCheckoutDb(seed?: {
 function createStripeClientMock() {
   const createCalls: Array<unknown> = [];
   const retrieveCalls: string[] = [];
+  const couponCreateCalls: Array<{ params: unknown; options: unknown }> = [];
   const sessions = new Map<
     string,
     {
@@ -188,6 +189,7 @@ function createStripeClientMock() {
   return {
     createCalls,
     retrieveCalls,
+    couponCreateCalls,
     sessions,
     client: {
       checkout: {
@@ -210,6 +212,12 @@ function createStripeClientMock() {
 
             return session;
           },
+        },
+      },
+      coupons: {
+        async create(params: unknown, options?: unknown) {
+          couponCreateCalls.push({ params, options });
+          return { id: "coupon_test_123" };
         },
       },
     },
@@ -257,6 +265,144 @@ test("buildCheckoutSessionParams builds line_items and metadata from order snaps
     },
     quantity: 1,
   });
+});
+
+test("buildCheckoutSessionParams adds a session-level discount when a coupon id is provided", () => {
+  const order = {
+    ...createOrderRecord({ subtotalCents: 3800, discountTotalCents: 800, totalCents: 3000 }),
+    items: [
+      createOrderItemRecord({
+        id: "item_1",
+        quantity: 1,
+        currency: "EUR",
+        unitAmountCents: 2900,
+        productName: "Ebook Electricite Van",
+      }),
+      createOrderItemRecord({
+        id: "item_2",
+        productId: "prod_2",
+        productSlug: "bundle-checklist",
+        quantity: 1,
+        currency: "EUR",
+        unitAmountCents: 900,
+        productName: "Checklist Bonus",
+      }),
+    ],
+    payments: [],
+  };
+
+  const params = buildCheckoutSessionParams({
+    order,
+    paymentId: "payment_1",
+    baseUrl: "https://fabsystem.test",
+    discountCouponId: "coupon_abc",
+  });
+
+  // Les line_items restent au prix plein, la remise est portee par le coupon.
+  assert.equal(params.line_items?.[0]?.price_data?.unit_amount, 2900);
+  assert.equal(params.line_items?.[1]?.price_data?.unit_amount, 900);
+  assert.deepEqual(params.discounts, [{ coupon: "coupon_abc" }]);
+});
+
+test("buildCheckoutSessionParams omits discounts when no coupon id is provided", () => {
+  const order = {
+    ...createOrderRecord(),
+    items: [createOrderItemRecord()],
+    payments: [],
+  };
+
+  const params = buildCheckoutSessionParams({
+    order,
+    paymentId: "payment_1",
+    baseUrl: "https://fabsystem.test",
+  });
+
+  assert.equal(params.discounts, undefined);
+});
+
+test("createCheckoutSessionForOrder creates a Stripe coupon matching order.discountTotalCents for a partial discount", async () => {
+  const order = createOrderRecord({
+    id: "order_discounted",
+    subtotalCents: 3800,
+    discountTotalCents: 800,
+    totalCents: 3000,
+  });
+  const itemA = createOrderItemRecord({
+    id: "item_a",
+    orderId: order.id,
+    productName: "Ebook Electricite Van",
+    unitAmountCents: 2900,
+    lineTotalCents: 2900,
+  });
+  const itemB = createOrderItemRecord({
+    id: "item_b",
+    orderId: order.id,
+    productId: "prod_2",
+    productSlug: "bundle-checklist",
+    productName: "Checklist Bonus",
+    unitAmountCents: 900,
+    lineTotalCents: 900,
+  });
+  const payment = createPaymentRecord({
+    id: "payment_discounted",
+    orderId: order.id,
+    amountCents: 3000,
+    currency: "EUR",
+  });
+  const { db } = createMockCheckoutDb({
+    orders: [order],
+    orderItems: [itemA, itemB],
+    payments: [payment],
+  });
+  const stripe = createStripeClientMock();
+  const service = createCheckoutService(db, {
+    stripeClient: stripe.client,
+    getBaseUrl: () => "https://fabsystem.test",
+  });
+
+  await service.createCheckoutSessionForOrder({ orderId: order.id });
+
+  assert.equal(stripe.couponCreateCalls.length, 1);
+  const couponParams = stripe.couponCreateCalls[0]?.params as {
+    amount_off?: number;
+    currency?: string;
+    duration?: string;
+  };
+  // Le montant du coupon doit correspondre exactement a la remise deja
+  // figee sur la commande, elle-meme egale a subtotal - total (800 = 3800 - 3000).
+  assert.equal(couponParams.amount_off, 800);
+  assert.equal(couponParams.currency, "eur");
+  assert.equal(couponParams.duration, "once");
+
+  const sessionParams = stripe.createCalls[0] as {
+    discounts?: Array<{ coupon: string }>;
+    line_items?: Array<{ price_data?: { unit_amount?: number } }>;
+  };
+  assert.deepEqual(sessionParams.discounts, [{ coupon: "coupon_test_123" }]);
+  // Les line_items restent au prix plein (2900 + 900), jamais reduits :
+  // c'est le coupon qui porte toute la remise, pas les unit_amount.
+  assert.equal(sessionParams.line_items?.[0]?.price_data?.unit_amount, 2900);
+  assert.equal(sessionParams.line_items?.[1]?.price_data?.unit_amount, 900);
+});
+
+test("createCheckoutSessionForOrder does not create a Stripe coupon when the order has no discount", async () => {
+  const order = createOrderRecord({ id: "order_no_discount", discountTotalCents: 0 });
+  const { db } = createMockCheckoutDb({
+    orders: [order],
+    orderItems: [createOrderItemRecord({ orderId: order.id })],
+    payments: [createPaymentRecord({ orderId: order.id })],
+  });
+  const stripe = createStripeClientMock();
+  const service = createCheckoutService(db, {
+    stripeClient: stripe.client,
+    getBaseUrl: () => "https://fabsystem.test",
+  });
+
+  await service.createCheckoutSessionForOrder({ orderId: order.id });
+
+  assert.equal(stripe.couponCreateCalls.length, 0);
+  const sessionParams = stripe.createCalls[0] as { discounts?: unknown };
+  assert.equal(sessionParams.discounts, undefined);
 });
 
 test("createCheckoutSessionForOrder refuses a missing order", async () => {

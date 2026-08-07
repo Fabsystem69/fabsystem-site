@@ -5,7 +5,7 @@ import { applyDiscountToCartSummary } from "@/lib/services/discounts";
 import { getCurrentCartFromRequest } from "@/lib/server/cart-session";
 
 const validateDiscountPayloadSchema = z.object({
-  customerEmail: z.string().trim().email(),
+  customerEmail: z.string().trim().email().optional(),
   code: z.string().trim().min(1),
 });
 

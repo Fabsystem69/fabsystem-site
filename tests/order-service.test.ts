@@ -402,6 +402,23 @@ function createMockOrderDb(seed?: {
       discountCode.redeemedCount = data.redeemedCount;
       return discountCode;
     },
+    async createDiscountCodeIfAbsent(data: Omit<DiscountCode, "id" | "createdAt" | "updatedAt">) {
+      const existing = state.discountCodes.find((entry) => entry.code === data.code);
+
+      if (existing) {
+        return existing;
+      }
+
+      const now = new Date("2026-08-06T00:00:00.000Z");
+      const discountCode: DiscountCode = {
+        id: `discount_auto_${state.discountCodes.length + 1}`,
+        createdAt: now,
+        updatedAt: now,
+        ...data,
+      };
+      state.discountCodes.push(discountCode);
+      return discountCode;
+    },
     async updateCartStatus(cartId: string, status: Cart["status"]) {
       const cart = state.carts.find((item) => item.id === cartId);
 
@@ -684,6 +701,15 @@ test("createOrderFromCart creates a free paid order without Stripe payment and i
   assert.equal(state.discountRedemptions.length, 1);
   assert.equal(state.discountCodes[0]?.redeemedCount, 1);
   assert.equal(state.carts[0]?.status, "CONVERTED");
+
+  // Achat d'ebook (meme gratuit via un code) : un nouveau code coaching
+  // automatique est genere pour la valeur pleine de l'ebook, distinct du
+  // code qui vient d'etre consomme pour rendre cette commande gratuite.
+  assert.equal(state.discountCodes.length, 2);
+  const autoCode = state.discountCodes.find((entry) => entry.code !== "COACH-FREE01");
+  assert.equal(autoCode?.amountOffCents, 2900);
+  assert.equal(autoCode?.maxRedemptions, 1);
+  assert.equal(autoCode?.customerEmail, "buyer@example.com");
 });
 
 test("createOrderFromCart rejects an empty cart", async () => {

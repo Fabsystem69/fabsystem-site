@@ -61,6 +61,12 @@ type StripeCheckoutClient = {
       ): Promise<Pick<Stripe.Checkout.Session, "id" | "url" | "status" | "payment_status">>;
     };
   };
+  coupons: {
+    create(
+      params: Stripe.CouponCreateParams,
+      options?: Stripe.RequestOptions
+    ): Promise<Pick<Stripe.Coupon, "id">>;
+  };
 };
 
 type CheckoutServiceDeps = {
@@ -126,8 +132,9 @@ export function buildCheckoutSessionParams(input: {
   paymentId: string;
   baseUrl: string;
   needsAnswers?: PrestationsNeedsAnswers | null;
+  discountCouponId?: string | null;
 }): Stripe.Checkout.SessionCreateParams {
-  const { order, paymentId, baseUrl, needsAnswers } = input;
+  const { order, paymentId, baseUrl, needsAnswers, discountCouponId } = input;
 
   return {
     mode: "payment",
@@ -140,6 +147,11 @@ export function buildCheckoutSessionParams(input: {
       paymentId,
       ...buildNeedsAnswersMetadata(needsAnswers ?? null),
     },
+    // Les line_items restent toujours au prix plein : la remise n'est
+    // jamais repercutee sur unit_amount (risque d'arrondi si plusieurs
+    // lignes). Elle est appliquee au niveau de la session via un coupon
+    // Stripe dynamique (cf. ensureDiscountCoupon), pour que le montant
+    // facture corresponde exactement a order.totalCents.
     line_items: order.items.map((item) => ({
       price_data: {
         currency: item.currency.toLowerCase(),
@@ -150,7 +162,39 @@ export function buildCheckoutSessionParams(input: {
       },
       quantity: item.quantity,
     })),
+    ...(discountCouponId ? { discounts: [{ coupon: discountCouponId }] } : {}),
   };
+}
+
+// Cree un coupon Stripe a usage unique portant exactement le montant deja
+// calcule et fige sur la commande (order.discountTotalCents) : Stripe n'a
+// jamais a recalculer un pourcentage ou un montant, il applique tel quel ce
+// que le serveur a deja valide. assertStripeAmountMatches() (webhook) verifie
+// ensuite que session.amount_total == payment.amountCents == order.totalCents.
+async function ensureDiscountCoupon(input: {
+  stripeClient: StripeCheckoutClient;
+  order: OrderWithRelations;
+  paymentId: string;
+}): Promise<string | null> {
+  const { order, paymentId } = input;
+
+  if (order.discountTotalCents <= 0) {
+    return null;
+  }
+
+  const coupon = await input.stripeClient.coupons.create(
+    {
+      amount_off: order.discountTotalCents,
+      currency: order.currency.toLowerCase(),
+      duration: "once",
+      name: `Remise ${order.orderNumber}`,
+    },
+    {
+      idempotencyKey: `discount-coupon-${paymentId}`,
+    }
+  );
+
+  return coupon.id;
 }
 
 // Blocage serveur (Mission 2) : un panier contenant au moins un pack ne peut
@@ -210,12 +254,19 @@ async function createAndPersistCheckoutSession(input: {
   baseUrl: string;
   needsAnswers: PrestationsNeedsAnswers | null;
 }) {
+  const discountCouponId = await ensureDiscountCoupon({
+    stripeClient: input.stripeClient,
+    order: input.order,
+    paymentId: input.payment.id,
+  });
+
   const session = await input.stripeClient.checkout.sessions.create(
     buildCheckoutSessionParams({
       order: input.order,
       paymentId: input.payment.id,
       baseUrl: input.baseUrl,
       needsAnswers: input.needsAnswers,
+      discountCouponId,
     })
   );
 

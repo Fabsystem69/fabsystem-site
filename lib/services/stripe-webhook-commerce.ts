@@ -52,6 +52,7 @@ export type CommerceWebhookDb = {
 type CommerceWebhookDeps = {
   now?: () => Date;
   createDownloadGrantsForOrder?: (orderId: string) => Promise<unknown>;
+  createAutomaticEbookDiscountCodesForOrder?: (orderId: string) => Promise<unknown>;
   sendPrestationsPackNotification?: (
     orderId: string,
     sessionMetadata: Stripe.Metadata | null | undefined
@@ -182,15 +183,21 @@ function createPrismaCommerceWebhookDb(client: PrismaClientLike): CommerceWebhoo
 }
 
 async function getDefaultCommerceWebhookService() {
-  const [{ prisma }, { createDownloadGrantsForOrder }, { sendPrestationsPackNotification }] =
-    await Promise.all([
-      import("@/lib/prisma"),
-      import("@/lib/services/download-grant"),
-      import("@/lib/services/prestations-notify"),
-    ]);
+  const [
+    { prisma },
+    { createDownloadGrantsForOrder },
+    { createAutomaticEbookDiscountCodesForOrder },
+    { sendPrestationsPackNotification },
+  ] = await Promise.all([
+    import("@/lib/prisma"),
+    import("@/lib/services/download-grant"),
+    import("@/lib/services/discounts"),
+    import("@/lib/services/prestations-notify"),
+  ]);
 
   return createStripeWebhookCommerceService(createPrismaCommerceWebhookDb(prisma), {
     createDownloadGrantsForOrder,
+    createAutomaticEbookDiscountCodesForOrder,
     sendPrestationsPackNotification,
   });
 }
@@ -201,6 +208,8 @@ export function createStripeWebhookCommerceService(
 ) {
   const now = deps?.now ?? (() => new Date());
   const createDownloadGrantsForOrder = deps?.createDownloadGrantsForOrder ?? (async () => {});
+  const createAutomaticEbookDiscountCodesForOrder =
+    deps?.createAutomaticEbookDiscountCodesForOrder ?? (async () => {});
   const sendPrestationsPackNotification =
     deps?.sendPrestationsPackNotification ?? (async () => {});
 
@@ -278,6 +287,11 @@ export function createStripeWebhookCommerceService(
 
       if (result.status === "processed" || result.status === "already_processed") {
         await createDownloadGrantsForOrder(result.orderId);
+        // Genere le(s) code(s) coaching automatique(s) pour chaque ebook de
+        // la commande (miroir cote paye de createAutomaticEbookDiscountCodesForFreeOrder
+        // pour le chemin gratuit). Idempotent (code deterministe + upsert),
+        // donc sans risque sur already_processed (redelivery Stripe).
+        await createAutomaticEbookDiscountCodesForOrder(result.orderId);
         // Appele aussi sur already_processed (redelivery Stripe) pour ne
         // jamais perdre silencieusement la notification si l'envoi avait
         // echoue lors d'une tentative precedente — au pire un email en

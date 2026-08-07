@@ -4,7 +4,7 @@ import {
   activateDiscountCodeAction,
   disableDiscountCodeAction,
 } from "@/app/dashboard/discounts/actions";
-import { listDashboardDiscountCodes } from "@/lib/services/discounts";
+import { UNLIMITED_DISCOUNT_REDEMPTIONS, listDashboardDiscountCodes } from "@/lib/services/discounts";
 
 export const dynamic = "force-dynamic";
 
@@ -21,14 +21,15 @@ export default async function DashboardDiscountsPage({
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold text-neutral-950">Codes de réduction</h1>
         <p className="max-w-3xl text-sm text-neutral-600">
-          Gestion MVP des codes coaching ebook, à usage unique et liés à un client précis.
+          Montant fixe ou pourcentage, ciblés sur un produit ou tout le catalogue, nominatifs ou
+          non, usage limité ou illimité.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link
             href="/dashboard/discounts/new"
             className="inline-flex rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
           >
-            Créer un code coaching
+            Créer un code
           </Link>
           <Link
             href="/dashboard"
@@ -77,14 +78,19 @@ export default async function DashboardDiscountsPage({
                   <td className="px-4 py-3 font-medium text-neutral-950">{discount.code}</td>
                   <td className="px-4 py-3 text-neutral-700">{discount.status}</td>
                   <td className="px-4 py-3 text-neutral-700">
-                    {discount.amountOffCents !== null
-                      ? `${formatEuroFromCents(discount.amountOffCents)} · ${discount.currency}`
+                    {discount.type === "FIXED_AMOUNT"
+                      ? `${formatEuroFromCents(discount.amountOffCents ?? 0)} · ${discount.currency}`
                       : `${discount.percentOff ?? 0}%`}
                   </td>
                   <td className="px-4 py-3 text-neutral-700">{discount.customerEmail || "Tous"}</td>
-                  <td className="px-4 py-3 text-neutral-700">{discount.product?.name || "Tous"}</td>
                   <td className="px-4 py-3 text-neutral-700">
-                    {discount.redeemedCount} / {discount.maxRedemptions}
+                    {discount.product?.name || "Tout le catalogue"}
+                  </td>
+                  <td className="px-4 py-3 text-neutral-700">
+                    {discount.redeemedCount} /{" "}
+                    {discount.maxRedemptions >= UNLIMITED_DISCOUNT_REDEMPTIONS
+                      ? "illimité"
+                      : discount.maxRedemptions}
                   </td>
                   <td className="px-4 py-3 text-neutral-700">
                     <div>{discount.startsAt ? formatDate(discount.startsAt) : "Immédiat"}</div>

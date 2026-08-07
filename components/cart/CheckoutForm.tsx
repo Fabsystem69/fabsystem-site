@@ -112,11 +112,6 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
   async function handleApplyDiscount() {
     setDiscountError(null);
 
-    if (!customerEmail.trim()) {
-      setDiscountError("Renseignez votre email avant d'appliquer le code.");
-      return;
-    }
-
     if (!discountCode.trim()) {
       setDiscountError("Saisissez un code de réduction.");
       return;
@@ -131,7 +126,7 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          customerEmail,
+          customerEmail: customerEmail.trim() || undefined,
           code: discountCode,
         }),
       });

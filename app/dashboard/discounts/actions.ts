@@ -6,7 +6,7 @@ import { isHttpError } from "@/lib/http-errors";
 import { requireSession } from "@/lib/require-session";
 import {
   activateDiscountCode,
-  createCoachingEbookDiscountCode,
+  createDiscountCode,
   disableDiscountCode,
 } from "@/lib/services/discounts";
 
@@ -57,17 +57,58 @@ function getRequiredString(formData: FormData, key: string) {
   return typeof value === "string" ? value : "";
 }
 
-export async function createCoachingDiscountAction(formData: FormData) {
+function getOptionalString(formData: FormData, key: string) {
+  const value = getRequiredString(formData, key).trim();
+  return value || undefined;
+}
+
+function getOptionalEuros(formData: FormData, key: string) {
+  const raw = getOptionalString(formData, key);
+
+  if (!raw) {
+    return undefined;
+  }
+
+  const euros = Number(raw.replace(",", "."));
+  return Number.isFinite(euros) ? Math.round(euros * 100) : undefined;
+}
+
+function getOptionalInt(formData: FormData, key: string) {
+  const raw = getOptionalString(formData, key);
+
+  if (!raw) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function getOptionalDate(formData: FormData, key: string) {
+  const raw = getOptionalString(formData, key);
+  return raw ? new Date(`${raw}T23:59:59`) : undefined;
+}
+
+export async function createDiscountCodeAction(formData: FormData) {
   await requireSession();
 
   try {
-    await createCoachingEbookDiscountCode({
-      customerEmail: getRequiredString(formData, "customerEmail"),
-      productId: getRequiredString(formData, "productId"),
-      reason: getRequiredString(formData, "reason") || undefined,
+    const type = getRequiredString(formData, "type") === "PERCENTAGE" ? "PERCENTAGE" : "FIXED_AMOUNT";
+
+    await createDiscountCode({
+      type,
+      amountOffCents: type === "FIXED_AMOUNT" ? getOptionalEuros(formData, "amountOffEuros") : undefined,
+      percentOff: type === "PERCENTAGE" ? getOptionalInt(formData, "percentOff") : undefined,
+      productId: getOptionalString(formData, "productId"),
+      customerEmail: getOptionalString(formData, "customerEmail"),
+      unlimitedRedemptions: formData.get("unlimitedRedemptions") === "on",
+      maxRedemptions: getOptionalInt(formData, "maxRedemptions"),
+      expiresAt: getOptionalDate(formData, "expiresAt"),
+      codePrefix: getOptionalString(formData, "codePrefix"),
+      reason: getOptionalString(formData, "reason"),
     });
     revalidatePath("/dashboard/discounts");
-    redirect(buildDiscountsRedirect({ success: "Code coaching créé." }));
+    redirect(buildDiscountsRedirect({ success: "Code de réduction créé." }));
   } catch (error) {
     redirect(buildDiscountsNewRedirect({ error: getErrorMessage(error) }));
   }
