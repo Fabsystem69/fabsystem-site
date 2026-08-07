@@ -108,15 +108,15 @@ export default function OutilsPage() {
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-neutral-400">
             Ces outils couvrent les cas courants. Pour un dimensionnement précis adapté à votre
-            installation réelle — batteries lithium, solaire, 230V — une visio conseil permet
-            d&apos;aller bien plus loin.
+            installation réelle — batteries lithium, solaire, 230V — l&apos;accompagnement à
+            distance FabSystem permet d&apos;aller bien plus loin.
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/visio"
+              href="/prestations#accompagnement-distance"
               className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-400 px-6 py-3 text-sm font-bold text-neutral-900 transition-colors hover:bg-brand-300"
             >
-              Réserver une visio conseil — 50 €
+              Voir l&apos;accompagnement à distance
             </Link>
             <Link
               href="/contact"

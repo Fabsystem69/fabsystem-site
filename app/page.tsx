@@ -26,21 +26,21 @@ const levels = [
     title: "Être accompagné à distance",
     hook: "Diagnostic, schéma, suivi de chantier à distance.",
     cta: "Voir l'offre",
-    href: "/prestations#instal",
+    href: "/prestations#accompagnement-distance",
   },
   {
     n: "3",
     title: "Être accompagné sur place",
     hook: "Je me déplace, pour que tu comprennes ton installation.",
     cta: "Voir l'offre",
-    href: "/prestations#offres",
+    href: "/prestations#prestations-terrain",
   },
   {
     n: "4",
     title: "Me confier les travaux",
     hook: "Tu préfères que je m'occupe de tout.",
     cta: "Demander un devis",
-    href: "/prestations#installation",
+    href: "/prestations#prestations-terrain",
   },
 ] as const;
 
@@ -126,6 +126,30 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 3 CHEMINS */}
+      <section className="border-b border-neutral-200 bg-neutral-50 py-6">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 sm:flex-row sm:justify-center">
+          <Link
+            href="/boutique"
+            className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-semibold text-neutral-900 transition hover:border-yellow-400 sm:max-w-xs"
+          >
+            Acheter un guide
+          </Link>
+          <Link
+            href="/prestations"
+            className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-semibold text-neutral-900 transition hover:border-yellow-400 sm:max-w-xs"
+          >
+            Se faire accompagner
+          </Link>
+          <Link
+            href="/formations"
+            className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-center text-sm font-semibold text-neutral-900 transition hover:border-yellow-400 sm:max-w-xs"
+          >
+            Apprendre gratuitement
+          </Link>
+        </div>
+      </section>
+
 {/* PREUVES */}
       <section className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid gap-4 sm:grid-cols-3">
@@ -188,6 +212,15 @@ export default function HomePage() {
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6 text-center">
+          <Link
+            href="/realisations"
+            className="text-sm font-medium text-neutral-600 underline underline-offset-4 hover:text-neutral-900"
+          >
+            Voir des exemples de réalisations
+          </Link>
         </div>
 
       </section>

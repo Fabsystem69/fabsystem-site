@@ -25,7 +25,7 @@ const faqs = [
     a: (
       <>
         Non. Si tu réserves ensuite{" "}
-        <Link href="/prestations#instal" className="font-semibold underline underline-offset-2">
+        <Link href="/prestations#accompagnement-distance" className="font-semibold underline underline-offset-2">
           l&apos;accompagnement à distance
         </Link>{" "}
         ou une{" "}

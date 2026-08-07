@@ -28,7 +28,7 @@ export default function Footer() {
               <li><Link className="hover:text-neutral-900" href="/">Accueil</Link></li>
               <li><Link className="hover:text-neutral-900" href="/prestations">Prestations</Link></li>
               <li><Link className="hover:text-neutral-900" href="/realisations">Réalisations</Link></li>
-              <li><Link className="hover:text-neutral-900" href="/visio">Visio conseil</Link></li>
+              <li><Link className="hover:text-neutral-900" href="/prestations#accompagnement-distance">Accompagnement à distance</Link></li>
               <li><Link className="hover:text-neutral-900" href="/a-propos">À propos</Link></li>
               <li><Link className="hover:text-neutral-900" href="/contact">Contact</Link></li>
             </ul>
@@ -65,7 +65,7 @@ export default function Footer() {
             </div>
 
             <p className="mt-3 text-xs text-neutral-500">
-              Visio : réservation et paiement uniquement sur la page Visio conseil.
+              Accompagnement à distance : voir les paliers sur la page Services.
             </p>
           </div>
         </div>

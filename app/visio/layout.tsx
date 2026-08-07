@@ -1,14 +1,5 @@
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Visio conseil en électricité embarquée",
-  description:
-    "Visio individuelle pour analyser votre installation électrique embarquée. Diagnostic clair, recommandations et plan d'action en 1 heure.",
-  alternates: {
-    canonical: "/visio",
-  },
-};
-
+// La page /visio redirige desormais vers /contact (systeme de reservation
+// Cal.com abandonne) : ce layout n'a plus besoin de metadata dediee.
 export default function VisioLayout({
   children,
 }: {

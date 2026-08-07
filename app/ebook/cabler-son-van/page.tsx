@@ -214,7 +214,7 @@ export default function EbookPage() {
             </p>
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-neutral-700 sm:text-base">
               Et si tu passes ensuite par un accompagnement FabSystem (
-              <Link href="/prestations#instal" className="font-semibold underline underline-offset-2">
+              <Link href="/prestations#accompagnement-distance" className="font-semibold underline underline-offset-2">
                 l&apos;accompagnement à distance
               </Link>{" "}
               ou{" "}

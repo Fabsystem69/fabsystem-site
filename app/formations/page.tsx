@@ -7,16 +7,16 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Formations électricité embarquée — bateau, van, camping-car | FabSystem",
+  title: "Apprendre l'électricité embarquée gratuitement — bateau, van, camping-car | FabSystem",
   description:
-    "Modules e-learning gratuits en électricité embarquée. Comprenez votre installation 12V, batteries, solaire et 230V à votre rythme.",
+    "Modules gratuits, ressources pédagogiques et outils pour comprendre votre installation 12V, batteries, solaire et 230V à votre rythme. Aucun achat requis.",
   alternates: {
     canonical: "/formations",
   },
   openGraph: {
-    title: "Formations électricité embarquée | FabSystem",
+    title: "Apprendre l'électricité embarquée gratuitement | FabSystem",
     description:
-      "Apprenez l'électricité embarquée à votre rythme : modules e-learning gratuits + coaching visio personnalisé.",
+      "Modules gratuits, ressources pédagogiques et outils pour apprendre l'électricité embarquée à votre rythme.",
     url: "https://www.fabsystem.fr/formations",
   },
 };
@@ -88,8 +88,8 @@ export default function FormationsPage() {
   return (
     <main>
       <PageHero
-        title="Formations électricité embarquée"
-        subtitle="Des modules e-learning gratuits pour comprendre votre installation 12V — à votre rythme, sans inscription."
+        title="Apprendre l'électricité embarquée, gratuitement"
+        subtitle="Modules gratuits, ressources pédagogiques et outils pour comprendre votre installation 12V — à votre rythme, sans inscription, sans achat requis."
         micro="12V · Batteries · Solaire · 230V — bateau, van, camping-car."
         background="/hero-fabsystem.png"
         overlay="bg-black/55"
@@ -308,6 +308,29 @@ export default function FormationsPage() {
         </div>
       </section>
 
+      {/* ── OUTILS PÉDAGOGIQUES ── */}
+      <section id="outils" className="border-t border-neutral-100 bg-white py-8 sm:py-10">
+        <div className="mx-auto max-w-6xl scroll-mt-20 px-6">
+          <div className="flex flex-col gap-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-xl">
+              <h2 className="text-base font-semibold tracking-tight text-neutral-900 sm:text-lg">
+                Outils pédagogiques
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+                Des calculateurs pour mettre en pratique ce que vous venez d&apos;apprendre :
+                section de câble, capacité de batterie, dimensionnement.
+              </p>
+            </div>
+            <Link
+              href="/outils"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-100"
+            >
+              Voir les outils
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ── QUIZ ── */}
       <section id="quiz" className="border-t border-neutral-100 bg-white py-8 sm:py-10">
         <div className="mx-auto max-w-6xl scroll-mt-20 px-6">
@@ -360,11 +383,11 @@ export default function FormationsPage() {
               <p className="text-2xl font-bold text-green-700">Gratuit</p>
               <p className="mt-0.5 text-sm text-neutral-500">20 minutes · Visio</p>
               <TrackedLink
-                href="/visio"
+                href="/contact"
                 event="click_rdv"
                 className="mt-4 inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
               >
-                Réserver mon créneau
+                Demander ce point gratuit
               </TrackedLink>
               <Link
                 href="/contact"
