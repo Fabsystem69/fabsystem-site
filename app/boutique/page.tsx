@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { formatEuroFromCents } from "@/lib/format";
@@ -83,6 +84,18 @@ export default async function BoutiquePage() {
                 key={product.id}
                 className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
               >
+                {product.featuredImage ? (
+                  <div className="mb-4 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+                    <Image
+                      src={product.featuredImage}
+                      alt={product.name}
+                      width={400}
+                      height={534}
+                      className="h-40 w-full object-cover object-top"
+                    />
+                  </div>
+                ) : null}
+
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">

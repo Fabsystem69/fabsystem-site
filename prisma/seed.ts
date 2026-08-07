@@ -41,25 +41,25 @@ async function seedDigitalCatalog() {
     update: {
       name: PRODUCT_NAME,
       shortDescription:
-        "Le guide FabSystem pour cabler un van amenage sans se planter.",
+        "Le guide FabSystem pour câbler un van aménagé sans se planter.",
       description:
-        "Un produit de developpement pour valider le catalogue numerique FabSystem autour d'un ebook prive et achetable.",
+        "Le guide complet pour comprendre, dimensionner et câbler soi-même l'installation électrique d'un van aménagé : bases du 12V, batterie et solaire, choix du matériel, pose dans l'ordre, plomberie embarquée, mise en service et vie avec l'installation.",
       status: "ACTIVE",
       productType: "EBOOK",
       purchaseMode: "BUY_NOW",
-      featuredImage: null,
+      featuredImage: "/ebook/couverture.jpg",
     },
     create: {
       slug: PRODUCT_SLUG,
       name: PRODUCT_NAME,
       shortDescription:
-        "Le guide FabSystem pour cabler un van amenage sans se planter.",
+        "Le guide FabSystem pour câbler un van aménagé sans se planter.",
       description:
-        "Un produit de developpement pour valider le catalogue numerique FabSystem autour d'un ebook prive et achetable.",
+        "Le guide complet pour comprendre, dimensionner et câbler soi-même l'installation électrique d'un van aménagé : bases du 12V, batterie et solaire, choix du matériel, pose dans l'ordre, plomberie embarquée, mise en service et vie avec l'installation.",
       status: "ACTIVE",
       productType: "EBOOK",
       purchaseMode: "BUY_NOW",
-      featuredImage: null,
+      featuredImage: "/ebook/couverture.jpg",
     },
   });
 
@@ -90,28 +90,19 @@ async function seedDigitalCatalog() {
     },
   });
 
-  const existingMatchingPrice = await prisma.productPrice.findFirst({
+  // getActivePriceForProduct() rejette (conflict) des qu'un produit a plus
+  // d'un prix ACTIVE : on ne cree un prix par defaut que s'il n'en existe
+  // encore aucun. Le montant reel est ensuite gere depuis le dashboard, le
+  // seed ne doit jamais l'ecraser ni en dupliquer un second.
+  const existingActivePrice = await prisma.productPrice.findFirst({
     where: {
       productId: product.id,
-      currency: "EUR",
-      unitAmountCents: 2900,
-      compareAtAmountCents: null,
       status: "ACTIVE",
     },
     orderBy: { createdAt: "asc" },
   });
 
-  if (existingMatchingPrice) {
-    await prisma.productPrice.update({
-      where: { id: existingMatchingPrice.id },
-      data: {
-        currency: "EUR",
-        unitAmountCents: 2900,
-        compareAtAmountCents: null,
-        status: "ACTIVE",
-      },
-    });
-  } else {
+  if (!existingActivePrice) {
     await prisma.productPrice.create({
       data: {
         productId: product.id,
@@ -147,8 +138,25 @@ async function seedDigitalCatalog() {
   };
 }
 
+// L'ebook bateau a ete cree depuis le dashboard, avec ses propres assets
+// (HTML haute qualite, HTML mobile, EPUB) deja lies en base : on ne touche
+// ici qu'aux champs marketing, jamais aux assets/prix/statut geres par le
+// dashboard. updateMany() est volontairement un no-op silencieux si le
+// produit n'existe pas encore dans l'environnement cible.
+async function seedBateauMetadata() {
+  await prisma.product.updateMany({
+    where: { slug: "ebook-electricite-bateau" },
+    data: {
+      description:
+        "Le guide complet pour un bateau qui a déjà vécu : diagnostiquer l'existant avant de reprendre quoi que ce soit, comprendre les normes et l'assurance, concevoir et choisir son matériel, installer pas à pas, mettre en réseau NMEA, refaire sa plomberie, mettre en service et vivre au quotidien avec son installation.",
+      featuredImage: "/ebook/couverture-bateau.jpg",
+    },
+  });
+}
+
 async function main() {
   const result = await seedDigitalCatalog();
+  await seedBateauMetadata();
   console.log(
     JSON.stringify(
       {

@@ -38,14 +38,18 @@ function getProductTypeLabel(value: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE") {
 // Contenu editorial fusionne depuis l'ancienne page marketing dediee
 // /ebook/cabler-son-van (supprimee : cette fiche boutique couvre desormais
 // a la fois la vente et l'argumentaire). Rien n'est invente, tout est repris
-// tel quel. L'ebook bateau n'a que sa couverture pour l'instant (produit en
-// brouillon, contenu source pas encore integre au catalogue numerique) :
-// les champs optionnels ci-dessous ne s'affichent que s'ils sont fournis.
+// tel quel. La couverture vient en priorite de product.featuredImage (edite
+// depuis le dashboard, donc pret pour les prochains ebooks comme
+// camping-car sans toucher au code) ; coverSrc ici sert de repli pour les
+// deux ebooks deja en catalogue tant que leur featuredImage n'est pas
+// renseigne en base. Les champs optionnels ci-dessous ne s'affichent que
+// s'ils sont fournis.
 const EBOOK_ENRICHMENT: Record<
   string,
   {
     coverSrc: string;
     coverAlt: string;
+    faqVariant?: "van" | "bateau";
     sommaire?: { n: string; title: string; detail: string }[];
     benefits?: string[];
     formats?: { icon: string; title: string; detail: string }[];
@@ -82,10 +86,39 @@ const EBOOK_ENRICHMENT: Record<
     reassuranceSuffix:
       " sont déduits de la prestation. Ce livre n'est jamais un coût perdu — au pire, c'est votre meilleure préparation avant qu'on travaille ensemble.",
     showFaq: true,
+    faqVariant: "van",
   },
   "ebook-electricite-bateau": {
     coverSrc: "/ebook/couverture-bateau.jpg",
-    coverAlt: "Couverture du livre « De la lampe à pétrole au lithium, ton bateau a tout connu »",
+    coverAlt: "Couverture du livre « De la lampe à pétrole au lithium »",
+    benefits: [
+      "Diagnostiquer l'existant avant de reprendre quoi que ce soit",
+      "Distinguer ce qui relève de la loi (CE, Division 240) et des normes, et ce que l'assurance exige vraiment",
+      "Dimensionner sa batterie, son solaire et coordonner ses sources de charge",
+      "Choisir du matériel adapté au marin (sertissage, fusibles, coupe-batteries) et l'installer dans le bon ordre",
+      "Mettre en place un réseau NMEA 0183/2000 et refaire sa plomberie embarquée en toute sécurité",
+      "Vivre avec son installation : entretien, hivernage, diagnostic de panne",
+    ],
+    sommaire: [
+      { n: "01", title: "Les bases que personne ne t'explique", detail: "Unités, loi d'Ohm, dangers du 12V, masse, corrosion galvanique : le socle avant de toucher un câble." },
+      { n: "02", title: "Normes, réglementation & assurance", detail: "CE, Division 240, ISO 13297, dossier technique : ce qui est obligatoire et ce qui est opposable par l'assurance." },
+      { n: "03", title: "Concevoir l'installation", detail: "État des lieux, bilan de consommation, sources, dimensionnement de la batterie." },
+      { n: "04", title: "Choisir le matériel", detail: "Batterie, chargeurs, solaire, câbles, protections, monitoring : sur quels critères choisir." },
+      { n: "05", title: "Installation pas à pas", detail: "L'ordre du chantier qui évite de tout redémonter, du gros câble à la mise sous tension." },
+      { n: "06", title: "Réseau embarqué et NMEA", detail: "0183 vs 2000, topologie du bus, capteurs, redondance : mettre en réseau son bateau." },
+      { n: "07", title: "Plomberie", detail: "Passe-coques, vannes, eau douce et eaux noires : le point de sécurité n°1 à bord." },
+      { n: "08", title: "Mise en service et tests", detail: "Réglages de charge, tests en charge réelle, mesures de performance, carnet de bord." },
+      { n: "09", title: "Vivre avec : guide du propriétaire", detail: "Contrôles mensuel et annuel, hivernage, diagnostic de panne, transmission du bateau." },
+    ],
+    formats: [
+      { icon: "🖥️", title: "Version HTML haute qualité", detail: "Format confortable pour l'écran, schémas et photos de chantier en grand format." },
+      { icon: "📱", title: "Version mobile légère", detail: "Se charge vite sur le chantier, pensée pour être consultée sur téléphone." },
+      { icon: "📚", title: "Version EPUB", detail: "Pour liseuse ou appli de lecture, et facile à imprimer si vous préférez le papier." },
+    ],
+    reassuranceSuffix:
+      " sont déduits de la prestation. Ce livre n'est jamais un coût perdu — au pire, c'est votre meilleure préparation avant qu'on travaille ensemble.",
+    showFaq: true,
+    faqVariant: "bateau",
   },
 };
 
@@ -162,6 +195,8 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
   const { product, price } = await getPublicProduct(slug);
 
   const enrichment = EBOOK_ENRICHMENT[product.slug];
+  const coverSrc = product.featuredImage || enrichment?.coverSrc || null;
+  const coverAlt = enrichment?.coverAlt || product.name;
   const includingPack = findPrestationsPackIncludingEbook(product.slug);
 
   const session = await getCustomerSessionFromCookie();
@@ -181,11 +216,11 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
           </Link>
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
-            {enrichment ? (
+            {coverSrc ? (
               <div className="mx-auto w-full max-w-[200px] overflow-hidden rounded-xl border border-neutral-200 shadow-sm lg:mx-0">
                 <Image
-                  src={enrichment.coverSrc}
-                  alt={enrichment.coverAlt}
+                  src={coverSrc}
+                  alt={coverAlt}
                   width={400}
                   height={534}
                   className="h-auto w-full object-cover"
@@ -311,7 +346,7 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                       Questions fréquentes
                     </h2>
                     <div className="mt-4">
-                      <FaqEbook />
+                      <FaqEbook variant={enrichment.faqVariant ?? "van"} />
                     </div>
                   </article>
                 ) : null}
