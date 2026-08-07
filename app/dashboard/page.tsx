@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatEuroFromCents } from "@/lib/format";
+import { getEcommerceStatsSummary } from "@/lib/services/ecommerce-stats";
 
 async function getPendingQuotesCount() {
   try {
@@ -110,11 +111,13 @@ export default async function DashboardPage() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  const [pendingQuotesCount, signedQuotesCount, monthlyRevenueSummary] = await Promise.all([
-    getPendingQuotesCount(),
-    getSignedQuotesCount(),
-    getMonthlyRevenueSummary(startOfMonth, startOfNextMonth),
-  ]);
+  const [pendingQuotesCount, signedQuotesCount, monthlyRevenueSummary, ecommerceStats] =
+    await Promise.all([
+      getPendingQuotesCount(),
+      getSignedQuotesCount(),
+      getMonthlyRevenueSummary(startOfMonth, startOfNextMonth),
+      getEcommerceStatsSummary(now),
+    ]);
 
   return (
     <main className="space-y-8">
@@ -136,6 +139,62 @@ export default async function DashboardPage() {
             Gestion des produits vendus sur FabSystem, commandes, paiements et acces
             numeriques.
           </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <section className="rounded-xl border border-neutral-200 bg-white p-4">
+            <p className="text-sm font-medium text-neutral-600">Achats du jour</p>
+            <p className="mt-2 text-2xl font-semibold text-neutral-900">
+              {ecommerceStats.ordersToday}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {formatEuroFromCents(ecommerceStats.revenueTodayCents)} de CA aujourd&apos;hui
+            </p>
+          </section>
+
+          <section className="rounded-xl border border-neutral-200 bg-white p-4">
+            <p className="text-sm font-medium text-neutral-600">Commandes offertes du jour</p>
+            <p className="mt-2 text-2xl font-semibold text-neutral-900">
+              {ecommerceStats.freeOrdersToday}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">via code coaching</p>
+          </section>
+
+          <section className="rounded-xl border border-neutral-200 bg-white p-4">
+            <p className="text-sm font-medium text-neutral-600">Achats du mois</p>
+            <p className="mt-2 text-2xl font-semibold text-neutral-900">
+              {ecommerceStats.ordersThisMonth}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              {formatEuroFromCents(ecommerceStats.revenueThisMonthCents)} de CA ce mois
+            </p>
+          </section>
+
+          <section className="rounded-xl border border-neutral-200 bg-white p-4">
+            <p className="text-sm font-medium text-neutral-600">Clients du mois</p>
+            <p className="mt-2 text-2xl font-semibold text-neutral-900">
+              {ecommerceStats.customersThisMonth}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">emails distincts, commandes payees</p>
+          </section>
+
+          <section className="rounded-xl border border-neutral-200 bg-white p-4">
+            <p className="text-sm font-medium text-neutral-600">Coupons utilises ce mois</p>
+            <p className="mt-2 text-2xl font-semibold text-neutral-900">
+              {ecommerceStats.couponsRedeemedThisMonth}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">redemptions DiscountCode</p>
+          </section>
+
+          <section className="rounded-xl border border-neutral-200 bg-white p-4">
+            <p className="text-sm font-medium text-neutral-600">Telechargements ce mois</p>
+            <p className="mt-2 text-2xl font-semibold text-neutral-900">
+              {ecommerceStats.downloadsThisMonth}
+            </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              grants avec un telechargement ce mois (estimation, pas un compteur de clics)
+            </p>
+          </section>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -170,8 +229,9 @@ export default async function DashboardPage() {
             description="Repertoire client partage entre e-commerce, devis et factures."
           />
           <DashboardCard
+            href="/dashboard/orders"
             title="Telechargements"
-            description="Vue dashboard dediee aux DownloadGrants prevue dans un sprint suivant."
+            description="Gerer les DownloadGrants (compteur, limite, revocation) depuis le detail de chaque commande."
           />
         </div>
       </section>
