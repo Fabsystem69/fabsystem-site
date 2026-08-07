@@ -202,6 +202,22 @@ function createMockDownloadGrantDeps() {
   };
 }
 
+function createMockNotifyDeps() {
+  const state = {
+    calls: [] as Array<{ orderId: string; metadata: Stripe.Metadata | null | undefined }>,
+  };
+
+  return {
+    state,
+    async sendPrestationsPackNotification(
+      orderId: string,
+      metadata: Stripe.Metadata | null | undefined
+    ) {
+      state.calls.push({ orderId, metadata });
+    },
+  };
+}
+
 function createExpiredCheckoutSession(
   overrides: Partial<Stripe.Checkout.Session> = {}
 ): Stripe.Checkout.Session {
@@ -604,4 +620,61 @@ test("handleCommerceCheckoutExpired does not create grants", async () => {
   await service.handleCommerceCheckoutExpired(createExpiredCheckoutSession());
 
   assert.deepEqual(grantDeps.state.orderIds, []);
+});
+
+test("handleCommerceCheckoutCompleted sends the Fabien notification with session metadata on first processing", async () => {
+  const order = createOrderRecord();
+  const payment = { ...createPaymentRecord(), order };
+  const { db } = createMockCommerceWebhookDb({ payment });
+  const notifyDeps = createMockNotifyDeps();
+  const session = createCheckoutSession({
+    metadata: {
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      paymentId: payment.id,
+      needsVehicle: "Van Ducato",
+    },
+  });
+  const service = createStripeWebhookCommerceService(db, notifyDeps);
+
+  await service.handleCommerceCheckoutCompleted(session);
+
+  assert.equal(notifyDeps.state.calls.length, 1);
+  assert.equal(notifyDeps.state.calls[0]?.orderId, order.id);
+  assert.equal(notifyDeps.state.calls[0]?.metadata?.needsVehicle, "Van Ducato");
+});
+
+test("handleCommerceCheckoutCompleted also sends the notification on an already-processed redelivery", async () => {
+  const order = createOrderRecord({
+    status: "PAID",
+    paidAt: new Date("2026-08-06T12:00:00.000Z"),
+  });
+  const payment = {
+    ...createPaymentRecord({
+      status: "SUCCEEDED",
+      succeededAt: new Date("2026-08-06T12:00:00.000Z"),
+    }),
+    order,
+  };
+  const { db } = createMockCommerceWebhookDb({ payment });
+  const notifyDeps = createMockNotifyDeps();
+  const service = createStripeWebhookCommerceService(db, notifyDeps);
+
+  await service.handleCommerceCheckoutCompleted(createCheckoutSession());
+
+  assert.equal(notifyDeps.state.calls.length, 1);
+});
+
+test("handleCommerceCheckoutCompleted does not send the notification for an unpaid session", async () => {
+  const notifyDeps = createMockNotifyDeps();
+  const service = createStripeWebhookCommerceService(
+    createMockCommerceWebhookDb().db,
+    notifyDeps
+  );
+
+  await service.handleCommerceCheckoutCompleted(
+    createCheckoutSession({ payment_status: "unpaid" })
+  );
+
+  assert.equal(notifyDeps.state.calls.length, 0);
 });

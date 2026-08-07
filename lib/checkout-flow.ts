@@ -1,10 +1,12 @@
 import { badRequest, internalServerError } from "@/lib/http-errors";
+import type { PrestationsNeedsAnswers } from "@/lib/prestations-needs";
 
 export type CheckoutFlowInput = {
   customerEmail: string;
   customerName?: string;
   existingOrderId?: string;
   discountCode?: string;
+  needsAnswers?: PrestationsNeedsAnswers;
 };
 
 type OrderResponse = {
@@ -93,6 +95,7 @@ export async function createCheckoutFromCart(
     },
     body: JSON.stringify({
       orderId,
+      needsAnswers: input.needsAnswers,
     }),
   });
 

@@ -2,7 +2,13 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createCheckoutFromCart } from "@/lib/checkout-flow";
+import {
+  readStoredNeedsAnswers,
+  storePendingCheckoutInputs,
+} from "@/lib/client/prestations-needs-storage";
+import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 import type { CartSummary } from "@/lib/services/cart";
 
 type CheckoutSummaryState = {
@@ -33,6 +39,7 @@ function formatAmount(value: number, currency: string) {
 }
 
 export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
+  const router = useRouter();
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -51,8 +58,29 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setPending(true);
     setError(null);
+
+    const hasPack = cart.lines.some((line) => isPrestationsPackSlug(line.slug));
+
+    if (hasPack) {
+      const storedNeedsAnswers = readStoredNeedsAnswers(cart.cartId);
+
+      if (!storedNeedsAnswers) {
+        // Le panier contient au moins un pack et le formulaire de projet n'a
+        // pas encore été rempli pour ce panier : on garde email/nom/code en
+        // session le temps du détour, puis on redirige vers l'étape dédiée.
+        storePendingCheckoutInputs(cart.cartId, {
+          customerEmail,
+          customerName: customerName || undefined,
+          discountCode: summary.appliedCode ?? undefined,
+        });
+        setPending(true);
+        router.push("/panier/projet");
+        return;
+      }
+    }
+
+    setPending(true);
 
     try {
       const result = await createCheckoutFromCart(fetch, {
@@ -60,6 +88,7 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
         customerName,
         existingOrderId: orderId ?? undefined,
         discountCode: summary.appliedCode ?? undefined,
+        needsAnswers: hasPack ? readStoredNeedsAnswers(cart.cartId) ?? undefined : undefined,
       });
 
       setOrderId(result.orderId);

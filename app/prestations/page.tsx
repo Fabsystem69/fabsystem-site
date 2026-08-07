@@ -4,8 +4,14 @@ import TrackedLink from "@/components/TrackedLink";
 import FaqPrestations from "@/components/FaqPrestations";
 import { PrestationsDistanceOffers } from "@/components/prestations/PrestationsDistanceOffers";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
+import { getPrestationsPackProductIdBySlug } from "@/lib/services/prestations-packs-catalog";
 import Link from "next/link";
 import type { Metadata } from "next";
+
+// Page statique par defaut, mais son contenu depend de donnees catalogue
+// (packs) et des temoignages publies en base : rafraichie toutes les 5
+// minutes pour rester a jour sans devenir entierement dynamique.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Services électricité embarquée — accompagnement à distance et terrain",
@@ -98,7 +104,10 @@ const fieldServices = [
   },
 ] as const;
 
-export default function PrestationsPage() {
+export default async function PrestationsPage() {
+  const packProductIdBySlug = await getPrestationsPackProductIdBySlug();
+
+
   return (
     <main>
       <PageHero
@@ -162,7 +171,7 @@ export default function PrestationsPage() {
           </div>
 
           <div className="mt-8">
-            <PrestationsDistanceOffers />
+            <PrestationsDistanceOffers packProductIdBySlug={packProductIdBySlug} />
           </div>
         </div>
       </section>

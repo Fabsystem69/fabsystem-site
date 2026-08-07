@@ -9,12 +9,20 @@ import type {
   PrismaClient,
 } from "@/lib/generated/prisma/client";
 import { HttpError, badRequest, conflict, internalServerError, notFound } from "@/lib/http-errors";
+import { isPrestationsPackSlug } from "@/lib/prestations-packs";
+import {
+  PRESTATIONS_NEEDS_PROGRESS_LABELS,
+  parsePrestationsNeedsAnswers,
+  prestationsNeedsAnswersInputSchema,
+  type PrestationsNeedsAnswers,
+} from "@/lib/prestations-needs";
 
 type PrismaClientLike = PrismaClient;
 
 const createCheckoutSessionInputSchema = z.object({
   orderId: z.string().trim().min(1),
   baseUrl: z.string().trim().min(1).optional(),
+  needsAnswers: prestationsNeedsAnswersInputSchema,
 });
 
 type OrderWithRelations = Order & {
@@ -86,12 +94,40 @@ function getLatestPendingStripePayment(payments: Payment[]) {
   return payment;
 }
 
+// Un point de rendez-vous a 500 caracteres max par valeur de metadata Stripe
+// (deja garanti par le schema Zod cote formulaire, secu en profondeur ici).
+function truncateForStripeMetadata(value: string) {
+  return value.slice(0, 490);
+}
+
+function orderContainsPrestationsPack(order: Pick<OrderWithRelations, "items">) {
+  return order.items.some((item) => isPrestationsPackSlug(item.productSlug));
+}
+
+function buildNeedsAnswersMetadata(
+  needsAnswers: PrestationsNeedsAnswers | null
+): Record<string, string> {
+  if (!needsAnswers) {
+    return {};
+  }
+
+  return {
+    needsVehicle: truncateForStripeMetadata(needsAnswers.vehicle),
+    needsDescription: truncateForStripeMetadata(needsAnswers.description),
+    needsProgress: needsAnswers.progress,
+    needsProgressLabel: PRESTATIONS_NEEDS_PROGRESS_LABELS[needsAnswers.progress],
+    needsDeadline: needsAnswers.deadline ? truncateForStripeMetadata(needsAnswers.deadline) : "",
+    needsOther: needsAnswers.other ? truncateForStripeMetadata(needsAnswers.other) : "",
+  };
+}
+
 export function buildCheckoutSessionParams(input: {
   order: OrderWithRelations;
   paymentId: string;
   baseUrl: string;
+  needsAnswers?: PrestationsNeedsAnswers | null;
 }): Stripe.Checkout.SessionCreateParams {
-  const { order, paymentId, baseUrl } = input;
+  const { order, paymentId, baseUrl, needsAnswers } = input;
 
   return {
     mode: "payment",
@@ -102,6 +138,7 @@ export function buildCheckoutSessionParams(input: {
       orderId: order.id,
       orderNumber: order.orderNumber,
       paymentId,
+      ...buildNeedsAnswersMetadata(needsAnswers ?? null),
     },
     line_items: order.items.map((item) => ({
       price_data: {
@@ -114,6 +151,21 @@ export function buildCheckoutSessionParams(input: {
       quantity: item.quantity,
     })),
   };
+}
+
+// Blocage serveur (Mission 2) : un panier contenant au moins un pack ne peut
+// pas generer de session Stripe sans reponses valides au formulaire de
+// besoin. C'est la seule barriere qui compte reellement — la redirection
+// cote client vers /panier/projet n'est qu'une commodite UX.
+function assertNeedsAnswersProvidedIfRequired(
+  order: OrderWithRelations,
+  needsAnswers: PrestationsNeedsAnswers | null
+) {
+  if (orderContainsPrestationsPack(order) && !needsAnswers) {
+    throw badRequest(
+      "Le formulaire de projet est requis pour valider un pack d'accompagnement."
+    );
+  }
 }
 
 function normalizeBaseUrl(value: string | undefined) {
@@ -156,12 +208,14 @@ async function createAndPersistCheckoutSession(input: {
   order: OrderWithRelations;
   payment: Payment;
   baseUrl: string;
+  needsAnswers: PrestationsNeedsAnswers | null;
 }) {
   const session = await input.stripeClient.checkout.sessions.create(
     buildCheckoutSessionParams({
       order: input.order,
       paymentId: input.payment.id,
       baseUrl: input.baseUrl,
+      needsAnswers: input.needsAnswers,
     })
   );
 
@@ -264,11 +318,13 @@ export function createCheckoutService(db: CheckoutDb, deps: CheckoutServiceDeps)
       input: z.infer<typeof createCheckoutSessionInputSchema>
     ): Promise<CheckoutSessionResult> {
       const parsed = createCheckoutSessionInputSchema.parse(input);
+      const needsAnswers = parsePrestationsNeedsAnswers(parsed.needsAnswers);
 
       return db.transaction(async (tx) => {
         const order = assertOrderIsReadyForCheckout(await tx.findOrderById(parsed.orderId));
         const payment = assertPaymentCanCreateCheckout(getLatestPendingStripePayment(order.payments));
         assertOrderSnapshotsAreValid(order);
+        assertNeedsAnswersProvidedIfRequired(order, needsAnswers);
         const baseUrl = normalizeBaseUrl(parsed.baseUrl ?? deps.getBaseUrl?.());
 
         if (!payment.stripeCheckoutSessionId) {
@@ -278,6 +334,7 @@ export function createCheckoutService(db: CheckoutDb, deps: CheckoutServiceDeps)
             order,
             payment,
             baseUrl,
+            needsAnswers,
           });
         }
 
@@ -329,6 +386,7 @@ export function createCheckoutService(db: CheckoutDb, deps: CheckoutServiceDeps)
           order,
           payment: retryPayment,
           baseUrl,
+          needsAnswers,
         });
       });
     },

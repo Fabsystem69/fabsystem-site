@@ -1,16 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { AddToCartButton } from "@/components/cart/AddToCartButton";
+import {
+  buildPrestationsPackSlug,
+  getPrestationsPackPriceCents,
+  type PrestationsCategorie,
+  type PrestationsPalier,
+} from "@/lib/prestations-packs";
 
-type CategoryId = "van" | "camping-car" | "bateau";
+type PrestationsDistanceOffersProps = {
+  // slug pack -> productId reel en base (voir lib/services/prestations-packs-catalog.ts).
+  // Un pack absent de cette map n'a pas encore ete cree dans le catalogue :
+  // le bouton retombe alors sur un lien vers /boutique plutot que de casser.
+  packProductIdBySlug: Record<string, string>;
+};
 
-const categories: { id: CategoryId; label: string }[] = [
+const categories: { id: PrestationsCategorie; label: string }[] = [
   { id: "van", label: "Van aménagé" },
   { id: "camping-car", label: "Camping-car" },
   { id: "bateau", label: "Bateau" },
 ];
 
-const vocab: Record<CategoryId, string[]> = {
+const vocab: Record<PrestationsCategorie, string[]> = {
   van: [
     "Batterie auxiliaire",
     "Solaire",
@@ -47,19 +60,10 @@ const vocab: Record<CategoryId, string[]> = {
   ],
 };
 
-type PalierId = "amarrage" | "cap" | "passerelle" | "grand-large";
-
-const prices: Record<CategoryId, Record<PalierId, number>> = {
-  van: { amarrage: 89, cap: 199, passerelle: 499, "grand-large": 749 },
-  "camping-car": { amarrage: 109, cap: 279, passerelle: 599, "grand-large": 899 },
-  bateau: { amarrage: 129, cap: 349, passerelle: 749, "grand-large": 1099 },
-};
-
 const paliers: {
-  id: PalierId;
+  id: PrestationsPalier;
   name: string;
   subtitle: string;
-  objectif: string;
   highlights: string[];
   avoids: string[];
   steps: string;
@@ -77,7 +81,6 @@ const paliers: {
     id: "amarrage",
     name: "AMARRAGE",
     subtitle: "Faire le point avant de repartir dans la mauvaise direction.",
-    objectif: "Faire le point, identifier les erreurs visibles, les risques et les priorités.",
     highlights: [
       "Idéal pour un doute précis",
       "Installation existante à vérifier",
@@ -106,7 +109,6 @@ const paliers: {
     id: "cap",
     name: "CAP",
     subtitle: "Définir la bonne architecture avant d'acheter ou de câbler.",
-    objectif: "Définir la bonne architecture avant d'acheter ou de câbler.",
     highlights: [
       "Logique complète de l'installation",
       "Choix des grandes fonctions",
@@ -136,7 +138,6 @@ const paliers: {
     id: "passerelle",
     name: "PASSERELLE",
     subtitle: "Avancer étape par étape avec FabSystem à vos côtés.",
-    objectif: "Avancer étape par étape avec FabSystem pendant les moments critiques.",
     highlights: [
       "Accompagnement du projet dans la durée",
       "Architecture validée",
@@ -169,7 +170,6 @@ const paliers: {
     id: "grand-large",
     name: "GRAND LARGE",
     subtitle: "Sécuriser tout le projet jusqu'aux premiers essais.",
-    objectif: "Sécuriser tout le projet de la conception aux premiers essais.",
     highlights: [
       "Conception plus poussée par FabSystem",
       "Schéma préparé ou fortement structuré",
@@ -200,12 +200,18 @@ const paliers: {
   },
 ];
 
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(value) + " €";
+function formatPrice(cents: number) {
+  return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(cents / 100) + " €";
 }
 
-export function PrestationsDistanceOffers() {
-  const [category, setCategory] = useState<CategoryId>("van");
+const PACK_ADD_TO_CART_CLASS =
+  "inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand-400 px-4 py-2 text-sm font-bold text-neutral-900 transition hover:bg-brand-300";
+
+const PACK_FALLBACK_LINK_CLASS =
+  "inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-white/30 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10";
+
+export function PrestationsDistanceOffers({ packProductIdBySlug }: PrestationsDistanceOffersProps) {
+  const [category, setCategory] = useState<PrestationsCategorie>("van");
 
   return (
     <div>
@@ -247,63 +253,74 @@ export function PrestationsDistanceOffers() {
 
       {/* Paliers */}
       <div className="mt-8 grid gap-5 lg:grid-cols-4">
-        {paliers.map((palier) => (
-          <article
-            key={palier.id}
-            className={`relative flex h-full flex-col rounded-2xl border ${palier.theme.border} ${palier.theme.bg} ${palier.theme.ring} p-5 shadow-lg shadow-black/30`}
-          >
-            {palier.badge ? (
-              <span
-                className={`absolute -top-3 left-5 rounded-full px-3 py-0.5 text-xs font-bold ${palier.theme.badgeBg}`}
-              >
-                {palier.badge}
-              </span>
-            ) : null}
+        {paliers.map((palier) => {
+          const slug = buildPrestationsPackSlug(palier.id, category);
+          const productId = packProductIdBySlug[slug];
 
-            <h3 className={`text-base font-bold tracking-wide ${palier.theme.accent}`}>
-              {palier.name}
-            </h3>
-            <p className="mt-1 text-xs leading-relaxed text-white/70">{palier.subtitle}</p>
+          return (
+            <article
+              key={palier.id}
+              className={`relative flex h-full flex-col rounded-2xl border ${palier.theme.border} ${palier.theme.bg} ${palier.theme.ring} p-5 shadow-lg shadow-black/30`}
+            >
+              {palier.badge ? (
+                <span
+                  className={`absolute -top-3 left-5 rounded-full px-3 py-0.5 text-xs font-bold ${palier.theme.badgeBg}`}
+                >
+                  {palier.badge}
+                </span>
+              ) : null}
 
-            <p className="mt-4 text-2xl font-bold text-white">
-              {formatPrice(prices[category][palier.id])}
-            </p>
-            <p className="text-[11px] uppercase tracking-wide text-white/40">
-              Tarif de lancement
-            </p>
+              <h3 className={`text-base font-bold tracking-wide ${palier.theme.accent}`}>
+                {palier.name}
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-white/70">{palier.subtitle}</p>
 
-            <ul className="mt-4 flex-1 space-y-1.5 text-sm text-white/80">
-              {palier.highlights.map((item) => (
-                <li key={item} className="flex items-start gap-2">
-                  <span className={`mt-0.5 ${palier.theme.accent}`}>✓</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-4 border-t border-white/10 pt-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-white/40">
-                Ce que vous évitez
+              <p className="mt-4 text-2xl font-bold text-white">
+                {formatPrice(getPrestationsPackPriceCents(category, palier.id))}
               </p>
-              <ul className="mt-2 space-y-1 text-xs text-white/60">
-                {palier.avoids.map((item) => (
-                  <li key={item}>— {item}</li>
+              <p className="text-[11px] uppercase tracking-wide text-white/40">
+                Tarif de lancement
+              </p>
+
+              <ul className="mt-4 flex-1 space-y-1.5 text-sm text-white/80">
+                {palier.highlights.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className={`mt-0.5 ${palier.theme.accent}`}>✓</span>
+                    {item}
+                  </li>
                 ))}
               </ul>
-            </div>
 
-            <p className="mt-4 text-xs font-medium text-white/50">{palier.steps}</p>
+              <div className="mt-4 border-t border-white/10 pt-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/40">
+                  Ce que vous évitez
+                </p>
+                <ul className="mt-2 space-y-1 text-xs text-white/60">
+                  {palier.avoids.map((item) => (
+                    <li key={item}>— {item}</li>
+                  ))}
+                </ul>
+              </div>
 
-            <div className="mt-5">
-              <a
-                href="#contact"
-                className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-brand-400 px-4 py-2 text-sm font-bold text-neutral-900 transition hover:bg-brand-300"
-              >
-                {palier.cta}
-              </a>
-            </div>
-          </article>
-        ))}
+              <p className="mt-4 text-xs font-medium text-white/50">{palier.steps}</p>
+
+              <div className="mt-5">
+                {productId ? (
+                  <AddToCartButton
+                    productId={productId}
+                    label={palier.cta}
+                    className={PACK_ADD_TO_CART_CLASS}
+                    successMessage={`${palier.name} ajouté au panier.`}
+                  />
+                ) : (
+                  <Link href="/boutique" className={PACK_FALLBACK_LINK_CLASS}>
+                    Voir en boutique
+                  </Link>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       <p className="mt-6 text-center text-xs text-white/40">

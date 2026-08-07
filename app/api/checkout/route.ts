@@ -23,6 +23,7 @@ export async function POST(request: Request) {
     const session = await createCheckoutSessionForOrder({
       orderId: parsed.orderId,
       baseUrl,
+      needsAnswers: parsed.needsAnswers,
     });
 
     return NextResponse.json({

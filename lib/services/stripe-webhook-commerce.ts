@@ -52,6 +52,10 @@ export type CommerceWebhookDb = {
 type CommerceWebhookDeps = {
   now?: () => Date;
   createDownloadGrantsForOrder?: (orderId: string) => Promise<unknown>;
+  sendPrestationsPackNotification?: (
+    orderId: string,
+    sessionMetadata: Stripe.Metadata | null | undefined
+  ) => Promise<unknown>;
 };
 
 function getRequiredMetadataValue(
@@ -178,13 +182,16 @@ function createPrismaCommerceWebhookDb(client: PrismaClientLike): CommerceWebhoo
 }
 
 async function getDefaultCommerceWebhookService() {
-  const [{ prisma }, { createDownloadGrantsForOrder }] = await Promise.all([
-    import("@/lib/prisma"),
-    import("@/lib/services/download-grant"),
-  ]);
+  const [{ prisma }, { createDownloadGrantsForOrder }, { sendPrestationsPackNotification }] =
+    await Promise.all([
+      import("@/lib/prisma"),
+      import("@/lib/services/download-grant"),
+      import("@/lib/services/prestations-notify"),
+    ]);
 
   return createStripeWebhookCommerceService(createPrismaCommerceWebhookDb(prisma), {
     createDownloadGrantsForOrder,
+    sendPrestationsPackNotification,
   });
 }
 
@@ -194,6 +201,8 @@ export function createStripeWebhookCommerceService(
 ) {
   const now = deps?.now ?? (() => new Date());
   const createDownloadGrantsForOrder = deps?.createDownloadGrantsForOrder ?? (async () => {});
+  const sendPrestationsPackNotification =
+    deps?.sendPrestationsPackNotification ?? (async () => {});
 
   return {
     async handleCommerceCheckoutCompleted(
@@ -269,6 +278,11 @@ export function createStripeWebhookCommerceService(
 
       if (result.status === "processed" || result.status === "already_processed") {
         await createDownloadGrantsForOrder(result.orderId);
+        // Appele aussi sur already_processed (redelivery Stripe) pour ne
+        // jamais perdre silencieusement la notification si l'envoi avait
+        // echoue lors d'une tentative precedente — au pire un email en
+        // double vers Fabien, jamais zero email pour un pack paye.
+        await sendPrestationsPackNotification(result.orderId, session.metadata);
       }
 
       return result;

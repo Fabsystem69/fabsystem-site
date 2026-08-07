@@ -551,3 +551,101 @@ test("createCheckoutSessionForOrder recreates a payment and session when the pre
   assert.equal(state.createdPayments[0]?.currency, previousPayment.currency);
   assert.equal(state.orders[0]?.status, "PENDING_PAYMENT");
 });
+
+test("buildCheckoutSessionParams adds needs-form answers to metadata when provided", () => {
+  const order = {
+    ...createOrderRecord(),
+    items: [createOrderItemRecord({ productSlug: "pack-passerelle-van" })],
+    payments: [],
+  };
+
+  const params = buildCheckoutSessionParams({
+    order,
+    paymentId: "payment_1",
+    baseUrl: "https://fabsystem.test",
+    needsAnswers: {
+      vehicle: "Van Ducato 2019",
+      description: "Refaire tout le 12V",
+      progress: "in_progress",
+      deadline: "fin du mois",
+      other: "aucune",
+    },
+  });
+
+  assert.equal(params.metadata?.needsVehicle, "Van Ducato 2019");
+  assert.equal(params.metadata?.needsDescription, "Refaire tout le 12V");
+  assert.equal(params.metadata?.needsProgress, "in_progress");
+  assert.equal(params.metadata?.needsDeadline, "fin du mois");
+  assert.equal(params.metadata?.needsOther, "aucune");
+});
+
+test("createCheckoutSessionForOrder refuses a pack order without needs-form answers", async () => {
+  const order = createOrderRecord();
+  const { db } = createMockCheckoutDb({
+    orders: [order],
+    orderItems: [
+      createOrderItemRecord({ orderId: order.id, productSlug: "pack-amarrage-van" }),
+    ],
+    payments: [createPaymentRecord({ orderId: order.id })],
+  });
+  const stripe = createStripeClientMock();
+  const service = createCheckoutService(db, {
+    stripeClient: stripe.client,
+    getBaseUrl: () => "https://fabsystem.test",
+  });
+
+  await assert.rejects(
+    () => service.createCheckoutSessionForOrder({ orderId: order.id }),
+    (error: unknown) => error instanceof HttpError && error.status === 400
+  );
+  assert.equal(stripe.createCalls.length, 0);
+});
+
+test("createCheckoutSessionForOrder creates a session for a pack order once needs-form answers are provided", async () => {
+  const order = createOrderRecord();
+  const { db } = createMockCheckoutDb({
+    orders: [order],
+    orderItems: [
+      createOrderItemRecord({ orderId: order.id, productSlug: "pack-cap-bateau" }),
+    ],
+    payments: [createPaymentRecord({ orderId: order.id })],
+  });
+  const stripe = createStripeClientMock();
+  const service = createCheckoutService(db, {
+    stripeClient: stripe.client,
+    getBaseUrl: () => "https://fabsystem.test",
+  });
+
+  const result = await service.createCheckoutSessionForOrder({
+    orderId: order.id,
+    needsAnswers: {
+      vehicle: "Voilier 10m",
+      description: "Refonte tableau electrique",
+      progress: "not_started",
+    },
+  });
+
+  assert.equal(result.url, "https://checkout.stripe.com/c/pay/cs_test_123");
+  const createdParams = stripe.createCalls[0] as { metadata?: Record<string, string> };
+  assert.equal(createdParams.metadata?.needsVehicle, "Voilier 10m");
+});
+
+test("createCheckoutSessionForOrder does not require needs-form answers for an ebook-only order", async () => {
+  const order = createOrderRecord();
+  const { db } = createMockCheckoutDb({
+    orders: [order],
+    orderItems: [
+      createOrderItemRecord({ orderId: order.id, productSlug: "ebook-electricite-van" }),
+    ],
+    payments: [createPaymentRecord({ orderId: order.id })],
+  });
+  const stripe = createStripeClientMock();
+  const service = createCheckoutService(db, {
+    stripeClient: stripe.client,
+    getBaseUrl: () => "https://fabsystem.test",
+  });
+
+  const result = await service.createCheckoutSessionForOrder({ orderId: order.id });
+
+  assert.equal(result.url, "https://checkout.stripe.com/c/pay/cs_test_123");
+});

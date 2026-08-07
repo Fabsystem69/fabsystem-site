@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { formatEuroFromCents } from "@/lib/format";
+import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 import {
   getActivePriceForProduct,
   listActiveBuyNowProducts,
@@ -21,7 +22,13 @@ export const metadata: Metadata = {
 };
 
 async function getCatalogProducts() {
-  const products = await listActiveBuyNowProducts();
+  // Les packs d'accompagnement à distance (Amarrage/Cap/Passerelle/Grand
+  // Large) vivent dans le même catalogue Product que les ebooks pour
+  // réutiliser le panier existant, mais se vendent depuis /prestations —
+  // exclus ici pour ne pas dupliquer/brouiller la grille boutique.
+  const products = (await listActiveBuyNowProducts()).filter(
+    (product) => !isPrestationsPackSlug(product.slug)
+  );
 
   const settled = await Promise.allSettled(
     products.map(async (product) => ({
