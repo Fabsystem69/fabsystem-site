@@ -1,5 +1,6 @@
 import Image from "next/image";
 import TrackedLink from "@/components/TrackedLink";
+import RevealPhone from "@/components/RevealPhone";
 import ContactForm from "../../components/ContactForm";
 import type { Metadata } from "next";
 import ServiceAssurance from "@/components/ServiceAssurance";
@@ -51,8 +52,7 @@ const faqJsonLd = {
   })),
 };
 
-const phoneHref = "tel:+33698247722";
-const emailHref = "mailto:fabien.lages@fabsystem.fr";
+const emailHref = "mailto:contact@fabsystem.fr";
 const websiteHref = "https://www.fabsystem.fr";
 const vcardPageUrl = "https://www.fabsystem.fr/vcard";
 
@@ -149,24 +149,18 @@ export default async function ContactPage() {
 
                 <div className="mt-3 space-y-2 text-sm text-neutral-700">
                   <p>
-                    <span className="font-medium text-neutral-900">Téléphone :</span>{" "}
-                    <TrackedLink
-                      href={phoneHref}
-                      event="click_tel"
-                      className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
-                    >
-                      06 98 24 77 22
-                    </TrackedLink>
-                  </p>
-                  <p>
                     <span className="font-medium text-neutral-900">Email :</span>{" "}
                     <TrackedLink
                       href={emailHref}
                       event="click_email"
                       className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                     >
-                      fabien.lages@fabsystem.fr
+                      contact@fabsystem.fr
                     </TrackedLink>
+                  </p>
+                  <p>
+                    <span className="font-medium text-neutral-900">Téléphone :</span>{" "}
+                    <RevealPhone className="underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20" />
                   </p>
                   <p>
                     <span className="font-medium text-neutral-900">Adresse :</span>{" "}

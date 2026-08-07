@@ -38,10 +38,10 @@ export default function MentionsLegalesPage() {
             <br />
             Email :{" "}
             <a
-              href="mailto:fabien.lages@fabsystem.fr"
+              href="mailto:contact@fabsystem.fr"
               className="underline"
             >
-              fabien.lages@fabsystem.fr
+              contact@fabsystem.fr
             </a>
             <br />
           </p>
@@ -117,10 +117,10 @@ export default function MentionsLegalesPage() {
             en contactant :
             <br />
             <a
-              href="mailto:fabien.lages@fabsystem.fr"
+              href="mailto:contact@fabsystem.fr"
               className="underline"
             >
-              fabien.lages@fabsystem.fr
+              contact@fabsystem.fr
             </a>
           </p>
         </div>

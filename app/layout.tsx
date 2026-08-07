@@ -89,7 +89,7 @@ export default function RootLayout({
               "@type": "ProfessionalService",
               name: "FabSystem",
               url: "https://www.fabsystem.fr",
-              email: "fabien.lages@fabsystem.fr",
+              email: "contact@fabsystem.fr",
               telephone: "+33698247722",
               address: {
                 "@type": "PostalAddress",

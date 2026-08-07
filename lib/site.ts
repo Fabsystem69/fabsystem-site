@@ -4,7 +4,7 @@ export const site = {
   description:
     "Sécurisation et mise aux normes électriques pour bateaux, vans et camping-cars.",
   phone: "06 98 24 77 22",
-  email: "fabien.lages@fabsystem.fr",
+  email: "contact@fabsystem.fr",
   location: "Neuville-sur-Saône",
   nav: [
     { label: "Accueil", href: "/" },

@@ -1,7 +1,6 @@
 import PageHero from "@/components/PageHero";
 import TrackedLink from "@/components/TrackedLink";
 import QuizFormations from "@/components/QuizFormations";
-import { FormationsEssentialTools } from "@/components/FormationsEssentialTools";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -243,16 +242,8 @@ export default function FormationsPage() {
                 </Link>
               </div>
 
-              <div id="outils-essentiels" className="mt-6 scroll-mt-20">
-                <h4 className="text-sm font-semibold text-neutral-950">Outils essentiels</h4>
-                <p className="mt-1 text-sm leading-relaxed text-neutral-600">
-                  Le matériel physique pour câbler soi-même son installation, sans se planter sur
-                  le matos.
-                </p>
-                <div className="mt-3">
-                  <FormationsEssentialTools />
-                </div>
-              </div>
+              {/* Section "Outils essentiels" masquée : contenu pas encore finalisé.
+                  Voir components/FormationsEssentialTools.tsx et lib/formations-tools.ts. */}
             </div>
           </div>
 

@@ -209,8 +209,8 @@ export default function ContactForm() {
       {status === "error" && (
         <p className="text-sm text-neutral-700" role="status" aria-live="polite">
           Erreur d’envoi. Réessayez ou écrivez directement à{" "}
-          <a className="underline" href="mailto:fabien.lages@fabsystem.fr">
-            fabien.lages@fabsystem.fr
+          <a className="underline" href="mailto:contact@fabsystem.fr">
+            contact@fabsystem.fr
           </a>
           .
         </p>

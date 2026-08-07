@@ -90,10 +90,10 @@ export default function ConfidentialitePage() {
             Pour exercer ces droits, il suffit de contacter :
             <br />
             <a
-              href="mailto:fabien.lages@fabsystem.fr"
+              href="mailto:contact@fabsystem.fr"
               className="underline"
             >
-              fabien.lages@fabsystem.fr
+              contact@fabsystem.fr
             </a>
           </p>
         </div>

@@ -36,7 +36,7 @@ async function getDefaultSendMail() {
 }
 
 function resolveNotifyToAddress() {
-  return process.env.CONTACT_TO?.trim() || "fabien.lages@fabsystem.fr";
+  return process.env.CONTACT_TO?.trim() || "contact@fabsystem.fr";
 }
 
 function resolveNotifyFromAddress(to: string) {

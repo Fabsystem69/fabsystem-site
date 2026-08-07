@@ -56,7 +56,7 @@ export async function POST(request: Request, { params }: Params) {
     const from =
       process.env.CONTACT_FROM ||
       process.env.SMTP_USER ||
-      "fabien.lages@fabsystem.fr";
+      "contact@fabsystem.fr";
 
     const subject = `Devis ${quote.number} – Signature`;
     const validity = quote.validUntil ? formatDate(quote.validUntil) : "Non renseignée";

@@ -497,7 +497,7 @@ function PdfFooter({
   qrDataUrl: string;
 }) {
   const footerText = sanitize(
-    "FabSystem — 48 rue Rey Loras, Bât. E, 69250 Neuville-sur-Saône — SIRET 100 271 980 00011 — TVA non applicable (293 B CGI) — fabien.lages@fabsystem.fr — 06 98 24 77 22"
+    "FabSystem — 48 rue Rey Loras, Bât. E, 69250 Neuville-sur-Saône — SIRET 100 271 980 00011 — TVA non applicable (293 B CGI) — contact@fabsystem.fr — 06 98 24 77 22"
   );
 
   return (

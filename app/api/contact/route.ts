@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     const message = safeText(data.message);
     const source = safeText(data.source);
 
-    const to = process.env.CONTACT_TO || "fabien.lages@fabsystem.fr";
+    const to = process.env.CONTACT_TO || "contact@fabsystem.fr";
     const from = process.env.CONTACT_FROM || process.env.SMTP_USER || to;
 
     const common = pick(payload, [

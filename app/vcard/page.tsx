@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 const phoneHref = "tel:+33698247722";
-const emailHref = "mailto:fabien.lages@fabsystem.fr";
+const emailHref = "mailto:contact@fabsystem.fr";
 const websiteHref = "https://www.fabsystem.fr";
 const scheduleHref = "/visio";
 const vcardPageUrl = "https://www.fabsystem.fr/vcard";
@@ -40,7 +40,7 @@ const contactRows: ContactRow[] = [
   },
   {
     label: "Email",
-    value: "fabien.lages@fabsystem.fr",
+    value: "contact@fabsystem.fr",
     href: emailHref,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">

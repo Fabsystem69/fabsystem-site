@@ -22,7 +22,7 @@ export function buildContactVcard() {
     "ORG:FabSystem",
     "TITLE:Électricité embarquée • Audit • Formation",
     "TEL;TYPE=CELL:+33698247722",
-    "EMAIL;TYPE=INTERNET:fabien.lages@fabsystem.fr",
+    "EMAIL;TYPE=INTERNET:contact@fabsystem.fr",
     `ADR;TYPE=WORK:;;;${escapeVcardValue(contactCity)};;;${contactCountry}`,
     `URL:${contactWebsiteUrl}`,
     `PHOTO;VALUE=URI:${contactPhotoUrl}`,
