@@ -6,7 +6,7 @@ type ErrorWithCode = {
 };
 
 const DATABASE_ERROR_CODES = new Set(["P1000", "P1001", "P1002", "P1017"]);
-const CONFLICT_ERROR_CODES = new Set(["P2002"]);
+const CONFLICT_ERROR_CODES = new Set(["P2002", "P2003"]);
 const NOT_FOUND_ERROR_CODES = new Set(["P2025"]);
 
 export function isDatabaseConnectionError(error: unknown) {

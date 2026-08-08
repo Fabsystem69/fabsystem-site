@@ -73,6 +73,7 @@ function createPrismaCustomerAccountDb(client: PrismaClientLike): CustomerAccoun
     async findOrdersForCustomer(customerId, customerEmail) {
       return client.order.findMany({
         where: {
+          status: { not: "PENDING_PAYMENT" },
           OR: [{ customerId }, { customerEmail }],
         },
         include: {
@@ -133,7 +134,13 @@ export function createCustomerAccountService(
           email: customer.email,
           name: customer.name,
         },
-        orders: orders.map((order) => ({
+        // Une commande PENDING_PAYMENT ne doit jamais apparaitre cote
+        // client (paiement pas encore confirme, purge possible cote admin) :
+        // filtre ici en plus de la requete Prisma, pour ne jamais dependre
+        // uniquement de la couche DB.
+        orders: orders
+          .filter((order) => order.status !== "PENDING_PAYMENT")
+          .map((order) => ({
           id: order.id,
           orderNumber: order.orderNumber,
           status: order.status,

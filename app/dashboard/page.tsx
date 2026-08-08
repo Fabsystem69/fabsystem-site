@@ -334,8 +334,8 @@ export default async function DashboardPage() {
         {stalePendingOrdersCount > 0 ? (
           <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-800/60 bg-neutral-900/30 px-4 py-2.5 text-sm text-neutral-500">
             <span>Entretien / Système · {stalePendingOrdersCount} tentative(s) de paiement à purger</span>
-            <a href="/dashboard/orders" className="font-medium text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline">
-              Commandes
+            <a href="/dashboard/orders#purge" className="font-medium text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline">
+              Purger
             </a>
           </div>
         ) : null}

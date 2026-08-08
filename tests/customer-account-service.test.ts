@@ -331,6 +331,33 @@ test("getCustomerAccountOverview returns no orders when the customer has no purc
   assert.deepEqual(result.orders, []);
 });
 
+test("getCustomerAccountOverview never exposes a PENDING_PAYMENT order to the customer", async () => {
+  const customer = createCustomerRecord();
+  const paidOrder = createOrderWithRelations({
+    id: "order_paid",
+    orderNumber: "FS-20260806-PAID01",
+    customerId: customer.id,
+    status: "PAID",
+  });
+  const pendingOrder = createOrderWithRelations({
+    id: "order_pending",
+    orderNumber: "FS-20260806-PEND01",
+    customerId: customer.id,
+    status: "PENDING_PAYMENT",
+    paidAt: null,
+  });
+  const service = createCustomerAccountService(
+    createMockCustomerAccountDb({ customer, orders: [paidOrder, pendingOrder] })
+  );
+
+  const result = await service.getCustomerAccountOverview(customer.id);
+
+  assert.deepEqual(
+    result.orders.map((order) => order.orderNumber),
+    ["FS-20260806-PAID01"]
+  );
+});
+
 test("getCustomerAccountOverview keeps newest orders first", async () => {
   const customer = createCustomerRecord();
   const newest = createOrderWithRelations({

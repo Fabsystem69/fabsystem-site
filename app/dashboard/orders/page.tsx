@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { listDashboardOrders } from "@/lib/services/admin-orders";
+import { listPendingOrdersForPurge } from "@/lib/services/order-purge";
+import { PendingOrderPurgeButton } from "@/components/dashboard/PendingOrderPurgeButton";
+import { PurgeAllPendingOrdersButton } from "@/components/dashboard/PurgeAllPendingOrdersButton";
 import {
   AdminBadge,
   AdminEmptyState,
@@ -33,7 +36,15 @@ const PAYMENT_STATUS_TONE: Record<string, AdminBadgeTone> = {
 };
 
 export default async function DashboardOrdersPage() {
-  const orders = await listDashboardOrders();
+  const [orders, purgeSummaries] = await Promise.all([
+    listDashboardOrders(),
+    listPendingOrdersForPurge(),
+  ]);
+
+  const purgeInfoByOrderId = new Map(purgeSummaries.map((summary) => [summary.id, summary]));
+  const purgeableCount = purgeSummaries.filter(
+    (summary) => summary.isPurgeTier && summary.eligibility.eligible
+  ).length;
 
   return (
     <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
@@ -45,40 +56,67 @@ export default async function DashboardOrdersPage() {
           backLabel="Retour au dashboard"
         />
 
+        {purgeSummaries.length > 0 ? (
+          <div
+            id="purge"
+            className="flex flex-col gap-3 rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
+          >
+            <div>
+              <h2 className="text-sm font-semibold text-white">Entretien · paiements en attente</h2>
+              <p className="mt-1 text-sm text-neutral-400">
+                {purgeSummaries.length} commande(s) en attente de paiement, dont {purgeableCount}{" "}
+                à purger (jamais aboutie depuis plus de 5 jours, sans accès ni téléchargement
+                délivré).
+              </p>
+            </div>
+            <PurgeAllPendingOrdersButton purgeableCount={purgeableCount} />
+          </div>
+        ) : null}
+
         {orders.length === 0 ? (
           <AdminEmptyState title="Aucune commande e-commerce n'est encore disponible." />
         ) : (
           <>
             {/* Mobile : vue transactionnelle en cartes, jamais un tableau desktop compresse. */}
             <div className="space-y-3 sm:hidden">
-              {orders.map((order) => (
-                <Link
-                  key={order.id}
-                  href={`/dashboard/orders/${order.id}`}
-                  className="block rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium text-white">{order.orderNumber}</p>
-                      <p className="mt-0.5 truncate text-sm text-neutral-400">{order.customerEmail}</p>
-                    </div>
-                    <AdminBadge tone={ORDER_STATUS_TONE[order.status] ?? "neutral"}>{order.status}</AdminBadge>
+              {orders.map((order) => {
+                const purgeInfo = purgeInfoByOrderId.get(order.id);
+
+                return (
+                  <div key={order.id} className="rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-4">
+                    <Link href={`/dashboard/orders/${order.id}`} className="block">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-white">{order.orderNumber}</p>
+                          <p className="mt-0.5 truncate text-sm text-neutral-400">{order.customerEmail}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <AdminBadge tone={ORDER_STATUS_TONE[order.status] ?? "neutral"}>{order.status}</AdminBadge>
+                          {purgeInfo?.isPurgeTier ? <AdminBadge tone="danger">À purger</AdminBadge> : null}
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-sm">
+                        <span className="text-neutral-500">{formatDate(order.createdAt)}</span>
+                        <span className="font-semibold text-white">
+                          {formatEuroFromCents(order.totalCents)} · {order.currency}
+                        </span>
+                      </div>
+                      {order.primaryPaymentStatus ? (
+                        <div className="mt-2">
+                          <AdminBadge tone={PAYMENT_STATUS_TONE[order.primaryPaymentStatus] ?? "neutral"}>
+                            Paiement {order.primaryPaymentStatus}
+                          </AdminBadge>
+                        </div>
+                      ) : null}
+                    </Link>
+                    {purgeInfo?.eligibility.eligible ? (
+                      <div className="mt-3 flex justify-end border-t border-neutral-800/60 pt-3">
+                        <PendingOrderPurgeButton orderId={order.id} orderNumber={order.orderNumber} />
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-sm">
-                    <span className="text-neutral-500">{formatDate(order.createdAt)}</span>
-                    <span className="font-semibold text-white">
-                      {formatEuroFromCents(order.totalCents)} · {order.currency}
-                    </span>
-                  </div>
-                  {order.primaryPaymentStatus ? (
-                    <div className="mt-2">
-                      <AdminBadge tone={PAYMENT_STATUS_TONE[order.primaryPaymentStatus] ?? "neutral"}>
-                        Paiement {order.primaryPaymentStatus}
-                      </AdminBadge>
-                    </div>
-                  ) : null}
-                </Link>
-              ))}
+                );
+              })}
             </div>
 
             <div className="hidden sm:block">
@@ -110,7 +148,12 @@ export default async function DashboardOrdersPage() {
                     <div className="text-xs text-neutral-500">{order.customerName || "Nom non renseigné"}</div>
                   </td>
                   <td className={adminTableCellClass}>
-                    <AdminBadge tone={ORDER_STATUS_TONE[order.status] ?? "neutral"}>{order.status}</AdminBadge>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <AdminBadge tone={ORDER_STATUS_TONE[order.status] ?? "neutral"}>{order.status}</AdminBadge>
+                      {purgeInfoByOrderId.get(order.id)?.isPurgeTier ? (
+                        <AdminBadge tone="danger">À purger</AdminBadge>
+                      ) : null}
+                    </div>
                   </td>
                   <td className={adminTableCellClass}>
                     {order.discountTotalCents > 0 ? (
@@ -142,12 +185,17 @@ export default async function DashboardOrdersPage() {
                   </td>
                   <td className={adminTableCellClass}>{order.paymentCount}</td>
                   <td className={adminTableCellClass}>
-                    <Link
-                      href={`/dashboard/orders/${order.id}`}
-                      className="font-medium text-brand-300 underline underline-offset-4 hover:text-brand-200"
-                    >
-                      Voir le détail
-                    </Link>
+                    <div className="flex flex-col items-start gap-2">
+                      <Link
+                        href={`/dashboard/orders/${order.id}`}
+                        className="font-medium text-brand-300 underline underline-offset-4 hover:text-brand-200"
+                      >
+                        Voir le détail
+                      </Link>
+                      {purgeInfoByOrderId.get(order.id)?.eligibility.eligible ? (
+                        <PendingOrderPurgeButton orderId={order.id} orderNumber={order.orderNumber} />
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}
