@@ -1,6 +1,6 @@
 import { getSessionFromCookies } from "@/lib/require-session";
 import { prisma } from "@/lib/prisma";
-import { formatEuroFromCents, formatCustomerDisplayName } from "@/lib/format";
+import { formatEuroFromCents } from "@/lib/format";
 import { getEcommerceStatsSummary } from "@/lib/services/ecommerce-stats";
 import { KpiTile } from "@/components/dashboard-preview/KpiTile";
 import { AttentionList, type AttentionItem } from "@/components/dashboard-preview/AttentionList";
@@ -10,10 +10,11 @@ import { QuickActions } from "@/components/dashboard-preview/QuickActions";
 import {
   AccountingIcon,
   CustomersIcon,
+  DiscountIcon,
   ExternalLinkIcon,
-  InvoicesIcon,
+  FilesIcon,
   OrdersIcon,
-  QuotesIcon,
+  ProductsIcon,
 } from "@/components/dashboard-preview/icons";
 import { DEMO_ACTIVITY_ITEMS, DEMO_REVENUE_LAST_30_DAYS } from "@/components/dashboard-preview/mock-data";
 
@@ -22,6 +23,11 @@ import { DEMO_ACTIVITY_ITEMS, DEMO_REVENUE_LAST_30_DAYS } from "@/components/das
 // Requetes calquees sur app/dashboard/page.tsx (meme prisma, memes tables),
 // dupliquees ici volontairement pour garder la preview totalement isolee du
 // dashboard de production — aucun fichier existant n'est modifie.
+//
+// Devis et facturation sont geres dans Indy, plus operationnellement dans
+// FabSystem : aucun KPI, aucun element "A traiter" ni raccourci ne s'appuie
+// sur Quote/Invoice ici. Les KPI portent sur l'activite boutique reelle :
+// CA, commandes, clients, telechargements.
 // ---------------------------------------------------------------------------
 
 function getMonthBounds(reference: Date, monthsAgo: number) {
@@ -47,16 +53,6 @@ async function getRevenueForMonth(start: Date, end: Date) {
   };
 }
 
-async function getPendingQuotesCount() {
-  try {
-    return await prisma.quote.count({
-      where: { signedAt: null, sourceInvoice: { is: null }, NOT: { status: "REJECTED" } },
-    });
-  } catch {
-    return prisma.quote.count({ where: { signedAt: null, NOT: { status: "REJECTED" } } });
-  }
-}
-
 async function getTotalCustomersCount() {
   return prisma.customer.count();
 }
@@ -78,79 +74,34 @@ function computeTrend(current: number, previous: number): { direction: "up" | "d
   };
 }
 
-function daysSince(date: Date, now: Date) {
-  return Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-}
-
 function hoursSince(date: Date, now: Date) {
   return Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 }
 
-async function getAttentionItems(now: Date): Promise<AttentionItem[]> {
-  const [pendingQuotes, pendingOrders, readyToInvoiceCount] = await Promise.all([
-    prisma.quote
-      .findMany({
-        where: { signedAt: null, sourceInvoice: { is: null }, NOT: { status: "REJECTED" } },
-        include: { customer: { select: { name: true, email: true } } },
-        orderBy: { updatedAt: "asc" },
-        take: 3,
-      })
-      .catch(() => []),
-    prisma.order
-      .findMany({
-        where: { status: "PENDING_PAYMENT" },
-        orderBy: { createdAt: "asc" },
-        take: 3,
-      })
-      .catch(() => []),
-    prisma.quote
-      .count({
-        where: { OR: [{ signedAt: { not: null } }, { status: "ACCEPTED" }], sourceInvoice: { is: null } },
-      })
-      .catch(() => 0),
-  ]);
+async function getPendingOrders(now: Date): Promise<AttentionItem[]> {
+  const pendingOrders = await prisma.order
+    .findMany({
+      where: { status: "PENDING_PAYMENT" },
+      orderBy: { createdAt: "asc" },
+      take: 5,
+    })
+    .catch(() => []);
 
-  const items: AttentionItem[] = [];
-
-  for (const quote of pendingQuotes) {
-    const waitingDays = daysSince(quote.updatedAt, now);
-    items.push({
-      id: `quote-${quote.id}`,
-      title: `Devis ${quote.number} en attente`,
-      context: `${formatCustomerDisplayName(quote.customer)} — en attente depuis ${waitingDays <= 0 ? "aujourd'hui" : `${waitingDays} j`}`,
-      priority: waitingDays >= 3 ? "high" : "medium",
-      priorityLabel: waitingDays >= 3 ? "Urgent" : "À suivre",
-      actionLabel: "Voir le devis",
-      actionHref: `/dashboard/quotes/${quote.id}`,
-    });
-  }
-
-  for (const order of pendingOrders) {
+  return pendingOrders.map((order) => {
     const waitingHours = hoursSince(order.createdAt, now);
-    items.push({
+    const priority = waitingHours >= 24 ? "critical" : waitingHours >= 2 ? "attention" : "info";
+    const priorityLabel = priority === "critical" ? "Urgent" : priority === "attention" ? "À surveiller" : "À faire";
+
+    return {
       id: `order-${order.id}`,
       title: `Paiement à vérifier — ${order.orderNumber}`,
       context: `${order.customerEmail} — en attente depuis ${waitingHours <= 0 ? "moins d'1 h" : `${waitingHours} h`}`,
-      priority: waitingHours >= 2 ? "high" : "medium",
-      priorityLabel: waitingHours >= 2 ? "Urgent" : "À suivre",
+      priority,
+      priorityLabel,
       actionLabel: "Voir la commande",
       actionHref: `/dashboard/orders/${order.id}`,
-    });
-  }
-
-  if (readyToInvoiceCount > 0) {
-    items.push({
-      id: "quotes-ready-to-invoice",
-      title: `${readyToInvoiceCount} devis signé${readyToInvoiceCount > 1 ? "s" : ""} prêt${readyToInvoiceCount > 1 ? "s" : ""} à facturer`,
-      context: "Accepté par le client, aucune facture générée pour l'instant",
-      priority: "medium",
-      priorityLabel: "À suivre",
-      actionLabel: "Voir les devis",
-      actionHref: "/dashboard/quotes",
-    });
-  }
-
-  return items;
+    } satisfies AttentionItem;
+  });
 }
 
 function getGreetingName(email: string | undefined) {
@@ -168,21 +119,14 @@ export default async function DashboardPreviewPage() {
   const currentMonth = getMonthBounds(now, 0);
   const previousMonth = getMonthBounds(now, 1);
 
-  const [
-    currentMonthRevenue,
-    previousMonthRevenue,
-    pendingQuotesCount,
-    totalCustomers,
-    ecommerceStats,
-    attentionItems,
-  ] = await Promise.all([
-    getRevenueForMonth(currentMonth.start, currentMonth.end),
-    getRevenueForMonth(previousMonth.start, previousMonth.end),
-    getPendingQuotesCount(),
-    getTotalCustomersCount(),
-    getEcommerceStatsSummary(now),
-    getAttentionItems(now),
-  ]);
+  const [currentMonthRevenue, previousMonthRevenue, totalCustomers, ecommerceStats, attentionItems] =
+    await Promise.all([
+      getRevenueForMonth(currentMonth.start, currentMonth.end),
+      getRevenueForMonth(previousMonth.start, previousMonth.end),
+      getTotalCustomersCount(),
+      getEcommerceStatsSummary(now),
+      getPendingOrders(now),
+    ]);
 
   const greetingName = getGreetingName(session?.sub);
   const todayLabel = new Intl.DateTimeFormat("fr-FR", {
@@ -191,27 +135,38 @@ export default async function DashboardPreviewPage() {
     month: "long",
   }).format(now);
 
+  const urgentCount = attentionItems.filter((item) => item.priority === "critical").length;
+  const summaryParts = [
+    attentionItems.length > 0
+      ? `${attentionItems.length} paiement${attentionItems.length > 1 ? "s" : ""} à vérifier${urgentCount > 0 ? ` (${urgentCount} urgent${urgentCount > 1 ? "s" : ""})` : ""}`
+      : "Aucun paiement en attente",
+    `${totalCustomers} client${totalCustomers > 1 ? "s" : ""}`,
+    `${ecommerceStats.downloadsThisMonth} téléchargement${ecommerceStats.downloadsThisMonth > 1 ? "s" : ""} ce mois`,
+  ];
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
       {/* En-tete */}
-      <div className="mb-2 rounded-xl border border-brand-400/20 bg-brand-400/5 px-4 py-2.5 text-xs text-brand-300">
+      <div className="rounded-xl border border-brand-400/20 bg-brand-400/5 px-4 py-2 text-xs text-brand-300">
         Aperçu de direction visuelle — cette page n&apos;affecte pas le dashboard en production.
-        Les 4 indicateurs et la liste « À traiter » sont réels (lecture seule) ; l&apos;activité
-        récente et le graphique de chiffre d&apos;affaires sont des données de démonstration.
+        KPI et « À traiter » sont réels (lecture seule) ; l&apos;activité récente et le graphique
+        de chiffre d&apos;affaires sont des données de démonstration.
       </div>
 
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-[1.75rem]">
             Bonjour {greetingName}
           </h1>
           <p className="mt-1 text-sm text-neutral-400">
-            Voici ce qui mérite votre attention aujourd&apos;hui.
+            Voici ce qui mérite votre attention aujourd&apos;hui.{" "}
+            <span className="text-neutral-600">·</span>{" "}
+            <span className="capitalize text-neutral-600">{todayLabel}</span>
           </p>
-          <p className="mt-1 text-xs capitalize text-neutral-600">{todayLabel}</p>
+          <p className="mt-1.5 text-xs text-neutral-500">{summaryParts.join(" · ")}</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <a
             href="/"
             target="_blank"
@@ -230,13 +185,14 @@ export default async function DashboardPreviewPage() {
         </div>
       </div>
 
-      {/* KPI */}
+      {/* KPI — activite boutique reelle */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiTile
-          label="CA du mois"
+          label="CA boutique"
           value={formatEuroFromCents(currentMonthRevenue.revenueCents)}
-          helper="commandes payées"
+          helper="commandes payées, ce mois"
           trend={computeTrend(currentMonthRevenue.revenueCents, previousMonthRevenue.revenueCents)}
+          comparison={{ previous: previousMonthRevenue.revenueCents, current: currentMonthRevenue.revenueCents }}
           icon={<AccountingIcon className="h-4 w-4" />}
         />
         <KpiTile
@@ -244,26 +200,27 @@ export default async function DashboardPreviewPage() {
           value={String(currentMonthRevenue.orders)}
           helper={`${ecommerceStats.freeOrdersToday} offerte(s) aujourd'hui via code`}
           trend={computeTrend(currentMonthRevenue.orders, previousMonthRevenue.orders)}
+          comparison={{ previous: previousMonthRevenue.orders, current: currentMonthRevenue.orders }}
           icon={<OrdersIcon className="h-4 w-4" />}
-        />
-        <KpiTile
-          label="Devis en attente"
-          value={String(pendingQuotesCount)}
-          helper="non signés et non facturés"
-          icon={<QuotesIcon className="h-4 w-4" />}
         />
         <KpiTile
           label="Clients"
           value={String(totalCustomers)}
-          helper="au total"
+          helper={`au total · +${ecommerceStats.customersThisMonth} ce mois`}
           icon={<CustomersIcon className="h-4 w-4" />}
+        />
+        <KpiTile
+          label="Téléchargements"
+          value={String(ecommerceStats.downloadsThisMonth)}
+          helper="ce mois, tous produits numériques"
+          icon={<FilesIcon className="h-4 w-4" />}
         />
       </div>
 
       {/* A traiter */}
-      <div className="mt-8">
+      <div className="mt-7">
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-base font-semibold text-white">
             À traiter
             {attentionItems.length > 0 ? (
               <span className="ml-2 text-sm font-normal text-neutral-500">({attentionItems.length})</span>
@@ -274,8 +231,8 @@ export default async function DashboardPreviewPage() {
       </div>
 
       {/* Activite recente + CA */}
-      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
-        <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-5">
+      <div className="mt-7 grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
+        <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-4 sm:p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold text-white">Activité récente</h2>
             <span className="rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
@@ -285,36 +242,39 @@ export default async function DashboardPreviewPage() {
           <ActivityFeed items={DEMO_ACTIVITY_ITEMS} />
         </div>
 
-        <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-5">
+        <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-4 sm:p-5">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-base font-semibold text-white">Activité commerciale</h2>
             <span className="rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
               Démonstration
             </span>
           </div>
-          <RevenueChart points={DEMO_REVENUE_LAST_30_DAYS} />
+          <RevenueChart points={DEMO_REVENUE_LAST_30_DAYS} referenceDate={now} />
         </div>
       </div>
 
       {/* Raccourcis */}
-      <div className="mt-8">
+      <div className="mt-7">
         <h2 className="mb-3 text-base font-semibold text-white">Raccourcis</h2>
         <QuickActions
           actions={[
             {
               label: "Nouveau client",
+              description: "Créer une fiche client",
               href: "/dashboard/customers?new=1",
               icon: <CustomersIcon className="h-4 w-4" />,
             },
             {
-              label: "Nouveau devis",
-              href: "/dashboard/quotes/new",
-              icon: <QuotesIcon className="h-4 w-4" />,
+              label: "Nouveau produit",
+              description: "Ajouter un produit au catalogue",
+              href: "/dashboard/catalog/new",
+              icon: <ProductsIcon className="h-4 w-4" />,
             },
             {
-              label: "Nouvelle facture",
-              href: "/dashboard/invoices/new",
-              icon: <InvoicesIcon className="h-4 w-4" />,
+              label: "Nouveau code promo",
+              description: "Créer un code de réduction",
+              href: "/dashboard/discounts/new",
+              icon: <DiscountIcon className="h-4 w-4" />,
             },
           ]}
         />

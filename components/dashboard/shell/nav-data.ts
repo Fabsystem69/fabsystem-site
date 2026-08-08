@@ -28,14 +28,14 @@ export type NavGroup = {
   items: NavItem[];
 };
 
-// Structure validee : chaque entree pointe vers une route /dashboard reelle
-// et deja existante. Aucune fonction non implementee n'est representee ici
-// (contrairement a la premiere proposition, "Projets clients" et "Schemas
-// partages" sont volontairement absents tant qu'ils n'existent pas).
+// Structure V1 validee (voir le lot d'integration dashboard). Devis et
+// Facturation restent des routes/pages/donnees intactes, simplement
+// relocalisees dans une section secondaire avec un badge "Inactif" : la
+// facturation et les devis operationnels sont geres hors de FabSystem.
 export const NAV_GROUPS: NavGroup[] = [
   {
-    title: null,
-    items: [{ label: "Tableau de bord", href: "/dashboard-preview", icon: DashboardIcon }],
+    title: "Tableau de bord",
+    items: [{ label: "Vue d'ensemble", href: "/dashboard", icon: DashboardIcon }],
   },
   {
     title: "Ventes",
@@ -61,11 +61,6 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [{ label: "Récap URSSAF", href: "/dashboard/accounting", icon: AccountingIcon }],
   },
   {
-    // Devis et facturation ne sont plus geres operationnellement dans
-    // FabSystem (geres dans Indy) : routes, composants et donnees restent
-    // intacts et consultables pour l'historique, simplement relocalises
-    // dans cette section secondaire avec un badge "Inactif". Ni l'un ni
-    // l'autre n'alimente plus les KPI, "A traiter" ou les raccourcis.
     title: "Historique",
     items: [
       { label: "Devis", href: "/dashboard/quotes", icon: QuotesIcon, badge: "Inactif" },

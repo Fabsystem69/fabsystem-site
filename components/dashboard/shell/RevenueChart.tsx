@@ -1,10 +1,13 @@
-import type { DemoRevenuePoint } from "@/components/dashboard-preview/mock-data";
+export type RevenuePoint = {
+  day: string;
+  amountCents: number;
+};
 
 const CHART_WIDTH = 600;
 const CHART_HEIGHT = 160;
 const PADDING_Y = 12;
 
-function buildPath(points: DemoRevenuePoint[]) {
+function buildPath(points: RevenuePoint[]) {
   const max = Math.max(...points.map((point) => point.amountCents), 1);
   const stepX = CHART_WIDTH / (points.length - 1);
   const usableHeight = CHART_HEIGHT - PADDING_Y * 2;
@@ -24,9 +27,6 @@ function buildPath(points: DemoRevenuePoint[]) {
   return { linePath, areaPath };
 }
 
-// Reperes reels (le graphique porte des donnees de demonstration, mais la
-// periode qu'il couvre — "les 30 derniers jours" a partir d'aujourd'hui —
-// est honnete) : trois dates calculees a partir de la vraie date courante.
 function buildDateTicks(referenceDate: Date, pointCount: number) {
   const formatter = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short" });
   const daysAgo = (n: number) => {
@@ -42,9 +42,24 @@ function buildDateTicks(referenceDate: Date, pointCount: number) {
   };
 }
 
-export function RevenueChart({ points, referenceDate }: { points: DemoRevenuePoint[]; referenceDate: Date }) {
-  const { linePath, areaPath } = buildPath(points);
+export function RevenueChart({ points, referenceDate }: { points: RevenuePoint[]; referenceDate: Date }) {
   const totalCents = points.reduce((sum, point) => sum + point.amountCents, 0);
+
+  if (points.length < 2 || totalCents === 0) {
+    return (
+      <div>
+        <p className="text-2xl font-semibold tracking-tight text-white">
+          {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(0)}
+        </p>
+        <p className="mt-0.5 text-xs text-neutral-500">Cumul sur les 30 derniers jours</p>
+        <div className="mt-6 flex h-32 items-center justify-center rounded-xl border border-dashed border-neutral-800 text-sm text-neutral-600">
+          Pas encore de commande payée sur cette période.
+        </div>
+      </div>
+    );
+  }
+
+  const { linePath, areaPath } = buildPath(points);
   const ticks = buildDateTicks(referenceDate, points.length);
 
   return (

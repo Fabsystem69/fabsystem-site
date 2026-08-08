@@ -202,3 +202,17 @@ export function TrendDownIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function LogoutIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="M9 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h3M15 16l4-4-4-4M19 12H9"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

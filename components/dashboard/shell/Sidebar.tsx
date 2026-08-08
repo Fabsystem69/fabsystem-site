@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NAV_GROUPS } from "@/components/dashboard-preview/nav-data";
-import { ChevronLeftIcon } from "@/components/dashboard-preview/icons";
+import { NAV_GROUPS } from "@/components/dashboard/shell/nav-data";
+import { ChevronLeftIcon, LogoutIcon } from "@/components/dashboard-preview/icons";
 
-const COLLAPSE_STORAGE_KEY = "fabsystem-dashboard-preview-sidebar-collapsed";
+const COLLAPSE_STORAGE_KEY = "fabsystem-dashboard-sidebar-collapsed";
 
 function isItemActive(pathname: string | null, href: string) {
   if (!pathname) return false;
+  if (href === "/dashboard") return pathname === "/dashboard";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -43,7 +44,7 @@ export function Sidebar() {
     >
       {/* Identite */}
       <div className={`flex h-16 shrink-0 items-center border-b border-neutral-800/80 ${collapsed ? "justify-center px-0" : "px-5"}`}>
-        <Link href="/dashboard-preview" className="flex min-w-0 items-center gap-2.5">
+        <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">
           <Image
             src="/FabSystem-Logo.svg"
             alt="FabSystem"
@@ -141,8 +142,27 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      {/* Reduction */}
-      <div className="shrink-0 border-t border-neutral-800/80 p-3">
+      {/* Deconnexion + reduction */}
+      <div className="shrink-0 space-y-0.5 border-t border-neutral-800/80 p-3">
+        <form action="/api/auth/logout" method="post">
+          <button
+            type="submit"
+            aria-label="Se déconnecter"
+            className={`flex w-full items-center gap-3 rounded-lg py-2 text-sm font-medium text-neutral-400 transition-colors duration-150 hover:bg-neutral-900 hover:text-neutral-100 ${
+              collapsed ? "justify-center px-0" : "px-2.5"
+            }`}
+          >
+            <LogoutIcon className="h-5 w-5 shrink-0" />
+            <span
+              className={`overflow-hidden whitespace-nowrap transition-all duration-200 ${
+                collapsed ? "max-w-0 opacity-0" : "max-w-[160px] opacity-100"
+              }`}
+            >
+              Se déconnecter
+            </span>
+          </button>
+        </form>
+
         <button
           type="button"
           onClick={toggleCollapsed}

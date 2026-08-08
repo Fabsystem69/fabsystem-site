@@ -22,10 +22,7 @@ export function AttentionList({ items }: { items: AttentionItem[] }) {
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-8 text-center">
-        <p className="text-sm font-medium text-neutral-300">Rien n&apos;attend votre attention.</p>
-        <p className="mt-1 text-sm text-neutral-500">
-          Aucun devis en attente ni paiement à vérifier pour le moment.
-        </p>
+        <p className="text-sm font-medium text-neutral-300">✓ Rien à traiter pour le moment.</p>
       </div>
     );
   }

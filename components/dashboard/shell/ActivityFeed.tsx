@@ -1,14 +1,25 @@
-import type { DemoActivityItem } from "@/components/dashboard-preview/mock-data";
-
-const KIND_DOT_STYLES: Record<DemoActivityItem["kind"], string> = {
-  order: "bg-emerald-400",
-  quote: "bg-brand-400",
-  customer: "bg-sky-400",
-  invoice: "bg-neutral-400",
-  download: "bg-neutral-500",
+export type ActivityItem = {
+  id: string;
+  label: string;
+  detail: string;
+  time: string;
+  kind: "order" | "customer" | "download" | "testimonial";
 };
 
-export function ActivityFeed({ items }: { items: DemoActivityItem[] }) {
+const KIND_DOT_STYLES: Record<ActivityItem["kind"], string> = {
+  order: "bg-emerald-400",
+  customer: "bg-sky-400",
+  download: "bg-neutral-500",
+  testimonial: "bg-brand-400",
+};
+
+export function ActivityFeed({ items }: { items: ActivityItem[] }) {
+  if (items.length === 0) {
+    return (
+      <p className="py-4 text-center text-sm text-neutral-500">Aucune activité récente à afficher.</p>
+    );
+  }
+
   return (
     <ul className="space-y-0">
       {items.map((item, index) => (

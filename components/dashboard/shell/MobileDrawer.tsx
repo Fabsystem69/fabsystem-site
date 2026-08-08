@@ -4,11 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NAV_GROUPS } from "@/components/dashboard-preview/nav-data";
-import { CloseIcon, MenuIcon } from "@/components/dashboard-preview/icons";
+import { NAV_GROUPS } from "@/components/dashboard/shell/nav-data";
+import { CloseIcon, LogoutIcon, MenuIcon } from "@/components/dashboard-preview/icons";
 
 function isItemActive(pathname: string | null, href: string) {
   if (!pathname) return false;
+  if (href === "/dashboard") return pathname === "/dashboard";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -122,6 +123,18 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
             ))}
           </ul>
         </nav>
+
+        <div className="shrink-0 border-t border-neutral-800/80 p-3">
+          <form action="/api/auth/logout" method="post">
+            <button
+              type="submit"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 text-sm font-medium text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100"
+            >
+              <LogoutIcon className="h-5 w-5 shrink-0" />
+              Se déconnecter
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
