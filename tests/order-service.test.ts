@@ -392,15 +392,42 @@ function createMockOrderDb(seed?: {
       state.discountRedemptions.push(data);
       return data as never;
     },
-    async updateDiscountCode(discountCodeId: string, data: { redeemedCount: number }) {
+    async findDiscountRedemption(discountCodeId: string, orderId: string) {
+      const found = state.discountRedemptions.find(
+        (item) => item.discountCodeId === discountCodeId && item.orderId === orderId
+      );
+      return found ? { id: `redemption_${state.discountRedemptions.indexOf(found)}` } : null;
+    },
+    async findDiscountCodeCapacity(discountCodeId: string) {
+      const discountCode = state.discountCodes.find((item) => item.id === discountCodeId);
+
+      if (!discountCode) {
+        return null;
+      }
+
+      return {
+        maxRedemptions: discountCode.maxRedemptions,
+        productId: discountCode.productId,
+      };
+    },
+    async incrementDiscountCodeRedeemedCountIfCapacity(discountCodeId: string, maxRedemptions: number) {
+      const discountCode = state.discountCodes.find((item) => item.id === discountCodeId);
+
+      if (!discountCode || discountCode.redeemedCount >= maxRedemptions) {
+        return 0;
+      }
+
+      discountCode.redeemedCount += 1;
+      return 1;
+    },
+    async decrementDiscountCodeRedeemedCount(discountCodeId: string) {
       const discountCode = state.discountCodes.find((item) => item.id === discountCodeId);
 
       if (!discountCode) {
         throw new Error("Discount code not found in mock");
       }
 
-      discountCode.redeemedCount = data.redeemedCount;
-      return discountCode;
+      discountCode.redeemedCount -= 1;
     },
     async createDiscountCodeIfAbsent(data: Omit<DiscountCode, "id" | "createdAt" | "updatedAt">) {
       const existing = state.discountCodes.find((entry) => entry.code === data.code);
@@ -638,8 +665,12 @@ test("createOrderFromCart creates a discounted pending payment order with the re
   assert.equal(order.payments.length, 1);
   assert.equal(order.payments[0]?.amountCents, 1900);
   assert.equal(state.downloadGrants.length, 0);
-  assert.equal(state.discountRedemptions.length, 1);
-  assert.equal(state.discountCodes[0]?.redeemedCount, 1);
+  // Une commande payante ne consomme le code qu'au passage reel a PAID,
+  // gere par handleCommerceCheckoutCompleted (stripe-webhook-commerce.ts),
+  // jamais a la creation : aucune redemption ici, aucun impact sur
+  // redeemedCount tant que Stripe n'a pas confirme le paiement.
+  assert.equal(state.discountRedemptions.length, 0);
+  assert.equal(state.discountCodes[0]?.redeemedCount, 0);
 });
 
 test("createOrderFromCart creates a free paid order without Stripe payment and issues download grants", async () => {
@@ -710,6 +741,65 @@ test("createOrderFromCart creates a free paid order without Stripe payment and i
   assert.equal(autoCode?.amountOffCents, 2900);
   assert.equal(autoCode?.maxRedemptions, 1);
   assert.equal(autoCode?.customerEmail, "buyer@example.com");
+});
+
+test("createOrderFromCart aborts a free order before any download grant when the discount code is exhausted by a concurrent redemption", async () => {
+  const cart = createCartRecord({ id: "cart_free_race" });
+  const product = createProductRecord({ id: "prod_free_race" });
+  const discountCode = createDiscountCodeRecord({
+    id: "discount_free_race",
+    code: "COACH-RACE01",
+    productId: product.id,
+    customerEmail: "buyer@example.com",
+    amountOffCents: 2900,
+    maxRedemptions: 1,
+    redeemedCount: 0,
+  });
+  const { db, state } = createMockOrderDb({
+    carts: [cart],
+    items: [createCartItemRecord({ cartId: cart.id, productId: product.id })],
+    products: [product],
+    prices: [createPriceRecord({ productId: product.id, unitAmountCents: 2900 })],
+    discountCodes: [discountCode],
+  });
+
+  // Simule une commande concurrente qui a deja epuise le code entre le
+  // pre-check panier (evaluateDiscountCodeForCart) et la consommation
+  // atomique reelle (finalizeDiscountRedemptionForOrder) : la regle valide
+  // exige alors un rollback complet pour une commande gratuite — pas de
+  // commande PAID, pas de telechargement.
+  const racedDb: typeof db = {
+    ...db,
+    async incrementDiscountCodeRedeemedCountIfCapacity() {
+      return 0;
+    },
+    // La transaction mock du fixture d'origine capture `db` par closure, pas
+    // l'objet sur lequel `.transaction` est appele : sans cette redefinition,
+    // le callback recevrait le db non-race et l'override ci-dessus serait
+    // ignore a l'interieur de la transaction.
+    async transaction<T>(callback: (tx: typeof db) => Promise<T>): Promise<T> {
+      return callback(racedDb);
+    },
+  };
+
+  const service = createOrderService(racedDb, {
+    now: () => new Date("2026-08-06T12:00:00.000Z"),
+    randomCode: () => "race01",
+  });
+
+  await assert.rejects(
+    () =>
+      service.createOrderFromCart({
+        cartId: cart.id,
+        customerEmail: "buyer@example.com",
+        discountCode: "COACH-RACE01",
+      }),
+    (error: unknown) => error instanceof HttpError && error.status === 409
+  );
+
+  assert.equal(state.downloadGrants.length, 0);
+  assert.equal(state.discountRedemptions.length, 0);
+  assert.equal(state.discountCodes[0]?.redeemedCount, 0);
 });
 
 test("createOrderFromCart rejects an empty cart", async () => {

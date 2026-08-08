@@ -25,6 +25,7 @@ import {
   addMonths,
   buildAutomaticEbookDiscountCode,
   evaluateDiscountCodeForCart,
+  finalizeDiscountRedemptionForOrder,
   AUTOMATIC_EBOOK_DISCOUNT_REASON,
 } from "@/lib/services/discounts";
 import { DEFAULT_DOWNLOAD_GRANT_MAX_DOWNLOADS } from "@/lib/services/download-grant";
@@ -152,12 +153,18 @@ export type OrderDb = {
     productId: string | null;
     amountDiscountedCents: number;
   }): Promise<unknown>;
-  updateDiscountCode(
+  // Les quatre methodes suivantes forment le contrat DiscountRedemptionDb
+  // (lib/services/discounts.ts) : elles rendent OrderDb utilisable tel quel
+  // par finalizeDiscountRedemptionForOrder dans le chemin gratuit.
+  findDiscountRedemption(discountCodeId: string, orderId: string): Promise<{ id: string } | null>;
+  findDiscountCodeCapacity(
+    discountCodeId: string
+  ): Promise<{ maxRedemptions: number; productId: string | null } | null>;
+  incrementDiscountCodeRedeemedCountIfCapacity(
     discountCodeId: string,
-    data: {
-      redeemedCount: number;
-    }
-  ): Promise<DiscountCode>;
+    maxRedemptions: number
+  ): Promise<number>;
+  decrementDiscountCodeRedeemedCount(discountCodeId: string): Promise<void>;
   // Upsert par code : ne cree que si absent, jamais d'ecrasement. Utilise
   // pour la generation automatique d'un code coaching a l'achat d'un ebook
   // (voir createAutomaticEbookDiscountCodesForFreeOrder ci-dessous) — le code
@@ -573,10 +580,42 @@ function createPrismaOrderDb(client: PrismaClientLike): OrderDb {
     async createDiscountRedemption(data) {
       return currentClient.discountRedemption.create({ data });
     },
-    async updateDiscountCode(discountCodeId, data) {
-      return currentClient.discountCode.update({
+    async findDiscountRedemption(discountCodeId, orderId) {
+      return currentClient.discountRedemption.findUnique({
+        where: {
+          discountCodeId_orderId: {
+            discountCodeId,
+            orderId,
+          },
+        },
+        select: { id: true },
+      });
+    },
+    async findDiscountCodeCapacity(discountCodeId) {
+      return currentClient.discountCode.findUnique({
         where: { id: discountCodeId },
-        data,
+        select: { maxRedemptions: true, productId: true },
+      });
+    },
+    async incrementDiscountCodeRedeemedCountIfCapacity(discountCodeId, maxRedemptions) {
+      const result = await currentClient.discountCode.updateMany({
+        where: {
+          id: discountCodeId,
+          redeemedCount: { lt: maxRedemptions },
+        },
+        data: {
+          redeemedCount: { increment: 1 },
+        },
+      });
+
+      return result.count;
+    },
+    async decrementDiscountCodeRedeemedCount(discountCodeId) {
+      await currentClient.discountCode.update({
+        where: { id: discountCodeId },
+        data: {
+          redeemedCount: { decrement: 1 },
+        },
       });
     },
     async createDiscountCodeIfAbsent(data) {
@@ -706,6 +745,27 @@ export function createOrderService(db: OrderDb, providedDeps?: OrderServiceDeps)
         }
 
         if (isFreeOrder) {
+          // Une commande gratuite est deja PAID a la creation (voir plus
+          // haut) : le code doit donc etre reellement consomme ici, pas
+          // seulement pre-verifie par evaluateDiscountCodeForCart. S'il ne
+          // peut plus etre consomme (course concurrente ayant epuise
+          // maxRedemptions entre le pre-check et maintenant), on annule tout
+          // — aucune commande PAID, aucun telechargement — en jetant avant
+          // toute creation de download grant, pour que la transaction
+          // Prisma fasse un rollback complet.
+          if (preparedDiscount) {
+            const redemptionOutcome = await finalizeDiscountRedemptionForOrder(tx, {
+              id: order.id,
+              discountCodeId: preparedDiscount.discountCodeId,
+              discountTotalCents: preparedDiscount.discountTotalCents,
+              customerEmail: normalizedEmail,
+            });
+
+            if (redemptionOutcome.status === "exhausted") {
+              throw conflict("Discount code has already been used");
+            }
+          }
+
           await createDownloadGrantsForFreeOrder(tx, order, createdOrderLines, normalizedEmail);
           await createAutomaticEbookDiscountCodesForFreeOrder(
             tx,
@@ -714,32 +774,17 @@ export function createOrderService(db: OrderDb, providedDeps?: OrderServiceDeps)
             deps.now()
           );
         } else {
+          // Commande payante : le code n'est ni consomme ni comptabilise
+          // ici. Il ne sera reellement consomme qu'au passage effectif de
+          // la commande a PAID, dans handleCommerceCheckoutCompleted
+          // (stripe-webhook-commerce.ts) — un checkout abandonne ne
+          // consomme donc rien.
           await tx.createPayment({
             orderId: order.id,
             provider: "STRIPE",
             status: "PENDING",
             amountCents: totalCents,
             currency: preparedOrder.currency,
-          });
-        }
-
-        if (preparedDiscount) {
-          await tx.createDiscountRedemption({
-            discountCodeId: preparedDiscount.discountCodeId,
-            orderId: order.id,
-            customerEmail: normalizedEmail,
-            productId: preparedDiscount.productId,
-            amountDiscountedCents: preparedDiscount.discountTotalCents,
-          });
-
-          const currentDiscountCode = await tx.findDiscountCodeByCode(preparedDiscount.code);
-
-          if (!currentDiscountCode) {
-            throw notFound("Discount code not found after redemption");
-          }
-
-          await tx.updateDiscountCode(currentDiscountCode.id, {
-            redeemedCount: currentDiscountCode.redeemedCount + 1,
           });
         }
 

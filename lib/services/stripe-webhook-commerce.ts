@@ -1,6 +1,8 @@
 import Stripe from "stripe";
 import type { Order, Payment, PrismaClient } from "@/lib/generated/prisma/client";
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
+import { finalizeDiscountRedemptionForOrder } from "@/lib/services/discounts";
+import { logServerEvent } from "@/lib/server-log";
 
 type PrismaClientLike = PrismaClient;
 
@@ -46,6 +48,25 @@ export type CommerceWebhookDb = {
       paidAt: Date;
     }
   ): Promise<Order>;
+  // Contrat DiscountRedemptionDb (lib/services/discounts.ts) : rend
+  // CommerceWebhookDb utilisable tel quel par finalizeDiscountRedemptionForOrder,
+  // appele ici au moment exact ou le paiement Stripe confirme la commande.
+  findDiscountRedemption(discountCodeId: string, orderId: string): Promise<{ id: string } | null>;
+  findDiscountCodeCapacity(
+    discountCodeId: string
+  ): Promise<{ maxRedemptions: number; productId: string | null } | null>;
+  incrementDiscountCodeRedeemedCountIfCapacity(
+    discountCodeId: string,
+    maxRedemptions: number
+  ): Promise<number>;
+  decrementDiscountCodeRedeemedCount(discountCodeId: string): Promise<void>;
+  createDiscountRedemption(data: {
+    discountCodeId: string;
+    orderId: string;
+    customerEmail: string;
+    productId: string | null;
+    amountDiscountedCents: number;
+  }): Promise<unknown>;
   transaction<T>(callback: (db: CommerceWebhookDb) => Promise<T>): Promise<T>;
 };
 
@@ -171,6 +192,47 @@ function createPrismaCommerceWebhookDb(client: PrismaClientLike): CommerceWebhoo
         data,
       });
     },
+    async findDiscountRedemption(discountCodeId, orderId) {
+      return currentClient.discountRedemption.findUnique({
+        where: {
+          discountCodeId_orderId: {
+            discountCodeId,
+            orderId,
+          },
+        },
+        select: { id: true },
+      });
+    },
+    async findDiscountCodeCapacity(discountCodeId) {
+      return currentClient.discountCode.findUnique({
+        where: { id: discountCodeId },
+        select: { maxRedemptions: true, productId: true },
+      });
+    },
+    async incrementDiscountCodeRedeemedCountIfCapacity(discountCodeId, maxRedemptions) {
+      const result = await currentClient.discountCode.updateMany({
+        where: {
+          id: discountCodeId,
+          redeemedCount: { lt: maxRedemptions },
+        },
+        data: {
+          redeemedCount: { increment: 1 },
+        },
+      });
+
+      return result.count;
+    },
+    async decrementDiscountCodeRedeemedCount(discountCodeId) {
+      await currentClient.discountCode.update({
+        where: { id: discountCodeId },
+        data: {
+          redeemedCount: { decrement: 1 },
+        },
+      });
+    },
+    async createDiscountRedemption(data) {
+      return currentClient.discountRedemption.create({ data });
+    },
     async transaction<T>(callback: (db: CommerceWebhookDb) => Promise<T>) {
       return currentClient.$transaction(async (tx) => {
         const transactionDb = createPrismaCommerceWebhookDb(tx as PrismaClientLike);
@@ -277,6 +339,26 @@ export function createStripeWebhookCommerceService(
           status: "PAID",
           paidAt: timestamp,
         });
+
+        // Consommation reelle du code de reduction ici, au moment exact ou
+        // le paiement Stripe confirme la commande (jamais avant, voir
+        // finalizeDiscountRedemptionForOrder). Contrairement au chemin
+        // gratuit (order.ts), un epuisement ici ne doit jamais annuler la
+        // commande : le client a deja paye via Stripe, on l'honore et on se
+        // contente de journaliser l'anomalie pour revue manuelle.
+        const redemptionOutcome = await finalizeDiscountRedemptionForOrder(tx, {
+          id: payment.order.id,
+          discountCodeId: payment.order.discountCodeId,
+          discountTotalCents: payment.order.discountTotalCents,
+          customerEmail: payment.order.customerEmail,
+        });
+
+        if (redemptionOutcome.status === "exhausted") {
+          logServerEvent("error", "discount code exhausted after Stripe payment succeeded", {
+            orderId: payment.order.id,
+            discountCodeId: payment.order.discountCodeId,
+          });
+        }
 
         return {
           status: "processed",

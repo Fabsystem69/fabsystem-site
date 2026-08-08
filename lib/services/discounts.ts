@@ -288,6 +288,113 @@ export function evaluateDiscountCodeForCart(input: {
   };
 }
 
+// Contrat minimal requis pour finalizeDiscountRedemptionForOrder : n'importe
+// quel client tx (OrderDb, CommerceWebhookDb) qui expose ces methodes peut
+// etre passe directement a la fonction, sans dependre de son origine exacte
+// (meme principe que DiscountCodeForEvaluation plus haut).
+export type DiscountRedemptionDb = {
+  findDiscountRedemption(discountCodeId: string, orderId: string): Promise<{ id: string } | null>;
+  findDiscountCodeCapacity(
+    discountCodeId: string
+  ): Promise<{ maxRedemptions: number; productId: string | null } | null>;
+  // Incremente redeemedCount seulement si redeemedCount < maxRedemptions,
+  // au niveau SQL (WHERE) : renvoie le nombre de lignes mises a jour (0 ou 1).
+  // C'est ce qui rend la consommation atomique face a deux paiements
+  // concurrents sur le meme code.
+  incrementDiscountCodeRedeemedCountIfCapacity(
+    discountCodeId: string,
+    maxRedemptions: number
+  ): Promise<number>;
+  decrementDiscountCodeRedeemedCount(discountCodeId: string): Promise<void>;
+  createDiscountRedemption(data: {
+    discountCodeId: string;
+    orderId: string;
+    customerEmail: string;
+    productId: string | null;
+    amountDiscountedCents: number;
+  }): Promise<unknown>;
+};
+
+export type DiscountRedemptionOutcome =
+  | { status: "not_applicable" }
+  | { status: "already_redeemed" }
+  | { status: "redeemed" }
+  | { status: "exhausted" };
+
+function isUniqueConstraintViolation(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  return "code" in error && (error as { code?: unknown }).code === "P2002";
+}
+
+// Point unique de consommation reelle d'un code de reduction, appele au
+// moment exact ou une commande devient PAID (jamais avant) :
+// - idempotent sur retry webhook / redelivery Stripe grace a l'unicite
+//   (discountCodeId, orderId) sur DiscountRedemption ;
+// - atomique face a deux paiements concurrents sur le meme code, via
+//   l'incrementation conditionnelle incrementDiscountCodeRedeemedCountIfCapacity ;
+// - si la creation de la ligne de redemption echoue quand meme sur un
+//   conflit d'unicite (course exactement concurrente sur la meme commande),
+//   compense la decrementation et traite le cas comme deja redeemed.
+// Ne decide jamais comment reagir a "exhausted" : c'est a l'appelant
+// (order.ts pour le gratuit, stripe-webhook-commerce.ts pour le paye) de
+// choisir, les deux chemins ayant des regles differentes sur ce point.
+export async function finalizeDiscountRedemptionForOrder(
+  db: DiscountRedemptionDb,
+  order: {
+    id: string;
+    discountCodeId: string | null;
+    discountTotalCents: number;
+    customerEmail: string;
+  }
+): Promise<DiscountRedemptionOutcome> {
+  if (!order.discountCodeId) {
+    return { status: "not_applicable" };
+  }
+
+  const existing = await db.findDiscountRedemption(order.discountCodeId, order.id);
+
+  if (existing) {
+    return { status: "already_redeemed" };
+  }
+
+  const discountCode = await db.findDiscountCodeCapacity(order.discountCodeId);
+
+  if (!discountCode) {
+    return { status: "not_applicable" };
+  }
+
+  const updatedCount = await db.incrementDiscountCodeRedeemedCountIfCapacity(
+    order.discountCodeId,
+    discountCode.maxRedemptions
+  );
+
+  if (updatedCount === 0) {
+    return { status: "exhausted" };
+  }
+
+  try {
+    await db.createDiscountRedemption({
+      discountCodeId: order.discountCodeId,
+      orderId: order.id,
+      customerEmail: normalizeCustomerEmail(order.customerEmail),
+      productId: discountCode.productId,
+      amountDiscountedCents: order.discountTotalCents,
+    });
+  } catch (error) {
+    if (!isUniqueConstraintViolation(error)) {
+      throw error;
+    }
+
+    await db.decrementDiscountCodeRedeemedCount(order.discountCodeId);
+    return { status: "already_redeemed" };
+  }
+
+  return { status: "redeemed" };
+}
+
 function assertSingleActivePrice(prices: ProductPrice[]) {
   if (prices.length === 0) {
     throw notFound("Active price not found for product");

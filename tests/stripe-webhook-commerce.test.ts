@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import Stripe from "stripe";
-import type { Order, Payment } from "@/lib/generated/prisma/client";
+import type { DiscountCode, Order, Payment } from "@/lib/generated/prisma/client";
 import { HttpError } from "@/lib/http-errors";
 import {
   createStripeWebhookCommerceService,
@@ -79,7 +79,33 @@ function createCheckoutSession(
   } as Stripe.Checkout.Session;
 }
 
-function createMockCommerceWebhookDb(seed?: { payment?: PaymentWithOrder | null }) {
+function createDiscountCodeRecord(overrides: Partial<DiscountCode> = {}): DiscountCode {
+  const now = new Date("2026-08-06T00:00:00.000Z");
+
+  return {
+    id: overrides.id ?? "discount_1",
+    code: overrides.code ?? "COACH-ABC123",
+    status: overrides.status ?? "ACTIVE",
+    type: overrides.type ?? "FIXED_AMOUNT",
+    amountOffCents: overrides.amountOffCents ?? 1000,
+    percentOff: overrides.percentOff ?? null,
+    currency: overrides.currency ?? "EUR",
+    maxRedemptions: overrides.maxRedemptions ?? 1,
+    redeemedCount: overrides.redeemedCount ?? 0,
+    startsAt: overrides.startsAt ?? now,
+    expiresAt: overrides.expiresAt ?? null,
+    productId: overrides.productId ?? null,
+    customerEmail: overrides.customerEmail ?? null,
+    reason: overrides.reason ?? "Code de réduction",
+    createdAt: overrides.createdAt ?? now,
+    updatedAt: overrides.updatedAt ?? now,
+  };
+}
+
+function createMockCommerceWebhookDb(seed?: {
+  payment?: PaymentWithOrder | null;
+  discountCodes?: DiscountCode[];
+}) {
   let payment = seed?.payment ?? null;
   const state = {
     paymentUpdates: [] as Array<{
@@ -100,6 +126,14 @@ function createMockCommerceWebhookDb(seed?: { payment?: PaymentWithOrder | null 
       status: "FAILED";
       rawProviderStatus: string | null;
       failedAt: Date;
+    }>,
+    discountCodes: [...(seed?.discountCodes ?? [])],
+    discountRedemptions: [] as Array<{
+      discountCodeId: string;
+      orderId: string;
+      customerEmail: string;
+      productId: string | null;
+      amountDiscountedCents: number;
     }>,
   };
 
@@ -174,6 +208,53 @@ function createMockCommerceWebhookDb(seed?: { payment?: PaymentWithOrder | null 
       };
       state.orderUpdates.push({ orderId, ...data });
       return payment.order;
+    },
+    async findDiscountRedemption(discountCodeId: string, orderId: string) {
+      const found = state.discountRedemptions.find(
+        (item) => item.discountCodeId === discountCodeId && item.orderId === orderId
+      );
+      return found ? { id: `redemption_${state.discountRedemptions.indexOf(found)}` } : null;
+    },
+    async findDiscountCodeCapacity(discountCodeId: string) {
+      const discountCode = state.discountCodes.find((item) => item.id === discountCodeId);
+
+      if (!discountCode) {
+        return null;
+      }
+
+      return {
+        maxRedemptions: discountCode.maxRedemptions,
+        productId: discountCode.productId,
+      };
+    },
+    async incrementDiscountCodeRedeemedCountIfCapacity(discountCodeId: string, maxRedemptions: number) {
+      const discountCode = state.discountCodes.find((item) => item.id === discountCodeId);
+
+      if (!discountCode || discountCode.redeemedCount >= maxRedemptions) {
+        return 0;
+      }
+
+      discountCode.redeemedCount += 1;
+      return 1;
+    },
+    async decrementDiscountCodeRedeemedCount(discountCodeId: string) {
+      const discountCode = state.discountCodes.find((item) => item.id === discountCodeId);
+
+      if (!discountCode) {
+        throw new Error("Discount code not found in mock");
+      }
+
+      discountCode.redeemedCount -= 1;
+    },
+    async createDiscountRedemption(data: {
+      discountCodeId: string;
+      orderId: string;
+      customerEmail: string;
+      productId: string | null;
+      amountDiscountedCents: number;
+    }) {
+      state.discountRedemptions.push(data);
+      return data;
     },
     async transaction<T>(callback: (db: CommerceWebhookDb) => Promise<T>): Promise<T> {
       return callback(db);
@@ -717,6 +798,83 @@ test("handleCommerceCheckoutCompleted also sends the notification on an already-
   await service.handleCommerceCheckoutCompleted(createCheckoutSession());
 
   assert.equal(notifyDeps.state.calls.length, 1);
+});
+
+test("handleCommerceCheckoutCompleted consumes the discount code only when the order is actually paid", async () => {
+  const discountCode = createDiscountCodeRecord({
+    id: "discount_paid_path",
+    maxRedemptions: 5,
+    redeemedCount: 2,
+  });
+  const order = createOrderRecord({
+    discountCodeId: discountCode.id,
+    discountTotalCents: 1000,
+  });
+  const payment = { ...createPaymentRecord(), order };
+  const { db, state } = createMockCommerceWebhookDb({
+    payment,
+    discountCodes: [discountCode],
+  });
+  const service = createStripeWebhookCommerceService(db);
+
+  const result = await service.handleCommerceCheckoutCompleted(createCheckoutSession());
+
+  assert.equal(result.status, "processed");
+  assert.equal(state.discountRedemptions.length, 1);
+  assert.equal(state.discountRedemptions[0]?.discountCodeId, discountCode.id);
+  assert.equal(state.discountRedemptions[0]?.orderId, order.id);
+  assert.equal(state.discountRedemptions[0]?.amountDiscountedCents, 1000);
+  assert.equal(state.discountCodes[0]?.redeemedCount, 3);
+});
+
+test("handleCommerceCheckoutCompleted never double-counts a discount redemption on webhook retry", async () => {
+  const discountCode = createDiscountCodeRecord({
+    id: "discount_retry",
+    maxRedemptions: 1,
+    redeemedCount: 0,
+  });
+  const order = createOrderRecord({
+    discountCodeId: discountCode.id,
+    discountTotalCents: 1000,
+  });
+  const payment = { ...createPaymentRecord(), order };
+  const { db, state } = createMockCommerceWebhookDb({
+    payment,
+    discountCodes: [discountCode],
+  });
+  const service = createStripeWebhookCommerceService(db);
+
+  await service.handleCommerceCheckoutCompleted(createCheckoutSession());
+  const secondResult = await service.handleCommerceCheckoutCompleted(createCheckoutSession());
+
+  assert.equal(secondResult.status, "already_processed");
+  assert.equal(state.discountRedemptions.length, 1);
+  assert.equal(state.discountCodes[0]?.redeemedCount, 1);
+});
+
+test("handleCommerceCheckoutCompleted honors an already-Stripe-paid customer when the discount code is exhausted by a concurrent order", async () => {
+  const discountCode = createDiscountCodeRecord({
+    id: "discount_exhausted",
+    maxRedemptions: 1,
+    redeemedCount: 1,
+  });
+  const order = createOrderRecord({
+    discountCodeId: discountCode.id,
+    discountTotalCents: 1000,
+  });
+  const payment = { ...createPaymentRecord(), order };
+  const { db, state, getPayment } = createMockCommerceWebhookDb({
+    payment,
+    discountCodes: [discountCode],
+  });
+  const service = createStripeWebhookCommerceService(db);
+
+  const result = await service.handleCommerceCheckoutCompleted(createCheckoutSession());
+
+  assert.equal(result.status, "processed");
+  assert.equal(getPayment()?.order.status, "PAID");
+  assert.equal(state.discountRedemptions.length, 0);
+  assert.equal(state.discountCodes[0]?.redeemedCount, 1);
 });
 
 test("handleCommerceCheckoutCompleted does not send the notification for an unpaid session", async () => {
