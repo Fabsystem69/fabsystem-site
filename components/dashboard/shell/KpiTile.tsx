@@ -59,7 +59,10 @@ export function KpiTile({
         <p className="text-[1.75rem] font-semibold leading-none tracking-tight text-white">
           {value}
         </p>
-        {comparison ? <ComparisonBars comparison={comparison} /> : null}
+        {/* Micro-indicateur couple a la tendance : sans tendance exploitable
+            (ex. mois precedent a zero), l'afficher seul induirait une
+            comparaison qui n'existe pas vraiment. */}
+        {comparison && trend ? <ComparisonBars comparison={comparison} /> : null}
       </div>
 
       <div className="mt-2 flex items-center gap-2">

@@ -66,7 +66,11 @@ export default async function DashboardCustomersPage({
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
         <AdminPageHeader
           title="Clients"
-          description={`${totalCount} client${totalCount > 1 ? "s" : ""} au total${search ? ` pour "${search}"` : ""} · base partagée devis, factures et suivi matériel.`}
+          description={
+            search
+              ? `Résultats pour "${search}".`
+              : "Commandes, accès aux téléchargements et suivi matériel des clients."
+          }
           actions={
             <>
               <form className="flex items-center gap-2" method="get">

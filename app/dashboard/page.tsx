@@ -2,6 +2,7 @@ import { getSessionFromCookies } from "@/lib/require-session";
 import { prisma } from "@/lib/prisma";
 import { formatEuroFromCents } from "@/lib/format";
 import { getEcommerceStatsSummary } from "@/lib/services/ecommerce-stats";
+import { listPendingOrdersForPurge } from "@/lib/services/order-purge";
 import { KpiTile } from "@/components/dashboard/shell/KpiTile";
 import { AttentionList, type AttentionItem } from "@/components/dashboard/shell/AttentionList";
 import { ActivityFeed, type ActivityItem } from "@/components/dashboard/shell/ActivityFeed";
@@ -28,7 +29,6 @@ import {
 // section "Historique" de la sidebar.
 // ---------------------------------------------------------------------------
 
-const PURGE_THRESHOLD_DAYS = 5;
 
 function getMonthBounds(reference: Date, monthsAgo: number) {
   const start = new Date(reference.getFullYear(), reference.getMonth() - monthsAgo, 1);
@@ -77,15 +77,12 @@ async function getPendingTestimonialAttentionItems(): Promise<AttentionItem[]> {
   }));
 }
 
-// Lecture seule : compte les tentatives PENDING_PAYMENT anciennes, pour la
-// zone "Entretien / Systeme". Ne modifie ni ne supprime rien — la logique de
-// purge elle-meme est un lot separe, non traite ici.
-async function getStalePendingOrdersCount(now: Date) {
-  const threshold = new Date(now.getTime() - PURGE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000);
-
-  return prisma.order
-    .count({ where: { status: "PENDING_PAYMENT", createdAt: { lte: threshold } } })
-    .catch(() => 0);
+// Lecture seule : compte les commandes PENDING_PAYMENT reellement purgeables
+// (memes garde-fous que la purge elle-meme — voir lib/services/order-purge.ts),
+// pour la zone "Entretien / Systeme". Ne modifie ni ne supprime rien.
+async function getPurgeableStalePendingOrdersCount() {
+  const summaries = await listPendingOrdersForPurge().catch(() => []);
+  return summaries.filter((summary) => summary.isPurgeTier && summary.eligibility.eligible).length;
 }
 
 function formatRelativeTime(date: Date, now: Date) {
@@ -233,7 +230,7 @@ export default async function DashboardPage() {
     totalCustomers,
     ecommerceStats,
     attentionItems,
-    stalePendingOrdersCount,
+    purgeableStalePendingOrdersCount,
     recentActivity,
     revenuePoints,
   ] = await Promise.all([
@@ -242,7 +239,7 @@ export default async function DashboardPage() {
     prisma.customer.count(),
     getEcommerceStatsSummary(now),
     getPendingTestimonialAttentionItems(),
-    getStalePendingOrdersCount(now),
+    getPurgeableStalePendingOrdersCount(),
     getRecentActivity(now),
     getRevenueLast30Days(now),
   ]);
@@ -330,10 +327,15 @@ export default async function DashboardPage() {
           <AttentionList items={attentionItems} />
         </div>
 
-        {/* Entretien / Systeme — discret, non urgent */}
-        {stalePendingOrdersCount > 0 ? (
+        {/* Entretien / Systeme — discret, non urgent : uniquement si des
+            commandes sont reellement purgeables (memes garde-fous que la
+            purge elle-meme, pas un simple compte par anciennete). */}
+        {purgeableStalePendingOrdersCount > 0 ? (
           <div className="mt-4 flex items-center justify-between rounded-xl border border-neutral-800/60 bg-neutral-900/30 px-4 py-2.5 text-sm text-neutral-500">
-            <span>Entretien / Système · {stalePendingOrdersCount} tentative(s) de paiement à purger</span>
+            <span>
+              Entretien / Système · {purgeableStalePendingOrdersCount} commande(s) en attente à
+              purger
+            </span>
             <a href="/dashboard/orders#purge" className="font-medium text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline">
               Purger
             </a>

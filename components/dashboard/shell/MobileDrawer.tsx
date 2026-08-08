@@ -4,14 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NAV_GROUPS } from "@/components/dashboard/shell/nav-data";
+import { NAV_GROUPS, resolveActiveNavHref } from "@/components/dashboard/shell/nav-data";
 import { CloseIcon, LogoutIcon, MenuIcon } from "@/components/dashboard-preview/icons";
-
-function isItemActive(pathname: string | null, href: string) {
-  if (!pathname) return false;
-  if (href === "/dashboard") return pathname === "/dashboard";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export function MobileMenuButton({ onOpen }: { onOpen: () => void }) {
   return (
@@ -28,6 +22,7 @@ export function MobileMenuButton({ onOpen }: { onOpen: () => void }) {
 
 export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const pathname = usePathname();
+  const activeHref = resolveActiveNavHref(pathname);
 
   // Ferme le tiroir automatiquement apres un changement de route.
   useEffect(() => {
@@ -89,7 +84,7 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                 ) : null}
                 <ul className="space-y-0.5">
                   {group.items.map((item) => {
-                    const active = isItemActive(pathname, item.href);
+                    const active = item.href === activeHref;
                     const Icon = item.icon;
 
                     return (

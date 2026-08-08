@@ -4,19 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NAV_GROUPS } from "@/components/dashboard/shell/nav-data";
+import { NAV_GROUPS, resolveActiveNavHref } from "@/components/dashboard/shell/nav-data";
 import { ChevronLeftIcon, LogoutIcon } from "@/components/dashboard-preview/icons";
 
 const COLLAPSE_STORAGE_KEY = "fabsystem-dashboard-sidebar-collapsed";
 
-function isItemActive(pathname: string | null, href: string) {
-  if (!pathname) return false;
-  if (href === "/dashboard") return pathname === "/dashboard";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
 export function Sidebar() {
   const pathname = usePathname();
+  const activeHref = resolveActiveNavHref(pathname);
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -80,7 +75,7 @@ export function Sidebar() {
               ) : null}
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
-                  const active = isItemActive(pathname, item.href);
+                  const active = item.href === activeHref;
                   const Icon = item.icon;
 
                   return (
