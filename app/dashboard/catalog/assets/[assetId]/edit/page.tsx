@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { updateDigitalAssetAction } from "@/app/dashboard/catalog/assets/actions";
 import { DigitalAssetForm } from "@/components/dashboard/DigitalAssetForm";
 import { getDashboardAssetForEdit } from "@/lib/services/catalog";
+import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 type DashboardCatalogAssetsEditPageProps = {
   params: Promise<{
@@ -29,45 +29,31 @@ export default async function DashboardCatalogAssetsEditPage({
   }
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-neutral-950">Modifier l&apos;asset</h1>
-        <p className="max-w-3xl text-sm text-neutral-600">
-          Mise a jour des metadonnees de reference stockees dans Prisma. Aucune URL signee
-          n&apos;est generee et aucun upload Supabase n&apos;est lance depuis cette page.
-        </p>
-        <Link
-          href="/dashboard/catalog/assets"
-          className="inline-flex text-sm font-medium text-neutral-900 underline underline-offset-4"
-        >
-          Retour aux assets
-        </Link>
-      </div>
+    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
+      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <AdminPageHeader
+          title="Modifier l'asset"
+          description="Mise à jour des métadonnées de référence stockées dans Prisma. Aucune URL signée n'est générée et aucun upload Supabase n'est lancé depuis cette page."
+          backHref="/dashboard/catalog/assets"
+          backLabel="Retour aux assets"
+        />
 
-      {success ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          {success}
-        </div>
-      ) : null}
+        {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
+        {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
 
-      {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
-
-      <DigitalAssetForm
-        action={updateDigitalAssetAction}
-        submitLabel="Enregistrer l'asset"
-        initialValues={{
-          assetId: asset.id,
-          provider: asset.provider,
-          filename: asset.filename,
-          bucket: asset.bucket,
-          path: asset.path,
-          status: asset.status,
-        }}
-      />
-    </section>
+        <DigitalAssetForm
+          action={updateDigitalAssetAction}
+          submitLabel="Enregistrer l'asset"
+          initialValues={{
+            assetId: asset.id,
+            provider: asset.provider,
+            filename: asset.filename,
+            bucket: asset.bucket,
+            path: asset.path,
+            status: asset.status,
+          }}
+        />
+      </main>
+    </div>
   );
 }

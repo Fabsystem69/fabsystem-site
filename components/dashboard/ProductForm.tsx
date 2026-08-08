@@ -24,43 +24,43 @@ export function ProductForm({
   showPriceField = false,
 }: ProductFormProps) {
   return (
-    <form action={action} className="space-y-6 rounded-xl border border-neutral-200 bg-white p-5">
+    <form action={action} className="space-y-6 rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-5">
       {initialValues?.productId ? (
         <input type="hidden" name="productId" value={initialValues.productId} />
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm">
-          <span className="font-medium text-neutral-900">Nom produit</span>
+          <span className="font-medium text-neutral-200">Nom produit</span>
           <input
             name="name"
             required
             defaultValue={initialValues?.name ?? ""}
-            className="h-11 w-full rounded-md border border-neutral-300 px-3 text-base"
+            className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
           />
         </label>
 
         <label className="space-y-2 text-sm">
-          <span className="font-medium text-neutral-900">Slug</span>
+          <span className="font-medium text-neutral-200">Slug</span>
           <input
             name="slug"
             required
             defaultValue={initialValues?.slug ?? ""}
-            className="h-11 w-full rounded-md border border-neutral-300 px-3 text-base"
+            className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
           />
         </label>
 
         <label className="space-y-2 text-sm md:col-span-2">
-          <span className="font-medium text-neutral-900">Description courte</span>
+          <span className="font-medium text-neutral-200">Description courte</span>
           <input
             name="shortDescription"
             defaultValue={initialValues?.shortDescription ?? ""}
-            className="h-11 w-full rounded-md border border-neutral-300 px-3 text-base"
+            className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
           />
         </label>
 
         <label className="space-y-2 text-sm md:col-span-2">
-          <span className="font-medium text-neutral-900">Description</span>
+          <span className="font-medium text-neutral-200">Description</span>
           <textarea
             name="description"
             rows={5}
@@ -70,11 +70,11 @@ export function ProductForm({
         </label>
 
         <label className="space-y-2 text-sm">
-          <span className="font-medium text-neutral-900">Type</span>
+          <span className="font-medium text-neutral-200">Type</span>
           <select
             name="productType"
             defaultValue={initialValues?.productType ?? "EBOOK"}
-            className="h-11 w-full rounded-md border border-neutral-300 px-3 text-base"
+            className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
           >
             <option value="EBOOK">EBOOK</option>
             <option value="DIGITAL_DOWNLOAD">DIGITAL_DOWNLOAD</option>
@@ -83,11 +83,11 @@ export function ProductForm({
         </label>
 
         <label className="space-y-2 text-sm">
-          <span className="font-medium text-neutral-900">Mode d&apos;achat</span>
+          <span className="font-medium text-neutral-200">Mode d&apos;achat</span>
           <select
             name="purchaseMode"
             defaultValue={initialValues?.purchaseMode ?? "BUY_NOW"}
-            className="h-11 w-full rounded-md border border-neutral-300 px-3 text-base"
+            className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
           >
             <option value="BUY_NOW">BUY_NOW</option>
             <option value="REQUEST_ONLY">REQUEST_ONLY</option>
@@ -95,11 +95,11 @@ export function ProductForm({
         </label>
 
         <label className="space-y-2 text-sm">
-          <span className="font-medium text-neutral-900">Statut</span>
+          <span className="font-medium text-neutral-200">Statut</span>
           <select
             name="status"
             defaultValue={initialValues?.status ?? "DRAFT"}
-            className="h-11 w-full rounded-md border border-neutral-300 px-3 text-base"
+            className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
           >
             <option value="DRAFT">DRAFT</option>
             <option value="ACTIVE">ACTIVE</option>
@@ -109,7 +109,7 @@ export function ProductForm({
 
         {showPriceField ? (
           <label className="space-y-2 text-sm">
-            <span className="font-medium text-neutral-900">Prix TTC (EUR)</span>
+            <span className="font-medium text-neutral-200">Prix TTC (EUR)</span>
             <input
               name="amountEuros"
               type="number"
@@ -117,13 +117,13 @@ export function ProductForm({
               step="0.01"
               required
               defaultValue={initialValues?.activePriceEuros ?? ""}
-              className="h-11 w-full rounded-md border border-neutral-300 px-3 text-base"
+              className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
             />
           </label>
         ) : null}
       </div>
 
-      <button className="rounded-md bg-neutral-900 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800">
+      <button className="h-11 rounded-lg bg-brand-400 px-4 text-sm font-semibold text-neutral-950 transition-colors duration-150 hover:bg-brand-300">
         {submitLabel}
       </button>
     </form>

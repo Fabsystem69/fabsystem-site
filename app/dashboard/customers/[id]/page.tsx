@@ -5,6 +5,7 @@ import { formatCustomerAssetSummary, getCustomerAssetLabel } from "@/lib/custome
 import { formatCustomerDisplayName } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import { AdminAlert, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
 
 type Params = {
   params: Promise<{
@@ -37,9 +38,9 @@ export default async function DashboardCustomerDetailPage({ params }: Params) {
     });
   } catch (error) {
     return (
-      <main className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-        {getDatabaseErrorMessage(error)}
-      </main>
+      <div className="min-h-full bg-[#0a0a0b] p-6">
+        <AdminAlert tone="warning">{getDatabaseErrorMessage(error)}</AdminAlert>
+      </div>
     );
   }
 
@@ -48,94 +49,79 @@ export default async function DashboardCustomerDetailPage({ params }: Params) {
   }
 
   return (
-    <main className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-neutral-900">{formatCustomerDisplayName(customer)}</h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            {formatCustomerAssetSummary(customer) || "Aucune information véhicule / bateau"}
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <Link
-            href={`/dashboard/customers/${customer.id}/edit`}
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900"
-          >
-            Modifier
-          </Link>
-          <Link
-            href="/dashboard/customers"
-            className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900"
-          >
-            Retour
-          </Link>
-        </div>
-      </div>
+    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <AdminPageHeader
+          title={formatCustomerDisplayName(customer)}
+          description={formatCustomerAssetSummary(customer) || "Aucune information véhicule / bateau"}
+          backHref="/dashboard/customers"
+          backLabel="Retour aux clients"
+          actions={
+            <AdminButton variant="primary" href={`/dashboard/customers/${customer.id}/edit`}>
+              Modifier
+            </AdminButton>
+          }
+        />
 
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Contact</h2>
-          <div className="mt-3 space-y-1 text-sm text-neutral-700">
-            <p>{customer.email || "-"}</p>
-            <p>{customer.phone || "-"}</p>
-            {customer.address ? <p className="whitespace-pre-line">{customer.address}</p> : <p>-</p>}
-          </div>
-        </div>
+        <section className="grid gap-4 md:grid-cols-2">
+          <AdminCard title="Contact">
+            <div className="space-y-1 text-sm text-neutral-300">
+              <p>{customer.email || "-"}</p>
+              <p>{customer.phone || "-"}</p>
+              {customer.address ? <p className="whitespace-pre-line">{customer.address}</p> : <p>-</p>}
+            </div>
+          </AdminCard>
 
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
-          <h2 className="text-lg font-semibold text-neutral-900">
-            {getCustomerAssetLabel(customer.assetType)}
-          </h2>
-          <div className="mt-3 space-y-1 text-sm text-neutral-700">
-            <p>Type: {getCustomerAssetLabel(customer.assetType)}</p>
-            <p>Marque: {customer.assetBrand || "-"}</p>
-            <p>Modèle: {customer.assetModel || "-"}</p>
-            <p>{customer.assetType === "BOAT" ? "HIN" : "Immatriculation"}: {customer.registration || "-"}</p>
-            <p>Kilométrage: {customer.odometerKm ?? "-"}</p>
-            <p>Heures moteur: {customer.engineHours ?? "-"}</p>
-          </div>
-        </div>
-      </section>
+          <AdminCard title={getCustomerAssetLabel(customer.assetType)}>
+            <div className="space-y-1 text-sm text-neutral-300">
+              <p>Type : {getCustomerAssetLabel(customer.assetType)}</p>
+              <p>Marque : {customer.assetBrand || "-"}</p>
+              <p>Modèle : {customer.assetModel || "-"}</p>
+              <p>{customer.assetType === "BOAT" ? "HIN" : "Immatriculation"} : {customer.registration || "-"}</p>
+              <p>Kilométrage : {customer.odometerKm ?? "-"}</p>
+              <p>Heures moteur : {customer.engineHours ?? "-"}</p>
+            </div>
+          </AdminCard>
+        </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Derniers devis</h2>
-          <div className="mt-3 space-y-2 text-sm">
-            {customer.quotes.length === 0 ? (
-              <p className="text-neutral-500">Aucun devis.</p>
-            ) : (
-              customer.quotes.map((quote) => (
-                <Link
-                  key={quote.id}
-                  href={`/dashboard/quotes/${quote.id}`}
-                  className="block text-neutral-900 underline underline-offset-2"
-                >
-                  {quote.number}
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
+        <section className="grid gap-4 md:grid-cols-2">
+          <AdminCard title="Derniers devis">
+            <div className="space-y-2 text-sm">
+              {customer.quotes.length === 0 ? (
+                <p className="text-neutral-500">Aucun devis.</p>
+              ) : (
+                customer.quotes.map((quote) => (
+                  <Link
+                    key={quote.id}
+                    href={`/dashboard/quotes/${quote.id}`}
+                    className="block text-neutral-200 underline underline-offset-2 hover:text-brand-300"
+                  >
+                    {quote.number}
+                  </Link>
+                ))
+              )}
+            </div>
+          </AdminCard>
 
-        <div className="rounded-lg border border-neutral-200 bg-white p-4">
-          <h2 className="text-lg font-semibold text-neutral-900">Dernières factures</h2>
-          <div className="mt-3 space-y-2 text-sm">
-            {customer.invoices.length === 0 ? (
-              <p className="text-neutral-500">Aucune facture.</p>
-            ) : (
-              customer.invoices.map((invoice) => (
-                <Link
-                  key={invoice.id}
-                  href={`/dashboard/invoices/${invoice.id}`}
-                  className="block text-neutral-900 underline underline-offset-2"
-                >
-                  {invoice.number}
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-    </main>
+          <AdminCard title="Dernières factures">
+            <div className="space-y-2 text-sm">
+              {customer.invoices.length === 0 ? (
+                <p className="text-neutral-500">Aucune facture.</p>
+              ) : (
+                customer.invoices.map((invoice) => (
+                  <Link
+                    key={invoice.id}
+                    href={`/dashboard/invoices/${invoice.id}`}
+                    className="block text-neutral-200 underline underline-offset-2 hover:text-brand-300"
+                  >
+                    {invoice.number}
+                  </Link>
+                ))
+              )}
+            </div>
+          </AdminCard>
+        </section>
+      </main>
+    </div>
   );
 }

@@ -1,12 +1,37 @@
-import Link from "next/link";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import {
   activateDiscountCodeAction,
   disableDiscountCodeAction,
 } from "@/app/dashboard/discounts/actions";
 import { UNLIMITED_DISCOUNT_REDEMPTIONS, listDashboardDiscountCodes } from "@/lib/services/discounts";
+import {
+  AdminAlert,
+  AdminBadge,
+  AdminButton,
+  AdminEmptyState,
+  AdminPageHeader,
+  AdminTable,
+  adminTableBodyClass,
+  adminTableCellClass,
+  adminTableCellStrongClass,
+  adminTableHeadCellClass,
+  adminTableHeadClass,
+  adminTableRowClass,
+  type AdminBadgeTone,
+} from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
+
+const STATUS_TONE: Record<string, AdminBadgeTone> = {
+  ACTIVE: "success",
+  DISABLED: "neutral",
+  EXPIRED: "danger",
+};
+
+const successButtonClass =
+  "inline-flex h-9 items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition-colors duration-150 hover:bg-emerald-500/20";
+const secondaryButtonClass =
+  "inline-flex h-9 items-center rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-xs font-semibold text-neutral-200 transition-colors duration-150 hover:bg-neutral-800";
 
 export default async function DashboardDiscountsPage({
   searchParams,
@@ -17,111 +42,85 @@ export default async function DashboardDiscountsPage({
   const { error, success } = await searchParams;
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-neutral-950">Codes de réduction</h1>
-        <p className="max-w-3xl text-sm text-neutral-600">
-          Montant fixe ou pourcentage, ciblés sur un produit ou tout le catalogue, nominatifs ou
-          non, usage limité ou illimité.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/dashboard/discounts/new"
-            className="inline-flex rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800"
-          >
-            Créer un code
-          </Link>
-          <Link
-            href="/dashboard"
-            className="inline-flex rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
-          >
-            Retour dashboard
-          </Link>
-        </div>
-      </div>
+    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
+      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <AdminPageHeader
+          title="Codes de réduction"
+          description="Montant fixe ou pourcentage, ciblés sur un produit ou tout le catalogue, nominatifs ou non, usage limité ou illimité."
+          actions={
+            <>
+              <AdminButton variant="primary" href="/dashboard/discounts/new">
+                Créer un code
+              </AdminButton>
+              <AdminButton href="/dashboard">Retour dashboard</AdminButton>
+            </>
+          }
+        />
 
-      {success ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          {success}
-        </div>
-      ) : null}
+        {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
+        {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
 
-      {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
-
-      {discounts.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 bg-white p-8 text-sm text-neutral-600">
-          Aucun code de réduction n&apos;est encore enregistré.
-        </div>
-      ) : (
-        <div className="overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-neutral-200 text-sm">
-            <thead className="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
+        {discounts.length === 0 ? (
+          <AdminEmptyState title="Aucun code de réduction n'est encore enregistré." />
+        ) : (
+          <AdminTable>
+            <thead className={adminTableHeadClass}>
               <tr>
-                <th className="px-4 py-3">Code</th>
-                <th className="px-4 py-3">Statut</th>
-                <th className="px-4 py-3">Montant</th>
-                <th className="px-4 py-3">Client</th>
-                <th className="px-4 py-3">Produit</th>
-                <th className="px-4 py-3">Usage</th>
-                <th className="px-4 py-3">Validité</th>
-                <th className="px-4 py-3">Raison</th>
-                <th className="px-4 py-3">Action</th>
+                <th className={adminTableHeadCellClass}>Code</th>
+                <th className={adminTableHeadCellClass}>Statut</th>
+                <th className={adminTableHeadCellClass}>Montant</th>
+                <th className={adminTableHeadCellClass}>Client</th>
+                <th className={adminTableHeadCellClass}>Produit</th>
+                <th className={adminTableHeadCellClass}>Usage</th>
+                <th className={adminTableHeadCellClass}>Validité</th>
+                <th className={adminTableHeadCellClass}>Raison</th>
+                <th className={adminTableHeadCellClass}>Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-200">
+            <tbody className={adminTableBodyClass}>
               {discounts.map((discount) => (
-                <tr key={discount.id} className="align-top">
-                  <td className="px-4 py-3 font-medium text-neutral-950">{discount.code}</td>
-                  <td className="px-4 py-3 text-neutral-700">{discount.status}</td>
-                  <td className="px-4 py-3 text-neutral-700">
+                <tr key={discount.id} className={adminTableRowClass}>
+                  <td className={adminTableCellStrongClass}>{discount.code}</td>
+                  <td className={adminTableCellClass}>
+                    <AdminBadge tone={STATUS_TONE[discount.status] ?? "neutral"}>{discount.status}</AdminBadge>
+                  </td>
+                  <td className={adminTableCellClass}>
                     {discount.type === "FIXED_AMOUNT"
                       ? `${formatEuroFromCents(discount.amountOffCents ?? 0)} · ${discount.currency}`
                       : `${discount.percentOff ?? 0}%`}
                   </td>
-                  <td className="px-4 py-3 text-neutral-700">{discount.customerEmail || "Tous"}</td>
-                  <td className="px-4 py-3 text-neutral-700">
-                    {discount.product?.name || "Tout le catalogue"}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-700">
+                  <td className={adminTableCellClass}>{discount.customerEmail || "Tous"}</td>
+                  <td className={adminTableCellClass}>{discount.product?.name || "Tout le catalogue"}</td>
+                  <td className={adminTableCellClass}>
                     {discount.redeemedCount} /{" "}
-                    {discount.maxRedemptions >= UNLIMITED_DISCOUNT_REDEMPTIONS
-                      ? "illimité"
-                      : discount.maxRedemptions}
+                    {discount.maxRedemptions >= UNLIMITED_DISCOUNT_REDEMPTIONS ? "illimité" : discount.maxRedemptions}
                   </td>
-                  <td className="px-4 py-3 text-neutral-700">
+                  <td className={adminTableCellClass}>
                     <div>{discount.startsAt ? formatDate(discount.startsAt) : "Immédiat"}</div>
                     <div className="text-xs text-neutral-500">
                       Expire : {discount.expiresAt ? formatDate(discount.expiresAt) : "Jamais"}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-neutral-700">{discount.reason || "—"}</td>
-                  <td className="px-4 py-3">
+                  <td className={adminTableCellClass}>{discount.reason || "—"}</td>
+                  <td className={adminTableCellClass}>
                     {discount.status === "ACTIVE" ? (
                       <form action={disableDiscountCodeAction}>
                         <input type="hidden" name="discountCodeId" value={discount.id} />
-                        <button className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-50">
-                          Désactiver
-                        </button>
+                        <button className={secondaryButtonClass}>Désactiver</button>
                       </form>
                     ) : (
                       <form action={activateDiscountCodeAction}>
                         <input type="hidden" name="discountCodeId" value={discount.id} />
-                        <button className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100">
-                          Réactiver
-                        </button>
+                        <button className={successButtonClass}>Réactiver</button>
                       </form>
                     )}
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      )}
-    </section>
+          </AdminTable>
+        )}
+      </main>
+    </div>
   );
 }

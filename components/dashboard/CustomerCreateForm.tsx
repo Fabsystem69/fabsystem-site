@@ -97,10 +97,16 @@ export function CustomerCreateForm({ initialData }: CustomerCreateFormProps) {
     }
   }
 
+  const inputClass =
+    "h-11 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 placeholder:text-neutral-500 outline-none focus:border-neutral-500";
+
   return (
-    <form action={handleSubmit} className="space-y-6 rounded-lg border border-neutral-200 bg-white p-4">
+    <form
+      action={handleSubmit}
+      className="space-y-6 rounded-2xl border border-neutral-800/80 bg-neutral-900/60 p-5"
+    >
       <section>
-        <h2 className="text-lg font-semibold text-neutral-900">
+        <h2 className="text-base font-semibold text-white">
           {isEdit ? "Modifier le client" : "Nouveau client"}
         </h2>
         <div className="mt-4 grid gap-3">
@@ -109,39 +115,39 @@ export function CustomerCreateForm({ initialData }: CustomerCreateFormProps) {
             placeholder="Nom"
             required
             defaultValue={defaultValues.name}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           />
           <input
             name="email"
             type="email"
             placeholder="Email"
             defaultValue={defaultValues.email}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           />
           <input
             name="phone"
             placeholder="Téléphone"
             defaultValue={defaultValues.phone}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           />
           <textarea
             name="address"
             placeholder="Adresse"
             rows={3}
             defaultValue={defaultValues.address}
-            className="rounded-md border border-neutral-300 px-3 py-3 text-base"
+            className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-3 text-base text-neutral-100 placeholder:text-neutral-500 outline-none focus:border-neutral-500"
           />
         </div>
       </section>
 
       <section>
-        <h3 className="text-base font-semibold text-neutral-900">Véhicule / Bateau</h3>
+        <h3 className="text-sm font-semibold text-neutral-200">Véhicule / Bateau</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <select
             name="assetType"
             value={assetType}
             onChange={(event) => setAssetType(event.target.value as AssetType)}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           >
             <option value="VEHICLE">Véhicule</option>
             <option value="BOAT">Bateau</option>
@@ -151,19 +157,19 @@ export function CustomerCreateForm({ initialData }: CustomerCreateFormProps) {
             name="assetBrand"
             placeholder="Marque"
             defaultValue={defaultValues.assetBrand}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           />
           <input
             name="assetModel"
             placeholder="Modèle"
             defaultValue={defaultValues.assetModel}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           />
           <input
             name="registration"
             placeholder={assetType === "BOAT" ? "HIN" : "Immatriculation"}
             defaultValue={defaultValues.registration}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           />
           <input
             name="odometerKm"
@@ -171,7 +177,7 @@ export function CustomerCreateForm({ initialData }: CustomerCreateFormProps) {
             min="0"
             placeholder="Kilométrage (km)"
             defaultValue={defaultValues.odometerKm}
-            className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+            className={inputClass}
           />
           {assetType === "BOAT" ? (
             <input
@@ -180,7 +186,7 @@ export function CustomerCreateForm({ initialData }: CustomerCreateFormProps) {
               min="0"
               placeholder="Heures moteur"
               defaultValue={defaultValues.engineHours}
-              className="h-11 rounded-md border border-neutral-300 px-3 text-base"
+              className={inputClass}
             />
           ) : (
             <input
@@ -193,13 +199,13 @@ export function CustomerCreateForm({ initialData }: CustomerCreateFormProps) {
       </section>
 
       {error ? (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
       ) : null}
 
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-neutral-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+        className="h-11 rounded-lg bg-brand-400 px-4 text-sm font-semibold text-neutral-950 transition-colors duration-150 hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading
           ? isEdit

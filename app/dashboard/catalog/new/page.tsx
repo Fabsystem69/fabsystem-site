@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { ProductForm } from "@/components/dashboard/ProductForm";
 import { createProductAction } from "@/app/dashboard/catalog/actions";
+import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 type DashboardCatalogNewPageProps = {
   searchParams: Promise<{
@@ -15,44 +15,30 @@ export default async function DashboardCatalogNewPage({
   const { error, success } = await searchParams;
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-neutral-950">Creer un produit</h1>
-        <p className="max-w-3xl text-sm text-neutral-600">
-          Premiere creation MVP d&apos;un produit e-commerce FabSystem. Les assets seront geres
-          dans un sprint dedie.
-        </p>
-        <Link
-          href="/dashboard/catalog"
-          className="inline-flex text-sm font-medium text-neutral-900 underline underline-offset-4"
-        >
-          Retour au catalogue
-        </Link>
-      </div>
+    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
+      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <AdminPageHeader
+          title="Créer un produit"
+          description="Création d'un produit e-commerce FabSystem. Les assets sont gérés dans Fichiers numériques."
+          backHref="/dashboard/catalog"
+          backLabel="Retour au catalogue"
+        />
 
-      {success ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          {success}
-        </div>
-      ) : null}
+        {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
+        {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
 
-      {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
-
-      <ProductForm
-        action={createProductAction}
-        submitLabel="Creer le produit"
-        showPriceField
-        initialValues={{
-          productType: "EBOOK",
-          purchaseMode: "BUY_NOW",
-          status: "DRAFT",
-          activePriceEuros: "29.00",
-        }}
-      />
-    </section>
+        <ProductForm
+          action={createProductAction}
+          submitLabel="Créer le produit"
+          showPriceField
+          initialValues={{
+            productType: "EBOOK",
+            purchaseMode: "BUY_NOW",
+            status: "DRAFT",
+            activePriceEuros: "29.00",
+          }}
+        />
+      </main>
+    </div>
   );
 }

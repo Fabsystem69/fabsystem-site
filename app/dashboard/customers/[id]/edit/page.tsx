@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   CustomerCreateForm,
@@ -6,6 +5,7 @@ import {
 } from "@/components/dashboard/CustomerCreateForm";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import { AdminAlert, AdminButton, AdminPageHeader } from "@/components/dashboard/ui";
 
 type Params = {
   params: Promise<{
@@ -47,29 +47,24 @@ export default async function DashboardCustomerEditPage({ params }: Params) {
   }
 
   return (
-    <main className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold text-neutral-900">Modifier le client</h1>
-          <p className="mt-2 text-sm text-neutral-600">
-            Mets à jour les informations de contact et les données véhicule / bateau.
-          </p>
-        </div>
-        <Link
-          href={customer ? `/dashboard/customers/${customer.id}` : "/dashboard/customers"}
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-900"
-        >
-          Retour
-        </Link>
-      </div>
+    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
+      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <AdminPageHeader
+          title="Modifier le client"
+          description="Mets à jour les informations de contact et les données véhicule / bateau."
+          actions={
+            <AdminButton href={customer ? `/dashboard/customers/${customer.id}` : "/dashboard/customers"}>
+              Retour
+            </AdminButton>
+          }
+        />
 
-      {databaseError ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {databaseError}
-        </div>
-      ) : customer ? (
-        <CustomerCreateForm initialData={customer} />
-      ) : null}
-    </main>
+        {databaseError ? (
+          <AdminAlert tone="warning">{databaseError}</AdminAlert>
+        ) : customer ? (
+          <CustomerCreateForm initialData={customer} />
+        ) : null}
+      </main>
+    </div>
   );
 }

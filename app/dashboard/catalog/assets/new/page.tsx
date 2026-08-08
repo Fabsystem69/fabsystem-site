@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { createDigitalAssetAction } from "@/app/dashboard/catalog/assets/actions";
 import { DigitalAssetForm } from "@/components/dashboard/DigitalAssetForm";
+import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 type DashboardCatalogAssetsNewPageProps = {
   searchParams: Promise<{
@@ -15,41 +15,27 @@ export default async function DashboardCatalogAssetsNewPage({
   const { error, success } = await searchParams;
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold text-neutral-950">Creer un asset</h1>
-        <p className="max-w-3xl text-sm text-neutral-600">
-          Creation d&apos;une reference `DigitalAsset` privee. Le fichier doit deja exister
-          hors du dashboard ; aucun upload n&apos;est effectue ici.
-        </p>
-        <Link
-          href="/dashboard/catalog/assets"
-          className="inline-flex text-sm font-medium text-neutral-900 underline underline-offset-4"
-        >
-          Retour aux assets
-        </Link>
-      </div>
+    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
+      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+        <AdminPageHeader
+          title="Créer un asset"
+          description="Création d'une référence DigitalAsset privée. Le fichier doit déjà exister hors du dashboard ; aucun upload n'est effectué ici."
+          backHref="/dashboard/catalog/assets"
+          backLabel="Retour aux assets"
+        />
 
-      {success ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          {success}
-        </div>
-      ) : null}
+        {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
+        {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
 
-      {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          {error}
-        </div>
-      ) : null}
-
-      <DigitalAssetForm
-        action={createDigitalAssetAction}
-        submitLabel="Creer l'asset"
-        initialValues={{
-          provider: "SUPABASE",
-          status: "DRAFT",
-        }}
-      />
-    </section>
+        <DigitalAssetForm
+          action={createDigitalAssetAction}
+          submitLabel="Créer l'asset"
+          initialValues={{
+            provider: "SUPABASE",
+            status: "DRAFT",
+          }}
+        />
+      </main>
+    </div>
   );
 }
