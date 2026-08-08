@@ -1,7 +1,6 @@
 import type {
   DigitalAsset,
   DownloadGrant,
-  DownloadGrantStatus,
   Order,
   OrderItem,
   PrismaClient,
@@ -27,15 +26,12 @@ type DownloadGrantWithRelations = DownloadGrant & {
 
 type DownloadAccessDb = {
   findDownloadGrantById(grantId: string): Promise<DownloadGrantWithRelations | null>;
-  updateDownloadGrant(
-    grantId: string,
-    data: {
-      status?: DownloadGrantStatus;
-      revokedAt?: Date | null;
-      lastDownloadedAt?: Date | null;
-      downloadCountIncrement?: number;
-    }
-  ): Promise<DownloadGrant>;
+  // Incremente downloadCount de maniere atomique et conditionnelle
+  // (status ACTIVE, downloadCount < maxDownloads, non expire) en une seule
+  // operation DB : evite qu'une paire de requetes concurrentes ne depasse
+  // maxDownloads (cf. cahier des charges espace client, section 17).
+  // Retourne le grant a jour si la condition etait satisfaite, sinon null.
+  tryConsumeDownloadGrant(grantId: string, now: Date): Promise<DownloadGrant | null>;
 };
 
 type DownloadAccessDeps = {
@@ -155,26 +151,19 @@ function createPrismaDownloadAccessDb(client: PrismaClientLike): DownloadAccessD
         },
       }) as Promise<DownloadGrantWithRelations | null>;
     },
-    async updateDownloadGrant(grantId, data) {
-      const updateData: {
-        status?: DownloadGrantStatus;
-        revokedAt?: Date | null;
-        lastDownloadedAt?: Date | null;
-        downloadCount?: { increment: number };
-      } = {
-        status: data.status,
-        revokedAt: data.revokedAt,
-        lastDownloadedAt: data.lastDownloadedAt,
-      };
+    async tryConsumeDownloadGrant(grantId, now) {
+      const rows = await client.$queryRaw<DownloadGrant[]>`
+        UPDATE "DownloadGrant"
+        SET "downloadCount" = "downloadCount" + 1,
+            "lastDownloadedAt" = ${now}
+        WHERE "id" = ${grantId}
+          AND "status" = 'ACTIVE'
+          AND "downloadCount" < "maxDownloads"
+          AND ("expiresAt" IS NULL OR "expiresAt" > ${now})
+        RETURNING *
+      `;
 
-      if (typeof data.downloadCountIncrement === "number") {
-        updateData.downloadCount = { increment: data.downloadCountIncrement };
-      }
-
-      return client.downloadGrant.update({
-        where: { id: grantId },
-        data: updateData,
-      });
+      return rows[0] ?? null;
     },
   };
 }
@@ -252,10 +241,19 @@ export function createDownloadAccessService(
       );
       assertGrantBelongsToCustomer(grant, customer);
 
-      await db.updateDownloadGrant(grant.id, {
-        downloadCountIncrement: 1,
-        lastDownloadedAt: currentTime,
-      });
+      const consumed = await db.tryConsumeDownloadGrant(grant.id, currentTime);
+
+      if (!consumed) {
+        // La condition atomique a echoue entre la lecture et l'ecriture
+        // (concurrence, expiration, revocation...) : on relit l'etat frais
+        // pour renvoyer l'erreur la plus precise possible.
+        assertDownloadGrantIsEligible(
+          await db.findDownloadGrantById(grant.id),
+          currentTime,
+          resolveExpectedBucket
+        );
+        throw conflict("Maximum download count reached");
+      }
 
       return db.findDownloadGrantById(grant.id);
     },

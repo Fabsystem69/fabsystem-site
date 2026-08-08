@@ -138,35 +138,39 @@ function createDownloadGrantRecord(
 function createMockDownloadAccessDb(seed?: { grant?: DownloadGrantWithRelations | null }) {
   let grant = seed?.grant ?? null;
   const state = {
-    updates: [] as Array<{
-      grantId: string;
-      downloadCountIncrement?: number;
-      lastDownloadedAt?: Date | null;
-    }>,
+    consumeAttempts: [] as Array<{ grantId: string; now: Date }>,
   };
 
   const db = {
     async findDownloadGrantById(grantId: string) {
       return grant?.id === grantId ? grant : null;
     },
-    async updateDownloadGrant(
-      grantId: string,
-      data: {
-        lastDownloadedAt?: Date | null;
-        downloadCountIncrement?: number;
-      }
-    ) {
+    // Reproduit la condition atomique du UPDATE ... WHERE cote Postgres :
+    // aucune ecriture n'a lieu si le grant n'est plus consommable.
+    async tryConsumeDownloadGrant(grantId: string, now: Date) {
+      state.consumeAttempts.push({ grantId, now });
+
       if (!grant || grant.id !== grantId) {
-        throw new Error("Grant not found in mock");
+        return null;
+      }
+
+      if (grant.status !== "ACTIVE") {
+        return null;
+      }
+
+      if (grant.downloadCount >= grant.maxDownloads) {
+        return null;
+      }
+
+      if (grant.expiresAt && grant.expiresAt <= now) {
+        return null;
       }
 
       grant = {
         ...grant,
-        downloadCount: grant.downloadCount + (data.downloadCountIncrement ?? 0),
-        lastDownloadedAt: data.lastDownloadedAt ?? grant.lastDownloadedAt,
+        downloadCount: grant.downloadCount + 1,
+        lastDownloadedAt: now,
       };
-
-      state.updates.push({ grantId, ...data });
 
       return grant;
     },
@@ -203,7 +207,7 @@ test("getDownloadAccessForGrant refuses when no customer context is provided", a
   );
 
   assert.equal(calls.length, 0);
-  assert.equal(state.updates.length, 0);
+  assert.equal(state.consumeAttempts.length, 0);
 });
 
 test("getDownloadAccessForGrant refuses a revoked grant", async () => {
@@ -411,7 +415,7 @@ test("getDownloadAccessForGrant refuses when customerId and email do not match",
   );
 
   assert.equal(calls.length, 0);
-  assert.equal(state.updates.length, 0);
+  assert.equal(state.consumeAttempts.length, 0);
 });
 
 test("getDownloadAccessForGrant refuses fallback email when order is already linked to another customerId", async () => {
@@ -444,7 +448,7 @@ test("getDownloadAccessForGrant refuses fallback email when order is already lin
   );
 
   assert.equal(calls.length, 0);
-  assert.equal(state.updates.length, 0);
+  assert.equal(state.consumeAttempts.length, 0);
 });
 
 test("consumeDownloadGrant increments downloadCount and sets lastDownloadedAt", async () => {
@@ -458,9 +462,9 @@ test("consumeDownloadGrant increments downloadCount and sets lastDownloadedAt", 
 
   const updatedGrant = await service.consumeDownloadGrant(grant.id, createCustomerContext());
 
-  assert.equal(state.updates.length, 1);
-  assert.equal(state.updates[0]?.downloadCountIncrement, 1);
-  assert.equal(state.updates[0]?.lastDownloadedAt?.toISOString(), timestamp.toISOString());
+  assert.equal(state.consumeAttempts.length, 1);
+  assert.equal(state.consumeAttempts[0]?.grantId, grant.id);
+  assert.equal(state.consumeAttempts[0]?.now.toISOString(), timestamp.toISOString());
   assert.equal(updatedGrant?.downloadCount, 1);
   assert.equal(updatedGrant?.lastDownloadedAt?.toISOString(), timestamp.toISOString());
   assert.equal(getGrant()?.downloadCount, 1);
@@ -481,7 +485,35 @@ test("consumeDownloadGrant does not increment if signed URL generation fails ups
     (error: unknown) => error instanceof HttpError && error.status === 503
   );
 
-  assert.equal(state.updates.length, 0);
+  assert.equal(state.consumeAttempts.length, 0);
+});
+
+test("consumeDownloadGrant stays safe under concurrent calls and never exceeds maxDownloads", async () => {
+  const grant = createDownloadGrantRecord({ downloadCount: 0, maxDownloads: 3 });
+  const { db, getGrant } = createMockDownloadAccessDb({ grant });
+  const service = createDownloadAccessService(db, {
+    expectedBucket: grant.asset.bucket,
+  });
+  const customer = createCustomerContext();
+
+  const results = await Promise.allSettled(
+    Array.from({ length: 5 }, () => service.consumeDownloadGrant(grant.id, customer))
+  );
+
+  const fulfilled = results.filter((result) => result.status === "fulfilled");
+  const rejected = results.filter((result) => result.status === "rejected");
+
+  assert.equal(fulfilled.length, 3);
+  assert.equal(rejected.length, 2);
+  assert.ok(
+    rejected.every(
+      (result) =>
+        result.status === "rejected" &&
+        result.reason instanceof HttpError &&
+        result.reason.status === 409
+    )
+  );
+  assert.equal(getGrant()?.downloadCount, 3);
 });
 
 test("consumeDownloadGrant does not increment when the customer is not authorized", async () => {
@@ -503,7 +535,7 @@ test("consumeDownloadGrant does not increment when the customer is not authorize
     (error: unknown) => error instanceof HttpError && error.status === 403
   );
 
-  assert.equal(state.updates.length, 0);
+  assert.equal(state.consumeAttempts.length, 0);
   assert.equal(getGrant()?.downloadCount, 0);
 });
 
@@ -520,13 +552,8 @@ test("download access service does not store signed URLs in the database", async
   await service.getDownloadAccessForGrant(grant.id, createCustomerContext());
   await service.consumeDownloadGrant(grant.id, createCustomerContext());
 
-  assert.deepEqual(state.updates, [
-    {
-      grantId: grant.id,
-      downloadCountIncrement: 1,
-      lastDownloadedAt: state.updates[0]?.lastDownloadedAt,
-    },
-  ]);
+  assert.equal(state.consumeAttempts.length, 1);
+  assert.equal(state.consumeAttempts[0]?.grantId, grant.id);
 });
 
 test("download access service does not touch Stripe or Vercel Blob", async () => {

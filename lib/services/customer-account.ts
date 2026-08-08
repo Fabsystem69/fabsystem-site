@@ -37,8 +37,15 @@ export type CustomerAccountOverview = {
     id: string;
     orderNumber: string;
     status: Order["status"];
+    subtotalCents: number;
+    discountTotalCents: number;
     totalCents: number;
     currency: string;
+    // Achat entierement couvert par un code de reduction (cf. cahier des
+    // charges espace client, section 7.5 "Achat offert") : derive ici pour
+    // eviter qu'un simple 0 EUR affiche cote UI ne ressemble a une erreur.
+    isFullyDiscounted: boolean;
+    discountCodeId: string | null;
     createdAt: Date;
     paidAt: Date | null;
     items: Array<{
@@ -144,7 +151,11 @@ export function createCustomerAccountService(
           id: order.id,
           orderNumber: order.orderNumber,
           status: order.status,
+          subtotalCents: order.subtotalCents,
+          discountTotalCents: order.discountTotalCents,
           totalCents: order.totalCents,
+          isFullyDiscounted: order.discountTotalCents > 0 && order.totalCents === 0,
+          discountCodeId: order.discountCodeId,
           currency: order.currency,
           createdAt: order.createdAt,
           paidAt: order.paidAt,

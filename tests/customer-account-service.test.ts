@@ -358,6 +358,73 @@ test("getCustomerAccountOverview never exposes a PENDING_PAYMENT order to the cu
   );
 });
 
+test("getCustomerAccountOverview exposes discount fields and flags a fully discounted order", async () => {
+  const customer = createCustomerRecord();
+  const freeOrder = createOrderWithRelations({
+    id: "order_free",
+    orderNumber: "FS-20260806-FREE01",
+    customerId: customer.id,
+    discountCodeId: "discount_1",
+    subtotalCents: 2900,
+    discountTotalCents: 2900,
+    totalCents: 0,
+  });
+  const paidOrder = createOrderWithRelations({
+    id: "order_paid",
+    orderNumber: "FS-20260806-PAID02",
+    customerId: customer.id,
+    discountCodeId: "discount_2",
+    subtotalCents: 2900,
+    discountTotalCents: 500,
+    totalCents: 2400,
+  });
+  const service = createCustomerAccountService(
+    createMockCustomerAccountDb({ customer, orders: [freeOrder, paidOrder] })
+  );
+
+  const result = await service.getCustomerAccountOverview(customer.id);
+
+  const free = result.orders.find((order) => order.id === "order_free");
+  const partial = result.orders.find((order) => order.id === "order_paid");
+
+  assert.deepEqual(
+    {
+      subtotalCents: free?.subtotalCents,
+      discountTotalCents: free?.discountTotalCents,
+      totalCents: free?.totalCents,
+      isFullyDiscounted: free?.isFullyDiscounted,
+      discountCodeId: free?.discountCodeId,
+    },
+    {
+      subtotalCents: 2900,
+      discountTotalCents: 2900,
+      totalCents: 0,
+      isFullyDiscounted: true,
+      discountCodeId: "discount_1",
+    }
+  );
+
+  assert.equal(partial?.isFullyDiscounted, false);
+});
+
+test("getCustomerAccountOverview does not flag an undiscounted order as fully discounted", async () => {
+  const customer = createCustomerRecord();
+  const order = createOrderWithRelations({
+    customerId: customer.id,
+    discountCodeId: null,
+    subtotalCents: 2900,
+    discountTotalCents: 0,
+    totalCents: 2900,
+  });
+  const service = createCustomerAccountService(
+    createMockCustomerAccountDb({ customer, orders: [order] })
+  );
+
+  const result = await service.getCustomerAccountOverview(customer.id);
+
+  assert.equal(result.orders[0]?.isFullyDiscounted, false);
+});
+
 test("getCustomerAccountOverview keeps newest orders first", async () => {
   const customer = createCustomerRecord();
   const newest = createOrderWithRelations({
