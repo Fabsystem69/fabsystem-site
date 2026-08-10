@@ -306,18 +306,20 @@ test("le moteur fonctionne via EngineRunner : contexte préparé, résultat pers
       dependencyCalls.push(input);
       return {} as never;
     }) as never,
+    getProjectValues: (async () => []) as never,
+    markDependentsObsolete: (async () => []) as never,
   });
 
   const engine = createBatteryEngine();
 
-  // EngineRunnerDeps (Phase 4.0, non modifié) ne permet d'injecter que
-  // `getProject`/`retainValue`/`declareDependency`, pas les lecteurs
-  // energy.* du contexte (qui, par défaut, interrogent la vraie base via
-  // lib/services/project-values.ts). Ce test vérifie donc ce qui est
-  // réellement sous la responsabilité du Runner — préparer le contexte à
-  // partir du Project résolu, appeler le moteur, persister ce qu'il
-  // propose — via un moteur équivalent qui lit des valeurs energy.* fixes
-  // plutôt que la base, sans toucher au Runner lui-même.
+  // EngineRunnerDeps (Phase 4.0) ne permet pas d'injecter les lecteurs
+  // energy.* du contexte lui-même (qui, par défaut, interrogent la vraie
+  // base via lib/services/project-values.ts). Ce test vérifie donc ce qui
+  // est réellement sous la responsabilité du Runner — préparer le contexte
+  // à partir du Project résolu, appeler le moteur, persister ce qu'il
+  // propose, propager l'obsolescence (Phase 4.5.2) — via un moteur
+  // équivalent qui lit des valeurs energy.* fixes plutôt que la base, sans
+  // toucher au Runner lui-même.
   const wrappedEngine = {
     id: engine.id,
     run: async () =>
@@ -339,6 +341,8 @@ test("propagation des erreurs à travers EngineRunner : une ValidationError du m
     getProject: async () => project,
     retainValue: (async () => ({}) as never) as never,
     declareDependency: (async () => ({}) as never) as never,
+    getProjectValues: (async () => []) as never,
+    markDependentsObsolete: (async () => []) as never,
   });
 
   const engine = createBatteryEngine();

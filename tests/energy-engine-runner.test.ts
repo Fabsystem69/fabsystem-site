@@ -123,6 +123,8 @@ test("le moteur fonctionne via EngineRunner : contexte préparé, résultat pers
       dependencyCalls.push(input);
       return {} as never;
     }) as never,
+    getProjectValues: (async () => []) as never,
+    markDependentsObsolete: (async () => []) as never,
   });
 
   const engine = createEnergyEngine();
@@ -148,6 +150,8 @@ test("propagation des erreurs à travers EngineRunner : une ValidationError du m
     getProject: async () => project,
     retainValue: (async () => ({}) as never) as never,
     declareDependency: (async () => ({}) as never) as never,
+    getProjectValues: (async () => []) as never,
+    markDependentsObsolete: (async () => []) as never,
   });
 
   const engine = createEnergyEngine();

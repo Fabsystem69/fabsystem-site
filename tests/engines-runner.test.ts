@@ -31,12 +31,14 @@ type Harness = {
   getProjectCalls: Array<{ actor: OwnershipActor; projectId: string }>;
   retainedCalls: Array<{ projectId: string; key: string; value: unknown; simulatedValue?: unknown; source?: string | null }>;
   dependencyCalls: Array<{ projectId: string; dependentKey: string; dependsOnKey: string }>;
+  propagationCalls: Array<{ projectId: string; changedKey: string }>;
 };
 
 function createHarness(project: Project = createProjectRecord()): Harness {
   const getProjectCalls: Harness["getProjectCalls"] = [];
   const retainedCalls: Harness["retainedCalls"] = [];
   const dependencyCalls: Harness["dependencyCalls"] = [];
+  const propagationCalls: Harness["propagationCalls"] = [];
 
   const runner = createEngineRunner({
     getProject: async (actor, projectId) => {
@@ -61,9 +63,17 @@ function createHarness(project: Project = createProjectRecord()): Harness {
       dependencyCalls.push(input);
       return {} as never;
     }) as never,
+    // Aucune valeur préexistante en base pour ce test double : chaque
+    // proposition est donc traitée comme "changée" par le Runner, ce que
+    // les tests dédiés à la propagation (Phase 4.5.2) vérifient séparément.
+    getProjectValues: (async () => []) as never,
+    markDependentsObsolete: (async (projectId: string, changedKey: string) => {
+      propagationCalls.push({ projectId, changedKey });
+      return [];
+    }) as never,
   });
 
-  return { runner, getProjectCalls, retainedCalls, dependencyCalls };
+  return { runner, getProjectCalls, retainedCalls, dependencyCalls, propagationCalls };
 }
 
 // Moteur fictif utilisé uniquement pour tester le framework — ce n'est pas

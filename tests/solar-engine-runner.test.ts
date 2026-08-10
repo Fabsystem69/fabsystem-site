@@ -340,16 +340,19 @@ test("le moteur fonctionne via EngineRunner : contexte préparé, résultat pers
       dependencyCalls.push(input);
       return {} as never;
     }) as never,
+    getProjectValues: (async () => []) as never,
+    markDependentsObsolete: (async () => []) as never,
   });
 
   const engine = createSolarEngine();
 
-  // EngineRunnerDeps (Phase 4.0, non modifié) n'expose pas d'injection
-  // pour les lecteurs energy.*/battery.* du contexte (qui, par défaut,
+  // EngineRunnerDeps (Phase 4.0) n'expose pas d'injection pour les
+  // lecteurs energy.*/battery.* du contexte lui-même (qui, par défaut,
   // interrogent la vraie base). Ce test vérifie donc ce qui relève
   // réellement du Runner — préparer le contexte à partir du Project
-  // résolu, appeler le moteur, persister ce qu'il propose — via un moteur
-  // équivalent qui lit des valeurs fixes plutôt que la base.
+  // résolu, appeler le moteur, persister ce qu'il propose, propager
+  // l'obsolescence (Phase 4.5.2) — via un moteur équivalent qui lit des
+  // valeurs fixes plutôt que la base.
   const wrappedEngine = {
     id: engine.id,
     run: async () => engine.run(createFakeContext(project, COMPLETE_SOURCES), validInput()),
@@ -370,6 +373,8 @@ test("propagation des erreurs à travers EngineRunner : une ValidationError du m
     getProject: async () => project,
     retainValue: (async () => ({}) as never) as never,
     declareDependency: (async () => ({}) as never) as never,
+    getProjectValues: (async () => []) as never,
+    markDependentsObsolete: (async () => []) as never,
   });
 
   const engine = createSolarEngine();
