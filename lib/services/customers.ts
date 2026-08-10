@@ -119,8 +119,10 @@ export async function assertCustomerExists(id: string) {
 }
 
 export async function createCustomer(input: CustomerInput) {
+  // Seule voie d'appel : POST /api/internal/customers, protégée par
+  // requireApiSession() (Admin). Création manuelle FabSystem (MASTER-04 §4).
   return prisma.customer.create({
-    data: normalizeCustomerData(input),
+    data: { ...normalizeCustomerData(input), origin: "ADMIN" },
   });
 }
 

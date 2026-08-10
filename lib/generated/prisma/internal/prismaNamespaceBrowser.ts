@@ -50,6 +50,10 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 
 export const ModelName = {
   Customer: 'Customer',
+  CustomerCapability: 'CustomerCapability',
+  Project: 'Project',
+  ProjectRetainedValue: 'ProjectRetainedValue',
+  ProjectValueDependency: 'ProjectValueDependency',
   Quote: 'Quote',
   QuoteItem: 'QuoteItem',
   Invoice: 'Invoice',
@@ -104,12 +108,76 @@ export const CustomerScalarFieldEnum = {
   odometerKm: 'odometerKm',
   engineHours: 'engineHours',
   status: 'status',
+  origin: 'origin',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
+export const CustomerCapabilityScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  capability: 'capability',
+  scope: 'scope',
+  scopeId: 'scopeId',
+  status: 'status',
+  source: 'source',
+  startsAt: 'startsAt',
+  expiresAt: 'expiresAt',
+  revokedAt: 'revokedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerCapabilityScalarFieldEnum = (typeof CustomerCapabilityScalarFieldEnum)[keyof typeof CustomerCapabilityScalarFieldEnum]
+
+
+export const ProjectScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  name: 'name',
+  assetType: 'assetType',
+  voltage: 'voltage',
+  status: 'status',
+  archivedAt: 'archivedAt',
+  deleteScheduledAt: 'deleteScheduledAt',
+  preScheduleStatus: 'preScheduleStatus',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProjectRetainedValueScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  key: 'key',
+  value: 'value',
+  simulatedValue: 'simulatedValue',
+  status: 'status',
+  source: 'source',
+  retainedAt: 'retainedAt',
+  obsoletedAt: 'obsoletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectRetainedValueScalarFieldEnum = (typeof ProjectRetainedValueScalarFieldEnum)[keyof typeof ProjectRetainedValueScalarFieldEnum]
+
+
+export const ProjectValueDependencyScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  dependentKey: 'dependentKey',
+  dependsOnKey: 'dependsOnKey',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectValueDependencyScalarFieldEnum = (typeof ProjectValueDependencyScalarFieldEnum)[keyof typeof ProjectValueDependencyScalarFieldEnum]
 
 
 export const QuoteScalarFieldEnum = {
@@ -502,6 +570,21 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -516,4 +599,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -187,6 +187,30 @@ export const CustomerStatus = {
 export type CustomerStatus = (typeof CustomerStatus)[keyof typeof CustomerStatus]
 
 
+export const CustomerOrigin = {
+  PURCHASE: 'PURCHASE',
+  ADMIN: 'ADMIN'
+} as const
+
+export type CustomerOrigin = (typeof CustomerOrigin)[keyof typeof CustomerOrigin]
+
+
+export const CapabilityScope = {
+  CUSTOMER: 'CUSTOMER',
+  PROJECT: 'PROJECT'
+} as const
+
+export type CapabilityScope = (typeof CapabilityScope)[keyof typeof CapabilityScope]
+
+
+export const CustomerCapabilityStatus = {
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED'
+} as const
+
+export type CustomerCapabilityStatus = (typeof CustomerCapabilityStatus)[keyof typeof CustomerCapabilityStatus]
+
+
 export const MagicLoginTokenStatus = {
   ACTIVE: 'ACTIVE',
   USED: 'USED',
@@ -204,6 +228,42 @@ export const CustomerSessionStatus = {
 } as const
 
 export type CustomerSessionStatus = (typeof CustomerSessionStatus)[keyof typeof CustomerSessionStatus]
+
+
+export const ProjectStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED',
+  DELETE_SCHEDULED: 'DELETE_SCHEDULED'
+} as const
+
+export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
+
+
+export const ProjectAssetType = {
+  BOAT: 'BOAT',
+  VAN: 'VAN',
+  MOTORHOME: 'MOTORHOME',
+  OTHER: 'OTHER'
+} as const
+
+export type ProjectAssetType = (typeof ProjectAssetType)[keyof typeof ProjectAssetType]
+
+
+export const ProjectVoltage = {
+  V12: 'V12',
+  V24: 'V24',
+  UNKNOWN: 'UNKNOWN'
+} as const
+
+export type ProjectVoltage = (typeof ProjectVoltage)[keyof typeof ProjectVoltage]
+
+
+export const ProjectValueStatus = {
+  ACTIVE: 'ACTIVE',
+  OBSOLETE: 'OBSOLETE'
+} as const
+
+export type ProjectValueStatus = (typeof ProjectValueStatus)[keyof typeof ProjectValueStatus]
 
 
 export const TestimonialCustomerType = {

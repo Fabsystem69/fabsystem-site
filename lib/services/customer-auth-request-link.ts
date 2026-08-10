@@ -42,6 +42,16 @@ export function createCustomerAuthRequestLinkService(deps: RequestCustomerMagicL
     async requestLink(input: RequestCustomerMagicLinkInput) {
       const result = await deps.requestMagicLoginLink(input);
 
+      if (result.status === "customer_not_found") {
+        // Réponse publique anti-énumération identique au cas "trouvé" :
+        // aucune information sur l'existence du compte n'est révélée.
+        logServerEvent("info", "customer magic link requested for unknown email", {
+          reason: "customer-not-found",
+        });
+
+        return buildCustomerAuthRequestLinkResponse({}, runtimeEnvironment);
+      }
+
       if (!result.magicLink) {
         throw internalServerError("Customer auth base URL is not configured");
       }

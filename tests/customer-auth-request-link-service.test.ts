@@ -27,6 +27,68 @@ function withEnv<T>(overrides: Record<string, string | undefined>, callback: () 
   });
 }
 
+test("requestLink returns the generic public response and sends no email for an unknown Customer", async () => {
+  let sendMailCalls = 0;
+
+  const service = createCustomerAuthRequestLinkService({
+    runtimeEnvironment: "development",
+    requestMagicLoginLink: async () => ({
+      status: "customer_not_found" as const,
+      email: "unknown@example.com",
+    }),
+    sendCustomerMagicLoginEmail: async () => {
+      sendMailCalls += 1;
+    },
+  });
+
+  const result = await service.requestLink({
+    email: "unknown@example.com",
+    baseUrl: "https://example.com",
+  });
+
+  assert.equal(sendMailCalls, 0);
+  assert.equal("magicLink" in result, false);
+  assert.equal(
+    result.message,
+    "Si cette adresse peut accéder à un espace client, un lien de connexion sera envoyé."
+  );
+});
+
+test("requestLink returns the same public response shape for known and unknown Customers", async () => {
+  const knownService = createCustomerAuthRequestLinkService({
+    runtimeEnvironment: "production",
+    requestMagicLoginLink: async () => ({
+      status: "created" as const,
+      customerId: "cust_1",
+      email: "buyer@example.com",
+      token: "raw-token",
+      expiresAt: new Date("2026-08-06T12:15:00.000Z"),
+      magicLink: "https://example.com/api/client-auth/verify?token=raw-token",
+    }),
+    sendCustomerMagicLoginEmail: async () => {},
+  });
+  const unknownService = createCustomerAuthRequestLinkService({
+    runtimeEnvironment: "production",
+    requestMagicLoginLink: async () => ({
+      status: "customer_not_found" as const,
+      email: "unknown@example.com",
+    }),
+    sendCustomerMagicLoginEmail: async () => {},
+  });
+
+  const knownResult = await knownService.requestLink({
+    email: "buyer@example.com",
+    baseUrl: "https://example.com",
+  });
+  const unknownResult = await unknownService.requestLink({
+    email: "unknown@example.com",
+    baseUrl: "https://example.com",
+  });
+
+  assert.deepEqual(Object.keys(knownResult).sort(), Object.keys(unknownResult).sort());
+  assert.equal(knownResult.message, unknownResult.message);
+});
+
 test("requestLink sends an email after a valid magic-link request", async () => {
   await withEnv(
     {
@@ -49,6 +111,7 @@ test("requestLink sends an email after a valid magic-link request", async () => 
       const service = createCustomerAuthRequestLinkService({
         runtimeEnvironment: "development",
         requestMagicLoginLink: async () => ({
+          status: "created" as const,
           customerId: "cust_1",
           email: "buyer@example.com",
           token: "raw-token",
@@ -80,6 +143,7 @@ test("requestLink hides magicLink in production responses", async () => {
   const service = createCustomerAuthRequestLinkService({
     runtimeEnvironment: "production",
     requestMagicLoginLink: async () => ({
+      status: "created" as const,
       customerId: "cust_1",
       email: "buyer@example.com",
       token: "raw-token",
@@ -107,6 +171,7 @@ test("requestLink returns a sanitized error if email sending fails", async () =>
   const service = createCustomerAuthRequestLinkService({
     runtimeEnvironment: "production",
     requestMagicLoginLink: async () => ({
+      status: "created" as const,
       customerId: "cust_1",
       email: "buyer@example.com",
       token: "raw-token",
@@ -153,6 +218,7 @@ test("requestLink returns magicLink in development without SMTP config", async (
       const service = createCustomerAuthRequestLinkService({
         runtimeEnvironment: "development",
         requestMagicLoginLink: async () => ({
+          status: "created" as const,
           customerId: "cust_1",
           email: "buyer@example.com",
           token: "raw-token",
@@ -191,6 +257,7 @@ test("requestLink keeps SMTP mandatory in production", async () => {
       const service = createCustomerAuthRequestLinkService({
         runtimeEnvironment: "production",
         requestMagicLoginLink: async () => ({
+          status: "created" as const,
           customerId: "cust_1",
           email: "buyer@example.com",
           token: "raw-token",

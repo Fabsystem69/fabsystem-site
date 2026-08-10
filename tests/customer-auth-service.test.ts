@@ -39,6 +39,7 @@ function createCustomerRecord(overrides: Partial<Customer> = {}): Customer {
     odometerKm: overrides.odometerKm ?? null,
     engineHours: overrides.engineHours ?? null,
     status: overrides.status ?? "ACTIVE",
+    origin: overrides.origin ?? "PURCHASE",
     lastLoginAt: overrides.lastLoginAt ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
@@ -263,7 +264,7 @@ test("normalizeCustomerEmail lowercases and trims", () => {
   assert.equal(normalizeCustomerEmail("  USER@Example.COM "), "user@example.com");
 });
 
-test("requestMagicLoginLink creates a Customer if missing", async () => {
+test("requestMagicLoginLink does not create a Customer for an unknown email", async () => {
   const { db, state } = createMockCustomerAuthDb();
   const service = createCustomerAuthService(db, {
     now: () => new Date("2026-08-06T00:00:00.000Z"),
@@ -275,10 +276,10 @@ test("requestMagicLoginLink creates a Customer if missing", async () => {
     name: " Buyer ",
   });
 
+  assert.equal(result.status, "customer_not_found");
   assert.equal(result.email, "buyer@example.com");
-  assert.equal(result.token, "raw-magic-token");
-  assert.equal(result.customerId, state.createdCustomers[0]?.id);
-  assert.equal(state.createdCustomers.length, 1);
+  assert.equal(state.createdCustomers.length, 0);
+  assert.equal(state.createdMagicLoginTokens.length, 0);
 });
 
 test("requestMagicLoginLink reuses an existing Customer", async () => {
@@ -291,6 +292,10 @@ test("requestMagicLoginLink reuses an existing Customer", async () => {
   const result = await service.requestMagicLoginLink({
     email: customer.email,
   });
+
+  if (result.status !== "created") {
+    throw new Error("Expected requestMagicLoginLink to create a magic link");
+  }
 
   assert.equal(result.customerId, customer.id);
   assert.equal(state.createdCustomers.length, 0);
@@ -316,6 +321,10 @@ test("requestMagicLoginLink creates an ACTIVE MagicLoginToken", async () => {
   });
 
   const result = await service.requestMagicLoginLink({ email: customer.email });
+
+  if (result.status !== "created") {
+    throw new Error("Expected requestMagicLoginLink to create a magic link");
+  }
 
   assert.equal(state.createdMagicLoginTokens.length, 1);
   assert.equal(state.createdMagicLoginTokens[0]?.status, "ACTIVE");
@@ -375,6 +384,10 @@ test("requestMagicLoginLink includes the raw token in magicLink when baseUrl is 
     email: customer.email,
     baseUrl: "https://www.fabsystem.fr",
   });
+
+  if (result.status !== "created") {
+    throw new Error("Expected requestMagicLoginLink to create a magic link");
+  }
 
   assert.equal(
     result.magicLink,

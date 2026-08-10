@@ -47,6 +47,26 @@ export { Prisma }
  */
 export type Customer = Prisma.CustomerModel
 /**
+ * Model CustomerCapability
+ * 
+ */
+export type CustomerCapability = Prisma.CustomerCapabilityModel
+/**
+ * Model Project
+ * 
+ */
+export type Project = Prisma.ProjectModel
+/**
+ * Model ProjectRetainedValue
+ * 
+ */
+export type ProjectRetainedValue = Prisma.ProjectRetainedValueModel
+/**
+ * Model ProjectValueDependency
+ * 
+ */
+export type ProjectValueDependency = Prisma.ProjectValueDependencyModel
+/**
  * Model Quote
  * 
  */

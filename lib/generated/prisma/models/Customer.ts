@@ -49,6 +49,7 @@ export type CustomerMinAggregateOutputType = {
   odometerKm: number | null
   engineHours: number | null
   status: $Enums.CustomerStatus | null
+  origin: $Enums.CustomerOrigin | null
   lastLoginAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -67,6 +68,7 @@ export type CustomerMaxAggregateOutputType = {
   odometerKm: number | null
   engineHours: number | null
   status: $Enums.CustomerStatus | null
+  origin: $Enums.CustomerOrigin | null
   lastLoginAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -85,6 +87,7 @@ export type CustomerCountAggregateOutputType = {
   odometerKm: number
   engineHours: number
   status: number
+  origin: number
   lastLoginAt: number
   createdAt: number
   updatedAt: number
@@ -115,6 +118,7 @@ export type CustomerMinAggregateInputType = {
   odometerKm?: true
   engineHours?: true
   status?: true
+  origin?: true
   lastLoginAt?: true
   createdAt?: true
   updatedAt?: true
@@ -133,6 +137,7 @@ export type CustomerMaxAggregateInputType = {
   odometerKm?: true
   engineHours?: true
   status?: true
+  origin?: true
   lastLoginAt?: true
   createdAt?: true
   updatedAt?: true
@@ -151,6 +156,7 @@ export type CustomerCountAggregateInputType = {
   odometerKm?: true
   engineHours?: true
   status?: true
+  origin?: true
   lastLoginAt?: true
   createdAt?: true
   updatedAt?: true
@@ -256,6 +262,7 @@ export type CustomerGroupByOutputType = {
   odometerKm: number | null
   engineHours: number | null
   status: $Enums.CustomerStatus
+  origin: $Enums.CustomerOrigin
   lastLoginAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -297,6 +304,7 @@ export type CustomerWhereInput = {
   odometerKm?: Prisma.IntNullableFilter<"Customer"> | number | null
   engineHours?: Prisma.IntNullableFilter<"Customer"> | number | null
   status?: Prisma.EnumCustomerStatusFilter<"Customer"> | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFilter<"Customer"> | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -306,6 +314,8 @@ export type CustomerWhereInput = {
   orders?: Prisma.OrderListRelationFilter
   magicLoginTokens?: Prisma.MagicLoginTokenListRelationFilter
   sessions?: Prisma.CustomerSessionListRelationFilter
+  capabilities?: Prisma.CustomerCapabilityListRelationFilter
+  projects?: Prisma.ProjectListRelationFilter
 }
 
 export type CustomerOrderByWithRelationInput = {
@@ -321,6 +331,7 @@ export type CustomerOrderByWithRelationInput = {
   odometerKm?: Prisma.SortOrderInput | Prisma.SortOrder
   engineHours?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -330,6 +341,8 @@ export type CustomerOrderByWithRelationInput = {
   orders?: Prisma.OrderOrderByRelationAggregateInput
   magicLoginTokens?: Prisma.MagicLoginTokenOrderByRelationAggregateInput
   sessions?: Prisma.CustomerSessionOrderByRelationAggregateInput
+  capabilities?: Prisma.CustomerCapabilityOrderByRelationAggregateInput
+  projects?: Prisma.ProjectOrderByRelationAggregateInput
 }
 
 export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -348,6 +361,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   odometerKm?: Prisma.IntNullableFilter<"Customer"> | number | null
   engineHours?: Prisma.IntNullableFilter<"Customer"> | number | null
   status?: Prisma.EnumCustomerStatusFilter<"Customer"> | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFilter<"Customer"> | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -357,6 +371,8 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   orders?: Prisma.OrderListRelationFilter
   magicLoginTokens?: Prisma.MagicLoginTokenListRelationFilter
   sessions?: Prisma.CustomerSessionListRelationFilter
+  capabilities?: Prisma.CustomerCapabilityListRelationFilter
+  projects?: Prisma.ProjectListRelationFilter
 }, "id" | "email">
 
 export type CustomerOrderByWithAggregationInput = {
@@ -372,6 +388,7 @@ export type CustomerOrderByWithAggregationInput = {
   odometerKm?: Prisma.SortOrderInput | Prisma.SortOrder
   engineHours?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -398,6 +415,7 @@ export type CustomerScalarWhereWithAggregatesInput = {
   odometerKm?: Prisma.IntNullableWithAggregatesFilter<"Customer"> | number | null
   engineHours?: Prisma.IntNullableWithAggregatesFilter<"Customer"> | number | null
   status?: Prisma.EnumCustomerStatusWithAggregatesFilter<"Customer"> | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginWithAggregatesFilter<"Customer"> | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
@@ -416,6 +434,7 @@ export type CustomerCreateInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -425,6 +444,8 @@ export type CustomerCreateInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateInput = {
@@ -440,6 +461,7 @@ export type CustomerUncheckedCreateInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -449,6 +471,8 @@ export type CustomerUncheckedCreateInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUpdateInput = {
@@ -464,6 +488,7 @@ export type CustomerUpdateInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -473,6 +498,8 @@ export type CustomerUpdateInput = {
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateInput = {
@@ -488,6 +515,7 @@ export type CustomerUncheckedUpdateInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -497,6 +525,8 @@ export type CustomerUncheckedUpdateInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateManyInput = {
@@ -512,6 +542,7 @@ export type CustomerCreateManyInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -530,6 +561,7 @@ export type CustomerUpdateManyMutationInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -548,6 +580,7 @@ export type CustomerUncheckedUpdateManyInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -566,6 +599,7 @@ export type CustomerCountOrderByAggregateInput = {
   odometerKm?: Prisma.SortOrder
   engineHours?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -589,6 +623,7 @@ export type CustomerMaxOrderByAggregateInput = {
   odometerKm?: Prisma.SortOrder
   engineHours?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -607,6 +642,7 @@ export type CustomerMinOrderByAggregateInput = {
   odometerKm?: Prisma.SortOrder
   engineHours?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  origin?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -651,12 +687,44 @@ export type EnumCustomerStatusFieldUpdateOperationsInput = {
   set?: $Enums.CustomerStatus
 }
 
+export type EnumCustomerOriginFieldUpdateOperationsInput = {
+  set?: $Enums.CustomerOrigin
+}
+
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type CustomerCreateNestedOneWithoutCapabilitiesInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutCapabilitiesInput, Prisma.CustomerUncheckedCreateWithoutCapabilitiesInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutCapabilitiesInput
+  connect?: Prisma.CustomerWhereUniqueInput
+}
+
+export type CustomerUpdateOneRequiredWithoutCapabilitiesNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutCapabilitiesInput, Prisma.CustomerUncheckedCreateWithoutCapabilitiesInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutCapabilitiesInput
+  upsert?: Prisma.CustomerUpsertWithoutCapabilitiesInput
+  connect?: Prisma.CustomerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutCapabilitiesInput, Prisma.CustomerUpdateWithoutCapabilitiesInput>, Prisma.CustomerUncheckedUpdateWithoutCapabilitiesInput>
+}
+
+export type CustomerCreateNestedOneWithoutProjectsInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutProjectsInput, Prisma.CustomerUncheckedCreateWithoutProjectsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutProjectsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+}
+
+export type CustomerUpdateOneRequiredWithoutProjectsNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutProjectsInput, Prisma.CustomerUncheckedCreateWithoutProjectsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutProjectsInput
+  upsert?: Prisma.CustomerUpsertWithoutProjectsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutProjectsInput, Prisma.CustomerUpdateWithoutProjectsInput>, Prisma.CustomerUncheckedUpdateWithoutProjectsInput>
 }
 
 export type CustomerCreateNestedOneWithoutQuotesInput = {
@@ -745,6 +813,246 @@ export type CustomerUpdateOneRequiredWithoutSessionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutSessionsInput, Prisma.CustomerUpdateWithoutSessionsInput>, Prisma.CustomerUncheckedUpdateWithoutSessionsInput>
 }
 
+export type CustomerCreateWithoutCapabilitiesInput = {
+  id?: string
+  name?: string | null
+  email: string
+  phone?: string | null
+  address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerUncheckedCreateWithoutCapabilitiesInput = {
+  id?: string
+  name?: string | null
+  email: string
+  phone?: string | null
+  address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseUncheckedCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerCreateOrConnectWithoutCapabilitiesInput = {
+  where: Prisma.CustomerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutCapabilitiesInput, Prisma.CustomerUncheckedCreateWithoutCapabilitiesInput>
+}
+
+export type CustomerUpsertWithoutCapabilitiesInput = {
+  update: Prisma.XOR<Prisma.CustomerUpdateWithoutCapabilitiesInput, Prisma.CustomerUncheckedUpdateWithoutCapabilitiesInput>
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutCapabilitiesInput, Prisma.CustomerUncheckedCreateWithoutCapabilitiesInput>
+  where?: Prisma.CustomerWhereInput
+}
+
+export type CustomerUpdateToOneWithWhereWithoutCapabilitiesInput = {
+  where?: Prisma.CustomerWhereInput
+  data: Prisma.XOR<Prisma.CustomerUpdateWithoutCapabilitiesInput, Prisma.CustomerUncheckedUpdateWithoutCapabilitiesInput>
+}
+
+export type CustomerUpdateWithoutCapabilitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUncheckedUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUncheckedUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerCreateWithoutProjectsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  phone?: string | null
+  address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerUncheckedCreateWithoutProjectsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  phone?: string | null
+  address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseUncheckedCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerCreateOrConnectWithoutProjectsInput = {
+  where: Prisma.CustomerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutProjectsInput, Prisma.CustomerUncheckedCreateWithoutProjectsInput>
+}
+
+export type CustomerUpsertWithoutProjectsInput = {
+  update: Prisma.XOR<Prisma.CustomerUpdateWithoutProjectsInput, Prisma.CustomerUncheckedUpdateWithoutProjectsInput>
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutProjectsInput, Prisma.CustomerUncheckedCreateWithoutProjectsInput>
+  where?: Prisma.CustomerWhereInput
+}
+
+export type CustomerUpdateToOneWithWhereWithoutProjectsInput = {
+  where?: Prisma.CustomerWhereInput
+  data: Prisma.XOR<Prisma.CustomerUpdateWithoutProjectsInput, Prisma.CustomerUncheckedUpdateWithoutProjectsInput>
+}
+
+export type CustomerUpdateWithoutProjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerUncheckedUpdateWithoutProjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUncheckedUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUncheckedUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+}
+
 export type CustomerCreateWithoutQuotesInput = {
   id?: string
   name?: string | null
@@ -758,6 +1066,7 @@ export type CustomerCreateWithoutQuotesInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -766,6 +1075,8 @@ export type CustomerCreateWithoutQuotesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutQuotesInput = {
@@ -781,6 +1092,7 @@ export type CustomerUncheckedCreateWithoutQuotesInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -789,6 +1101,8 @@ export type CustomerUncheckedCreateWithoutQuotesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutQuotesInput = {
@@ -820,6 +1134,7 @@ export type CustomerUpdateWithoutQuotesInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -828,6 +1143,8 @@ export type CustomerUpdateWithoutQuotesInput = {
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutQuotesInput = {
@@ -843,6 +1160,7 @@ export type CustomerUncheckedUpdateWithoutQuotesInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -851,6 +1169,8 @@ export type CustomerUncheckedUpdateWithoutQuotesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutInvoicesInput = {
@@ -866,6 +1186,7 @@ export type CustomerCreateWithoutInvoicesInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -874,6 +1195,8 @@ export type CustomerCreateWithoutInvoicesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutInvoicesInput = {
@@ -889,6 +1212,7 @@ export type CustomerUncheckedCreateWithoutInvoicesInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -897,6 +1221,8 @@ export type CustomerUncheckedCreateWithoutInvoicesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutInvoicesInput = {
@@ -928,6 +1254,7 @@ export type CustomerUpdateWithoutInvoicesInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -936,6 +1263,8 @@ export type CustomerUpdateWithoutInvoicesInput = {
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutInvoicesInput = {
@@ -951,6 +1280,7 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -959,6 +1289,8 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutRemisesInput = {
@@ -974,6 +1306,7 @@ export type CustomerCreateWithoutRemisesInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -982,6 +1315,8 @@ export type CustomerCreateWithoutRemisesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutRemisesInput = {
@@ -997,6 +1332,7 @@ export type CustomerUncheckedCreateWithoutRemisesInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1005,6 +1341,8 @@ export type CustomerUncheckedCreateWithoutRemisesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutRemisesInput = {
@@ -1036,6 +1374,7 @@ export type CustomerUpdateWithoutRemisesInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1044,6 +1383,8 @@ export type CustomerUpdateWithoutRemisesInput = {
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutRemisesInput = {
@@ -1059,6 +1400,7 @@ export type CustomerUncheckedUpdateWithoutRemisesInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1067,6 +1409,8 @@ export type CustomerUncheckedUpdateWithoutRemisesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutOrdersInput = {
@@ -1082,6 +1426,7 @@ export type CustomerCreateWithoutOrdersInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1090,6 +1435,8 @@ export type CustomerCreateWithoutOrdersInput = {
   remises?: Prisma.RemiseCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutOrdersInput = {
@@ -1105,6 +1452,7 @@ export type CustomerUncheckedCreateWithoutOrdersInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1113,6 +1461,8 @@ export type CustomerUncheckedCreateWithoutOrdersInput = {
   remises?: Prisma.RemiseUncheckedCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutOrdersInput = {
@@ -1144,6 +1494,7 @@ export type CustomerUpdateWithoutOrdersInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1152,6 +1503,8 @@ export type CustomerUpdateWithoutOrdersInput = {
   remises?: Prisma.RemiseUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutOrdersInput = {
@@ -1167,6 +1520,7 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1175,6 +1529,8 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
   remises?: Prisma.RemiseUncheckedUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutMagicLoginTokensInput = {
@@ -1190,6 +1546,7 @@ export type CustomerCreateWithoutMagicLoginTokensInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1198,6 +1555,8 @@ export type CustomerCreateWithoutMagicLoginTokensInput = {
   remises?: Prisma.RemiseCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
@@ -1213,6 +1572,7 @@ export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1221,6 +1581,8 @@ export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
   remises?: Prisma.RemiseUncheckedCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutMagicLoginTokensInput = {
@@ -1252,6 +1614,7 @@ export type CustomerUpdateWithoutMagicLoginTokensInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1260,6 +1623,8 @@ export type CustomerUpdateWithoutMagicLoginTokensInput = {
   remises?: Prisma.RemiseUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
@@ -1275,6 +1640,7 @@ export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1283,6 +1649,8 @@ export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
   remises?: Prisma.RemiseUncheckedUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutSessionsInput = {
@@ -1298,6 +1666,7 @@ export type CustomerCreateWithoutSessionsInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1306,6 +1675,8 @@ export type CustomerCreateWithoutSessionsInput = {
   remises?: Prisma.RemiseCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutSessionsInput = {
@@ -1321,6 +1692,7 @@ export type CustomerUncheckedCreateWithoutSessionsInput = {
   odometerKm?: number | null
   engineHours?: number | null
   status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1329,6 +1701,8 @@ export type CustomerUncheckedCreateWithoutSessionsInput = {
   remises?: Prisma.RemiseUncheckedCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutSessionsInput = {
@@ -1360,6 +1734,7 @@ export type CustomerUpdateWithoutSessionsInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1368,6 +1743,8 @@ export type CustomerUpdateWithoutSessionsInput = {
   remises?: Prisma.RemiseUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutSessionsInput = {
@@ -1383,6 +1760,7 @@ export type CustomerUncheckedUpdateWithoutSessionsInput = {
   odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1391,6 +1769,8 @@ export type CustomerUncheckedUpdateWithoutSessionsInput = {
   remises?: Prisma.RemiseUncheckedUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 
@@ -1405,6 +1785,8 @@ export type CustomerCountOutputType = {
   orders: number
   magicLoginTokens: number
   sessions: number
+  capabilities: number
+  projects: number
 }
 
 export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1414,6 +1796,8 @@ export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   orders?: boolean | CustomerCountOutputTypeCountOrdersArgs
   magicLoginTokens?: boolean | CustomerCountOutputTypeCountMagicLoginTokensArgs
   sessions?: boolean | CustomerCountOutputTypeCountSessionsArgs
+  capabilities?: boolean | CustomerCountOutputTypeCountCapabilitiesArgs
+  projects?: boolean | CustomerCountOutputTypeCountProjectsArgs
 }
 
 /**
@@ -1468,6 +1852,20 @@ export type CustomerCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.CustomerSessionWhereInput
 }
 
+/**
+ * CustomerCountOutputType without action
+ */
+export type CustomerCountOutputTypeCountCapabilitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CustomerCapabilityWhereInput
+}
+
+/**
+ * CustomerCountOutputType without action
+ */
+export type CustomerCountOutputTypeCountProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectWhereInput
+}
+
 
 export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1482,6 +1880,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   odometerKm?: boolean
   engineHours?: boolean
   status?: boolean
+  origin?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1491,6 +1890,8 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   orders?: boolean | Prisma.Customer$ordersArgs<ExtArgs>
   magicLoginTokens?: boolean | Prisma.Customer$magicLoginTokensArgs<ExtArgs>
   sessions?: boolean | Prisma.Customer$sessionsArgs<ExtArgs>
+  capabilities?: boolean | Prisma.Customer$capabilitiesArgs<ExtArgs>
+  projects?: boolean | Prisma.Customer$projectsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
 
@@ -1507,6 +1908,7 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   odometerKm?: boolean
   engineHours?: boolean
   status?: boolean
+  origin?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1525,6 +1927,7 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   odometerKm?: boolean
   engineHours?: boolean
   status?: boolean
+  origin?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1543,12 +1946,13 @@ export type CustomerSelectScalar = {
   odometerKm?: boolean
   engineHours?: boolean
   status?: boolean
+  origin?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "assetType" | "assetBrand" | "assetModel" | "registration" | "odometerKm" | "engineHours" | "status" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "assetType" | "assetBrand" | "assetModel" | "registration" | "odometerKm" | "engineHours" | "status" | "origin" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   quotes?: boolean | Prisma.Customer$quotesArgs<ExtArgs>
   invoices?: boolean | Prisma.Customer$invoicesArgs<ExtArgs>
@@ -1556,6 +1960,8 @@ export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   orders?: boolean | Prisma.Customer$ordersArgs<ExtArgs>
   magicLoginTokens?: boolean | Prisma.Customer$magicLoginTokensArgs<ExtArgs>
   sessions?: boolean | Prisma.Customer$sessionsArgs<ExtArgs>
+  capabilities?: boolean | Prisma.Customer$capabilitiesArgs<ExtArgs>
+  projects?: boolean | Prisma.Customer$projectsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CustomerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1570,6 +1976,8 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     orders: Prisma.$OrderPayload<ExtArgs>[]
     magicLoginTokens: Prisma.$MagicLoginTokenPayload<ExtArgs>[]
     sessions: Prisma.$CustomerSessionPayload<ExtArgs>[]
+    capabilities: Prisma.$CustomerCapabilityPayload<ExtArgs>[]
+    projects: Prisma.$ProjectPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1584,6 +1992,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     odometerKm: number | null
     engineHours: number | null
     status: $Enums.CustomerStatus
+    origin: $Enums.CustomerOrigin
     lastLoginAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -1987,6 +2396,8 @@ export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends runtime
   orders<T extends Prisma.Customer$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   magicLoginTokens<T extends Prisma.Customer$magicLoginTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$magicLoginTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MagicLoginTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   sessions<T extends Prisma.Customer$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  capabilities<T extends Prisma.Customer$capabilitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$capabilitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerCapabilityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  projects<T extends Prisma.Customer$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2028,6 +2439,7 @@ export interface CustomerFieldRefs {
   readonly odometerKm: Prisma.FieldRef<"Customer", 'Int'>
   readonly engineHours: Prisma.FieldRef<"Customer", 'Int'>
   readonly status: Prisma.FieldRef<"Customer", 'CustomerStatus'>
+  readonly origin: Prisma.FieldRef<"Customer", 'CustomerOrigin'>
   readonly lastLoginAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Customer", 'DateTime'>
@@ -2560,6 +2972,54 @@ export type Customer$sessionsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.CustomerSessionScalarFieldEnum | Prisma.CustomerSessionScalarFieldEnum[]
+}
+
+/**
+ * Customer.capabilities
+ */
+export type Customer$capabilitiesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CustomerCapability
+   */
+  select?: Prisma.CustomerCapabilitySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CustomerCapability
+   */
+  omit?: Prisma.CustomerCapabilityOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CustomerCapabilityInclude<ExtArgs> | null
+  where?: Prisma.CustomerCapabilityWhereInput
+  orderBy?: Prisma.CustomerCapabilityOrderByWithRelationInput | Prisma.CustomerCapabilityOrderByWithRelationInput[]
+  cursor?: Prisma.CustomerCapabilityWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CustomerCapabilityScalarFieldEnum | Prisma.CustomerCapabilityScalarFieldEnum[]
+}
+
+/**
+ * Customer.projects
+ */
+export type Customer$projectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Project
+   */
+  select?: Prisma.ProjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Project
+   */
+  omit?: Prisma.ProjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectInclude<ExtArgs> | null
+  where?: Prisma.ProjectWhereInput
+  orderBy?: Prisma.ProjectOrderByWithRelationInput | Prisma.ProjectOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectScalarFieldEnum | Prisma.ProjectScalarFieldEnum[]
 }
 
 /**

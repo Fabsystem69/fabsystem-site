@@ -134,6 +134,7 @@ export type OrderDb = {
     email: string;
     name?: string | null;
     status: "ACTIVE" | "DISABLED";
+    origin: "PURCHASE" | "ADMIN";
   }): Promise<Customer>;
   updateCustomer(
     customerId: string,
@@ -694,10 +695,12 @@ export function createOrderService(db: OrderDb, providedDeps?: OrderServiceDeps)
         let customer = existingCustomer;
 
         if (!customer) {
+          // Premier achat réel Boutique : origine PURCHASE (MASTER-04 §3).
           customer = await tx.createCustomer({
             email: normalizedEmail,
             name: normalizedCustomerName ?? null,
             status: "ACTIVE",
+            origin: "PURCHASE",
           });
         } else if (!customer.name && normalizedCustomerName) {
           customer = await tx.updateCustomer(customer.id, {

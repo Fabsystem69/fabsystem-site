@@ -36,6 +36,7 @@ function createCustomerRecord(overrides: Partial<Customer> = {}): Customer {
     odometerKm: overrides.odometerKm ?? null,
     engineHours: overrides.engineHours ?? null,
     status: overrides.status ?? "ACTIVE",
+    origin: overrides.origin ?? "PURCHASE",
     lastLoginAt: overrides.lastLoginAt ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,

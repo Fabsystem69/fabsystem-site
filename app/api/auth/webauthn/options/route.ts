@@ -26,7 +26,10 @@ export async function GET() {
       rpID,
       rpName: "FabSystem",
       userID: new TextEncoder().encode("admin-fabien"),
-      userName: process.env.ADMIN_EMAIL || "admin@fabsystem.fr",
+      // AUTH_ADMIN_EMAIL est la variable canonique (voir MASTER-10 §14).
+      // ADMIN_EMAIL est conservé en compatibilité temporaire uniquement.
+      userName:
+        process.env.AUTH_ADMIN_EMAIL || process.env.ADMIN_EMAIL || "admin@fabsystem.fr",
       attestationType: "none",
       authenticatorSelection: {
         residentKey: "preferred",

@@ -129,6 +129,26 @@ enum CustomerStatus {
   DISABLED
 }
 
+// Origine de création du compte (MASTER-04 §3-4, MASTER-10 §11) :
+// PURCHASE = premier achat Boutique réel, ADMIN = création manuelle FabSystem.
+// Ne pilote aucun droit ; sert uniquement de traçabilité.
+enum CustomerOrigin {
+  PURCHASE
+  ADMIN
+}
+
+// Portée d'une capacité : globale au compte, ou scopée à une ressource
+// future (ex. Project) référencée par scopeId une fois ce modèle introduit.
+enum CapabilityScope {
+  CUSTOMER
+  PROJECT
+}
+
+enum CustomerCapabilityStatus {
+  ACTIVE
+  REVOKED
+}
+
 enum MagicLoginTokenStatus {
   ACTIVE
   USED
@@ -155,6 +175,7 @@ model Customer {
   odometerKm       Int?
   engineHours      Int?
   status           CustomerStatus    @default(ACTIVE)
+  origin           CustomerOrigin    @default(PURCHASE)
   lastLoginAt      DateTime?
   quotes           Quote[]
   invoices         Invoice[]
@@ -162,12 +183,145 @@ model Customer {
   orders           Order[]
   magicLoginTokens MagicLoginToken[]
   sessions         CustomerSession[]
+  capabilities     CustomerCapability[]
+  projects         Project[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
   @@index([email])
   @@index([status])
   @@index([registration])
+  @@index([origin])
+}
+
+// Couche 2 (MASTER-11) : droit générique attribué à un Customer, indépendant
+// des produits, de Stripe et de Project. `capability` est un identifiant
+// fonctionnel libre (non figé par ce MASTER, cf. MASTER-00 §15) ; `scope` /
+// `scopeId` permettent de rattacher plus tard une capacité à une ressource
+// précise (ex. Project) sans dépendre d'un modèle qui n'existe pas encore.
+model CustomerCapability {
+  id         String                    @id @default(cuid())
+  customerId String
+  customer   Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  capability String
+  scope      CapabilityScope           @default(CUSTOMER)
+  scopeId    String?
+  status     CustomerCapabilityStatus  @default(ACTIVE)
+  source     String?
+  startsAt   DateTime                  @default(now())
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime                  @default(now())
+  updatedAt  DateTime                  @updatedAt
+
+  @@index([customerId])
+  @@index([capability])
+  @@index([status])
+  @@index([customerId, capability])
+  @@index([scope, scopeId])
+}
+
+// Couche 3 (MASTER-11) : Project, source de vérité métier du travail client
+// (MASTER-06 §2, MASTER-10 §41). Objet distinct de Customer, ne dépend
+// d'aucun futur module (Volta, Circuits, Schéma, Documents, Accompagnement).
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  DELETE_SCHEDULED
+}
+
+// Univers du Project (MASTER-06 §8). Distinct de Customer.assetType : ce
+// dernier classe le matériel commercial/quote historique, celui-ci classe
+// l'univers du Project SaaS (MASTER-10 §42 : ne pas mélanger profil
+// Customer et données techniques du Project).
+enum ProjectAssetType {
+  BOAT
+  VAN
+  MOTORHOME
+  OTHER
+}
+
+// Tension principale (MASTER-06 §8-9) : "Je ne sais pas" est une valeur
+// explicite (UNKNOWN), jamais une valeur par défaut inventée à la place du
+// client.
+enum ProjectVoltage {
+  V12
+  V24
+  UNKNOWN
+}
+
+model Project {
+  id                String           @id @default(cuid())
+  customerId        String
+  customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  name              String
+  assetType         ProjectAssetType
+  voltage           ProjectVoltage   @default(UNKNOWN)
+  status            ProjectStatus    @default(ACTIVE)
+  archivedAt        DateTime?
+  // Suppression différée 72h (MASTER-06 §15, MASTER-10 §54-56) : intention
+  // et échéance persistées, jamais de timer mémoire. preScheduleStatus
+  // conserve l'état à restaurer si le client ou l'Admin annule avant
+  // échéance ("restitue le Project dans son état normal", MASTER-10 §56).
+  deleteScheduledAt DateTime?
+  preScheduleStatus ProjectStatus?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  retainedValues    ProjectRetainedValue[]
+  valueDependencies ProjectValueDependency[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([deleteScheduledAt])
+}
+
+enum ProjectValueStatus {
+  ACTIVE
+  OBSOLETE
+}
+
+// Socle "valeurs retenues" (MASTER-06 §24-26) : une donnée métier du
+// Project peut être calculée (simulatedValue), retenue explicitement
+// (value) et marquée obsolète — sans jamais recalculer ni remplacer
+// silencieusement le choix du client (MASTER-06 §29, MASTER-10 §48-49).
+// `key` est un identifiant fonctionnel libre : aucun calculateur n'est
+// développé dans cette phase, donc aucune clé métier n'est figée ici.
+model ProjectRetainedValue {
+  id             String             @id @default(cuid())
+  projectId      String
+  project        Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key            String
+  value          Json
+  simulatedValue Json?
+  status         ProjectValueStatus @default(ACTIVE)
+  source         String?
+  retainedAt     DateTime           @default(now())
+  obsoletedAt    DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([projectId, key])
+  @@index([projectId])
+  @@index([status])
+}
+
+// Socle "dépendances" (MASTER-06 §27-30) : déclare qu'une valeur retenue
+// dépend d'une autre, pour permettre de cibler ce qui doit être marqué
+// obsolète lors d'un changement — sans invalider globalement le Project
+// (MASTER-06 §30). Aucune logique métier : uniquement le graphe.
+model ProjectValueDependency {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  dependentKey String
+  dependsOnKey String
+  createdAt    DateTime @default(now())
+
+  @@unique([projectId, dependentKey, dependsOnKey])
+  @@index([projectId])
+  @@index([projectId, dependsOnKey])
 }
 
 model Quote {

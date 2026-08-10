@@ -94,13 +94,19 @@ type CustomerAuthDeps = {
   generateRawToken?: () => string;
 };
 
-export type RequestMagicLoginLinkResult = {
-  customerId: string;
-  email: string;
-  token: string;
-  expiresAt: Date;
-  magicLink?: string;
-};
+export type RequestMagicLoginLinkResult =
+  | {
+      status: "created";
+      customerId: string;
+      email: string;
+      token: string;
+      expiresAt: Date;
+      magicLink?: string;
+    }
+  | {
+      status: "customer_not_found";
+      email: string;
+    };
 
 export type ConsumeMagicLoginTokenResult = {
   customerId: string;
@@ -324,19 +330,17 @@ export function createCustomerAuthService(db: CustomerAuthDb, deps?: CustomerAut
       return db.transaction(async (tx) => {
         let customer = await tx.findCustomerByEmail(normalizedEmail);
 
-        if (customer) {
-          assertActiveCustomer(customer);
+        // Un email inconnu ne doit jamais créer de Customer (MASTER-00 §6,
+        // MASTER-04 §6) : on s'arrête ici sans rien créer ni écrire.
+        if (!customer) {
+          return { status: "customer_not_found", email: normalizedEmail } as const;
+        }
 
-          if (!customer.name && normalizedName) {
-            customer = await tx.updateCustomer(customer.id, {
-              name: normalizedName,
-            });
-          }
-        } else {
-          customer = await tx.createCustomer({
-            email: normalizedEmail,
-            name: normalizedName ?? null,
-            status: "ACTIVE",
+        assertActiveCustomer(customer);
+
+        if (!customer.name && normalizedName) {
+          customer = await tx.updateCustomer(customer.id, {
+            name: normalizedName,
           });
         }
 
@@ -355,12 +359,13 @@ export function createCustomerAuthService(db: CustomerAuthDb, deps?: CustomerAut
         });
 
         return {
+          status: "created",
           customerId: customer.id,
           email: normalizedEmail,
           token: rawToken,
           expiresAt,
           magicLink: buildMagicLink(parsed.baseUrl, rawToken),
-        };
+        } as const;
       });
     },
 

@@ -50,6 +50,7 @@ function createCustomerRecord(overrides: Partial<Customer> = {}): Customer {
     odometerKm: overrides.odometerKm ?? null,
     engineHours: overrides.engineHours ?? null,
     status: overrides.status ?? "ACTIVE",
+    origin: overrides.origin ?? "PURCHASE",
     lastLoginAt: overrides.lastLoginAt ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
@@ -304,12 +305,14 @@ function createMockOrderDb(seed?: {
       email: string;
       name?: string | null;
       status: Customer["status"];
+      origin: Customer["origin"];
     }) {
       const customer = createCustomerRecord({
         id: `customer_${state.customers.length + 1}`,
         email: data.email,
         name: data.name ?? null,
         status: data.status,
+        origin: data.origin,
         createdAt: new Date("2026-08-06T01:00:00.000Z"),
         updatedAt: new Date("2026-08-06T01:00:00.000Z"),
       });
@@ -532,6 +535,7 @@ test("createOrderFromCart converts an active cart into a pending payment order w
   assert.equal(state.customers.length, 1);
   assert.equal(state.customers[0]?.email, "buyer@example.com");
   assert.equal(state.customers[0]?.name, "Fabien");
+  assert.equal(state.customers[0]?.origin, "PURCHASE");
 });
 
 test("createOrderFromCart reuses an existing customer without creating duplicates", async () => {

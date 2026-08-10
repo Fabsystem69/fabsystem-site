@@ -9,6 +9,10 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Customer'
+export type * from './models/CustomerCapability'
+export type * from './models/Project'
+export type * from './models/ProjectRetainedValue'
+export type * from './models/ProjectValueDependency'
 export type * from './models/Quote'
 export type * from './models/QuoteItem'
 export type * from './models/Invoice'
