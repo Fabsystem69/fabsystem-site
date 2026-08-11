@@ -15,7 +15,7 @@ import {
   listActiveBuyNowProducts,
 } from "@/lib/services/catalog";
 import { findExistingProductAccess } from "@/lib/services/product-access";
-import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
+import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-session";
 
 // Boutique V2 — Hub (docs/refonte-site-public/Boutique/00-BOUTIQUE-ARCHITECTURE.md
 // à 05). Le catalogue change dès qu'un produit est activé/désactivé ou
@@ -42,7 +42,7 @@ async function buildGuideEntries(): Promise<BoutiqueGuideEntry[]> {
     (product) => !isPrestationsPackSlug(product.slug)
   );
 
-  const session = await getCustomerSessionFromCookie();
+  const session = await getCustomerSessionFromCookieOrAnonymous();
 
   const settled = await Promise.allSettled(
     products.map(async (product) => {

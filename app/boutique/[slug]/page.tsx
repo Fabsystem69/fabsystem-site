@@ -16,7 +16,7 @@ import {
 } from "@/lib/prestations-packs";
 import { getActivePriceForProduct, getProductBySlug } from "@/lib/services/catalog";
 import { findExistingProductAccess } from "@/lib/services/product-access";
-import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
+import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-session";
 
 // Même raison que /boutique : le statut/prix/asset d'un produit peut changer
 // à tout moment dans le dashboard, la fiche doit toujours lire la base.
@@ -97,7 +97,7 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
   const univers = getUniversForEbookSlug(product.slug);
   const isDeductible = findPrestationsPackIncludingEbook(product.slug) !== undefined;
 
-  const session = await getCustomerSessionFromCookie();
+  const session = await getCustomerSessionFromCookieOrAnonymous();
   const existingAccess = session
     ? await findExistingProductAccess(product, session.customer.email)
     : null;
