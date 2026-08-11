@@ -28,6 +28,12 @@ type PrismaClientLike = PrismaClient;
 // réécrire le service, plutôt que câblée à une capacité inventée.
 export const STANDARD_PROJECT_LIMIT = 3;
 
+export type PurgeDueDeletionsResult = {
+  deletedCount: number;
+  deletedProjectIds: string[];
+  failed: Array<{ projectId: string; reason: string }>;
+};
+
 export type CreateProjectInput = {
   customerId: string;
   name: string;
@@ -62,6 +68,7 @@ export type ProjectDb = {
     }
   ): Promise<Project>;
   deleteProject(id: string): Promise<void>;
+  findDueScheduledDeletions(before: Date): Promise<Project[]>;
 };
 
 type ProjectDeps = {
@@ -112,6 +119,12 @@ function createPrismaProjectDb(client: PrismaClientLike): ProjectDb {
     },
     async deleteProject(id) {
       await client.project.delete({ where: { id } });
+    },
+    async findDueScheduledDeletions(before) {
+      return client.project.findMany({
+        where: { status: "DELETE_SCHEDULED", deleteScheduledAt: { lte: before } },
+        orderBy: { deleteScheduledAt: "asc" },
+      });
     },
   };
 }
@@ -272,6 +285,37 @@ export function createProjectService(db: ProjectDb, deps?: ProjectDeps) {
         deleteScheduledAt: null,
       });
     },
+
+    // Exécuteur rejouable (MASTER-10 §57, §84-85) : recherche les Projects
+    // dont l'échéance est atteinte ou dépassée et les supprime
+    // définitivement. Aucun timer mémoire — l'échéance vient uniquement de
+    // `deleteScheduledAt`, persisté en base. Chaque Project est supprimé
+    // individuellement (même principe que purgeAllEligiblePendingOrders) :
+    // un échec isolé ne bloque jamais les autres, et rejouer ce traitement
+    // après un échec partiel ne recrée rien et ne supprime rien d'autre
+    // qu'un Project encore réellement dû (idempotent : un Project déjà
+    // supprimé par un passage précédent n'apparaît simplement plus dans la
+    // recherche suivante).
+    async purgeDueScheduledDeletions(): Promise<PurgeDueDeletionsResult> {
+      const due = await db.findDueScheduledDeletions(now());
+
+      const deletedProjectIds: string[] = [];
+      const failed: PurgeDueDeletionsResult["failed"] = [];
+
+      for (const project of due) {
+        try {
+          await db.deleteProject(project.id);
+          deletedProjectIds.push(project.id);
+        } catch (error) {
+          failed.push({
+            projectId: project.id,
+            reason: error instanceof Error ? error.message : "Unknown error",
+          });
+        }
+      }
+
+      return { deletedCount: deletedProjectIds.length, deletedProjectIds, failed };
+    },
   };
 }
 
@@ -325,4 +369,9 @@ export async function scheduleDeletion(
 export async function cancelDeletion(actor: OwnershipActor, projectId: string) {
   const service = await getDefaultProjectService();
   return service.cancelDeletion(actor, projectId);
+}
+
+export async function purgeDueScheduledDeletions() {
+  const service = await getDefaultProjectService();
+  return service.purgeDueScheduledDeletions();
 }

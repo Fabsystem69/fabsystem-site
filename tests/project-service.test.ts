@@ -71,6 +71,14 @@ function createMockProjectDb(seed?: { projects?: Project[] }) {
       projects.splice(index, 1);
       state.deleted.push(id);
     },
+    async findDueScheduledDeletions(before) {
+      return projects.filter(
+        (project) =>
+          project.status === "DELETE_SCHEDULED" &&
+          project.deleteScheduledAt !== null &&
+          project.deleteScheduledAt <= before
+      );
+    },
   };
 
   return { db, state, getProjects: () => projects };
@@ -509,4 +517,83 @@ test("listProjectsForCustomer refuses a third-party customer", async () => {
     () => service.listProjectsForCustomer(STRANGER, "cust_1"),
     assertForbidden
   );
+});
+
+// ── Suppression différée +72h : exécuteur rejouable (MASTER-10 §57, §84-85) ──
+
+test("purgeDueScheduledDeletions deletes a project whose deadline has passed", async () => {
+  const due = createProjectRecord({
+    id: "proj_due",
+    status: "DELETE_SCHEDULED",
+    deleteScheduledAt: new Date("2026-08-01T00:00:00.000Z"),
+  });
+  const { db, getProjects } = createMockProjectDb({ projects: [due] });
+  const service = createProjectService(db, { now: () => NOW });
+
+  const result = await service.purgeDueScheduledDeletions();
+
+  assert.equal(result.deletedCount, 1);
+  assert.deepEqual(result.deletedProjectIds, ["proj_due"]);
+  assert.equal(getProjects().length, 0);
+});
+
+test("purgeDueScheduledDeletions never deletes a project before its deadline", async () => {
+  const notDueYet = createProjectRecord({
+    id: "proj_not_due",
+    status: "DELETE_SCHEDULED",
+    deleteScheduledAt: new Date(NOW.getTime() + 60 * 60 * 1000),
+  });
+  const { db, getProjects } = createMockProjectDb({ projects: [notDueYet] });
+  const service = createProjectService(db, { now: () => NOW });
+
+  const result = await service.purgeDueScheduledDeletions();
+
+  assert.equal(result.deletedCount, 0);
+  assert.equal(getProjects().length, 1);
+});
+
+test("purgeDueScheduledDeletions ignores projects with no scheduled deletion", async () => {
+  const active = createProjectRecord({ id: "proj_active", status: "ACTIVE" });
+  const { db, getProjects } = createMockProjectDb({ projects: [active] });
+  const service = createProjectService(db, { now: () => NOW });
+
+  const result = await service.purgeDueScheduledDeletions();
+
+  assert.equal(result.deletedCount, 0);
+  assert.equal(getProjects().length, 1);
+});
+
+test("purgeDueScheduledDeletions is idempotent: replaying it after a first pass deletes nothing new", async () => {
+  const due = createProjectRecord({
+    id: "proj_due",
+    status: "DELETE_SCHEDULED",
+    deleteScheduledAt: new Date("2026-08-01T00:00:00.000Z"),
+  });
+  const { db } = createMockProjectDb({ projects: [due] });
+  const service = createProjectService(db, { now: () => NOW });
+
+  const first = await service.purgeDueScheduledDeletions();
+  const second = await service.purgeDueScheduledDeletions();
+
+  assert.equal(first.deletedCount, 1);
+  assert.equal(second.deletedCount, 0);
+  assert.deepEqual(second.deletedProjectIds, []);
+});
+
+test("cancelling a scheduled deletion before its deadline removes it from the purge executor's scope", async () => {
+  const scheduled = createProjectRecord({
+    id: "proj_cancel",
+    status: "DELETE_SCHEDULED",
+    preScheduleStatus: "ACTIVE",
+    deleteScheduledAt: new Date("2026-08-01T00:00:00.000Z"),
+  });
+  const { db, getProjects } = createMockProjectDb({ projects: [scheduled] });
+  const service = createProjectService(db, { now: () => NOW });
+
+  await service.cancelDeletion(OWNER, scheduled.id);
+  const result = await service.purgeDueScheduledDeletions();
+
+  assert.equal(result.deletedCount, 0);
+  assert.equal(getProjects().length, 1);
+  assert.equal(getProjects()[0].status, "ACTIVE");
 });

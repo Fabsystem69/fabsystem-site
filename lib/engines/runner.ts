@@ -106,8 +106,37 @@ export function createEngineRunner(deps?: EngineRunnerDeps) {
       // modifiées, une seule fois chacune : le moteur de dépendances de la
       // Phase 3 (réutilisé tel quel) détermine seul quels dépendants
       // marquer, ce runner ne fait qu'identifier ce qui a changé.
+      //
+      // Cas particulier : un moteur peut proposer plusieurs clés liées
+      // entre elles par une dépendance interne (ex. energy.maxCurrent
+      // dépend de energy.dailyConsumption, toutes deux proposées par le
+      // même Energy Engine). Sur un premier calcul, chaque clé est neuve
+      // donc "changée" : propager naïvement marquerait obsolète une valeur
+      // que ce même run vient tout juste de calculer avec les données
+      // actuelles — ce n'est jamais une valeur "À recalculer", elle est à
+      // jour par construction. Une clé obsolétée par cette propagation
+      // n'est donc restaurée que si elle fait elle-même partie des
+      // propositions de ce run (jamais pour une clé d'un autre moteur :
+      // la propagation inter-moteurs reste intacte).
+      const proposalByKey = new Map(retainedValueProposals.map((p) => [p.key, p]));
+
       for (const key of changedKeys) {
-        await propagateObsolescence(project.id, key);
+        const obsoletedKeys = await propagateObsolescence(project.id, key);
+
+        for (const obsoletedKey of obsoletedKeys) {
+          const freshProposal = proposalByKey.get(obsoletedKey);
+          if (!freshProposal) {
+            continue;
+          }
+
+          await persistValue({
+            projectId: project.id,
+            key: freshProposal.key,
+            value: freshProposal.value,
+            simulatedValue: freshProposal.simulatedValue,
+            source: freshProposal.source ?? engine.id,
+          });
+        }
       }
 
       return result;
