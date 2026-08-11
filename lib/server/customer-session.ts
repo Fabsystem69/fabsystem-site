@@ -7,6 +7,7 @@ import {
   getCustomerSessionCookieOptions,
 } from "@/lib/customer-session-cookie";
 import { getCustomerSession } from "@/lib/services/customer-auth";
+import { logServerEvent } from "@/lib/server-log";
 
 export {
   CUSTOMER_SESSION_COOKIE_MAX_AGE_SECONDS,
@@ -51,6 +52,14 @@ export async function getCustomerSessionFromCookie() {
       return null;
     }
 
-    throw error;
+    // Une session invalide/expirée est un état normal (géré ci-dessus via
+    // isHttpError). Une erreur infra/DB inattendue ici (ex. dérive de
+    // schéma) ne doit jamais faire planter une page publique qui ne fait
+    // que vérifier "le visiteur est-il connecté ?" — on dégrade en visiteur
+    // anonyme et on journalise pour ne pas masquer le problème réel.
+    logServerEvent("error", "customer session lookup failed unexpectedly", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
   }
 }
