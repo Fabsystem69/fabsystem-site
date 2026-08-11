@@ -1,26 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-
-/* ─── Données sections de câble (norme CEI/marine) ─────────────────────── */
-const SECTIONS = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
-
-function calcSection(intensite: number, longueur: number, chute: number, tension: number) {
-  // Résistivité cuivre 0.0175 Ω·mm²/m
-  const rho = 0.0175;
-  // section minimale = (2 × longueur × intensité × rho) / (chute% × tension / 100)
-  const chuteV = (chute / 100) * tension;
-  const sMin = (2 * longueur * intensite * rho) / chuteV;
-  // Trouver la section normalisée supérieure
-  const section = SECTIONS.find((s) => s >= sMin) ?? 50;
-  return { sMin: sMin.toFixed(2), section };
-}
-
-function fusibleRecommande(intensite: number): string {
-  const fusibles = [5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 125];
-  const f = fusibles.find((f) => f >= intensite * 1.25);
-  return f ? `${f} A` : "> 125 A — prévoir un disjoncteur";
-}
+import { calcSection, fusibleRecommande } from "@/lib/calc/section-cable";
+import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
 
 /* ─── Calculateur 1 : Section de câble ─────────────────────────────────── */
 function CalcSectionCable() {
@@ -1366,14 +1348,6 @@ type BilanSnapshot = {
   totalWh: number;
 };
 
-const CALC_META = [
-  { id: "section-cable", emoji: "⚡", title: "Calculateur de section de câble", description: "Dimensionnez vos câbles 12V/24V selon l'intensité, la longueur et la chute de tension admissible." },
-  { id: "bilan-conso", emoji: "🔋", title: "Bilan de consommation", description: "Listez vos appareils pour calculer la consommation journalière et la capacité batterie recommandée." },
-  { id: "autonomie", emoji: "⏱️", title: "Autonomie batterie", description: "Estimez combien de temps votre installation tient sur batterie selon votre consommation." },
-  { id: "mppt", emoji: "☀️", title: "Dimensionnement régulateur MPPT", description: "Calculez la puissance MPPT nécessaire selon vos panneaux solaires et votre batterie." },
-  { id: "awg", emoji: "📐", title: "AWG ↔ mm² & usages typiques", description: "Table de correspondance AWG/mm² avec convertisseur rapide + sections recommandées par équipement (pompe de cale, guindeau, pilote, frigo…)." },
-];
-
 export default function CalcSection() {
   const [sharedConsoWh, setSharedConsoWh] = useState(0);
   const [bilanSnapshot, setBilanSnapshot] = useState<BilanSnapshot | null>(null);
@@ -1391,7 +1365,7 @@ export default function CalcSection() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 space-y-16">
-      {CALC_META.map((calc, i) => (
+      {OUTILS_CALCULATEURS.map((calc, i) => (
         <section key={calc.id} id={calc.id} className="scroll-mt-24">
           <div className="mb-6 flex items-start gap-4">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-900 text-2xl">

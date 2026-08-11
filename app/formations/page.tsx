@@ -32,7 +32,7 @@ export default function FormationsPage() {
       <Modules />
       <QuizSection />
 
-      <Section tone="muted">
+      <Section id="bons-gestes" tone="muted" className="scroll-mt-16">
         <div className="grid gap-10 lg:grid-cols-[3fr_2fr]">
           <BonsGestes />
           <Indispensables />

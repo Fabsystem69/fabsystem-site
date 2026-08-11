@@ -1,8 +1,22 @@
 import type { Metadata } from "next";
-import PageHero from "@/components/PageHero";
-import ServiceAssurance from "@/components/ServiceAssurance";
 import CalcSection from "@/components/CalcSection";
-import Link from "next/link";
+import { Hero } from "@/components/outils/Hero";
+import { CalculateursIndex } from "@/components/outils/CalculateursIndex";
+import { BasiquesAtelier } from "@/components/outils/BasiquesAtelier";
+import { Guides } from "@/components/outils/Guides";
+import { Accompagnement } from "@/components/outils/Accompagnement";
+
+// Outils V2 — Hub public (docs/refonte-site-public/Outils/00-ARCHITECTURE.md,
+// 01-HUB-PUBLIC.md). Ordre : Hero → Calculateurs (index + 5 sections
+// réelles, inchangées fonctionnellement) → Les basiques de l'atelier
+// (passerelle vers Les Bases, pas de duplication de contenu) → Guides →
+// Accompagnement. Aucune section "Schéma électrique" ni "Mes projets" :
+// ni l'un ni l'autre n'existe réellement aujourd'hui (voir
+// docs/audits/UI-7-OUTILS.md, "Outils disponibles").
+// La section Guides lit le catalogue réel (même fonctions que /boutique)
+// pour un prix toujours à jour : comme /boutique et /formations, la page
+// doit donc être rendue à la requête, jamais figée au build.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Outils & Calculateurs électricité embarquée — bateau, van, camping-car",
@@ -17,123 +31,18 @@ export const metadata: Metadata = {
   },
 };
 
-const outils = [
-  {
-    id: "section-cable",
-    emoji: "⚡",
-    title: "Section de câble",
-    description: "Trouvez la section idéale selon l'intensité, la longueur et la chute de tension admissible.",
-    tag: "Le plus utilisé",
-  },
-  {
-    id: "bilan-conso",
-    emoji: "🔋",
-    title: "Bilan de consommation",
-    description: "Calculez votre consommation journalière et la capacité batterie recommandée.",
-    tag: "Essentiel",
-  },
-  {
-    id: "autonomie",
-    emoji: "⏱️",
-    title: "Autonomie batterie",
-    description: "Estimez combien de temps votre batterie tient selon votre consommation et sa capacité.",
-    tag: "Avec solaire ☀️",
-  },
-  {
-    id: "mppt",
-    emoji: "☀️",
-    title: "Régulateur MPPT",
-    description: "Calculez la puissance MPPT nécessaire selon vos panneaux solaires et votre batterie.",
-    tag: "Solaire",
-  },
-  {
-    id: "awg",
-    emoji: "📐",
-    title: "AWG ↔ mm²",
-    description: "Convertisseur AWG/mm² + sections recommandées par équipement bateau (guindeau, frigo, pilote…).",
-    tag: "Référence",
-  },
-];
-
 export default function OutilsPage() {
   return (
-    <main>
-      <PageHero
-        title="Outils & Calculateurs"
-        subtitle="Des calculateurs gratuits pour dimensionner votre installation électrique embarquée — sans inscription, sans prise de tête."
-        micro="Section de câble · Bilan de consommation · Autonomie batterie · MPPT · AWG ↔ mm²"
-        background="/hero-fabsystem.png"
-        overlay="bg-black/55"
-        ctas={[
-          { href: "#section-cable", label: "Calculer une section de câble", variant: "primary" },
-          { href: "#bilan-conso", label: "Bilan de consommation", variant: "secondary" },
-        ]}
-        assurance={<ServiceAssurance tone="inverse" />}
-      />
+    <main className="bg-white text-neutral-900">
+      <Hero />
+      <CalculateursIndex />
 
-      {/* Index des outils */}
-      <section className="border-b border-neutral-200 bg-white py-8">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {outils.map((o) => (
-              <a
-                key={o.id}
-                href={`#${o.id}`}
-                className="group flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm transition-all duration-150 hover:border-brand-400 hover:shadow-md"
-              >
-                <span className="text-2xl">{o.emoji}</span>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-neutral-900">{o.title}</p>
-                    <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-semibold text-brand-700">
-                      {o.tag}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">{o.description}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Les 3 calculateurs */}
+      {/* Les 5 calculateurs réels (comportement inchangé, voir UI-7) */}
       <CalcSection />
 
-      {/* CTA bas de page */}
-      <section className="border-t border-neutral-200 bg-neutral-950 py-10 sm:py-14">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-xl font-bold text-white sm:text-2xl">
-            Les calculs pointent vers une installation complexe ?
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-neutral-400">
-            Ces outils couvrent les cas courants. Pour un dimensionnement précis adapté à votre
-            installation réelle — batteries lithium, solaire, 230V — l&apos;accompagnement à
-            distance FabSystem permet d&apos;aller bien plus loin.
-          </p>
-          <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link
-              href="/prestations#accompagnement-distance"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-400 px-6 py-3 text-sm font-bold text-neutral-900 transition-colors hover:bg-brand-300"
-            >
-              Voir l&apos;accompagnement à distance
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-neutral-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-neutral-400"
-            >
-              Poser une question
-            </Link>
-          </div>
-          <p className="mt-4 text-xs text-neutral-500">
-            Pour aller plus loin,{" "}
-            <Link href="/boutique/ebook-electricite-van" className="underline underline-offset-2 hover:text-neutral-300">
-              le manuel complet
-            </Link>{" "}
-            reprend tous ces calculs, dans l&apos;ordre du chantier.
-          </p>
-        </div>
-      </section>
+      <BasiquesAtelier />
+      <Guides />
+      <Accompagnement />
     </main>
   );
 }
