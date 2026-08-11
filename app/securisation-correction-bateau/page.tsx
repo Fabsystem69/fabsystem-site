@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import LightboxImage from "@/components/LightboxImage";
-import PageHero from "@/components/PageHero";
+import { PublicHero } from "@/components/public/PublicHero";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -78,20 +78,17 @@ export default function SecurisationCorrectionBateauPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <PageHero
+      <PublicHero
         title="Sécurisation / correction électrique bateau"
-        subtitle="Corrections ciblées pour fiabiliser : protections, distribution, câblage, repérage."
+        description="Corrections ciblées pour fiabiliser : protections, distribution, câblage, repérage."
         micro="On part d’un diagnostic, puis on corrige ce qui est critique — sans tout refaire inutilement."
-        background="/hero-fabsystem.png"
-        overlay="bg-black/55"
-        ctas={[
-          { href: "/contact", label: "Demander un devis", variant: "primary" },
-          { href: "/contact", label: "Me contacter", variant: "secondary" },
-        ]}
+        primaryAction={{ href: "/contact", label: "Demander un devis" }}
+        secondaryAction={{ href: "/contact", label: "Me contacter", variant: "secondary" }}
         assurance={<ServiceAssurance tone="inverse" />}
+        scrollTargetId="apres-hero"
       />
 
-      <section className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+      <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-base font-semibold text-neutral-950 sm:text-lg">
             Pour qui ?

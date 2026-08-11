@@ -1,5 +1,5 @@
 import LightboxImage from "@/components/LightboxImage";
-import PageHero from "@/components/PageHero";
+import { PublicHero } from "@/components/public/PublicHero";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import TrackedLink from "@/components/TrackedLink";
 import Link from "next/link";
@@ -101,24 +101,21 @@ const cases: CaseStudy[] = [
 export default function RealisationsPage() {
   return (
     <main>
-      <PageHero
+      <PublicHero
         title="Réalisations"
-        subtitle="Trois cas types pour montrer le niveau d’analyse, d’intervention et de résultat."
+        description="Trois cas types pour montrer le niveau d’analyse, d’intervention et de résultat."
         micro="Études de cas réelles, avant / après, avec une lecture claire du contexte, des actions et du résultat."
-        background="/hero-fabsystem.png"
-        overlay="bg-black/55"
-        ctas={[
-          { href: "/contact", label: "Parler de votre projet", variant: "primary" },
-          {
-            href: "/prestations#accompagnement-distance",
-            label: "Accompagnement à distance",
-            variant: "secondary",
-          },
-        ]}
+        primaryAction={{ href: "/contact", label: "Parler de votre projet" }}
+        secondaryAction={{
+          href: "/prestations#accompagnement-distance",
+          label: "Accompagnement à distance",
+          variant: "secondary",
+        }}
         assurance={<ServiceAssurance tone="inverse" />}
+        scrollTargetId="apres-hero"
       />
 
-      <section className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+      <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="max-w-3xl">
           <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
             Études de cas

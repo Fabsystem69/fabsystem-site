@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PageHero from "@/components/PageHero";
+import { PublicHero } from "@/components/public/PublicHero";
 import { TroisFacons } from "@/components/services/TroisFacons";
 import { OnFaitEnsemble } from "@/components/services/OnFaitEnsemble";
 import { JeConfie } from "@/components/services/JeConfie";
@@ -42,12 +42,11 @@ export default async function PrestationsPage({
 
   return (
     <main>
-      <PageHero
+      <PublicHero
         title="Vous avez un projet. Choisissez jusqu'où vous voulez être accompagné."
-        subtitle="À distance ou sur le terrain, Fabien vous aide à concevoir, vérifier et sécuriser votre installation électrique embarquée."
-        background="/hero-fabsystem.png"
-        overlay="bg-black/60"
-        ctas={[{ href: "#parcours", label: "Choisir comment avancer", variant: "primary" }]}
+        description="À distance ou sur le terrain, Fabien vous aide à concevoir, vérifier et sécuriser votre installation électrique embarquée."
+        primaryAction={{ href: "#parcours", label: "Choisir comment avancer" }}
+        scrollTargetId="parcours"
       />
 
       <TroisFacons />

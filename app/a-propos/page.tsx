@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import PageHero from "@/components/PageHero";
+import { PublicHero } from "@/components/public/PublicHero";
 import ServiceAssurance from "@/components/ServiceAssurance";
 
 export const metadata: Metadata = {
@@ -19,13 +19,14 @@ export const metadata: Metadata = {
 export default function AProposPage() {
   return (
     <main className="bg-white">
-      <PageHero
+      <PublicHero
         title="FabSystem, spécialiste en électricité embarquée"
-        subtitle="Fabien accompagne les propriétaires et les professionnels qui recherchent une installation électrique embarquée plus lisible, plus sûre et plus durable."
+        description="Fabien accompagne les propriétaires et les professionnels qui recherchent une installation électrique embarquée plus lisible, plus sûre et plus durable."
         assurance={<ServiceAssurance tone="inverse" />}
+        scrollTargetId="apres-hero"
       />
 
-      <section className="mx-auto max-w-6xl px-6 py-4 sm:py-5">
+      <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-4 sm:py-5">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
             <div className="mx-auto w-full max-w-xs overflow-hidden rounded-2xl border border-neutral-200">

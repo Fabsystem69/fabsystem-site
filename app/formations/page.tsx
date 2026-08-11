@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hero } from "@/components/lesbases/Hero";
+import { PublicHero } from "@/components/public/PublicHero";
 import { Modules } from "@/components/lesbases/Modules";
 import { QuizSection } from "@/components/lesbases/QuizSection";
 import { BonsGestes } from "@/components/lesbases/BonsGestes";
@@ -28,7 +28,13 @@ export const metadata: Metadata = {
 export default function FormationsPage() {
   return (
     <main className="bg-white text-neutral-900">
-      <Hero />
+      <PublicHero
+        eyebrow="Les bases"
+        title="Comprendre avant de se lancer."
+        description="Les fondamentaux de l'électricité embarquée, expliqués simplement et gratuitement."
+        primaryAction={{ href: "#modules", label: "Commencer par les modules" }}
+        scrollTargetId="modules"
+      />
       <Modules />
       <QuizSection />
 

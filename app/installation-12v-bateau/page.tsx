@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import LightboxImage from "@/components/LightboxImage";
-import PageHero from "@/components/PageHero";
+import { PublicHero } from "@/components/public/PublicHero";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -87,24 +87,21 @@ export default function Installation12VBateauPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <PageHero
+      <PublicHero
         title="Installation 12V bateau"
-        subtitle="Conception, refonte ou sécurisation d’un réseau 12V lisible, protégé et fiable (batteries, charge, distribution)."
+        description="Conception, refonte ou sécurisation d’un réseau 12V lisible, protégé et fiable (batteries, charge, distribution)."
         micro="Objectif : une installation cohérente, documentée, et prête à évoluer (solaire, DC-DC, lithium)."
-        background="/hero-fabsystem.png"
-        overlay="bg-black/55"
-        ctas={[
-          { href: "/contact", label: "Demander un devis", variant: "primary" },
-          {
-            href: "/prestations#accompagnement-distance",
-            label: "Accompagnement à distance",
-            variant: "secondary",
-          },
-        ]}
+        primaryAction={{ href: "/contact", label: "Demander un devis" }}
+        secondaryAction={{
+          href: "/prestations#accompagnement-distance",
+          label: "Accompagnement à distance",
+          variant: "secondary",
+        }}
         assurance={<ServiceAssurance tone="inverse" />}
+        scrollTargetId="apres-hero"
       />
 
-      <section className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+      <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="mx-auto max-w-4xl">
           <h2 className="text-base font-semibold text-neutral-950 sm:text-lg">
             Pour qui ?

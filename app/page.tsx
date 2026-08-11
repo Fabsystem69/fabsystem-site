@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hero } from "@/components/home/Hero";
+import { PublicHero } from "@/components/public/PublicHero";
 import { TroisUnivers } from "@/components/home/TroisUnivers";
 import { Parcours } from "@/components/home/Parcours";
 import { OutilsGratuits } from "@/components/home/OutilsGratuits";
@@ -29,7 +29,19 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <main>
-      <Hero />
+      <PublicHero
+        title={
+          <>
+            L&apos;électricité embarquée,
+            <br />
+            sans naviguer à vue.
+          </>
+        }
+        description="Bateau, van ou camping-car : apprenez à faire vous-même, avancez avec Fabien ou confiez votre installation."
+        primaryAction={{ href: "#parcours", label: "Comment Fabien peut m'aider" }}
+        secondaryAction={{ href: "/outils", label: "Découvrir les outils gratuits", variant: "secondary" }}
+        scrollTargetId="apres-hero"
+      />
       <TroisUnivers />
       <Parcours />
       <OutilsGratuits />

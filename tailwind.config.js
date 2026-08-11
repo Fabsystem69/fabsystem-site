@@ -51,6 +51,21 @@ module.exports = {
         // sans introduire de nouvelle valeur brute.
         section: "5rem",
       },
+      keyframes: {
+        // UI-9.1 : indicateur de scroll des Hero — mouvement vertical très
+        // léger et lent (6px, 2.2s), volontairement plus discret que
+        // `animate-bounce` (défaut Tailwind, jugé trop marqué/rapide pour un
+        // indicateur permanent). `prefers-reduced-motion` est déjà neutralisé
+        // globalement (voir app/globals.css) : aucun code spécifique requis
+        // ici pour respecter cette préférence.
+        "hero-scroll-hint": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(6px)" },
+        },
+      },
+      animation: {
+        "hero-scroll-hint": "hero-scroll-hint 2.2s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

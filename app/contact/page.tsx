@@ -4,7 +4,7 @@ import RevealPhone from "@/components/RevealPhone";
 import ContactForm from "../../components/ContactForm";
 import type { Metadata } from "next";
 import ServiceAssurance from "@/components/ServiceAssurance";
-import { resolveBackgroundImage } from "@/lib/background-image";
+import { PublicHero } from "@/components/public/PublicHero";
 import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const metadata: Metadata = {
@@ -61,7 +61,6 @@ export default async function ContactPage() {
     margin: 1,
     width: 200,
   });
-  const heroBackground = resolveBackgroundImage("/hero-fabsystem.png");
 
   return (
     <main className="bg-white">
@@ -70,27 +69,14 @@ export default async function ContactPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <section
-        className="relative min-h-[48vh] bg-cover bg-center"
-        style={{ backgroundImage: heroBackground }}
-      >
-        <div className="absolute inset-0 bg-black/55" />
+      <PublicHero
+        title="Contact"
+        description="Un doute sur votre installation électrique ? Parlons-en simplement."
+        assurance={<ServiceAssurance tone="inverse" />}
+        scrollTargetId="apres-hero"
+      />
 
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-14 text-white sm:py-16 lg:py-20">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
-            Contact
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
-            Un doute sur votre installation électrique ? Parlons-en simplement.
-          </p>
-
-          <div className="mt-4">
-            <ServiceAssurance tone="inverse" />
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
+      <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
         <div className="grid items-start gap-6 sm:grid-cols-12 sm:gap-8">
           <div className="order-1 sm:col-span-7">
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 shadow-sm sm:p-8">
