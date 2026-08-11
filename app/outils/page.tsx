@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import CalcSection from "@/components/CalcSection";
 import { Hero } from "@/components/outils/Hero";
 import { CalculateursIndex } from "@/components/outils/CalculateursIndex";
 import { BasiquesAtelier } from "@/components/outils/BasiquesAtelier";
@@ -7,8 +6,9 @@ import { Guides } from "@/components/outils/Guides";
 import { Accompagnement } from "@/components/outils/Accompagnement";
 
 // Outils V2 — Hub public (docs/refonte-site-public/Outils/00-ARCHITECTURE.md,
-// 01-HUB-PUBLIC.md). Ordre : Hero → Calculateurs (index + 5 sections
-// réelles, inchangées fonctionnellement) → Les basiques de l'atelier
+// 01-HUB-PUBLIC.md). Ordre : Hero → Calculateurs (index de cartes
+// uniquement — chaque carte mène à sa page dédiée /outils/<id>, aucun
+// formulaire complet ici, voir UI-7.1) → Les basiques de l'atelier
 // (passerelle vers Les Bases, pas de duplication de contenu) → Guides →
 // Accompagnement. Aucune section "Schéma électrique" ni "Mes projets" :
 // ni l'un ni l'autre n'existe réellement aujourd'hui (voir
@@ -36,10 +36,6 @@ export default function OutilsPage() {
     <main className="bg-white text-neutral-900">
       <Hero />
       <CalculateursIndex />
-
-      {/* Les 5 calculateurs réels (comportement inchangé, voir UI-7) */}
-      <CalcSection />
-
       <BasiquesAtelier />
       <Guides />
       <Accompagnement />

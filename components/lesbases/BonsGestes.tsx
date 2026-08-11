@@ -33,9 +33,9 @@ const BONS_GESTES = [
     source: "Module 1 — Les bases du 12V embarqué",
     voltaNote: true,
     // Passerelle contextuelle vers Outils (00-ARCHITECTURE.md §9 : autorisée
-    // lorsqu'elle aide réellement à appliquer la notion consultée) — ancre
-    // réelle confirmée dans app/outils/page.tsx (#section-cable).
-    outilHref: "/outils#section-cable",
+    // lorsqu'elle aide réellement à appliquer la notion consultée) — route
+    // dédiée réelle depuis UI-7.1 (app/outils/section-cable/page.tsx).
+    outilHref: "/outils/section-cable",
     outilLabel: "Mettre en pratique → Calculateur de section",
   },
 ] as const;

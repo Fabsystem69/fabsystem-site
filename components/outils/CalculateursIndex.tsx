@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -5,11 +6,13 @@ import { Button } from "@/components/ui/Button";
 import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
 
 // Outils V2 — Index des calculateurs
-// (docs/refonte-site-public/Outils/01-HUB-PUBLIC.md §4-5). Quatre
+// (docs/refonte-site-public/Outils/01-HUB-PUBLIC.md §4-6). Quatre
 // calculateurs principaux immédiatement visibles, AWG ↔ mm² traité de
-// façon plus compacte (§5 : "reste plus secondaire"). Données reprises de
-// lib/outils-catalog.ts, seule source utilisée aussi par les en-têtes de
-// section dans components/CalcSection.tsx.
+// façon plus compacte (§5 : "reste plus secondaire"). Depuis UI-7.1,
+// chaque carte mène vers sa page dédiée (/outils/<id>) — le hub
+// n'affiche plus aucun formulaire complet ("Hub → choix → outil dédié →
+// résultat", §6). Données reprises de lib/outils-catalog.ts, seule source
+// utilisée aussi par le contenu de chaque page calculateur.
 export function CalculateursIndex() {
   const [sectionCable, ...autresPrincipaux] = OUTILS_CALCULATEURS.filter((o) => o.id !== "awg");
   const awg = OUTILS_CALCULATEURS.find((o) => o.id === "awg");
@@ -34,7 +37,7 @@ export function CalculateursIndex() {
               </p>
             </div>
             <div className="mt-5">
-              <Button href={`#${sectionCable.id}`} variant="primary">
+              <Button href={`/outils/${sectionCable.id}`} variant="primary">
                 Calculer une section →
               </Button>
             </div>
@@ -46,20 +49,20 @@ export function CalculateursIndex() {
             <Card key={outil.id} className="p-5">
               <h3 className="text-sm font-bold text-neutral-950">{outil.title}</h3>
               <p className="mt-1.5 text-xs leading-relaxed text-neutral-600">{outil.description}</p>
-              <a
-                href={`#${outil.id}`}
+              <Link
+                href={`/outils/${outil.id}`}
                 className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 transition-colors duration-150 hover:decoration-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
               >
                 Ouvrir →
-              </a>
+              </Link>
             </Card>
           ))}
         </div>
       </div>
 
       {awg ? (
-        <a
-          href={`#${awg.id}`}
+        <Link
+          href={`/outils/${awg.id}`}
           className="mt-4 flex items-center justify-between gap-3 rounded-card border border-neutral-200 bg-white px-5 py-3 shadow-card transition-colors hover:border-neutral-300"
         >
           <div>
@@ -67,7 +70,7 @@ export function CalculateursIndex() {
             <p className="text-xs text-neutral-500">{awg.description}</p>
           </div>
           <span className="shrink-0 text-sm font-semibold text-neutral-600">→</span>
-        </a>
+        </Link>
       ) : null}
     </Section>
   );

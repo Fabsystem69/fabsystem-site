@@ -1,10 +1,9 @@
 // Source unique des métadonnées des calculateurs publics de /outils.
-// Avant UI-7, ces informations étaient dupliquées (avec un libellé
-// légèrement différent) entre `app/outils/page.tsx` (cartes d'index) et
-// `components/CalcSection.tsx` (en-têtes de section) — un seul tableau
-// alimente désormais les deux.
+// Depuis UI-7.1, `id` correspond exactement au segment de route dédié
+// (/outils/<id>) — un seul tableau alimente les cartes du hub, les liens
+// internes (Home, Les Bases) et le contenu de chaque page calculateur.
 export type OutilMeta = {
-  id: "section-cable" | "bilan-conso" | "autonomie" | "mppt" | "awg";
+  id: "section-cable" | "bilan-consommation" | "autonomie-batterie" | "mppt" | "awg";
   emoji: string;
   title: string;
   description: string;
@@ -21,7 +20,7 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     tag: "Le plus utilisé",
   },
   {
-    id: "bilan-conso",
+    id: "bilan-consommation",
     emoji: "🔋",
     title: "Bilan de consommation",
     description:
@@ -29,7 +28,7 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     tag: "Essentiel",
   },
   {
-    id: "autonomie",
+    id: "autonomie-batterie",
     emoji: "⏱️",
     title: "Autonomie batterie",
     description:
@@ -53,3 +52,11 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     tag: "Référence",
   },
 ];
+
+export function getOutilMeta(id: OutilMeta["id"]): OutilMeta {
+  const meta = OUTILS_CALCULATEURS.find((o) => o.id === id);
+  if (!meta) {
+    throw new Error(`Unknown outil id: ${id}`);
+  }
+  return meta;
+}
