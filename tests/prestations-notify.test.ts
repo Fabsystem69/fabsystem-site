@@ -148,6 +148,9 @@ test("sendPrestationsPackNotification includes every pack when multiple are purc
   });
 
   const email = mail.calls[0];
-  assert.match(email?.text ?? "", /Cap/);
+  // UI-4.1 (MASTER-08-ACCOMPAGNEMENT.md §5) : le libellé commercial dépend
+  // de l'univers — "pack-cap-van" affiche "Itinéraire" (nom Van du niveau
+  // Conception), jamais "Cap" (réservé au Bateau).
+  assert.match(email?.text ?? "", /Itinéraire/);
   assert.match(email?.text ?? "", /Amarrage/);
 });

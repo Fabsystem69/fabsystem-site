@@ -34,11 +34,21 @@ export const PRESTATIONS_CATEGORIES: readonly PrestationsCategorie[] = [
   "bateau",
 ];
 
-const PALIER_LABELS: Record<PrestationsPalier, string> = {
-  amarrage: "Amarrage",
-  cap: "Cap",
-  passerelle: "Passerelle",
-  "grand-large": "Grand Large",
+// Libellés commerciaux visibles, conformes à MASTER-08-ACCOMPAGNEMENT.md §5
+// (source de vérité) : le nom affiché dépend à la fois du niveau
+// fonctionnel (palier — identifiant technique stable, jamais modifié ici)
+// ET de l'univers. `palier` reste l'identifiant technique utilisé pour les
+// slugs produit (buildPrestationsPackSlug) et la logique d'éligibilité
+// ebook : ces libellés ne sont qu'un affichage dérivé, jamais une clé.
+const PALIER_LABELS_BY_CATEGORIE: Record<PrestationsCategorie, Record<PrestationsPalier, string>> = {
+  bateau: { amarrage: "Amarrage", cap: "Cap", passerelle: "Passerelle", "grand-large": "Grand Large" },
+  van: { amarrage: "Départ", cap: "Itinéraire", passerelle: "Copilote", "grand-large": "Roadbook" },
+  "camping-car": {
+    amarrage: "Étape",
+    cap: "Feuille de route",
+    passerelle: "Relais",
+    "grand-large": "Carnet de route",
+  },
 };
 
 const CATEGORIE_LABELS: Record<PrestationsCategorie, string> = {
@@ -64,8 +74,12 @@ const EBOOK_SLUG_BY_CATEGORIE: Record<PrestationsCategorie, string | null> = {
   "camping-car": null,
 };
 
-export function getPalierLabel(palier: PrestationsPalier) {
-  return PALIER_LABELS[palier];
+// Le libellé commercial dépend de l'univers (MASTER-08 §5) : `categorie`
+// est donc requis, jamais déduit ou supposé. Ne jamais utiliser ce libellé
+// comme identifiant fonctionnel — `palier` (paramètre) reste la seule clé
+// stable.
+export function getPalierLabel(categorie: PrestationsCategorie, palier: PrestationsPalier) {
+  return PALIER_LABELS_BY_CATEGORIE[categorie][palier];
 }
 
 export function getCategorieLabel(categorie: PrestationsCategorie) {
@@ -113,7 +127,7 @@ export function listPrestationsPackDefinitions(): PrestationsPackDefinition[] {
         slug: buildPrestationsPackSlug(palier, categorie),
         palier,
         categorie,
-        name: `${getPalierLabel(palier)} — ${getCategorieLabel(categorie)}`,
+        name: `${getPalierLabel(categorie, palier)} — ${getCategorieLabel(categorie)}`,
         priceCents: getPrestationsPackPriceCents(categorie, palier),
         grantsEbookSlug: resolveGrantsEbookSlug(palier, categorie),
       });

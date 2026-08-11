@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/Button";
 // asset officiel de la mascotte n'existe dans ce dépôt (voir
 // docs/audits/UI-3-HOME.md, Visuels nécessaires) ; sa présence n'est
 // qu'« éligible », pas obligatoire (§12), donc omise plutôt qu'inventée.
-// CTA vers /prestations sans ancre — voir Parcours.tsx pour le contexte
-// (ancre #accompagnement-distance non disponible).
+// CTA vers l'ancre réelle #on-fait-ensemble créée par la refonte Services
+// (UI-4) — remplace la destination temporaire sans ancre de la Phase UI-3.
 const APPORTS = [
   { title: "Préparer", text: "Architecture, matériel, dimensionnement de votre projet." },
   { title: "Vérifier", text: "Schéma, câblage, cohérence de vos choix techniques." },
@@ -41,7 +41,7 @@ export function Accompagnement() {
           </dl>
 
           <div className="mt-6">
-            <Button href="/prestations" variant="primary">
+            <Button href="/prestations#on-fait-ensemble" variant="primary">
               Découvrir l&apos;accompagnement →
             </Button>
           </div>

@@ -5,15 +5,11 @@ import { Section } from "@/components/layout/Section";
 // Exactement trois niveaux, aucun nom commercial de pack. Progression
 // horizontale desktop / verticale mobile (§5-6).
 //
-// CTA "Voir l'accompagnement" et "Voir les interventions" : le CDC
-// recommande /services (ou /prestations dans ce dépôt) avec une ancre
-// vers l'accompagnement à distance / les prestations terrain. Ces ancres
-// (#accompagnement-distance, #prestations-terrain) n'existent pas dans la
-// page /prestations actuelle (vérifié — seule id="contact" y est
-// présente). Conformément au §8 du CDC (« si une destination n'existe
-// pas encore, le point doit être signalé »), ce point est documenté dans
-// docs/audits/UI-3-HOME.md ; les CTA pointent vers /prestations sans
-// ancre plutôt que vers un fragment inexistant.
+// CTA "Voir l'accompagnement" et "Voir les interventions" : pointent
+// désormais vers les ancres réelles créées par la refonte Services
+// (UI-4) — #on-fait-ensemble et #je-confie sur /prestations — qui
+// remplacent les destinations temporaires sans ancre de la Phase UI-3
+// (voir docs/audits/UI-4-SERVICES-UNIVERS.md, Modifications de la Home).
 const STEPS = [
   {
     n: "01",
@@ -28,13 +24,13 @@ const STEPS = [
     n: "02",
     title: "On fait ensemble",
     text: "Je réalise mon projet, avec l'aide de FabSystem pour concevoir, vérifier et avancer.",
-    ctas: [{ label: "Voir l'accompagnement", href: "/prestations" }],
+    ctas: [{ label: "Voir l'accompagnement", href: "/prestations#on-fait-ensemble" }],
   },
   {
     n: "03",
     title: "Je confie",
     text: "Je préfère que FabSystem intervienne directement sur mon installation.",
-    ctas: [{ label: "Voir les interventions", href: "/prestations" }],
+    ctas: [{ label: "Voir les interventions", href: "/prestations#je-confie" }],
   },
 ] as const;
 

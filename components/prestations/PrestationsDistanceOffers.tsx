@@ -7,6 +7,7 @@ import { GlossaryTerm } from "@/components/GlossaryTerm";
 import { Tooltip } from "@/components/Tooltip";
 import {
   buildPrestationsPackSlug,
+  getPalierLabel,
   getPrestationsPackDefinitionBySlug,
   getPrestationsPackPriceCents,
   type PrestationsCategorie,
@@ -24,6 +25,12 @@ type PrestationsDistanceOffersProps = {
   // Un pack absent de cette map n'a pas encore ete cree dans le catalogue :
   // le bouton retombe alors sur un lien vers /boutique plutot que de casser.
   packProductIdBySlug: Record<string, string>;
+  // Univers pré-sélectionné (UI-4) : permet à un lien externe (ex. les trois
+  // cartes univers de la Home, /prestations?univers=bateau) d'arriver
+  // directement sur le bon onglet plutôt que sur le défaut historique "van".
+  // Optionnel : le comportement existant (van par défaut) est inchangé si
+  // omis.
+  initialCategory?: PrestationsCategorie;
 };
 
 const categories: { id: PrestationsCategorie; label: string }[] = [
@@ -69,9 +76,14 @@ const vocab: Record<PrestationsCategorie, string[]> = {
   ],
 };
 
+// Le libellé commercial affiché (Amarrage/Départ/Étape, etc.) n'est jamais
+// codé en dur ici : cette liste ne porte que l'identifiant technique stable
+// (`id`, conforme à lib/prestations-packs.ts) et le contenu univers-agnostique
+// (sous-titre, points clés, étapes). Le nom réellement affiché est dérivé de
+// `id` + de l'univers sélectionné via getPalierLabel (UI-4.1,
+// MASTER-08-ACCOMPAGNEMENT.md §5) au moment du rendu, jamais stocké ici.
 const paliers: {
   id: PrestationsPalier;
-  name: string;
   subtitle: string;
   highlights: string[];
   avoids: string[];
@@ -88,7 +100,6 @@ const paliers: {
 }[] = [
   {
     id: "amarrage",
-    name: "AMARRAGE",
     subtitle: "Faire le point avant de repartir dans la mauvaise direction.",
     highlights: [
       "Idéal pour un doute précis",
@@ -116,7 +127,6 @@ const paliers: {
   },
   {
     id: "cap",
-    name: "CAP",
     subtitle: "Définir la bonne architecture avant d'acheter ou de câbler.",
     highlights: [
       "Logique complète de l'installation",
@@ -145,7 +155,6 @@ const paliers: {
   },
   {
     id: "passerelle",
-    name: "PASSERELLE",
     subtitle: "Avancer étape par étape avec FabSystem à vos côtés.",
     highlights: [
       "Accompagnement du projet dans la durée",
@@ -180,7 +189,6 @@ const paliers: {
   },
   {
     id: "grand-large",
-    name: "GRAND LARGE",
     subtitle: "Sécuriser tout le projet jusqu'aux premiers essais.",
     highlights: [
       "Conception plus poussée par FabSystem",
@@ -222,8 +230,11 @@ const PACK_ADD_TO_CART_CLASS =
 const PACK_FALLBACK_LINK_CLASS =
   "inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-white/30 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10";
 
-export function PrestationsDistanceOffers({ packProductIdBySlug }: PrestationsDistanceOffersProps) {
-  const [category, setCategory] = useState<PrestationsCategorie>("van");
+export function PrestationsDistanceOffers({
+  packProductIdBySlug,
+  initialCategory,
+}: PrestationsDistanceOffersProps) {
+  const [category, setCategory] = useState<PrestationsCategorie>(initialCategory ?? "van");
 
   return (
     <div>
@@ -278,6 +289,7 @@ export function PrestationsDistanceOffers({ packProductIdBySlug }: PrestationsDi
             <PalierCard
               key={palier.id}
               palier={palier}
+              displayName={getPalierLabel(category, palier.id)}
               priceCents={getPrestationsPackPriceCents(category, palier.id)}
               grantsEbookCategoryLabel={grantsEbook ? EBOOK_BADGE_CATEGORY_LABEL[category] : null}
               productId={productId}
@@ -297,11 +309,15 @@ type Palier = (typeof paliers)[number];
 
 function PalierCard({
   palier,
+  displayName,
   priceCents,
   grantsEbookCategoryLabel,
   productId,
 }: {
   palier: Palier;
+  // Libellé commercial réel (univers-aware), calculé par l'appelant via
+  // getPalierLabel — jamais stocké dans `palier` lui-même (UI-4.1).
+  displayName: string;
   priceCents: number;
   grantsEbookCategoryLabel: string | null;
   productId: string | undefined;
@@ -323,7 +339,7 @@ function PalierCard({
       ) : null}
 
       <h3 className={`text-base font-bold tracking-wide ${palier.theme.accent}`}>
-        {palier.name}
+        {displayName.toUpperCase()}
       </h3>
       <p className="mt-1 text-xs leading-relaxed text-white/70">{palier.subtitle}</p>
 
@@ -395,7 +411,7 @@ function PalierCard({
             productId={productId}
             label={palier.cta}
             className={PACK_ADD_TO_CART_CLASS}
-            successMessage={`${palier.name} ajouté au panier.`}
+            successMessage={`${displayName} ajouté au panier.`}
           />
         ) : (
           <Link href="/boutique" className={PACK_FALLBACK_LINK_CLASS}>

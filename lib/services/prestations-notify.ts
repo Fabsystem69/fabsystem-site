@@ -93,7 +93,7 @@ export async function sendPrestationsPackNotification(
   for (const item of packItems) {
     const definition = getPrestationsPackDefinitionBySlug(item.productSlug);
     const detail = definition
-      ? `${getPalierLabel(definition.palier)} · ${getCategorieLabel(definition.categorie)}`
+      ? `${getPalierLabel(definition.categorie, definition.palier)} · ${getCategorieLabel(definition.categorie)}`
       : item.productSlug;
     lines.push(`- ${item.productName} (${detail}) — ${formatEuroFromCents(item.unitAmountCents)}`);
   }

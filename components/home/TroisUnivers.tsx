@@ -4,40 +4,44 @@ import { Section } from "@/components/layout/Section";
 
 // Home V2 — Trois univers (docs/refonte-site-public/home/02-TROIS-UNIVERS.md).
 // Exactement trois univers, chacun une vraie porte d'entrée. Les pages
-// dédiées /bateau, /van, /camping-car n'existent pas encore dans ce
-// dépôt (chantier hors périmètre de cette phase Home) : conformément au
-// §15 du CDC, ce point est signalé dans docs/audits/UI-3-HOME.md plutôt
-// que traité silencieusement. Solution temporaire retenue en attendant
-// ces pages : les trois blocs mènent vers /prestations (seule page
-// publique existante couvrant les trois univers).
-const UNIVERS_TEMP_HREF = "/prestations";
-
-type UniversTile = {
+// dédiées /bateau, /van, /camping-car ne sont pas suffisamment spécifiées
+// dans les CDC pour être créées (aucun fichier univers/*.md n'existe —
+// voir docs/audits/UI-4-SERVICES-UNIVERS.md, Univers) : conformément à
+// l'option B validée par cette même phase, chaque univers mène vers une
+// destination distincte et fonctionnelle de Services (/prestations),
+// pré-sélectionnant le bon onglet dans "On fait ensemble" et "Je confie"
+// via ?univers=. Les trois cartes ne pointent plus toutes vers la même
+// destination générique (état temporaire de la Phase UI-3, résolu ici).
+const UNIVERS: {
   name: string;
   text: string;
+  href: string;
   photo?: { src: string; alt: string };
-};
-
-const UNIVERS: UniversTile[] = [
+}[] = [
   {
     name: "Bateau",
     text: "Électricité et systèmes embarqués à bord.",
+    href: "/prestations?univers=bateau",
     photo: { src: "/fab-bateau.png", alt: "Installation électrique embarquée sur un bateau" },
   },
   {
     name: "Van",
     text: "Concevoir une installation fiable et adaptée à l'autonomie recherchée.",
+    href: "/prestations?univers=van",
   },
   {
     name: "Camping-car",
     text: "Comprendre, améliorer ou reprendre son installation électrique.",
+    href: "/prestations?univers=camping-car",
   },
 ];
+
+type UniversTile = (typeof UNIVERS)[number];
 
 function UniversCard({ univers }: { univers: UniversTile }) {
   return (
     <Link
-      href={UNIVERS_TEMP_HREF}
+      href={univers.href}
       aria-label={`${univers.name} — ${univers.text} Découvrir`}
       className="transition-base group relative flex min-h-[260px] flex-col justify-end overflow-hidden rounded-2xl border border-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 sm:min-h-[320px]"
     >
