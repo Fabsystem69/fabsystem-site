@@ -122,7 +122,7 @@ const steps = [
         </div>
 
         <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">⚠️ Attention au chargeur</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Attention au chargeur</p>
           <p className="mt-1 text-sm text-neutral-700">
             Charger une batterie GEL avec un chargeur configuré pour AGM ou plomb ouvert peut
             l&apos;endommager irrémédiablement. La tension d&apos;absorption du GEL est plus basse (2,35 V/cellule

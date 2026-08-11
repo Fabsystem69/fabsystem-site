@@ -248,8 +248,12 @@ export default function Navbar() {
               <ContactIcon />
               Contact
             </Link>
-            <Link href="/mon-compte" aria-label="Mon compte" className={ICON_LINK_CLASS}>
+            <Link
+              href="/mon-compte"
+              className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+            >
               <AccountIcon />
+              Mon compte
             </Link>
             <button
               type="button"

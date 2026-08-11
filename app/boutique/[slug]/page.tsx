@@ -1,3 +1,4 @@
+import { cache } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -39,7 +40,13 @@ function getProductTypeLabel(value: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE") {
   }
 }
 
-async function getPublicProduct(slug: string) {
+// Dédupliqué avec React.cache() : generateMetadata() et la page elle-même
+// appellent tous deux getPublicProduct(slug) — sans cache, cela déclenchait
+// deux lectures produit/prix distinctes pour le même rendu (UI-9A). cache()
+// mémoïse par argument pour la durée d'un seul rendu serveur, jamais entre
+// deux requêtes différentes : le catalogue reste lu en base à chaque
+// requête (force-dynamic inchangé).
+const getPublicProduct = cache(async (slug: string) => {
   try {
     const product = await getProductBySlug(slug);
 
@@ -60,7 +67,7 @@ async function getPublicProduct(slug: string) {
 
     throw error;
   }
-}
+});
 
 export async function generateMetadata({
   params,
@@ -250,7 +257,7 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
             {isDeductible ? (
               <Card className="border-brand-300 bg-brand-50/40 p-6">
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
-                  💡 Vous avez besoin d&apos;aide ensuite ?
+                  Vous avez besoin d&apos;aide ensuite ?
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-neutral-800">
                   Le prix de votre ebook est déduit de votre accompagnement FabSystem. Vous pouvez

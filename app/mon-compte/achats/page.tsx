@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Mes achats",
   description: "Vos commandes et téléchargements FabSystem.",
   alternates: { canonical: "/mon-compte/achats" },
+  robots: { index: false, follow: false },
 };
 
 function formatOrderAmount(value: number, currency: string) {

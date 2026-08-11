@@ -24,7 +24,7 @@ export function DiagramModule({
   circuits: { id: string; name: string }[];
 }) {
   const [selected, setSelected] = useState<string[]>(circuits.map((c) => c.id));
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "diagram.model"
   );
@@ -93,6 +93,7 @@ export function DiagramModule({
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />

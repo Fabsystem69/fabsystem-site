@@ -21,7 +21,7 @@ export default function AProposPage() {
     <main className="bg-white">
       <PageHero
         title="FabSystem, spécialiste en électricité embarquée"
-        subtitle="FabSystem accompagne les propriétaires et les professionnels qui recherchent une installation électrique embarquée plus lisible, plus sûre et plus durable."
+        subtitle="Fabien accompagne les propriétaires et les professionnels qui recherchent une installation électrique embarquée plus lisible, plus sûre et plus durable."
         assurance={<ServiceAssurance tone="inverse" />}
       />
 
@@ -64,34 +64,26 @@ export default function AProposPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-4 sm:py-5">
-        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
+      {/* Positionnement + Conclusion fusionnés en une seule section sans
+          traitement "carte" répété (UI-9A : trois cartes blanches
+          empilées de structure identique) — simple bloc de texte sur fond
+          neutre, aucune bordure supplémentaire. */}
+      <section className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+        <div className="max-w-3xl space-y-4">
           <h2 className="text-lg font-semibold tracking-tight text-neutral-950 sm:text-xl">
             Positionnement
           </h2>
-          <div className="mt-4 space-y-4">
-            <p className="text-sm leading-relaxed text-neutral-700">
-              FabSystem s&apos;adresse à celles et ceux qui attendent un regard
-              structuré, une expertise technique solide et une exécution
-              sérieuse. L&apos;intervention peut concerner une remise à
-              niveau, une sécurisation, une refonte partielle ou un
-              accompagnement plus global sur des installations sensibles.
-            </p>
-            <p className="text-sm leading-relaxed text-neutral-700">
-              Le positionnement est volontairement clair : apporter des
-              réponses fiables, défendables techniquement et adaptées aux
-              contraintes du terrain, sans approximation ni sur-promesse.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-6 py-4 sm:py-5">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">
-          <h2 className="text-lg font-semibold tracking-tight text-neutral-950 sm:text-xl">
-            Conclusion
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+          <p className="text-sm leading-relaxed text-neutral-700">
+            FabSystem s&apos;adresse à celles et ceux qui attendent un regard
+            structuré, une expertise technique solide et une exécution
+            sérieuse. L&apos;intervention peut concerner une remise à
+            niveau, une sécurisation, une refonte partielle ou un
+            accompagnement plus global sur des installations sensibles.
+          </p>
+          <p className="text-sm leading-relaxed text-neutral-700">
+            Le positionnement est volontairement clair : apporter des
+            réponses fiables, défendables techniquement et adaptées aux
+            contraintes du terrain, sans approximation ni sur-promesse.
             FabSystem s&apos;engage à construire des installations embarquées
             sûres, cohérentes et durables, avec une exigence professionnelle
             constante.

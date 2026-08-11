@@ -14,6 +14,7 @@ export function useEngineRun(projectId: string, engineId: string) {
   const router = useRouter();
   const [output, setOutput] = useState<unknown>(null);
   const [warnings, setWarnings] = useState<Array<{ code: string; message: string }>>([]);
+  const [notices, setNotices] = useState<Array<{ code: string; message: string }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [justRetained, setJustRetained] = useState(false);
@@ -34,7 +35,12 @@ export function useEngineRun(projectId: string, engineId: string) {
       );
 
       const data = (await response.json().catch(() => null)) as
-        | { output?: unknown; warnings?: Array<{ code: string; message: string }>; error?: string }
+        | {
+            output?: unknown;
+            warnings?: Array<{ code: string; message: string }>;
+            errors?: Array<{ code: string; message: string }>;
+            error?: string;
+          }
         | null;
 
       if (!response.ok || !data) {
@@ -44,6 +50,10 @@ export function useEngineRun(projectId: string, engineId: string) {
 
       setOutput(data.output);
       setWarnings(data.warnings ?? []);
+      // Remarques non bloquantes remontées par le moteur (ex. une donnée
+      // manquante pour un seul appareil) — jamais un objet brut, toujours
+      // déjà traduit côté serveur (lib/engine-error-messages.ts).
+      setNotices(data.errors ?? []);
 
       if (retain) {
         setJustRetained(true);
@@ -59,5 +69,5 @@ export function useEngineRun(projectId: string, engineId: string) {
     }
   }
 
-  return { output, warnings, error, pending, justRetained, run };
+  return { output, warnings, notices, error, pending, justRetained, run };
 }

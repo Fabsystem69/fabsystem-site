@@ -14,7 +14,7 @@ export default function AwgPage() {
     <CalculatorPageShell
       title="AWG ↔ mm²"
       description="Convertisseur AWG/mm² et sections recommandées par équipement bateau (guindeau, frigo, pilote…)."
-      relatedTool={{ href: "/outils/section-cable", label: "Dimensionner une section de câble" }}
+      relatedTools={[{ href: "/outils/section-cable", label: "Dimensionner une section de câble" }]}
     >
       <AwgCalculator />
     </CalculatorPageShell>

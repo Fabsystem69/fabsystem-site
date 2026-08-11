@@ -9,6 +9,7 @@ export function EngineActionBar({
   justRetained,
   error,
   warnings,
+  notices,
   onCalculate,
   onRetain,
 }: {
@@ -17,6 +18,7 @@ export function EngineActionBar({
   justRetained: boolean;
   error: string | null;
   warnings: Array<{ code: string; message: string }>;
+  notices?: Array<{ code: string; message: string }>;
   onCalculate: () => void;
   onRetain: () => void;
 }) {
@@ -46,6 +48,19 @@ export function EngineActionBar({
           <ul className="list-disc space-y-1 pl-4">
             {warnings.map((warning, index) => (
               <li key={`${warning.code}-${index}`}>{warning.message}</li>
+            ))}
+          </ul>
+        </Alert>
+      ) : null}
+
+      {/* Remarques non bloquantes du moteur (ex. donnée manquante pour un
+          seul appareil) : ton neutre, jamais un panneau rouge dramatique
+          pour une information qui n'empêche pas le calcul (mission §5). */}
+      {notices && notices.length > 0 ? (
+        <Alert tone="info">
+          <ul className="list-disc space-y-1 pl-4">
+            {notices.map((notice, index) => (
+              <li key={`${notice.code}-${index}`}>{notice.message}</li>
             ))}
           </ul>
         </Alert>

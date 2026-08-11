@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
@@ -52,16 +53,27 @@ export function JeConfie({ initialCategory }: { initialCategory?: PrestationsCat
         </Alert>
       </div>
 
-      {/* Présence de Fabien (§19) — texte uniquement, aucune photo
-          disponible dans ce dépôt (voir docs/audits/UI-4-SERVICES-UNIVERS.md,
-          Visuels nécessaires). */}
-      <div className="mt-8 rounded-2xl border border-neutral-200 bg-neutral-50 p-6">
-        <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-          Fabien — FabSystem
-        </p>
-        <p className="mt-1 text-base font-semibold text-neutral-900">
-          J&apos;interviens personnellement sur votre installation.
-        </p>
+      {/* Présence de Fabien (§19) — portrait réel (UI-9 FINAL, fab-bateau.png
+          est une photo de Fabien, corrigé depuis l'audit UI-9A qui l'avait
+          mal identifiée comme photo de bateau). */}
+      <div className="mt-8 flex flex-col gap-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-6 sm:flex-row sm:items-center">
+        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full border border-neutral-200 sm:h-24 sm:w-24">
+          <Image
+            src="/fab-bateau.png"
+            alt="Fabien Lages"
+            width={200}
+            height={200}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+            Fabien — FabSystem
+          </p>
+          <p className="mt-1 text-base font-semibold text-neutral-900">
+            J&apos;interviens personnellement sur votre installation.
+          </p>
+        </div>
       </div>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">

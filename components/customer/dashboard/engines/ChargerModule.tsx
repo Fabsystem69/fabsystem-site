@@ -21,7 +21,7 @@ export function ChargerModule({ projectId }: { projectId: string }) {
   const [outputVoltageV, setOutputVoltageV] = useState("12");
   const [systemEfficiencyRatio, setSystemEfficiencyRatio] = useState("90");
   const [chargingDurationHours, setChargingDurationHours] = useState("3");
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "charger.recharging"
   );
@@ -82,6 +82,7 @@ export function ChargerModule({ projectId }: { projectId: string }) {
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />

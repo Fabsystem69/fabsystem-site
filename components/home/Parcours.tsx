@@ -23,13 +23,13 @@ const STEPS = [
   {
     n: "02",
     title: "On fait ensemble",
-    text: "Je réalise mon projet, avec l'aide de FabSystem pour concevoir, vérifier et avancer.",
+    text: "Je réalise mon projet, avec l'aide de Fabien pour concevoir, vérifier et avancer.",
     ctas: [{ label: "Voir l'accompagnement", href: "/prestations#on-fait-ensemble" }],
   },
   {
     n: "03",
     title: "Je confie",
-    text: "Je préfère que FabSystem intervienne directement sur mon installation.",
+    text: "Je préfère que Fabien intervienne directement sur mon installation.",
     ctas: [{ label: "Voir les interventions", href: "/prestations#je-confie" }],
   },
 ] as const;

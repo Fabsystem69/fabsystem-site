@@ -55,7 +55,7 @@ export function BonsGestes() {
 
             {"voltaNote" in geste && geste.voltaNote ? (
               <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Le conseil de Volta
+                Point de vigilance Volta
               </p>
             ) : null}
 

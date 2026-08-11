@@ -29,7 +29,7 @@ export async function OnFaitEnsemble({ initialCategory }: { initialCategory?: Pr
       </p>
       <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Vous restez aux commandes.</h2>
       <p className="mt-3 max-w-xl text-base leading-relaxed text-neutral-400">
-        Vous réalisez. FabSystem vous accompagne là où son expertise vous est utile.
+        Vous réalisez. Fabien vous accompagne là où son expertise vous est utile.
       </p>
 
       <dl className="mt-8 grid gap-6 sm:grid-cols-3">

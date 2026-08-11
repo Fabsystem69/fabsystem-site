@@ -29,7 +29,7 @@ function emptyRow(): ConsumerRow {
 // entrées et afficher le résultat renvoyé par le moteur.
 export function EnergyModule({ projectId }: { projectId: string }) {
   const [rows, setRows] = useState<ConsumerRow[]>([emptyRow()]);
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "energy.consumption"
   );
@@ -127,6 +127,7 @@ export function EnergyModule({ projectId }: { projectId: string }) {
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />

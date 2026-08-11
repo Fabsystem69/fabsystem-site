@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import { isHttpError } from "@/lib/http-errors";
 import { getProject } from "@/lib/services/project";
 import { getProjectValues } from "@/lib/services/project-values";
+import { listDependencies } from "@/lib/services/project-dependencies";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import {
   getProjectAssetTypeLabel,
@@ -21,7 +22,8 @@ import {
   RenameProjectForm,
 } from "@/components/customer/dashboard/ProjectActions";
 import { listRegisteredEngineIds } from "@/lib/engines/index";
-import { ENERGY_CHAIN, CIRCUIT_CHAIN, ENGINE_LABELS, type RegisteredEngineId } from "@/lib/engine-payload";
+import { ENERGY_CHAIN, CIRCUIT_CHAIN, ENGINE_LABELS } from "@/lib/engine-payload";
+import { getRetainedValueLabel } from "@/lib/retained-value-labels";
 import { EnergyModule } from "@/components/customer/dashboard/engines/EnergyModule";
 import { BatteryModule } from "@/components/customer/dashboard/engines/BatteryModule";
 import { AlternatorModule } from "@/components/customer/dashboard/engines/AlternatorModule";
@@ -32,17 +34,22 @@ import { CircuitModule } from "@/components/customer/dashboard/engines/CircuitMo
 import { CableModule } from "@/components/customer/dashboard/engines/CableModule";
 import { ProtectionModule } from "@/components/customer/dashboard/engines/ProtectionModule";
 import { DiagramModule } from "@/components/customer/dashboard/engines/DiagramModule";
-import type { ProjectRetainedValue } from "@/lib/generated/prisma/client";
+import type { ProjectRetainedValue, ProjectValueDependency } from "@/lib/generated/prisma/client";
 
 type PageProps = {
   params: Promise<{ projectId: string }>;
 };
 
-// Espace client V2 (UI-8 FINAL) — Vue Project. La liste réelle des moteurs
+// Espace client V2 (UI-9 FINAL) — Vue Project. La liste réelle des moteurs
 // vient exclusivement du registre peuplé (lib/engines/index.ts) : aucune
-// liste n'est recopiée à la main ici (mission UI-8 FINAL §5). L'état de
-// chaque module (À compléter / Retenu / À recalculer) est dérivé des
-// valeurs réellement retenues pour ce Project, jamais inventé.
+// liste n'est recopiée à la main ici. L'état de chaque module (À compléter
+// / Retenu / À recalculer) est dérivé des valeurs réellement retenues pour
+// ce Project, jamais inventé. Ordre de la page imposé par la mission §6 :
+// identité Projet → actions nécessaires → valeurs retenues → chaîne
+// Énergie → chaîne Circuits → actions secondaires. Le bloc "Structure
+// technique" (grille redondante avec les statuts déjà affichés dans les
+// deux chaînes) a été supprimé (UI-9A avait relevé jusqu'à 3 répétitions
+// de la même information).
 function namespaceOf(idOrKey: string) {
   return idOrKey.split(".")[0];
 }
@@ -55,15 +62,30 @@ function moduleStatus(engineId: string, retainedValues: ProjectRetainedValue[]) 
   return "Retenu";
 }
 
+// Cause de l'obsolescence (mission §9) : dérivée exclusivement des
+// dépendances déjà déclarées (ProjectValueDependency, réutilisées telles
+// quelles) — aucune nouvelle logique métier. Si aucune dépendance connue
+// n'explique le changement, un message générique reste acceptable.
+function obsolescenceCause(key: string, dependencies: ProjectValueDependency[]) {
+  const dependsOn = dependencies.filter((edge) => edge.dependentKey === key).map((edge) => edge.dependsOnKey);
+
+  if (dependsOn.length === 0) {
+    return "Une donnée utilisée par ce calcul a changé.";
+  }
+
+  const labels = [...new Set(dependsOn.map((depKey) => getRetainedValueLabel(depKey)))];
+  return `« ${labels.join(" », « ")} » a changé : ce calcul doit être relancé.`;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { projectId } = await params;
 
   try {
     const actor = await requireCustomerActor();
     const project = await getProject(actor, projectId);
-    return { title: project.name };
+    return { title: project.name, robots: { index: false, follow: false } };
   } catch {
-    return { title: "Projet" };
+    return { title: "Projet", robots: { index: false, follow: false } };
   }
 }
 
@@ -82,8 +104,11 @@ export default async function ProjectPage({ params }: PageProps) {
   }
 
   // Ownership déjà vérifié par getProject ci-dessus : project.id est donc
-  // sûr à utiliser pour lire les valeurs retenues.
-  const retainedValues = await getProjectValues(project.id);
+  // sûr à utiliser pour lire les valeurs retenues et leurs dépendances.
+  const [retainedValues, dependencies] = await Promise.all([
+    getProjectValues(project.id),
+    listDependencies(project.id),
+  ]);
 
   const engineIds = listRegisteredEngineIds();
 
@@ -111,6 +136,7 @@ export default async function ProjectPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
+      {/* 1. Identité Projet */}
       <div>
         <Link
           href="/mon-compte/projets"
@@ -119,22 +145,15 @@ export default async function ProjectPage({ params }: PageProps) {
           ← Mes projets
         </Link>
 
-        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight text-neutral-950">
-                {project.name}
-              </h1>
-              <Badge tone={isDeleteScheduled ? "danger" : isArchived ? "neutral" : "success"}>
-                {getProjectStatusLabel(project.status)}
-              </Badge>
-            </div>
-            <p className="mt-1 text-sm text-neutral-600">
-              {getProjectAssetTypeLabel(project.assetType)} ·{" "}
-              {getProjectVoltageLabel(project.voltage)}
-            </p>
-          </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight text-neutral-950">{project.name}</h1>
+          <Badge tone={isDeleteScheduled ? "danger" : isArchived ? "neutral" : "success"}>
+            {getProjectStatusLabel(project.status)}
+          </Badge>
         </div>
+        <p className="mt-1 text-sm text-neutral-600">
+          {getProjectAssetTypeLabel(project.assetType)} · {getProjectVoltageLabel(project.voltage)}
+        </p>
 
         {isDeleteScheduled && project.deleteScheduledAt ? (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -149,72 +168,56 @@ export default async function ProjectPage({ params }: PageProps) {
               <CancelDeletionButton projectId={project.id} />
             </div>
           </div>
-        ) : (
-          <div className="mt-4 flex flex-wrap gap-3">
-            <RenameProjectForm projectId={project.id} currentName={project.name} />
-            {!isArchived ? <ArchiveProjectButton projectId={project.id} /> : null}
-            <DeleteProjectControls projectId={project.id} />
-          </div>
-        )}
+        ) : null}
       </div>
 
+      {/* 2. Actions nécessaires */}
+      <ActionsToDoSection engineIds={engineIds} retainedValues={retainedValues} />
+
+      {/* Explication unique Calculer / Utiliser pour mon projet (mission
+          §7) : une seule fois pour toute la page, jamais répétée module
+          par module. */}
+      <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
+        Dans chaque module ci-dessous : <strong>Calculer</strong> affiche un résultat sans rien
+        enregistrer — vous pouvez essayer plusieurs valeurs. <strong>Utiliser pour mon projet</strong>{" "}
+        enregistre ce résultat comme la décision retenue pour votre projet.
+      </div>
+
+      {/* 3. Valeurs retenues importantes */}
       {retainedValues.length === 0 ? (
         <Card className="p-6">
           <p className="text-sm font-semibold text-neutral-950">Votre projet est prêt.</p>
           <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-            Aucune information n&apos;est encore retenue dans ce projet. Vous pouvez d&apos;ores
-            et déjà utiliser les calculateurs FabSystem pour préparer votre installation — leurs
-            résultats ne sont pas encore reliés automatiquement à vos projets.
+            Aucune information n&apos;est encore retenue dans ce projet. Complétez le premier
+            module ci-dessous (Énergie) pour commencer.
           </p>
-          <div className="mt-4">
-            <Button href="/outils" variant="secondary">
-              Utiliser les calculateurs →
-            </Button>
-          </div>
         </Card>
       ) : (
         <section>
           <h2 className="text-base font-semibold text-neutral-950">Informations retenues</h2>
           <div className="mt-3 space-y-2">
             {retainedValues.map((rv) => (
-              <div
-                key={rv.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white p-3"
-              >
-                <span className="text-sm font-medium text-neutral-800">{rv.key}</span>
-                <Badge tone={rv.status === "OBSOLETE" ? "warning" : "success"}>
-                  {rv.status === "OBSOLETE" ? "À recalculer" : "Retenu"}
-                </Badge>
+              <div key={rv.id} className="rounded-lg border border-neutral-200 bg-white p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-neutral-800">
+                    {getRetainedValueLabel(rv.key, rv.value)}
+                  </span>
+                  <Badge tone={rv.status === "OBSOLETE" ? "warning" : "success"}>
+                    {rv.status === "OBSOLETE" ? "À recalculer" : "Retenu"}
+                  </Badge>
+                </div>
+                {rv.status === "OBSOLETE" ? (
+                  <p className="mt-1.5 text-xs text-orange-800">
+                    {obsolescenceCause(rv.key, dependencies)}
+                  </p>
+                ) : null}
               </div>
             ))}
           </div>
         </section>
       )}
 
-      <ActionsToDoSection engineIds={engineIds} retainedValues={retainedValues} />
-
-      <section>
-        <h2 className="text-base font-semibold text-neutral-950">Structure technique</h2>
-        <p className="mt-1 text-sm text-neutral-600">
-          État réel de chaque module — dérivé exclusivement des valeurs que vous avez retenues.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {engineIds.map((engineId) => (
-            <div
-              key={engineId}
-              className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 p-4"
-            >
-              <p className="text-sm font-semibold text-neutral-800">
-                {ENGINE_LABELS[engineId as RegisteredEngineId] ?? engineId}
-              </p>
-              <p className="mt-1 text-xs text-neutral-500">
-                {moduleStatus(engineId, retainedValues)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
+      {/* 4. Chaîne Énergie */}
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-neutral-950">Chaîne Énergie</h2>
@@ -243,6 +246,7 @@ export default async function ProjectPage({ params }: PageProps) {
         ))}
       </section>
 
+      {/* 5. Chaîne Circuits */}
       <section className="space-y-4">
         <div>
           <h2 className="text-base font-semibold text-neutral-950">Chaîne Circuit</h2>
@@ -272,14 +276,35 @@ export default async function ProjectPage({ params }: PageProps) {
           </details>
         ))}
       </section>
+
+      {/* 6. Actions Project secondaires */}
+      {!isDeleteScheduled ? (
+        <section className="border-t border-neutral-200 pt-6">
+          <h2 className="text-sm font-semibold text-neutral-700">Gérer ce projet</h2>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <RenameProjectForm projectId={project.id} currentName={project.name} />
+            {!isArchived ? <ArchiveProjectButton projectId={project.id} /> : null}
+            <DeleteProjectControls projectId={project.id} />
+          </div>
+        </section>
+      ) : null}
+
+      {retainedValues.length === 0 ? (
+        <div>
+          <Button href="/outils" variant="secondary">
+            Utiliser les calculateurs FabSystem →
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-// Synthèse neutre des actions déterministes à faire (mission UI-8 FINAL
-// §7) : ni score, ni pourcentage, ni recommandation attribuée à Fabien
-// (aucune n'a été écrite ici) — uniquement des constats factuels dérivés
-// de l'état réel des valeurs retenues.
+// Synthèse neutre des actions déterministes à faire (mission §7/§8 UI-8
+// FINAL, reconduite en UI-9 FINAL) : ni score, ni pourcentage, ni
+// recommandation attribuée à Fabien (aucune n'a été écrite ici) —
+// uniquement des constats factuels dérivés de l'état réel des valeurs
+// retenues.
 function ActionsToDoSection({
   engineIds,
   retainedValues,

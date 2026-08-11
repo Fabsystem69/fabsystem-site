@@ -14,7 +14,7 @@ export function Accompagnement() {
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-neutral-300 sm:text-base">
           Ces outils couvrent les cas courants. Lorsqu&apos;un calcul ne suffit plus — batteries
-          lithium, solaire, 230 V — FabSystem peut vous accompagner à distance sur votre projet
+          lithium, solaire, 230 V — Fabien peut vous accompagner à distance sur votre projet
           réel.
         </p>
         <div className="mt-6">

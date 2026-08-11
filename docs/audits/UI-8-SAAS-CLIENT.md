@@ -301,7 +301,7 @@ Checklist finale de la mission :
 
 ## Mécanisme retenu
 
-- `vercel.json` déclare un cron : `{"path": "/api/internal/jobs/purge-scheduled-deletions", "schedule": "0 * * * *"}`. Vercel appelle cette route par une requête **GET** (comportement natif de Vercel Cron Jobs, jamais POST) à chaque déclenchement.
+- `vercel.json` déclare un cron : `{"path": "/api/internal/jobs/purge-scheduled-deletions", "schedule": "0 3 * * *"}`. Vercel appelle cette route par une requête **GET** (comportement natif de Vercel Cron Jobs, jamais POST) à chaque déclenchement.
 - La route (`app/api/internal/jobs/purge-scheduled-deletions/route.ts`) expose désormais deux handlers, une seule logique :
   - `GET` : déclenchement automatique (Vercel Cron). Authentifié par `isAuthorizedCronRequest()` (nouveau, `lib/cron-auth.ts`).
   - `POST` : déclenchement manuel Admin, inchangé dans son principe (`requireApiSession()`), conservé uniquement comme filet ponctuel — **le fonctionnement de production ne dépend plus de cette action** (conforme à la mission §3, §8).
@@ -309,9 +309,9 @@ Checklist finale de la mission :
 
 ## Fréquence
 
-Toutes les heures (`0 * * * *`). Choisie parce que : (a) le job n'a pas besoin de précision à la seconde près (mission §5 : "un Project arrivé à échéance sera traité automatiquement dans un délai raisonnable lors du prochain passage") — un délai maximal d'une heure entre l'échéance et la suppression réelle est un délai raisonnable pour une suppression de compte ; (b) c'est exactement l'exemple donné par la mission ("14:32 → job suivant 15:00"). Aucune file d'attente n'a été construite : `purgeDueScheduledDeletions()` balaie et traite tous les Projects dus à chaque passage, ce qui suffit à ce volume.
+Une fois par jour, à 3h du matin (`0 3 * * *`). Choisie parce que : (a) le job n'a pas besoin de précision à la seconde près (mission §5 : "un Project arrivé à échéance sera traité automatiquement dans un délai raisonnable lors du prochain passage") — un délai maximal de 24h entre l'échéance et la suppression réelle reste raisonnable pour une suppression de compte ; (b) c'est la fréquence réellement compatible avec le déploiement actuel (voir ci-dessous) ; (c) 3h du matin minimise l'impact sur la charge aux heures d'usage réel. Aucune file d'attente n'a été construite : `purgeDueScheduledDeletions()` balaie et traite tous les Projects dus à chaque passage, ce qui suffit à ce volume.
 
-**Point de vigilance déploiement, non tranché ici** : les Vercel Cron Jobs sur le plan Hobby sont limités à une exécution par jour (restriction imposée par Vercel, pas par ce code) ; une fréquence horaire réelle nécessite un projet Vercel sur un plan Pro ou supérieur. Ce choix de plan est une décision de déploiement, volontairement non tranchée dans ce code — si le projet reste en Hobby, Vercel exécutera ce cron moins souvent que configuré (généralement une fois par jour), ce qui reste correct fonctionnellement (aucune suppression avant l'échéance, suppression simplement retardée après) mais mérite d'être su avant mise en production.
+**Contrainte de déploiement réelle, rencontrée et corrigée pendant cette mission** : une première configuration horaire (`0 * * * *`) a été tentée, mais le déploiement Vercel l'a explicitement refusée — "Hobby accounts are limited to daily cron jobs" : ce projet Vercel est sur le plan Hobby, qui limite les Cron Jobs à une exécution par jour maximum (restriction imposée par Vercel, pas par ce code). La fréquence a donc été corrigée à quotidienne pour rester compatible avec le déploiement actuel, conformément à la mission ("fréquence raisonnable compatible avec les possibilités du déploiement actuel"). Passer à une fréquence infra-journalière nécessiterait une mise à niveau vers le plan Pro — décision de facturation, non prise ici.
 
 ## Sécurité
 

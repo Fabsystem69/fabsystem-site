@@ -27,7 +27,7 @@ export function Accompagnement() {
             Vous faites. Je vous accompagne.
           </h2>
           <p className="mt-4 max-w-md text-base leading-relaxed text-neutral-600">
-            Vous gardez la main sur votre projet, FabSystem vous aide à faire les bons choix,
+            Vous gardez la main sur votre projet, Fabien vous aide à faire les bons choix,
             vérifier votre installation et avancer sans rester bloqué.
           </p>
 

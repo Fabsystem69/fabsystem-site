@@ -19,20 +19,24 @@ const UNIVERS: {
   photo?: { src: string; alt: string };
 }[] = [
   {
+    // Photo réelle fournie pour UI-9 FINAL (fab-bateau.png reste réservé au
+    // portrait de Fabien, voir app/a-propos/page.tsx — jamais réutilisé ici).
     name: "Bateau",
     text: "Électricité et systèmes embarqués à bord.",
     href: "/prestations?univers=bateau",
-    photo: { src: "/fab-bateau.png", alt: "Installation électrique embarquée sur un bateau" },
+    photo: { src: "/univers/bateau.png", alt: "Installation électrique embarquée sur un voilier" },
   },
   {
     name: "Van",
     text: "Concevoir une installation fiable et adaptée à l'autonomie recherchée.",
     href: "/prestations?univers=van",
+    photo: { src: "/univers/van.png", alt: "Installation solaire organisée dans un van aménagé" },
   },
   {
     name: "Camping-car",
     text: "Comprendre, améliorer ou reprendre son installation électrique.",
     href: "/prestations?univers=camping-car",
+    photo: { src: "/univers/camping-car.png", alt: "Compartiment électrique aménagé dans un camping-car" },
   },
 ];
 

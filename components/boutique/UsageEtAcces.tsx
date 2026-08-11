@@ -35,7 +35,7 @@ export function UsageEtAcces() {
 
       <Card className="mt-6 max-w-3xl border-brand-300 bg-brand-50/40 p-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-700">
-          💡 Le saviez-vous ?
+          Le saviez-vous ?
         </p>
         <p className="mt-2 text-sm font-semibold leading-relaxed text-neutral-900">
           Votre premier achat FabSystem active automatiquement votre espace client.

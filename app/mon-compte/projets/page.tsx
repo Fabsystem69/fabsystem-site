@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "Mes projets",
   description: "Vos projets d'installation électrique FabSystem.",
   alternates: { canonical: "/mon-compte/projets" },
+  robots: { index: false, follow: false },
 };
 
 // Espace client V2 (UI-8) — Mes projets. "Établi numérique", pas de

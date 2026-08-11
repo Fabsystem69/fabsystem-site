@@ -14,7 +14,7 @@ export default function BilanConsommationPage() {
     <CalculatorPageShell
       title="Bilan de consommation"
       description="Listez vos appareils pour calculer la consommation journalière et la capacité batterie recommandée."
-      relatedTool={{ href: "/outils/autonomie-batterie", label: "Dimensionner mon autonomie batterie" }}
+      relatedTools={[{ href: "/outils/autonomie-batterie", label: "Dimensionner mon autonomie batterie" }]}
     >
       <BilanConsommationCalculator />
     </CalculatorPageShell>

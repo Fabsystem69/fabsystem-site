@@ -29,7 +29,7 @@ export function CircuitModule({
   consumerNames: string[];
 }) {
   const [rows, setRows] = useState<CircuitRow[]>([emptyRow()]);
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "circuit.structure"
   );
@@ -126,6 +126,7 @@ export function CircuitModule({
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />

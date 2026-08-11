@@ -18,7 +18,7 @@ export function SolarModule({ projectId }: { projectId: string }) {
   const [panelPowerWp, setPanelPowerWp] = useState("200");
   const [equivalentSunHours, setEquivalentSunHours] = useState("4");
   const [systemEfficiencyRatio, setSystemEfficiencyRatio] = useState("80");
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "solar.production"
   );
@@ -69,6 +69,7 @@ export function SolarModule({ projectId }: { projectId: string }) {
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />

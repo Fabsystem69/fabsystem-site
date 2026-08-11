@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/connexion-client",
   },
+  robots: { index: false, follow: false },
 };
 
 export default function ConnexionClientPage() {

@@ -17,13 +17,13 @@ const PARCOURS = [
   },
   {
     title: "On fait ensemble",
-    text: "FabSystem m'aide à préparer, vérifier et débloquer mon projet.",
+    text: "Fabien m'aide à préparer, vérifier et débloquer mon projet.",
     cta: "Découvrir l'accompagnement →",
     href: "#on-fait-ensemble",
   },
   {
     title: "Je confie",
-    text: "FabSystem intervient et réalise l'intervention pour moi.",
+    text: "Fabien intervient et réalise l'intervention pour moi.",
     cta: "Voir les services terrain →",
     href: "#je-confie",
   },

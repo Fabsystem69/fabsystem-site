@@ -258,28 +258,22 @@ const steps = [
             {
               rule: "Plus le câble est long → résistance ↑",
               example: "Câble 5 m = ~3× plus de résistance qu'un câble 1,5 m (même section)",
-              icon: "📏",
               color: "border-blue-100 bg-blue-50",
             },
             {
               rule: "Plus le câble est fin → résistance ↑",
               example: "Câble 2,5 mm² = ~6× plus de résistance qu'un câble 16 mm² (même longueur)",
-              icon: "〰️",
               color: "border-orange-100 bg-orange-50",
             },
             {
               rule: "Le cuivre est le meilleur conducteur pratique",
               example: "58× meilleure conductivité que le fer. L'aluminium est 36× — suffisant mais moins pratique.",
-              icon: "🔶",
               color: "border-yellow-100 bg-yellow-50",
             },
           ].map((item) => (
-            <div key={item.rule} className={`flex gap-3 rounded-xl border p-4 ${item.color}`}>
-              <span className="text-xl">{item.icon}</span>
-              <div>
-                <p className="text-sm font-semibold text-neutral-900">{item.rule}</p>
-                <p className="mt-0.5 text-xs text-neutral-600">{item.example}</p>
-              </div>
+            <div key={item.rule} className={`rounded-xl border p-4 ${item.color}`}>
+              <p className="text-sm font-semibold text-neutral-900">{item.rule}</p>
+              <p className="mt-0.5 text-xs text-neutral-600">{item.example}</p>
             </div>
           ))}
         </div>
@@ -313,7 +307,7 @@ const steps = [
 
         <div className="rounded-xl border border-red-100 bg-red-50 p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
-            ⚠️ Danger — Câble sous-dimensionné
+            Danger — Câble sous-dimensionné
           </p>
           <p className="mt-1 text-sm text-neutral-700">
             Un câble trop fin chauffe selon la formule <strong>P = I² × R</strong>. Avec 100 A dans

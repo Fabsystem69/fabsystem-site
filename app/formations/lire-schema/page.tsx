@@ -86,7 +86,7 @@ const steps = [
         </div>
 
         <div className="rounded-xl border border-amber-100 bg-amber-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">⚠️ Sécurité busbar</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Sécurité busbar</p>
           <p className="mt-1 text-sm text-neutral-700">
             Les barres omnibus <strong>ne sont pas isolées</strong>. Utilisez uniquement des outils
             isolés à proximité. Ne portez pas de bijoux métalliques. Protégez la barre avec un
@@ -163,17 +163,14 @@ const steps = [
 
         <div className="grid gap-3 sm:grid-cols-2">
           {[
-            { name: "Cosses à œillet", desc: "Gros câbles sur boulons M5–M10. Sertir avec outil adapté. Ordre : rondelle + rondelle élastique + écrou.", icon: "⭕" },
-            { name: "Cosses colorées sertissables", desc: "Rouge (0,5–1,5 mm²) · Bleu (1,5–2,5 mm²) · Jaune (2,5–6 mm²). Pince à cliquet obligatoire.", icon: "🔌" },
-            { name: "Embouts de câble", desc: "Pour câbles multibrins dans bornes à vis. Empêchent les brins de s'écarter et de provoquer un court-circuit.", icon: "🔧" },
-            { name: "Connecteurs MC4", desc: "Exclusivement panneaux solaires. Étanches IP67, 20 A max. Ne jamais mélanger des marques différentes.", icon: "☀️" },
+            { name: "Cosses à œillet", desc: "Gros câbles sur boulons M5–M10. Sertir avec outil adapté. Ordre : rondelle + rondelle élastique + écrou." },
+            { name: "Cosses colorées sertissables", desc: "Rouge (0,5–1,5 mm²) · Bleu (1,5–2,5 mm²) · Jaune (2,5–6 mm²). Pince à cliquet obligatoire." },
+            { name: "Embouts de câble", desc: "Pour câbles multibrins dans bornes à vis. Empêchent les brins de s'écarter et de provoquer un court-circuit." },
+            { name: "Connecteurs MC4", desc: "Exclusivement panneaux solaires. Étanches IP67, 20 A max. Ne jamais mélanger des marques différentes." },
           ].map((item) => (
-            <div key={item.name} className="flex gap-3 rounded-xl border border-neutral-200 bg-white p-4">
-              <span className="text-xl">{item.icon}</span>
-              <div>
-                <p className="text-sm font-semibold text-neutral-900">{item.name}</p>
-                <p className="mt-1 text-xs leading-relaxed text-neutral-600">{item.desc}</p>
-              </div>
+            <div key={item.name} className="rounded-xl border border-neutral-200 bg-white p-4">
+              <p className="text-sm font-semibold text-neutral-900">{item.name}</p>
+              <p className="mt-1 text-xs leading-relaxed text-neutral-600">{item.desc}</p>
             </div>
           ))}
         </div>

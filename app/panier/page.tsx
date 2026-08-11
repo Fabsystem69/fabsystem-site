@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/panier",
   },
+  robots: { index: false, follow: false },
 };
 
 function getEmptyCartSummary() {

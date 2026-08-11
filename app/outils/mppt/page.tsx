@@ -14,7 +14,10 @@ export default function MpptPage() {
     <CalculatorPageShell
       title="Régulateur MPPT"
       description="Calculez la puissance MPPT nécessaire selon vos panneaux solaires et votre batterie."
-      relatedTool={{ href: "/outils/section-cable", label: "Vérifier une section de câble" }}
+      relatedTools={[
+        { href: "/outils/section-cable", label: "Vérifier une section de câble" },
+        { href: "/outils/autonomie-batterie", label: "Vérifier mon autonomie batterie" },
+      ]}
     >
       <MpptCalculator />
     </CalculatorPageShell>

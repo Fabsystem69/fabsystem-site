@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Services électricité embarquée — accompagnement à distance et terrain",
   description:
-    "FabSystem vous accompagne à distance ou sur le terrain pour concevoir, vérifier et sécuriser votre installation électrique embarquée : bateau, van, camping-car.",
+    "Fabien vous accompagne à distance ou sur le terrain pour concevoir, vérifier et sécuriser votre installation électrique embarquée : bateau, van, camping-car.",
   alternates: {
     canonical: "/prestations",
   },
@@ -44,7 +44,7 @@ export default async function PrestationsPage({
     <main>
       <PageHero
         title="Vous avez un projet. Choisissez jusqu'où vous voulez être accompagné."
-        subtitle="À distance ou sur le terrain, FabSystem vous aide à concevoir, vérifier et sécuriser votre installation électrique embarquée."
+        subtitle="À distance ou sur le terrain, Fabien vous aide à concevoir, vérifier et sécuriser votre installation électrique embarquée."
         background="/hero-fabsystem.png"
         overlay="bg-black/60"
         ctas={[{ href: "#parcours", label: "Choisir comment avancer", variant: "primary" }]}

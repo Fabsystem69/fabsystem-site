@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Mon compte",
   description: "Votre espace client FabSystem.",
   alternates: { canonical: "/mon-compte" },
+  robots: { index: false, follow: false },
 };
 
 // Espace client V2 (UI-8) — Accueil. Écran d'orientation (MASTER-12 §102),

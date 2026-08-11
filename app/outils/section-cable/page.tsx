@@ -14,7 +14,7 @@ export default function SectionCablePage() {
     <CalculatorPageShell
       title="Section de câble"
       description="Dimensionnez vos câbles 12V/24V selon l'intensité, la longueur et la chute de tension admissible."
-      relatedTool={{ href: "/outils/awg", label: "Convertir en AWG" }}
+      relatedTools={[{ href: "/outils/awg", label: "Convertir en AWG" }]}
     >
       <SectionCableCalculator />
     </CalculatorPageShell>

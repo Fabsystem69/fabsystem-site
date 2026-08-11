@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
 import { DashboardNav } from "@/components/customer/dashboard/DashboardNav";
@@ -22,7 +23,13 @@ export default async function MonCompteLayout({ children }: { children: ReactNod
     <main className="bg-white text-neutral-900">
       <div className="border-b border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-6xl px-6 py-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+          <Link
+            href="/"
+            className="text-xs font-medium text-neutral-500 underline underline-offset-4 hover:text-neutral-900"
+          >
+            ← Retour au site
+          </Link>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
             Espace client FabSystem
           </p>
           <p className="mt-1 text-sm text-neutral-600">{session.customer.email}</p>

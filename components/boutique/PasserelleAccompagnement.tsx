@@ -17,7 +17,7 @@ export function PasserelleAccompagnement() {
         <p className="mt-3 text-sm leading-relaxed text-neutral-300 sm:text-base">
           Vous pouvez commencer avec votre guide et avancer à votre rythme. Si vous avez besoin
           d&apos;un regard extérieur, de valider vos choix ou d&apos;être accompagné dans votre
-          projet, FabSystem peut prendre le relais avec vous.
+          projet, Fabien peut prendre le relais avec vous.
         </p>
 
         <p className="mt-4 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-medium text-white">

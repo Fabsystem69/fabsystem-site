@@ -17,7 +17,7 @@ type BalanceOutput = {
 // batterie, alternateur, solaire, chargeur). État logiciel — pas une
 // recommandation de Fabien, pas un score inventé.
 export function EnergyBalanceModule({ projectId }: { projectId: string }) {
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "energyBalance.global"
   );
@@ -29,6 +29,10 @@ export function EnergyBalanceModule({ projectId }: { projectId: string }) {
       <p className="mt-1 text-sm text-neutral-600">
         Compare vos besoins journaliers aux sources de recharge déjà retenues (énergie, batterie,
         alternateur, solaire, chargeur).
+      </p>
+      <p className="mt-2 text-sm font-medium text-neutral-700">
+        Ce bilan utilise automatiquement les informations déjà retenues dans votre projet — aucune
+        saisie n&apos;est nécessaire ici.
       </p>
 
       {result ? (
@@ -52,6 +56,7 @@ export function EnergyBalanceModule({ projectId }: { projectId: string }) {
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run({}, false)}
         onRetain={() => run({}, true)}
       />

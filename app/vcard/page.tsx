@@ -97,7 +97,7 @@ const contactRows: ContactRow[] = [
 
 const domains = [
   "Diagnostic",
-  "Formation",
+  "Les Bases",
   "Bateaux",
   "Vans",
   "Camping-cars",
@@ -112,7 +112,7 @@ const trustPills = [
 const links = [
   { label: "Réalisations", href: "/realisations" },
   { label: "Page contact", href: "/contact" },
-  { label: "Prestations", href: "/prestations" },
+  { label: "Services", href: "/prestations" },
 ];
 
 export const metadata: Metadata = {

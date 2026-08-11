@@ -24,8 +24,8 @@ export default function ConfidentialitePage() {
           </h2>
           <p className="mt-2">
             Les données personnelles collectées sur le site FabSystem sont celles
-            que l’utilisateur choisit de transmettre volontairement via les formulaires
-            de contact ou de demande de visio.
+            que l’utilisateur choisit de transmettre volontairement via le formulaire
+            de contact ou lors d’un achat dans la boutique.
           </p>
           <p className="mt-2">
             Les données susceptibles d’être collectées sont notamment :

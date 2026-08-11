@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/commande/merci",
   },
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";

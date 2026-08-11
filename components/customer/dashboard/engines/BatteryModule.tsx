@@ -35,7 +35,7 @@ export function BatteryModule({
   const [maxDepthOfDischarge, setMaxDepthOfDischarge] = useState("50");
   const [desiredAutonomyDays, setDesiredAutonomyDays] = useState("2");
   const [systemVoltageV, setSystemVoltageV] = useState(defaultVoltageV ? String(defaultVoltageV) : "12");
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "battery.sizing"
   );
@@ -116,6 +116,7 @@ export function BatteryModule({
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />

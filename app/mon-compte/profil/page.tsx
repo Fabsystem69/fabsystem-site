@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Mon profil",
   description: "Vos informations de compte FabSystem.",
   alternates: { canonical: "/mon-compte/profil" },
+  robots: { index: false, follow: false },
 };
 
 // Espace client V2 (UI-8) — Mon profil. Affichage en lecture seule des

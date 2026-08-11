@@ -114,7 +114,7 @@ export default function SectionCableCalculator() {
               const sMinNum = parseFloat(result.sMin);
               if (result.section < 1.5) return (
                 <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs font-semibold text-red-700">
-                  ⚠️ Section inférieure à 1,5 mm² — minimum recommandé en marine (norme ABYC E-11)
+                  Section inférieure à 1,5 mm² — minimum recommandé en marine (norme ABYC E-11)
                 </div>
               );
               if (result.section < sMinNum * 1.5) return (
@@ -130,7 +130,7 @@ export default function SectionCableCalculator() {
             })()}
             {result.intensite > 100 && (
               <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs font-semibold text-red-700">
-                ⚠️ Intensité &gt; 100 A — prévoyez un câble direct sur batterie avec fusible ANL.
+                Intensité &gt; 100 A — prévoyez un câble direct sur batterie avec fusible ANL.
               </div>
             )}
             <p className="mt-4 text-xs text-neutral-500">

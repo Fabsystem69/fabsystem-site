@@ -19,7 +19,7 @@ export function AlternatorModule({ projectId }: { projectId: string }) {
   const [availableCurrentA, setAvailableCurrentA] = useState("60");
   const [referenceRpm, setReferenceRpm] = useState("2000");
   const [rollingDurationHours, setRollingDurationHours] = useState("2");
-  const { output, warnings, error, pending, justRetained, run } = useEngineRun(
+  const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "alternator.charging"
   );
@@ -75,6 +75,7 @@ export function AlternatorModule({ projectId }: { projectId: string }) {
         justRetained={justRetained}
         error={error}
         warnings={warnings}
+        notices={notices}
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />

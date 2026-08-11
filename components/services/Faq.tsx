@@ -10,11 +10,11 @@ import { Section } from "@/components/layout/Section";
 const FAQS = [
   {
     q: "Est-ce que FabSystem réalise aussi les travaux ?",
-    a: "Oui. FabSystem intervient directement sur les installations électriques de bateaux, vans et camping-cars : diagnostic, dépannage, installation, modification ou refit selon le projet. Les ebooks, outils et accompagnements à distance complètent cette activité terrain. Ils ne constituent pas l'unique activité de FabSystem.",
+    a: "Oui. Fabien intervient directement sur les installations électriques de bateaux, vans et camping-cars : diagnostic, dépannage, installation, modification ou refit selon le projet. Les ebooks, outils et accompagnements à distance complètent cette activité terrain. Ils ne constituent pas l'unique activité de FabSystem.",
   },
   {
     q: "Je veux faire mon installation moi-même : pouvez-vous simplement m'accompagner ?",
-    a: "Oui. Le parcours On fait ensemble est conçu pour cela. Vous restez celui qui réalise. Selon l'accompagnement choisi, FabSystem peut vous aider à faire le point sur le projet, concevoir l'installation, vérifier les étapes importantes, répondre aux blocages et documenter l'installation finale.",
+    a: "Oui. Le parcours On fait ensemble est conçu pour cela. Vous restez celui qui réalise. Selon l'accompagnement choisi, Fabien peut vous aider à faire le point sur le projet, concevoir l'installation, vérifier les étapes importantes, répondre aux blocages et documenter l'installation finale.",
   },
   {
     q: "Je ne sais pas quelle formule choisir.",
@@ -30,15 +30,15 @@ const FAQS = [
   },
   {
     q: "Faut-il obligatoirement passer par un accompagnement avant une intervention sur place ?",
-    a: "Non. Les accompagnements à distance et les prestations terrain sont deux façons différentes de travailler avec FabSystem. Si vous souhaitez faire poser un équipement, résoudre une panne ou confier un projet complet, vous pouvez contacter directement FabSystem. Amarrage, Départ et Étape ne sont jamais un ticket d'entrée obligatoire pour une intervention terrain.",
+    a: "Non. Les accompagnements à distance et les prestations terrain sont deux façons différentes de travailler avec FabSystem. Si vous souhaitez faire poser un équipement, résoudre une panne ou confier un projet complet, vous pouvez contacter directement Fabien. Amarrage, Départ et Étape ne sont jamais un ticket d'entrée obligatoire pour une intervention terrain.",
   },
   {
     q: "Intervenez-vous partout en France ?",
-    a: "Les accompagnements à distance peuvent être proposés en France sans dépendre de la localisation du projet. Pour les interventions physiques, FabSystem intervient principalement dans le Rhône et les secteurs environnants. Pour un projet situé plus loin, contactez FabSystem : certaines interventions peuvent être étudiées au cas par cas.",
+    a: "Les accompagnements à distance peuvent être proposés en France sans dépendre de la localisation du projet. Pour les interventions physiques, Fabien intervient principalement dans le Rhône et les secteurs environnants. Pour un projet situé plus loin, contactez Fabien : certaines interventions peuvent être étudiées au cas par cas.",
   },
   {
     q: "Travaillez-vous sur une installation déjà existante ?",
-    a: "Oui. FabSystem intervient aussi bien sur des projets neufs que sur des installations existantes. Selon le besoin, cela peut concerner : diagnostic, correction, fiabilisation, évolution, ajout d'équipements, solaire, lithium, recharge, refit partiel ou complet. C'est particulièrement fréquent sur les bateaux et camping-cars, mais également possible sur les vans déjà aménagés.",
+    a: "Oui. Fabien intervient aussi bien sur des projets neufs que sur des installations existantes. Selon le besoin, cela peut concerner : diagnostic, correction, fiabilisation, évolution, ajout d'équipements, solaire, lithium, recharge, refit partiel ou complet. C'est particulièrement fréquent sur les bateaux et camping-cars, mais également possible sur les vans déjà aménagés.",
   },
   {
     q: "Pouvez-vous me dire combien coûtera mon installation ?",

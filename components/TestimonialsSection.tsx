@@ -10,7 +10,7 @@ const customerTypeLabels: Record<string, string> = {
 function Stars({ rating }: { rating: number }) {
   const safeRating = Math.min(5, Math.max(0, rating));
   return (
-    <div className="flex gap-0.5 text-yellow-400" aria-label={`${safeRating} sur 5`}>
+    <div className="flex gap-0.5 text-brand-700" aria-label={`${safeRating} sur 5`}>
       {"★".repeat(safeRating)}
       {"☆".repeat(5 - safeRating)}
     </div>
