@@ -156,3 +156,16 @@ export function findPrestationsPackIncludingEbook(
     (definition) => definition.grantsEbookSlug === ebookSlug
   );
 }
+
+// UI-5 (Boutique/02-UNIVERS.md §17) : l'univers d'un produit ne doit jamais
+// être déduit d'un titre, d'une couverture ou d'un mot-clé codé dans un
+// composant. Product n'a pas de champ univers en base — plutôt que d'en
+// inventer un, on réutilise en sens inverse EBOOK_SLUG_BY_CATEGORIE : la
+// seule correspondance produit→univers déjà réelle et déjà utilisée en
+// production (octroi d'ebook à l'achat d'un pack). Un produit qui n'y
+// figure pas retourne undefined et n'est simplement rattaché à aucun
+// univers (jamais classé à tort) — cette fonction ne couvre donc que les
+// deux ebooks déjà connus, pas un mécanisme générique.
+export function getUniversForEbookSlug(slug: string): PrestationsCategorie | undefined {
+  return PRESTATIONS_CATEGORIES.find((categorie) => EBOOK_SLUG_BY_CATEGORIE[categorie] === slug);
+}
