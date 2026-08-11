@@ -25,6 +25,32 @@ module.exports = {
       letterSpacing: {
         tightest: "-0.03em",
       },
+      // Tokens complémentaires (UI-1, MASTER-12 §140-141) : nomment
+      // sémantiquement des valeurs déjà utilisées dans le code plutôt que
+      // d'introduire de nouvelles valeurs brutes. N'étend pas l'échelle
+      // spacing/radius par défaut de Tailwind, qui couvre déjà la majorité
+      // des usages observés (py-10/12/14/16, rounded-xl/2xl).
+      borderRadius: {
+        // Alias stable pour les composants "carte" (Card, AdminCard) :
+        // même valeur que `rounded-2xl`, mais un seul nom à faire évoluer
+        // si le rayon de marque change un jour.
+        card: "1rem",
+      },
+      boxShadow: {
+        // Centralise les deux ombres jusqu'ici codées en valeur arbitraire
+        // (`shadow-[0_10px_30px_-26px_rgba(10,10,10,0.25)]` et
+        // `shadow-[0_20px_60px_-32px_rgba(10,10,10,0.35)]`), conformément à
+        // MASTER-12 §20 (ombres discrètes, séparation légère / profondeur
+        // ponctuelle).
+        card: "0 10px 30px -26px rgba(10, 10, 10, 0.25)",
+        elevated: "0 20px 60px -32px rgba(10, 10, 10, 0.35)",
+      },
+      spacing: {
+        // Rythme vertical de section publique déjà observé (py-20) mais
+        // jamais nommé : disponible pour les futures sections Home/Services
+        // sans introduire de nouvelle valeur brute.
+        section: "5rem",
+      },
     },
   },
   plugins: [],

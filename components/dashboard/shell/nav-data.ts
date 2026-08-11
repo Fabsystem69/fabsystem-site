@@ -10,7 +10,7 @@ import {
   ProductsIcon,
   QuotesIcon,
   TestimonialsIcon,
-} from "@/components/dashboard-preview/icons";
+} from "@/components/dashboard/shell/icons";
 
 export type NavIcon = ComponentType<SVGProps<SVGSVGElement>>;
 

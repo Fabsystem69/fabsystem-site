@@ -7,12 +7,17 @@ import { useEffect, useRef, useState } from "react";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 import { useCartDrawer } from "@/lib/client/cart-drawer-context";
 
+// Navigation principale conforme à docs/refonte-site-public/00-CAHIER-DES-CHARGES-GLOBAL.md
+// §12 : Accueil / Services / Boutique / Les bases / Outils. Contact, Mon
+// compte et Panier restent des fonctions secondaires (actions icône,
+// ci-dessous). À propos sort du menu principal mais reste accessible
+// depuis le Footer.
 const nav = [
   { href: "/", label: "Accueil" },
-  { href: "/boutique", label: "Boutique" },
   { href: "/prestations", label: "Services" },
-  { href: "/formations", label: "Autodidacte" },
-  { href: "/a-propos", label: "À propos" },
+  { href: "/boutique", label: "Boutique" },
+  { href: "/formations", label: "Les bases" },
+  { href: "/outils", label: "Outils" },
 ];
 
 const ICON_LINK_CLASS =

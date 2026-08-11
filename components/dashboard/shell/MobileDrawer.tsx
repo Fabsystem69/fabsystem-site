@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NAV_GROUPS, resolveActiveNavHref } from "@/components/dashboard/shell/nav-data";
-import { CloseIcon, LogoutIcon, MenuIcon } from "@/components/dashboard-preview/icons";
+import { CloseIcon, LogoutIcon, MenuIcon } from "@/components/dashboard/shell/icons";
 
 export function MobileMenuButton({ onOpen }: { onOpen: () => void }) {
   return (

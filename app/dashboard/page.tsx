@@ -16,7 +16,7 @@ import {
   FilesIcon,
   OrdersIcon,
   ProductsIcon,
-} from "@/components/dashboard-preview/icons";
+} from "@/components/dashboard/shell/icons";
 
 // ---------------------------------------------------------------------------
 // Page d'accueil admin (lot d'integration du nouveau dashboard). Uniquement

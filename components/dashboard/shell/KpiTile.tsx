@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { TrendDownIcon, TrendUpIcon } from "@/components/dashboard-preview/icons";
+import { TrendDownIcon, TrendUpIcon } from "@/components/dashboard/shell/icons";
 
 export type KpiTrend = {
   direction: "up" | "down";

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NAV_GROUPS, resolveActiveNavHref } from "@/components/dashboard/shell/nav-data";
-import { ChevronLeftIcon, LogoutIcon } from "@/components/dashboard-preview/icons";
+import { ChevronLeftIcon, LogoutIcon } from "@/components/dashboard/shell/icons";
 
 const COLLAPSE_STORAGE_KEY = "fabsystem-dashboard-sidebar-collapsed";
 
