@@ -17,7 +17,7 @@ const STEPS = [
     text: "Je veux comprendre, préparer et réaliser moi-même.",
     ctas: [
       { label: "Outils gratuits", href: "/outils" },
-      { label: "Apprendre", href: "/formations" },
+      { label: "Les bases", href: "/formations" },
     ],
   },
   {

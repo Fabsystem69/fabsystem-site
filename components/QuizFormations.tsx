@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 interface Question {
@@ -113,12 +113,76 @@ const questions: Question[] = [
 
 type QuizState = "idle" | "running" | "finished";
 
+// Persistance locale du résultat réel (docs/refonte-site-public/les-bases/
+// 02-QUIZ.md §10 : une persistance locale peut être utilisée pour un
+// visiteur non connecté ; jamais de compte, de synchronisation serveur ou
+// de progression inventée). Stocke uniquement les réponses réellement
+// données, pour pouvoir réafficher le vrai score sans le recalculer.
+const QUIZ_STORAGE_KEY = "fabsystem-les-bases-quiz-result";
+
+type StoredQuizResult = { answers: (number | null)[] };
+
+function readStoredResult(): StoredQuizResult | null {
+  try {
+    const raw = window.localStorage.getItem(QUIZ_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as StoredQuizResult;
+    if (!Array.isArray(parsed.answers) || parsed.answers.length !== questions.length) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredResult(answers: (number | null)[]) {
+  try {
+    window.localStorage.setItem(QUIZ_STORAGE_KEY, JSON.stringify({ answers }));
+  } catch {
+    // Stockage indisponible (navigation privée, quota…) : le quiz reste
+    // utilisable, seule la reprise au prochain chargement est perdue.
+  }
+}
+
+function clearStoredResult() {
+  try {
+    window.localStorage.removeItem(QUIZ_STORAGE_KEY);
+  } catch {
+    // Rien à faire si le stockage est indisponible.
+  }
+}
+
+// Même seuil que celui déjà utilisé plus bas dans ce composant pour décider
+// d'afficher "Revoir les modules →" : un résultat >= 80 % est considéré
+// satisfaisant (le bloc peut devenir compact) ; en dessous, le résultat
+// reste pleinement affiché conformément à 02-QUIZ.md §8.
+const SATISFACTORY_THRESHOLD_PCT = 80;
+
 export default function QuizFormations() {
   const [state, setState] = useState<QuizState>("idle");
   const [currentQ, setCurrentQ] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(questions.length).fill(null));
   const [showExplanation, setShowExplanation] = useState(false);
+  // "compact" = résultat satisfaisant déjà obtenu lors d'une visite
+  // précédente : le bloc se réduit (02-QUIZ.md §9) tant que le visiteur n'a
+  // pas cliqué sur "Voir le résultat".
+  const [viewMode, setViewMode] = useState<"full" | "compact">("full");
+
+  // Hydratation après montage uniquement (localStorage indisponible côté
+  // serveur) : évite tout mismatch de rendu SSR/client.
+  useEffect(() => {
+    const stored = readStoredResult();
+    if (!stored) return;
+
+    setAnswers(stored.answers);
+    setState("finished");
+
+    const restoredScore = stored.answers.filter((a, i) => a === questions[i].correct).length;
+    const restoredPct = Math.round((restoredScore / questions.length) * 100);
+    setViewMode(restoredPct >= SATISFACTORY_THRESHOLD_PCT ? "compact" : "full");
+  }, []);
 
   const q = questions[currentQ];
   const isLast = currentQ === questions.length - 1;
@@ -135,6 +199,9 @@ export default function QuizFormations() {
 
   const handleNext = () => {
     if (isLast) {
+      writeStoredResult(answers);
+      const finalPct = Math.round((score / questions.length) * 100);
+      setViewMode(finalPct >= SATISFACTORY_THRESHOLD_PCT ? "compact" : "full");
       setState("finished");
     } else {
       setCurrentQ((c) => c + 1);
@@ -144,11 +211,13 @@ export default function QuizFormations() {
   };
 
   const handleReset = () => {
+    clearStoredResult();
     setState("idle");
     setCurrentQ(0);
     setSelected(null);
     setAnswers(Array(questions.length).fill(null));
     setShowExplanation(false);
+    setViewMode("full");
   };
 
   const pct = Math.round((score / questions.length) * 100);
@@ -194,6 +263,33 @@ export default function QuizFormations() {
         >
           Commencer le quiz →
         </button>
+      </div>
+    );
+  }
+
+  if (state === "finished" && viewMode === "compact") {
+    return (
+      <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-neutral-900">
+            <span className="text-green-600" aria-hidden="true">✓</span> Quiz terminé — {score}/{questions.length}{" "}
+            ({pct}%)
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode("full")}
+              className="inline-flex items-center justify-center rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-50"
+            >
+              Voir le résultat
+            </button>
+            <button
+              onClick={handleReset}
+              className="inline-flex items-center justify-center rounded-md border border-neutral-300 px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-50"
+            >
+              Refaire le quiz
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
