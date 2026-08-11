@@ -4,14 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Container } from "@/components/layout/Container";
 import { CART_CHANGED_EVENT } from "@/lib/cart-events";
 import { useCartDrawer } from "@/lib/client/cart-drawer-context";
 
-// Navigation principale conforme à docs/refonte-site-public/00-CAHIER-DES-CHARGES-GLOBAL.md
-// §12 : Accueil / Services / Boutique / Les bases / Outils. Contact, Mon
-// compte et Panier restent des fonctions secondaires (actions icône,
-// ci-dessous). À propos sort du menu principal mais reste accessible
-// depuis le Footer.
+// Header public définitif (UI-2), conforme à
+// docs/refonte-site-public/home/01-HEADER-HERO.md §2 : LOGO | NAVIGATION
+// PRINCIPALE | CONTACT · COMPTE · PANIER sur desktop, LOGO | PANIER | BURGER
+// sur mobile. Navigation principale conforme à
+// docs/refonte-site-public/00-CAHIER-DES-CHARGES-GLOBAL.md §12.
 const nav = [
   { href: "/", label: "Accueil" },
   { href: "/prestations", label: "Services" },
@@ -21,7 +22,7 @@ const nav = [
 ];
 
 const ICON_LINK_CLASS =
-  "relative inline-flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900";
+  "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900";
 
 function AccountIcon() {
   return (
@@ -55,7 +56,7 @@ function CartIcon() {
 
 function ContactIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <rect x="3.5" y="5.5" width="17" height="13" rx="2" stroke="currentColor" strokeWidth="1.8" />
       <path
         d="M4.5 7l7.5 6 7.5-6"
@@ -64,6 +65,22 @@ function ContactIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -87,6 +104,8 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const drawerRef = useRef<HTMLDivElement | null>(null);
+  const burgerButtonRef = useRef<HTMLButtonElement | null>(null);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +135,13 @@ export default function Navbar() {
     };
   }, [pathname]);
 
+  // Ferme le menu à chaque changement de route (ex. clic sur un lien géré
+  // par le routeur, retour navigateur) — évite un menu ouvert qui persiste
+  // au-dessus d'une nouvelle page.
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     if (open && drawerRef.current) {
@@ -143,9 +169,21 @@ export default function Navbar() {
       document.addEventListener("keydown", handleKey);
       return () => document.removeEventListener("keydown", handleKey);
     }
+
+    // Fermeture : le focus revient sur le bouton burger, jamais perdu sur
+    // <body> (MASTER-12 §21/§88 : ordre de tabulation logique, focus
+    // toujours visible et maîtrisé). Ne s'applique qu'après une véritable
+    // fermeture (wasOpenRef), jamais au montage initial de la page —
+    // sinon le burger volerait le focus dès le chargement.
+    if (!open && wasOpenRef.current) {
+      burgerButtonRef.current?.focus();
+    }
+    wasOpenRef.current = open;
+
     return () => {
       document.body.style.overflow = "";
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const isActive = (href: string) => {
@@ -154,15 +192,15 @@ export default function Navbar() {
   };
 
   const cartAriaLabel = cartCount > 0 ? `Panier, ${cartCount} article(s)` : "Panier";
-  const mobileCartLabel = cartCount > 0 ? `Panier (${cartCount})` : "Panier";
 
   return (
     <>
       <header
         role="navigation"
+        aria-label="Navigation principale"
         className="sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur-md"
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-2.5 sm:py-3">
+        <Container className="flex items-center justify-between py-2.5 sm:py-3">
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <span className="relative block h-9 w-[180px] overflow-hidden">
@@ -178,24 +216,38 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 text-sm font-medium sm:flex">
-            {nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`rounded-md px-3 py-1.5 transition-colors duration-150 ${
-                  isActive(item.href)
-                    ? "bg-neutral-100 text-neutral-950 font-semibold"
-                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="hidden items-center gap-1 text-sm font-medium sm:flex" aria-label="Rubriques principales">
+            {nav.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`relative rounded-md px-3 py-1.5 transition-colors duration-150 after:absolute after:inset-x-3 after:-bottom-[calc(0.375rem+1px)] after:h-0.5 after:rounded-full after:transition-colors after:duration-150 ${
+                    active
+                      ? "font-semibold text-neutral-950 after:bg-brand-400"
+                      : "text-neutral-600 after:bg-transparent hover:bg-neutral-50 hover:text-neutral-900"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
-          {/* Desktop actions */}
+          {/* Desktop actions — Contact · Compte · Panier (fonctions
+              secondaires, ordre conforme à 01-HEADER-HERO.md §2). Contact
+              reste explicite (texte visible), jamais réduit à une icône
+              seule. */}
           <div className="hidden items-center gap-1 sm:flex">
+            <Link
+              href="/contact"
+              className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+            >
+              <ContactIcon />
+              Contact
+            </Link>
             <Link href="/mon-compte" aria-label="Mon compte" className={ICON_LINK_CLASS}>
               <AccountIcon />
             </Link>
@@ -208,43 +260,56 @@ export default function Navbar() {
               <CartIcon />
               <CartBadge count={cartCount} />
             </button>
-            <Link href="/contact" aria-label="Contact" className={ICON_LINK_CLASS}>
-              <ContactIcon />
-            </Link>
           </div>
 
-          {/* Burger */}
-          <button
-            type="button"
-            aria-label="Ouvrir le menu"
-            className="rounded-md p-1.5 text-neutral-900 sm:hidden"
-            onClick={() => setOpen(true)}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4 7h16M4 12h16M4 17h16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
-        </div>
+          {/* Mobile actions — LOGO | PANIER | BURGER (01-HEADER-HERO.md §8) :
+              le Panier reste accessible directement, le Compte est renvoyé
+              dans le menu. */}
+          <div className="flex items-center gap-0.5 sm:hidden">
+            <button
+              type="button"
+              aria-label={cartAriaLabel}
+              className={ICON_LINK_CLASS}
+              onClick={openCartDrawer}
+            >
+              <CartIcon />
+              <CartBadge count={cartCount} />
+            </button>
+            <button
+              ref={burgerButtonRef}
+              type="button"
+              aria-label="Ouvrir le menu"
+              aria-expanded={open}
+              aria-controls="mobile-menu"
+              className="rounded-md p-1.5 text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+              onClick={() => setOpen(true)}
+            >
+              <MenuIcon />
+            </button>
+          </div>
+        </Container>
       </header>
 
       {/* Mobile drawer */}
       {open && (
-        <div ref={drawerRef} id="mobile-menu" className="fixed inset-0 z-[999] sm:hidden">
+        <div
+          ref={drawerRef}
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+          className="fixed inset-0 z-[999] sm:hidden"
+        >
           {/* overlay */}
           <button
             aria-label="Fermer le menu"
             className="fixed inset-0 bg-black/55"
             onClick={() => setOpen(false)}
-            aria-hidden="true"
+            tabIndex={-1}
           />
 
           {/* panel */}
-          <div className="fixed right-0 top-0 flex h-full w-[85%] max-w-sm flex-col bg-white p-6 shadow-xl">
+          <div className="fixed right-0 top-0 flex h-full w-[85%] max-w-sm flex-col overflow-y-auto bg-white p-6 shadow-elevated">
             <div className="flex items-center justify-between">
               <span className="relative block h-9 w-[160px] overflow-hidden">
                 <Image
@@ -258,49 +323,43 @@ export default function Navbar() {
               <button
                 type="button"
                 aria-label="Fermer le menu"
-                className="rounded-md p-1.5 text-neutral-900"
+                className="rounded-md p-1.5 text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                 onClick={() => setOpen(false)}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 6l12 12M18 6L6 18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                <CloseIcon />
               </button>
             </div>
 
-            <nav className="mt-6 flex flex-col gap-1 text-base font-medium text-neutral-900">
-              {[
-                ...nav,
-                { href: "/mon-compte", label: "Mon compte" },
-                { href: "/contact", label: "Contact" },
-              ].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`rounded-lg px-3 py-3 transition-colors duration-150 ${
-                    isActive(item.href)
-                      ? "bg-neutral-100 font-semibold text-neutral-950"
-                      : "hover:bg-neutral-50"
-                  }`}
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              <button
-                type="button"
-                className="rounded-lg px-3 py-3 text-left transition-colors duration-150 hover:bg-neutral-50"
-                onClick={() => {
-                  setOpen(false);
-                  openCartDrawer();
-                }}
-              >
-                {mobileCartLabel}
-              </button>
+            {/* Rubriques principales */}
+            <nav className="mt-6 flex flex-col gap-1 text-base font-medium text-neutral-900" aria-label="Rubriques principales">
+              {nav.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`rounded-lg px-3 py-3 transition-colors duration-150 ${
+                      active ? "bg-neutral-100 font-semibold text-neutral-950" : "hover:bg-neutral-50"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Zone secondaire, visuellement distincte (01-HEADER-HERO.md §9) */}
+            <nav
+              className="mt-4 flex flex-col gap-1 border-t border-neutral-200 pt-4 text-sm font-medium text-neutral-700"
+              aria-label="Liens secondaires"
+            >
+              <Link href="/contact" className="rounded-lg px-3 py-3 transition-colors duration-150 hover:bg-neutral-50">
+                Contact
+              </Link>
+              <Link href="/mon-compte" className="rounded-lg px-3 py-3 transition-colors duration-150 hover:bg-neutral-50">
+                Mon compte
+              </Link>
             </nav>
           </div>
         </div>

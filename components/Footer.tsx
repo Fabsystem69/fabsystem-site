@@ -1,100 +1,142 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { Container } from "@/components/layout/Container";
 import TrackedLink from "@/components/TrackedLink";
-import RevealPhone from "@/components/RevealPhone";
+
+// Footer public définitif (UI-2), conforme à
+// docs/refonte-site-public/home/11-FOOTER.md : fond sombre et sobre, quatre
+// zones desktop (marque / Explorer / FabSystem / Informations), ligne basse
+// avec copyright et réseaux sociaux officiels uniquement. Aucun nouveau CTA
+// commercial, aucune newsletter, aucun Volta (règles anti-dérive §22).
+
+// "Explorer" reprend les quatre piliers publics validés
+// (00-CAHIER-DES-CHARGES-GLOBAL.md §12) — le CDC Footer utilise encore le
+// libellé de travail "Apprendre" pour cette rubrique ; "Les bases" est repris
+// ici pour rester cohérent avec le Header et MASTER-12 §134 (un même concept
+// utilise toujours le même nom). Voir UI-2-LAYOUT-PUBLIC.md, Arbitrages.
+const EXPLORE_LINKS = [
+  { href: "/prestations", label: "Services" },
+  { href: "/outils", label: "Outils" },
+  { href: "/formations", label: "Les bases" },
+  { href: "/boutique", label: "Boutique" },
+];
+
+const COMPANY_LINKS = [
+  { href: "/a-propos", label: "À propos" },
+  { href: "/contact", label: "Contact" },
+  { href: "/mon-compte", label: "Mon compte" },
+];
+
+// Uniquement des pages légales réellement présentes sur le site (CDC §19 :
+// "ne pas inventer de page légale vide") — pas de CGV, la page n'existe pas.
+const LEGAL_LINKS = [
+  { href: "/mentions-legales", label: "Mentions légales" },
+  { href: "/confidentialite", label: "Politique de confidentialité" },
+];
+
+// Profils officiellement déclarés dans les données structurées de
+// app/layout.tsx (schema.org `sameAs`) — jamais inventés (CDC §14).
+const SOCIAL_LINKS = [
+  {
+    href: "https://www.facebook.com/fabsystem",
+    label: "FabSystem sur Facebook",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path
+          d="M15 8.5h2V5.2c-.35-.05-1.53-.15-2.9-.15-2.87 0-4.83 1.8-4.83 5.12v2.73H6.4v3.7h2.87V21h3.7v-8.4h2.76l.44-3.7h-3.2V10.6c0-1.07.3-1.8 1.83-1.8Z"
+          fill="currentColor"
+        />
+      </svg>
+    ),
+  },
+  {
+    href: "https://www.instagram.com/fabsystem",
+    label: "FabSystem sur Instagram",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="4" y="4" width="16" height="16" rx="4.5" stroke="currentColor" strokeWidth="1.7" />
+        <circle cx="12" cy="12" r="3.6" stroke="currentColor" strokeWidth="1.7" />
+        <circle cx="16.6" cy="7.4" r="1" fill="currentColor" />
+      </svg>
+    ),
+  },
+];
+
+function FooterLinkGroup({ title, links }: { title: string; links: { href: string; label: string }[] }) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <ul className="mt-4 space-y-2.5 text-sm text-neutral-400">
+        {links.map((link) => (
+          <li key={link.href}>
+            <Link className="transition-colors duration-150 hover:text-white" href={link.href}>
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-neutral-200 bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid gap-10 sm:grid-cols-3">
-          {/* Bloc 1 */}
+    <footer className="border-t border-neutral-900 bg-neutral-950 text-neutral-300">
+      <Container className="py-section">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Marque — logo officiel sur un fond clair dédié (voir
+              UI-2-LAYOUT-PUBLIC.md, Visuels à produire : aucune variante
+              officielle du logo pour fond sombre n'existe aujourd'hui ; le
+              fichier /FabSystem-Logo.svg n'est ni recoloré ni redessiné). */}
           <div>
-            <Image
-              src="/FabSystem-Logo.svg"
-              alt="FabSystem"
-              width={160}
-              height={48}
-              className="h-12 w-auto max-w-[160px]"
-            />
-            <p className="mt-4 text-sm text-neutral-600">
-              Électricité et systèmes embarqués pour bateaux, vans et camping-cars.
+            <span className="inline-flex items-center rounded-lg bg-white px-3 py-2">
+              <Image src="/FabSystem-Logo.svg" alt="FabSystem" width={140} height={66} className="h-8 w-auto" />
+            </span>
+            <p className="mt-4 text-sm leading-relaxed text-neutral-400">
+              Électricité embarquée pour bateaux, vans et camping-cars.
             </p>
-          </div>
-
-          {/* Bloc 2 */}
-          <div>
-            <h3 className="text-sm font-semibold text-neutral-900">Navigation</h3>
-            <ul className="mt-4 space-y-2 text-sm text-neutral-600">
-              <li><Link className="hover:text-neutral-900" href="/">Accueil</Link></li>
-              <li><Link className="hover:text-neutral-900" href="/prestations">Prestations</Link></li>
-              <li><Link className="hover:text-neutral-900" href="/realisations">Réalisations</Link></li>
-              <li><Link className="hover:text-neutral-900" href="/prestations#accompagnement-distance">Accompagnement à distance</Link></li>
-              <li><Link className="hover:text-neutral-900" href="/a-propos">À propos</Link></li>
-              <li><Link className="hover:text-neutral-900" href="/contact">Contact</Link></li>
-            </ul>
-          </div>
-
-          {/* Bloc 3 */}
-          <div>
-            <h3 className="text-sm font-semibold text-neutral-900">Contact</h3>
             <TrackedLink
               href="mailto:contact@fabsystem.fr"
               event="click_email"
-              className="mt-3 block text-sm font-medium text-neutral-900 hover:text-neutral-700"
+              className="mt-3 inline-block text-sm text-neutral-400 transition-colors duration-150 hover:text-white"
             >
               contact@fabsystem.fr
             </TrackedLink>
-            <RevealPhone className="mt-1 block text-left text-sm font-medium text-neutral-500 underline underline-offset-4 hover:text-neutral-700" />
-
-            <div className="mt-4 grid gap-2">
-              {/* CTA 1 : email en priorité */}
-              <TrackedLink
-                href="mailto:contact@fabsystem.fr?subject=Demande%20d%27information%20FabSystem"
-                event="click_email"
-                className="inline-flex w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800"
-              >
-                Écrire un message
-              </TrackedLink>
-              <RevealPhone
-                hiddenLabel="Voir le numéro de téléphone"
-                className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-100"
-              />
-
-              {/* CTA 2 */}
-              <Link
-                href="/contact"
-                className="inline-flex w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-100"
-              >
-                Demander un diagnostic
-              </Link>
-            </div>
-
-            <p className="mt-3 text-xs text-neutral-500">
-              Accompagnement à distance : voir les paliers sur la page Services.
-            </p>
           </div>
+
+          <FooterLinkGroup title="Explorer" links={EXPLORE_LINKS} />
+          <FooterLinkGroup title="FabSystem" links={COMPANY_LINKS} />
+          <FooterLinkGroup title="Informations" links={LEGAL_LINKS} />
         </div>
 
-        {/* Bas footer */}
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t pt-6 text-xs text-neutral-500 sm:flex-row">
-          <p>© {new Date().getFullYear()} FabSystem — Tous droits réservés</p>
-          <div className="flex items-center gap-4">
-            <Link className="hover:text-neutral-700" href="/mentions-legales">
-              Mentions légales
-            </Link>
-            <Link className="hover:text-neutral-700" href="/confidentialite">
-              Confidentialité
-            </Link>
-            <Link
-              href="/login"
-              className="text-xs text-neutral-400 transition-colors hover:text-neutral-600"
-            >
+        {/* Ligne basse */}
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-neutral-900 pt-6 text-xs text-neutral-500 sm:flex-row">
+          <p>
+            © {year} FabSystem — Tous droits réservés
+            <span className="mx-2 text-neutral-700">·</span>
+            <Link href="/login" className="text-neutral-600 transition-colors duration-150 hover:text-neutral-300">
               Accès interne
             </Link>
+          </p>
+
+          <div className="flex items-center gap-1">
+            {SOCIAL_LINKS.map((social) => (
+              <a
+                key={social.href}
+                href={social.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={social.label}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-neutral-500 transition-colors duration-150 hover:bg-neutral-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400"
+              >
+                {social.icon}
+              </a>
+            ))}
           </div>
         </div>
-      </div>
+      </Container>
     </footer>
   );
 }
