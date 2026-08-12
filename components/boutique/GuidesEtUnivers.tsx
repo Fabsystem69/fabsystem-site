@@ -83,60 +83,62 @@ export function GuidesEtUnivers({ entries }: { entries: BoutiqueGuideEntry[] }) 
   return (
     <Section id="guides-disponibles" tone="muted" className="scroll-mt-24">
       <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
-        Choisissez votre univers
-      </h2>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-        Les besoins ne sont pas les mêmes selon votre installation. Commencez par votre type de
-        projet.
-      </p>
-
-      <div
-        role="tablist"
-        aria-label="Filtrer les guides par univers"
-        className="mt-6 flex flex-wrap gap-2"
-      >
-        {UNIVERS_OPTIONS.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            role="tab"
-            aria-selected={univers === option.id}
-            onClick={() => setUnivers(option.id)}
-            className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 ${
-              univers === option.id
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-300 text-neutral-700 hover:border-neutral-500"
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-
-      {content ? (
-        <div className="mt-6 max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-            {content.accroche}
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-700 sm:text-base">
-            {content.texte}
-          </p>
-          <ul className="mt-3 flex flex-wrap gap-2">
-            {content.reperes.map((repere) => (
-              <li
-                key={repere}
-                className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-600"
-              >
-                {repere}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      <h3 className="mt-10 text-xl font-bold tracking-tight text-neutral-950 sm:text-2xl">
         Les guides disponibles
-      </h3>
+      </h2>
+
+      <div className="mt-6 border-t border-neutral-200 pt-6">
+        <p className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+          Choisissez votre univers
+        </p>
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-neutral-600">
+          Les besoins ne sont pas les mêmes selon votre installation. Commencez par votre type de
+          projet.
+        </p>
+
+        <div
+          role="tablist"
+          aria-label="Filtrer les guides par univers"
+          className="mt-4 flex flex-wrap gap-2"
+        >
+          {UNIVERS_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="tab"
+              aria-selected={univers === option.id}
+              onClick={() => setUnivers(option.id)}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 ${
+                univers === option.id
+                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  : "border-neutral-300 text-neutral-700 hover:border-neutral-500"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        {content ? (
+          <div className="mt-5 max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              {content.accroche}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-700 sm:text-base">
+              {content.texte}
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {content.reperes.map((repere) => (
+                <li
+                  key={repere}
+                  className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-600"
+                >
+                  {repere}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
 
       {filtered.length === 0 && univers !== "camping-car" && univers !== "tous" ? (
         <div className="mt-6 rounded-card border border-neutral-200 bg-white p-6 sm:p-8">
