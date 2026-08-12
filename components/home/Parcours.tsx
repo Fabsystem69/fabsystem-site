@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
+import { Button } from "@/components/ui/Button";
 
 // Home V2 — Parcours (docs/refonte-site-public/home/03-PARCOURS.md).
 // Exactement trois niveaux, aucun nom commercial de pack. Progression
@@ -15,21 +16,21 @@ const STEPS = [
     title: "Je fais seul",
     text: "Je veux comprendre, préparer et réaliser moi-même.",
     ctas: [
-      { label: "Outils gratuits", href: "/outils" },
-      { label: "Les bases", href: "/formations" },
+      { label: "Outils gratuits", href: "/outils", variant: "tertiary" },
+      { label: "Les bases", href: "/formations", variant: "tertiary" },
     ],
   },
   {
     n: "02",
     title: "On fait ensemble",
     text: "Je réalise mon projet, avec l'aide de Fabien pour concevoir, vérifier et avancer.",
-    ctas: [{ label: "Voir l'accompagnement", href: "/prestations/accompagnement" }],
+    ctas: [{ label: "Découvrir les accompagnements", href: "/prestations/accompagnement", variant: "primary" }],
   },
   {
     n: "03",
     title: "Je confie",
     text: "Je préfère que Fabien intervienne directement sur mon installation.",
-    ctas: [{ label: "Voir les interventions", href: "/prestations/intervention" }],
+    ctas: [{ label: "Découvrir les interventions", href: "/prestations/intervention", variant: "primary" }],
   },
 ] as const;
 
@@ -59,16 +60,22 @@ export function Parcours() {
             <h3 className="mt-2 text-lg font-bold text-neutral-950">{step.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">{step.text}</p>
 
-            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-              {step.ctas.map((cta) => (
-                <Link
-                  key={cta.href + cta.label}
-                  href={cta.href}
-                  className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 transition-colors duration-150 hover:decoration-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
-                >
-                  {cta.label} →
-                </Link>
-              ))}
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+              {step.ctas.map((cta) =>
+                cta.variant === "primary" ? (
+                  <Button key={cta.href + cta.label} href={cta.href} variant="primary">
+                    {cta.label} →
+                  </Button>
+                ) : (
+                  <Link
+                    key={cta.href + cta.label}
+                    href={cta.href}
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 transition-colors duration-150 hover:decoration-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                  >
+                    {cta.label} →
+                  </Link>
+                )
+              )}
             </div>
           </div>
         ))}

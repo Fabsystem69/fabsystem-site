@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { JeConfieUnivers } from "@/components/services/JeConfieUnivers";
@@ -16,12 +15,9 @@ export function JeConfie({ initialCategory }: { initialCategory?: PrestationsCat
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
-        <Link
-          href="/prestations"
-          className="text-sm font-medium text-neutral-600 underline underline-offset-4 hover:text-neutral-900"
-        >
+        <Button href="/prestations" variant="primary">
           ← Services
-        </Link>
+        </Button>
 
         <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-neutral-500">Je confie</p>
         <h1 className="mt-1.5 text-2xl font-bold text-neutral-950 sm:text-3xl">
