@@ -1,22 +1,19 @@
 import { SkeletonLine, SkeletonBlock } from "@/components/ui/Skeleton";
 
-// UI-12 (suite) — Home est en `force-dynamic` : plusieurs sections
-// composées (Boutique, LesBases, Confiance) lisent le catalogue/les
-// témoignages en base à chaque requête (components/home/Boutique.tsx,
-// LesBases.tsx, Confiance.tsx). Sans état de chargement dédié, comme sur
-// /boutique avant UI-10, Next.js n'affiche rien tant que la page n'a pas
-// fini de charger. `page.tsx` vit dans le groupe de routes `(home)`
-// (n'affecte pas l'URL "/") uniquement pour que ce loading.tsx reste
-// scopé à la Home — un loading.tsx à la racine de app/ deviendrait le
-// fallback de toute route sans son propre loading.tsx (comportement en
-// cascade de Next.js), ce qui afficherait ce squelette Home sur des pages
-// sans rapport (À propos, Contact...).
+// UI-12 (suite) — Home est en `force-dynamic` : LesBases et Confiance
+// lisent le catalogue/les témoignages en base à chaque requête
+// (components/home/LesBases.tsx, Confiance.tsx). Sans état de chargement
+// dédié, comme sur /boutique avant UI-10, Next.js n'affiche rien tant que
+// la page n'a pas fini de charger. `page.tsx` vit dans le groupe de
+// routes `(home)` (n'affecte pas l'URL "/") uniquement pour que ce
+// loading.tsx reste scopé à la Home — un loading.tsx à la racine de
+// app/ deviendrait le fallback de toute route sans son propre
+// loading.tsx (comportement en cascade de Next.js), ce qui afficherait
+// ce squelette Home sur des pages sans rapport (À propos, Contact...).
 //
 // Squelette repris sur l'ordre réel des sections (page.tsx) : Hero →
-// Trois univers → Parcours → Outils gratuits → Bases/Boutique (fetch
-// réel) → CTA final. Les sections à fetch réel (LesBases, Boutique,
-// Confiance) partagent un même motif de grille de cartes plutôt que
-// d'avoir chacune un squelette dédié.
+// Trois univers → Parcours → Outils gratuits → Les bases (fetch réel) →
+// CTA final. (Section "Boutique" retirée de la Home — voir page.tsx.)
 function CardGridSkeleton({ cards = 3 }: { cards?: number }) {
   return (
     <div className="mx-auto max-w-6xl animate-pulse px-6 py-8">
@@ -68,10 +65,10 @@ export default function HomeLoading() {
         </div>
       </div>
 
-      {/* Outils gratuits, Les bases, Boutique — même motif de grille,
-          représentant les sections qui lisent réellement le catalogue. */}
+      {/* Outils gratuits, Les bases — même motif de grille, représentant
+          les sections qui lisent réellement le catalogue. */}
       <CardGridSkeleton cards={3} />
-      <CardGridSkeleton cards={2} />
+      <CardGridSkeleton cards={2} /> {/* Les bases : ebook vedette + repères */}
 
       {/* CTA final */}
       <div className="animate-pulse bg-neutral-900 px-6 py-14">

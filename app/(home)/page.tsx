@@ -5,16 +5,16 @@ import { Parcours } from "@/components/home/Parcours";
 import { OutilsGratuits } from "@/components/home/OutilsGratuits";
 import { LesBases } from "@/components/home/LesBases";
 import { Accompagnement } from "@/components/home/Accompagnement";
-import { Boutique } from "@/components/home/Boutique";
 import { Confiance } from "@/components/home/Confiance";
 import { CtaFinal } from "@/components/home/CtaFinal";
 
 // Home V2 (UI-3), conforme à docs/refonte-site-public/home/00-HOME-ARCHITECTURE.md
 // §5 : Header (global, SiteChrome) → Hero → Trois univers → Parcours →
-// Outils gratuits → Les bases → Accompagnement → Boutique → Confiance
-// (conditionnelle) → CTA final → Footer (global). Aucune section
-// supprimée, aucune fusionnée. Catalogue et témoignages lus en base à
-// chaque requête (jamais de rendu figé au build), comme /boutique.
+// Outils gratuits → Les bases → Accompagnement → Confiance (conditionnelle)
+// → CTA final → Footer (global). Section "Boutique" ("Des ressources pour
+// aller plus loin") retirée à la demande explicite de l'utilisateur — la
+// Boutique reste accessible via la nav et via /les-bases. Témoignages lus
+// en base à chaque requête (jamais de rendu figé au build).
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -47,7 +47,6 @@ export default function HomePage() {
       <OutilsGratuits />
       <LesBases />
       <Accompagnement />
-      <Boutique />
       <Confiance />
       <CtaFinal />
     </main>
