@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/public/PageIntro";
-import ServiceAssurance from "@/components/ServiceAssurance";
 
 export const metadata: Metadata = {
   title: "À propos",
@@ -23,9 +22,6 @@ export default function AProposPage() {
         title="FabSystem, spécialiste en électricité embarquée"
         description="Fabien accompagne les propriétaires et les professionnels qui recherchent une installation électrique embarquée plus lisible, plus sûre et plus durable."
       />
-      <div className="mx-auto max-w-6xl px-6 pt-4">
-        <ServiceAssurance />
-      </div>
 
       <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-4 sm:py-5">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -38,13 +37,8 @@ export function ChargerModule({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Chargeur</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Estime la recharge apportée par un chargeur secteur/quai.
-      </p>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm text-neutral-700">
           Puissance nominale (W)
           <input type="number" value={nominalPowerW} onChange={(e) => setNominalPowerW(e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-2 text-sm outline-none focus:border-brand-400" />
@@ -86,6 +80,6 @@ export function ChargerModule({ projectId }: { projectId: string }) {
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

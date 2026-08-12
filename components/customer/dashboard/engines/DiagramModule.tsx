@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -42,23 +41,15 @@ export function DiagramModule({
 
   if (circuits.length === 0) {
     return (
-      <Card className="p-6">
-        <h3 className="text-base font-semibold text-neutral-950">Schéma</h3>
-        <p className="mt-2 text-sm text-neutral-600">
-          Retenez d&apos;abord un circuit, son câble et sa protection pour assembler un schéma.
-        </p>
-      </Card>
+      <p className="text-sm text-neutral-600">
+        Retenez d&apos;abord un circuit, son câble et sa protection pour assembler un schéma.
+      </p>
     );
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Schéma</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Assemble les circuits déjà retenus (circuit, câble, protection) en un modèle de schéma.
-      </p>
-
-      <div className="mt-4 flex flex-wrap gap-2">
+    <>
+      <div className="flex flex-wrap gap-2">
         {circuits.map((circuit) => (
           <label
             key={circuit.id}
@@ -97,6 +88,6 @@ export function DiagramModule({
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

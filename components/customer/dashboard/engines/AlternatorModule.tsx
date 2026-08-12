@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -35,13 +34,8 @@ export function AlternatorModule({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Alternateur</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Estime la recharge apportée par l&apos;alternateur pendant le roulage.
-      </p>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm text-neutral-700">
           Courant nominal alternateur (A)
           <input type="number" value={nominalCurrentA} onChange={(e) => setNominalCurrentA(e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-2 text-sm outline-none focus:border-brand-400" />
@@ -79,6 +73,6 @@ export function AlternatorModule({ projectId }: { projectId: string }) {
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

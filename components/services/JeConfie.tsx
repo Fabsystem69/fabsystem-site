@@ -77,9 +77,6 @@ export function JeConfie({ initialCategory }: { initialCategory?: PrestationsCat
           <Button href="/contact" variant="primary">
             Parler de mon projet
           </Button>
-          <Button href="/realisations" variant="tertiary">
-            Voir mes réalisations →
-          </Button>
         </div>
       </div>
     </div>

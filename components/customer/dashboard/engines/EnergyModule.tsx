@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -53,13 +52,8 @@ export function EnergyModule({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Énergie / consommations</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Listez vos appareils pour calculer le besoin énergétique quotidien de votre installation.
-      </p>
-
-      <div className="mt-4 space-y-3">
+    <>
+      <div className="space-y-3">
         {rows.map((row, index) => (
           <div key={index} className="grid gap-2 rounded-lg border border-neutral-200 p-3 sm:grid-cols-4">
             <input
@@ -131,6 +125,6 @@ export function EnergyModule({ projectId }: { projectId: string }) {
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

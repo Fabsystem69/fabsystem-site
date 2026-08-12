@@ -216,7 +216,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden items-center gap-1 text-sm font-medium sm:flex" aria-label="Rubriques principales">
+          <nav className="hidden items-center gap-1 text-sm font-medium lg:flex" aria-label="Rubriques principales">
             {nav.map((item) => {
               const active = isActive(item.href);
               return (
@@ -240,7 +240,7 @@ export default function Navbar() {
               secondaires, ordre conforme à 01-HEADER-HERO.md §2). Contact
               reste explicite (texte visible), jamais réduit à une icône
               seule. */}
-          <div className="hidden items-center gap-1 sm:flex">
+          <div className="hidden items-center gap-1 lg:flex">
             <Link
               href="/contact"
               className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
@@ -269,7 +269,7 @@ export default function Navbar() {
           {/* Mobile actions — LOGO | PANIER | BURGER (01-HEADER-HERO.md §8) :
               le Panier reste accessible directement, le Compte est renvoyé
               dans le menu. */}
-          <div className="flex items-center gap-0.5 sm:hidden">
+          <div className="flex items-center gap-0.5 lg:hidden">
             <button
               type="button"
               aria-label={cartAriaLabel}
@@ -302,7 +302,7 @@ export default function Navbar() {
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
-          className="fixed inset-0 z-[999] sm:hidden"
+          className="fixed inset-0 z-[999] lg:hidden"
         >
           {/* overlay */}
           <button

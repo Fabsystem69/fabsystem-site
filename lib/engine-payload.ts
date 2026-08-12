@@ -155,3 +155,45 @@ export const CIRCUIT_CHAIN: RegisteredEngineId[] = [
   "protection.selection",
   "diagram.model",
 ];
+
+// UI-12 — courtes descriptions déplacées ici depuis chaque module moteur
+// (texte identique, non modifié) pour que la Vue Project les affiche dans
+// l'en-tête de carte partagé (EngineModuleShell) sans dupliquer le texte à
+// deux endroits. Purement éditorial, aucune règle métier.
+export const ENGINE_DESCRIPTIONS: Record<RegisteredEngineId, string> = {
+  "energy.consumption":
+    "Listez vos appareils pour calculer le besoin énergétique quotidien de votre installation.",
+  "battery.sizing": "Dimensionne la batterie à partir de votre consommation déjà retenue.",
+  "alternator.charging": "Estime la recharge apportée par l'alternateur pendant le roulage.",
+  "solar.production": "Estime la production et la couverture apportées par les panneaux solaires.",
+  "charger.recharging": "Estime la recharge apportée par un chargeur secteur/quai.",
+  "energyBalance.global":
+    "Compare vos besoins journaliers aux sources de recharge déjà retenues.",
+  "circuit.structure": "Regroupez vos consommateurs déjà retenus en circuits logiques.",
+  "cable.sizing": "Dimensionne les conducteurs de chaque circuit déjà retenu.",
+  "protection.selection": "Choisit la protection adaptée à chaque circuit déjà câblé.",
+  "diagram.model": "Assemble les circuits déjà retenus (circuit, câble, protection) en un schéma.",
+};
+
+// UI-12 — regroupement visuel en deux familles (mission §5), affichage
+// uniquement. La structure fonctionnelle réelle reste ENERGY_CHAIN /
+// CIRCUIT_CHAIN, inchangées ci-dessus.
+export const ENGINE_FAMILIES: { id: string; label: string; engineIds: RegisteredEngineId[] }[] = [
+  { id: "energie", label: "Énergie", engineIds: ENERGY_CHAIN },
+  { id: "distribution", label: "Distribution", engineIds: CIRCUIT_CHAIN },
+];
+
+// UI-12 — pour chaque moteur à entrée "plate" (clé fixe), la clé de valeur
+// retenue la plus représentative à prévisualiser dans l'en-tête de carte
+// repliée (mission §6 : "résultat important quand disponible"). Les
+// moteurs de la chaîne Circuit utilisent des clés dynamiques
+// (circuit.<id>, cable.<id>...) : ils sont prévisualisés par un simple
+// comptage, géré directement dans la page (aucune clé fixe à lister ici).
+export const ENGINE_PRIMARY_VALUE_KEY: Partial<Record<RegisteredEngineId, string>> = {
+  "energy.consumption": "energy.dailyConsumption",
+  "battery.sizing": "battery.autonomy",
+  "alternator.charging": "alternator.rechargeableEnergy",
+  "solar.production": "solar.dailyEnergy",
+  "charger.recharging": "charger.rechargeableEnergy",
+  "energyBalance.global": "energyBalance.balance",
+};

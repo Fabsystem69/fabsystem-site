@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 import type { BatteryChemistry } from "@/lib/engines/battery-engine";
@@ -51,13 +50,8 @@ export function BatteryModule({
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Batterie</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Dimensionne la batterie à partir de votre consommation déjà retenue.
-      </p>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-sm text-neutral-700">
           Technologie
           <select
@@ -120,6 +114,6 @@ export function BatteryModule({
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

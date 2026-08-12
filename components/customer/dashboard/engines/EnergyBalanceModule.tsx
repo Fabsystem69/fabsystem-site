@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -24,13 +23,8 @@ export function EnergyBalanceModule({ projectId }: { projectId: string }) {
   const result = output as BalanceOutput | null;
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Bilan énergétique</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Compare vos besoins journaliers aux sources de recharge déjà retenues (énergie, batterie,
-        alternateur, solaire, chargeur).
-      </p>
-      <p className="mt-2 text-sm font-medium text-neutral-700">
+    <>
+      <p className="text-sm font-medium text-neutral-700">
         Ce bilan utilise automatiquement les informations déjà retenues dans votre projet — aucune
         saisie n&apos;est nécessaire ici.
       </p>
@@ -60,6 +54,6 @@ export function EnergyBalanceModule({ projectId }: { projectId: string }) {
         onCalculate={() => run({}, false)}
         onRetain={() => run({}, true)}
       />
-    </Card>
+    </>
   );
 }

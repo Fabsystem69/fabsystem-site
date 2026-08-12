@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -33,13 +32,8 @@ export function SolarModule({ projectId }: { projectId: string }) {
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Solaire</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Estime la production et la couverture apportées par les panneaux solaires.
-      </p>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+    <>
+      <div className="grid gap-3 sm:grid-cols-3">
         <label className="text-sm text-neutral-700">
           Puissance crête (Wc)
           <input type="number" value={panelPowerWp} onChange={(e) => setPanelPowerWp(e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-2 text-sm outline-none focus:border-brand-400" />
@@ -73,6 +67,6 @@ export function SolarModule({ projectId }: { projectId: string }) {
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

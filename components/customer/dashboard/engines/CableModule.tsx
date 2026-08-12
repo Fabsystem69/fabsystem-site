@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -91,24 +90,16 @@ export function CableModule({
 
   if (circuits.length === 0) {
     return (
-      <Card className="p-6">
-        <h3 className="text-base font-semibold text-neutral-950">Câbles</h3>
-        <p className="mt-2 text-sm text-neutral-600">
-          Retenez d&apos;abord au moins un circuit dans le module Circuits pour dimensionner ses
-          câbles.
-        </p>
-      </Card>
+      <p className="text-sm text-neutral-600">
+        Retenez d&apos;abord au moins un circuit dans le module Circuits pour dimensionner ses
+        câbles.
+      </p>
     );
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Câbles</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Dimensionne les conducteurs de chaque circuit déjà retenu.
-      </p>
-
-      <div className="mt-4 space-y-4">
+    <>
+      <div className="space-y-4">
         {rows.map((row, index) => (
           <div key={index} className="space-y-3 rounded-lg border border-neutral-200 p-3">
             <div className="grid gap-2 sm:grid-cols-4">
@@ -186,6 +177,6 @@ export function CableModule({
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
 
@@ -55,16 +54,14 @@ export function CircuitModule({
   }
 
   return (
-    <Card className="p-6">
-      <h3 className="text-base font-semibold text-neutral-950">Circuits</h3>
-      <p className="mt-1 text-sm text-neutral-600">
-        Regroupez vos consommateurs déjà retenus en circuits logiques.
+    <>
+      <p className="text-xs text-neutral-500">
         {consumerNames.length > 0
-          ? ` Consommateurs disponibles : ${consumerNames.join(", ")}.`
-          : " Aucun consommateur retenu pour l'instant — complétez d'abord le module Énergie."}
+          ? `Consommateurs disponibles : ${consumerNames.join(", ")}.`
+          : "Aucun consommateur retenu pour l'instant — complétez d'abord le module Énergie."}
       </p>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-3 space-y-3">
         {rows.map((row, index) => (
           <div key={index} className="grid gap-2 rounded-lg border border-neutral-200 p-3 sm:grid-cols-3">
             <input
@@ -130,6 +127,6 @@ export function CircuitModule({
         onCalculate={() => run(buildInput(), false)}
         onRetain={() => run(buildInput(), true)}
       />
-    </Card>
+    </>
   );
 }

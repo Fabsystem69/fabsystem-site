@@ -67,3 +67,65 @@ export function getRetainedValueLabel(key: string, value?: unknown): string {
 
   return "Donnée technique du projet";
 }
+
+// UI-12 — affichage compact "valeur + unité" pour la section "Informations
+// retenues" (mission §10). Purement présentationnel : ne recalcule rien,
+// se contente de lire la valeur déjà persistée par le moteur et de
+// deviner une unité lisible à partir du nom du champ. Ne s'applique
+// qu'aux valeurs à un seul champ numérique (le cas le plus courant) — les
+// valeurs plus complexes (circuit/câble/protection/schéma, qui portent un
+// nom) restent affichées via leur seul libellé, sans valeur chiffrée
+// ajoutée ici.
+function guessUnit(fieldName: string): string {
+  const key = fieldName.toLowerCase();
+  if (key.includes("wh")) return " Wh";
+  if (key.includes("ah")) return " Ah";
+  if (key.includes("current")) return " A";
+  if (key.includes("power")) return " W";
+  if (key.includes("ratio") || key.includes("coverage") || key.includes("margin")) return " %";
+  if (key.includes("day")) return " j";
+  if (key.includes("time")) return " h";
+  return "";
+}
+
+// Quelques valeurs retenues portent plusieurs champs numériques (ex.
+// energy.dailyConsumption : totalPowerW + dailyWh + dailyAh + complete).
+// Champ à privilégier pour l'affichage compact, vérifié directement dans
+// chaque moteur (lib/engines/*.ts) au moment d'écrire cette fonction —
+// aucune valeur n'est recalculée, seul le champ le plus représentatif est
+// choisi pour l'affichage.
+const PREFERRED_FIELD: Record<string, string> = {
+  "energy.dailyConsumption": "dailyWh",
+  "battery.nominalCapacity": "nominalCapacityAh",
+  "battery.autonomy": "autonomyDays",
+};
+
+export function formatRetainedValueDisplay(value: unknown, key?: string): string | null {
+  if (!value || typeof value !== "object") return null;
+
+  const numericEntries = Object.entries(value as Record<string, unknown>).filter(
+    ([field, entry]) => field !== "name" && typeof entry === "number"
+  );
+
+  if (numericEntries.length === 0) return null;
+
+  let field: string;
+  let raw: number;
+
+  const preferred = key ? PREFERRED_FIELD[key] : undefined;
+  const preferredEntry = preferred ? numericEntries.find(([f]) => f === preferred) : undefined;
+
+  if (preferredEntry) {
+    [field, raw] = preferredEntry as [string, number];
+  } else if (numericEntries.length === 1) {
+    [field, raw] = numericEntries[0] as [string, number];
+  } else {
+    return null;
+  }
+
+  const isRatio = field.toLowerCase().includes("ratio") || field.toLowerCase().includes("coverage");
+  const num = isRatio ? raw * 100 : raw;
+  const rounded = Math.round(num * 10) / 10;
+
+  return `${rounded}${guessUnit(field)}`;
+}
