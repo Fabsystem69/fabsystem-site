@@ -84,7 +84,7 @@ function UniversCard({ univers }: { univers: UniversTile }) {
 
 export function TroisUnivers() {
   return (
-    <Section id="apres-hero" tone="light">
+    <Section id="apres-hero" tone="light" className="scroll-mt-24">
       <div className="max-w-2xl">
         <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
           Bateau, van ou camping-car

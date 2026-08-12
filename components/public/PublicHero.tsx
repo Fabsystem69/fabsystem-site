@@ -3,15 +3,14 @@ import type { ReactNode } from "react";
 import TrackedLink from "@/components/TrackedLink";
 import { resolveBackgroundImage } from "@/lib/background-image";
 
-// UI-9.1 — primitive Hero UNIQUE pour tout le site public, Home comprise.
-// Avant cette mission, 5 systèmes différents coexistaient (PageHero.tsx,
-// home/Hero.tsx, boutique/Hero.tsx, lesbases/Hero.tsx, outils/Hero.tsx, +
-// le Hero inline de app/contact/page.tsx avec un min-height arbitraire) —
-// voir docs/audits/UI-9.1-HEROS.md, "Inventaire avant". Un seul composant,
-// une seule mise en page, mêmes proportions partout : plus de branche
-// "variant", plus de mise en page photo-à-côté-du-texte réservée à la
-// Home — la Home utilise exactement le même Hero que Services (référence
-// visuelle retenue par la mission).
+// UI-9.1 a unifié tous les Hero publics sur ce composant. UI-10 §1 revient
+// en partie sur ce choix suite à une revue visuelle réelle : les pages
+// secondaires (Services, Boutique, Les Bases, Outils, Contact, À propos)
+// utilisent désormais un en-tête compact (components/public/PageIntro.tsx)
+// — un grand Hero photo n'y apportait pas assez de valeur et retardait le
+// contenu réel. Seule la Home garde ce composant : c'est la seule page où
+// une grande entrée visuelle forte reste justifiée (constat utilisateur :
+// "le style actuel plaît").
 
 export type PublicHeroAction = {
   href: string;
@@ -97,6 +96,12 @@ function HeroScrollIndicator({ targetId }: { targetId: string }) {
   );
 }
 
+// UI-10 §2.2 : ce visuel représente aujourd'hui essentiellement une seule
+// installation (bateau). Constat utilisateur : il faudrait un visuel plus
+// transversal, combinant clairement Bateau + Van. Aucune photo de ce type
+// n'a été fournie pour cette mission — pas de génération d'image, valeur
+// laissée telle quelle en attendant un vrai asset. Un seul point à changer
+// le jour où il est disponible.
 const BACKGROUND = "/hero-fabsystem.png";
 const OVERLAY = "bg-black/60";
 

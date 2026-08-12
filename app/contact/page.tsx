@@ -4,7 +4,7 @@ import RevealPhone from "@/components/RevealPhone";
 import ContactForm from "../../components/ContactForm";
 import type { Metadata } from "next";
 import ServiceAssurance from "@/components/ServiceAssurance";
-import { PublicHero } from "@/components/public/PublicHero";
+import { PageIntro } from "@/components/public/PageIntro";
 import { generateQrDataUrl } from "@/lib/server/qrcode";
 
 export const metadata: Metadata = {
@@ -69,14 +69,15 @@ export default async function ContactPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <PublicHero
+      <PageIntro
         title="Contact"
         description="Un doute sur votre installation électrique ? Parlons-en simplement."
-        assurance={<ServiceAssurance tone="inverse" />}
-        scrollTargetId="apres-hero"
       />
+      <div className="mx-auto max-w-6xl px-6 pt-4">
+        <ServiceAssurance />
+      </div>
 
-      <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-14 sm:py-16">
+      <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="grid items-start gap-6 sm:grid-cols-12 sm:gap-8">
           <div className="order-1 sm:col-span-7">
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 shadow-sm sm:p-8">
@@ -165,6 +166,12 @@ export default async function ContactPage() {
                   </p>
                 </div>
 
+                {/* UI-10 : les deux liens pointaient vers le même .vcf avec le
+                    même libellé — donnait une impression de doublon cassé.
+                    Fonction réellement différente conservée (mobile : ouvre
+                    directement le flux "Ajouter aux contacts" du téléphone ;
+                    desktop : force le téléchargement du fichier), seuls les
+                    libellés sont désormais distincts. */}
                 <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
                   <TrackedLink
                     href="/contact.vcf"
@@ -179,7 +186,7 @@ export default async function ContactPage() {
                     download
                     className="inline-flex min-h-11 items-center justify-center rounded-lg border border-neutral-300 px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20"
                   >
-                    Ajouter à mes contacts
+                    Télécharger la fiche (.vcf)
                   </TrackedLink>
                 </div>
 

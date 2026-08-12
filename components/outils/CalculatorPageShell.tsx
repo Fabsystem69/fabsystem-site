@@ -73,7 +73,7 @@ export function CalculatorPageShell({
             Comprendre les bases →
           </Link>
           <Link
-            href="/prestations#on-fait-ensemble"
+            href="/prestations/accompagnement"
             className="font-medium text-neutral-600 underline underline-offset-4 decoration-neutral-300 hover:text-neutral-900 hover:decoration-neutral-900"
           >
             Être accompagné sur ce calcul →

@@ -1,5 +1,5 @@
 import LightboxImage from "@/components/LightboxImage";
-import { PublicHero } from "@/components/public/PublicHero";
+import { PageIntro } from "@/components/public/PageIntro";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import TrackedLink from "@/components/TrackedLink";
 import Link from "next/link";
@@ -101,19 +101,13 @@ const cases: CaseStudy[] = [
 export default function RealisationsPage() {
   return (
     <main>
-      <PublicHero
+      <PageIntro
         title="Réalisations"
-        description="Trois cas types pour montrer le niveau d’analyse, d’intervention et de résultat."
-        micro="Études de cas réelles, avant / après, avec une lecture claire du contexte, des actions et du résultat."
-        primaryAction={{ href: "/contact", label: "Parler de votre projet" }}
-        secondaryAction={{
-          href: "/prestations#accompagnement-distance",
-          label: "Accompagnement à distance",
-          variant: "secondary",
-        }}
-        assurance={<ServiceAssurance tone="inverse" />}
-        scrollTargetId="apres-hero"
+        description="Trois cas types pour montrer le niveau d’analyse, d’intervention et de résultat. Études de cas réelles, avant / après, avec une lecture claire du contexte, des actions et du résultat."
       />
+      <div className="mx-auto max-w-6xl px-6 pt-4">
+        <ServiceAssurance />
+      </div>
 
       <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="max-w-3xl">
@@ -262,7 +256,7 @@ export default function RealisationsPage() {
               Parler de votre projet
             </Link>
             <TrackedLink
-              href="/prestations#accompagnement-distance"
+              href="/prestations/accompagnement"
               event="click_rdv"
               className="inline-flex min-h-9 w-full items-center justify-center rounded-md border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100 sm:w-auto"
             >

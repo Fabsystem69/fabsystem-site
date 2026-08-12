@@ -47,7 +47,7 @@ const MODULES = [
 
 export function Modules() {
   return (
-    <Section id="modules" tone="light" className="scroll-mt-16">
+    <Section id="modules" tone="light" className="scroll-mt-24">
       <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
         Commencez par les fondamentaux
       </h2>

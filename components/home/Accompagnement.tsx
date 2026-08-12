@@ -41,7 +41,7 @@ export function Accompagnement() {
           </dl>
 
           <div className="mt-6">
-            <Button href="/prestations#on-fait-ensemble" variant="primary">
+            <Button href="/prestations/accompagnement" variant="primary">
               Découvrir l&apos;accompagnement →
             </Button>
           </div>

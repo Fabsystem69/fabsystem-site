@@ -21,7 +21,7 @@ function getProductTypeLabel(value: BoutiqueGuideEntry["productType"]) {
 // dans votre bibliothèque" prime sur tout le reste (§14).
 export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
   return (
-    <article className="flex h-full flex-col rounded-card border border-neutral-200 bg-white p-5 shadow-card">
+    <article className="flex h-full flex-col rounded-card border border-neutral-200 bg-white p-6 shadow-card">
       {entry.featuredImage ? (
         <div className="mb-4 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
           <Image
@@ -29,7 +29,8 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
             alt={entry.name}
             width={400}
             height={534}
-            className="h-44 w-full object-cover object-top"
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 384px"
+            className="h-60 w-full object-cover object-top"
           />
         </div>
       ) : null}
@@ -41,7 +42,7 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
         </span>
       </div>
 
-      <h3 className="mt-2 text-lg font-semibold text-neutral-950">{entry.name}</h3>
+      <h3 className="mt-2 text-xl font-semibold text-neutral-950">{entry.name}</h3>
 
       <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-700">
         {entry.shortDescription || "Description bientôt disponible."}

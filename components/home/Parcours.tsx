@@ -6,10 +6,9 @@ import { Section } from "@/components/layout/Section";
 // horizontale desktop / verticale mobile (§5-6).
 //
 // CTA "Voir l'accompagnement" et "Voir les interventions" : pointent
-// désormais vers les ancres réelles créées par la refonte Services
-// (UI-4) — #on-fait-ensemble et #je-confie sur /prestations — qui
-// remplacent les destinations temporaires sans ancre de la Phase UI-3
-// (voir docs/audits/UI-4-SERVICES-UNIVERS.md, Modifications de la Home).
+// vers les pages dédiées créées par UI-10 (§4-5) — /prestations/accompagnement
+// et /prestations/intervention — plutôt que des ancres sur /prestations,
+// devenue une simple page d'orientation.
 const STEPS = [
   {
     n: "01",
@@ -24,19 +23,19 @@ const STEPS = [
     n: "02",
     title: "On fait ensemble",
     text: "Je réalise mon projet, avec l'aide de Fabien pour concevoir, vérifier et avancer.",
-    ctas: [{ label: "Voir l'accompagnement", href: "/prestations#on-fait-ensemble" }],
+    ctas: [{ label: "Voir l'accompagnement", href: "/prestations/accompagnement" }],
   },
   {
     n: "03",
     title: "Je confie",
     text: "Je préfère que Fabien intervienne directement sur mon installation.",
-    ctas: [{ label: "Voir les interventions", href: "/prestations#je-confie" }],
+    ctas: [{ label: "Voir les interventions", href: "/prestations/intervention" }],
   },
 ] as const;
 
 export function Parcours() {
   return (
-    <Section id="parcours" tone="muted">
+    <Section id="parcours" tone="muted" className="scroll-mt-24">
       <div className="max-w-2xl">
         <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
           Comment souhaitez-vous avancer ?

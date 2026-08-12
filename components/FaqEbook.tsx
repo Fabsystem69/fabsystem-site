@@ -28,7 +28,7 @@ const faqsByVariant: Record<"van" | "bateau", FaqEntry[]> = {
       a: (
         <>
           Non. Si vous passez ensuite par{" "}
-          <Link href="/prestations#accompagnement-distance" className="font-semibold underline underline-offset-2">
+          <Link href="/prestations/accompagnement" className="font-semibold underline underline-offset-2">
             l&apos;accompagnement à distance
           </Link>{" "}
           FabSystem, le prix de l&apos;ebook est déduit du montant de la prestation. Il vous suffit
@@ -67,7 +67,7 @@ const faqsByVariant: Record<"van" | "bateau", FaqEntry[]> = {
       a: (
         <>
           Non. Si vous passez ensuite par{" "}
-          <Link href="/prestations#accompagnement-distance" className="font-semibold underline underline-offset-2">
+          <Link href="/prestations/accompagnement" className="font-semibold underline underline-offset-2">
             l&apos;accompagnement à distance
           </Link>{" "}
           FabSystem, le prix de l&apos;ebook est déduit du montant de la prestation. Il vous suffit

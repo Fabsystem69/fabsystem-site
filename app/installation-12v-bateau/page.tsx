@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import LightboxImage from "@/components/LightboxImage";
-import { PublicHero } from "@/components/public/PublicHero";
+import { PageIntro } from "@/components/public/PageIntro";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -87,19 +87,13 @@ export default function Installation12VBateauPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <PublicHero
+      <PageIntro
         title="Installation 12V bateau"
-        description="Conception, refonte ou sécurisation d’un réseau 12V lisible, protégé et fiable (batteries, charge, distribution)."
-        micro="Objectif : une installation cohérente, documentée, et prête à évoluer (solaire, DC-DC, lithium)."
-        primaryAction={{ href: "/contact", label: "Demander un devis" }}
-        secondaryAction={{
-          href: "/prestations#accompagnement-distance",
-          label: "Accompagnement à distance",
-          variant: "secondary",
-        }}
-        assurance={<ServiceAssurance tone="inverse" />}
-        scrollTargetId="apres-hero"
+        description="Conception, refonte ou sécurisation d’un réseau 12V lisible, protégé et fiable (batteries, charge, distribution). Objectif : une installation cohérente, documentée, et prête à évoluer (solaire, DC-DC, lithium)."
       />
+      <div className="mx-auto max-w-6xl px-6 pt-4">
+        <ServiceAssurance />
+      </div>
 
       <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="mx-auto max-w-4xl">
@@ -256,7 +250,7 @@ export default function Installation12VBateauPage() {
                 Demander un devis
               </Link>
               <Link
-                href="/prestations#accompagnement-distance"
+                href="/prestations/accompagnement"
                 className="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-white sm:w-auto"
               >
                 Accompagnement à distance

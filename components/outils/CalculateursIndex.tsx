@@ -1,77 +1,46 @@
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
+import { OutilCard, OutilComingSoonCard } from "@/components/outils/OutilCard";
+import { OUTILS_CALCULATEURS, OUTIL_A_VENIR } from "@/lib/outils-catalog";
 
-// Outils V2 — Index des calculateurs
-// (docs/refonte-site-public/Outils/01-HUB-PUBLIC.md §4-6). Quatre
-// calculateurs principaux immédiatement visibles, AWG ↔ mm² traité de
-// façon plus compacte (§5 : "reste plus secondaire"). Depuis UI-7.1,
-// chaque carte mène vers sa page dédiée (/outils/<id>) — le hub
-// n'affiche plus aucun formulaire complet ("Hub → choix → outil dédié →
-// résultat", §6). Données reprises de lib/outils-catalog.ts, seule source
-// utilisée aussi par le contenu de chaque page calculateur.
+// UI-10 (correctif final, direction SaaS technique premium validée) —
+// grille de 6 cartes homogènes (5 calculateurs réels + Schéma électrique
+// "Bientôt disponible"), même poids visuel pour chacune. Le bandeau Accès
+// rapide n'itère que sur OUTILS_CALCULATEURS (les 5 outils réels) : Schéma
+// électrique n'a aucune route, il ne doit jamais y apparaître.
+//
+// Carrousel évalué puis écarté : sans navigateur réel pour comparer les
+// deux rendus (voir docs/audits/UI-10-FINAL-PUBLIC-REFONTE.md, Outils),
+// une grille 3×2 sur desktop large affiche les 6 cartes comme une famille
+// cohérente sans contrôles ni dépendance JS supplémentaire — la mission
+// autorise explicitement à ne pas forcer un carrousel.
 export function CalculateursIndex() {
-  const [sectionCable, ...autresPrincipaux] = OUTILS_CALCULATEURS.filter((o) => o.id !== "awg");
-  const awg = OUTILS_CALCULATEURS.find((o) => o.id === "awg");
-
   return (
-    <Section id="calculateurs" tone="muted" className="scroll-mt-16">
-      <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
-        Les calculateurs
-      </h2>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-        Gratuits, sans compte, résultat immédiat.
-      </p>
+    <Section id="calculateurs" tone="muted" className="scroll-mt-24">
+      <h2 className="sr-only">Les calculateurs</h2>
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        {sectionCable ? (
-          <Card className="flex flex-col justify-between p-6 lg:col-span-2">
-            <div>
-              <Badge tone="info">{sectionCable.tag}</Badge>
-              <h3 className="mt-3 text-xl font-bold text-neutral-950">{sectionCable.title}</h3>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-neutral-600">
-                {sectionCable.description}
-              </p>
-            </div>
-            <div className="mt-5">
-              <Button href={`/outils/${sectionCable.id}`} variant="primary">
-                Calculer une section →
-              </Button>
-            </div>
-          </Card>
-        ) : null}
+      {/* Accès rapide : navigation directe pour qui sait déjà ce qu'il
+          cherche, sans attendre la découverte visuelle ci-dessous. Pas de
+          second bloc de titre visible : PageIntro porte déjà eyebrow +
+          titre + description en tête de page. */}
+      <nav aria-label="Accès rapide aux calculateurs" className="flex flex-wrap gap-2">
+        {OUTILS_CALCULATEURS.map((outil) => (
+          <Link
+            key={outil.id}
+            href={`/outils/${outil.id}`}
+            className="rounded-full border border-neutral-300 bg-white px-3.5 py-1.5 text-sm font-medium text-neutral-700 transition-colors duration-150 hover:border-neutral-900 hover:text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+          >
+            {outil.title}
+          </Link>
+        ))}
+      </nav>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
-          {autresPrincipaux.map((outil) => (
-            <Card key={outil.id} className="p-5">
-              <h3 className="text-sm font-bold text-neutral-950">{outil.title}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-neutral-600">{outil.description}</p>
-              <Link
-                href={`/outils/${outil.id}`}
-                className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 transition-colors duration-150 hover:decoration-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
-              >
-                Ouvrir →
-              </Link>
-            </Card>
-          ))}
-        </div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {OUTILS_CALCULATEURS.map((outil) => (
+          <OutilCard key={outil.id} outil={outil} />
+        ))}
+        <OutilComingSoonCard outil={OUTIL_A_VENIR} />
       </div>
-
-      {awg ? (
-        <Link
-          href={`/outils/${awg.id}`}
-          className="mt-4 flex items-center justify-between gap-3 rounded-card border border-neutral-200 bg-white px-5 py-3 shadow-card transition-colors hover:border-neutral-300"
-        >
-          <div>
-            <p className="text-sm font-semibold text-neutral-950">{awg.title}</p>
-            <p className="text-xs text-neutral-500">{awg.description}</p>
-          </div>
-          <span className="shrink-0 text-sm font-semibold text-neutral-600">→</span>
-        </Link>
-      ) : null}
     </Section>
   );
 }

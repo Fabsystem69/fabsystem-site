@@ -2,9 +2,37 @@
 
 import { useState } from "react";
 import { Section } from "@/components/layout/Section";
+import { Badge } from "@/components/ui/Badge";
 import { ProductCard } from "./ProductCard";
 import type { BoutiqueGuideEntry } from "./types";
 import type { PrestationsCategorie } from "@/lib/prestations-packs";
+
+// UI-10 §8.4 : carte éditoriale "à venir", visuellement alignée sur
+// ProductCard mais explicitement non achetable (pas de prix, pas de CTA
+// d'achat, pas de lien vers une fiche produit) — aucune ligne Product
+// n'existe en base pour Camping-car, cette carte ne doit jamais en laisser
+// croire l'existence.
+function ComingSoonCard() {
+  return (
+    <article className="flex h-full flex-col rounded-card border border-dashed border-neutral-300 bg-neutral-50 p-6">
+      <div className="mb-4 flex h-60 w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-white">
+        <span className="text-sm font-medium text-neutral-400">Visuel à venir</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone="neutral">Camping-car</Badge>
+        <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Guide
+        </span>
+      </div>
+      <h3 className="mt-2 text-xl font-semibold text-neutral-950">Guide Camping-car</h3>
+      <p className="mt-2 flex-1 text-sm leading-relaxed text-neutral-700">
+        Comprendre et faire évoluer une installation camping-car existante — lithium, solaire,
+        équipements.
+      </p>
+      <p className="mt-4 text-sm font-semibold text-neutral-500">Bientôt disponible</p>
+    </article>
+  );
+}
 
 type UniversOption = "tous" | PrestationsCategorie;
 
@@ -108,20 +136,16 @@ export function GuidesEtUnivers({ entries }: { entries: BoutiqueGuideEntry[] }) 
         ) : null}
       </Section>
 
-      <Section id="guides-disponibles" tone="muted" className="scroll-mt-16">
+      <Section id="guides-disponibles" tone="muted" className="scroll-mt-24">
         <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
           Les guides disponibles
         </h2>
 
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && univers !== "camping-car" && univers !== "tous" ? (
           <div className="mt-6 rounded-card border border-neutral-200 bg-white p-6 sm:p-8">
-            <h3 className="text-lg font-semibold text-neutral-950">
-              {univers === "camping-car" ? "Guide Camping-car en préparation" : "Guide en préparation"}
-            </h3>
+            <h3 className="text-lg font-semibold text-neutral-950">Guide en préparation</h3>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-              {univers === "camping-car"
-                ? "Le guide Camping-car est en cours de préparation."
-                : "Aucun guide n'est disponible pour cet univers pour le moment."}
+              Aucun guide n&apos;est disponible pour cet univers pour le moment.
             </p>
           </div>
         ) : (
@@ -129,6 +153,10 @@ export function GuidesEtUnivers({ entries }: { entries: BoutiqueGuideEntry[] }) 
             {filtered.map((entry) => (
               <ProductCard key={entry.id} entry={entry} />
             ))}
+            {/* Camping-car n'a aucun Product réel en base : montré comme une
+                carte "à venir" plutôt que masqué, pour que les trois univers
+                restent visibles ensemble (mission §8.4). */}
+            {univers === "tous" || univers === "camping-car" ? <ComingSoonCard /> : null}
           </div>
         )}
       </Section>

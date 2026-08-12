@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PublicHero } from "@/components/public/PublicHero";
+import { PageIntro } from "@/components/public/PageIntro";
 import { GuidesEtUnivers } from "@/components/boutique/GuidesEtUnivers";
 import { UsageEtAcces } from "@/components/boutique/UsageEtAcces";
 import { PasserelleAccompagnement } from "@/components/boutique/PasserelleAccompagnement";
@@ -81,12 +81,10 @@ export default async function BoutiquePage() {
 
   return (
     <main className="bg-white text-neutral-900">
-      <PublicHero
+      <PageIntro
         eyebrow="Je fais seul"
-        title="Votre projet, entre vos mains."
-        description="Des guides pratiques conçus à partir du terrain pour comprendre, concevoir et fiabiliser votre installation électrique. Bateau, van ou camping-car : choisissez votre univers."
-        primaryAction={{ href: "#guides-disponibles", label: "Voir les guides" }}
-        scrollTargetId="guides-disponibles"
+        title="Boutique"
+        description="Des guides pratiques conçus à partir du terrain pour comprendre, concevoir et fiabiliser votre installation électrique. Bateau, van ou camping-car."
       />
       <GuidesEtUnivers entries={entries} />
       <UsageEtAcces />

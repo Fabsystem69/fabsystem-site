@@ -5,7 +5,18 @@ import { useMemo, useState } from "react";
 
 type Status = null | "ok" | "error";
 
-export default function ContactForm() {
+export default function ContactForm({
+  defaultMessage,
+  compact = false,
+}: {
+  /** Préremplit le champ Message — utilisé par la modale de contact
+   * contextuelle des cartes "J'ai une intervention précise" / "J'ai un
+   * projet" (UI-10 §5). L'utilisateur reste libre de le modifier. */
+  defaultMessage?: string;
+  /** Réduit l'espacement vertical — utilisé dans une modale où la place
+   * est plus contrainte que sur la page /contact. */
+  compact?: boolean;
+}) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<Status>(null);
   const [urgent, setUrgent] = useState(false);
@@ -85,7 +96,7 @@ export default function ContactForm() {
   }
 
   return (
-    <form className="mt-6 space-y-4" onSubmit={onSubmit}>
+    <form className={compact ? "space-y-3" : "mt-6 space-y-4"} onSubmit={onSubmit}>
       {/* Honeypot */}
       <div className="hidden" aria-hidden="true">
         <label htmlFor="company">Company</label>
@@ -117,7 +128,8 @@ export default function ContactForm() {
         <textarea
           name="message"
           required
-          rows={6}
+          rows={compact ? 5 : 6}
+          defaultValue={defaultMessage}
           placeholder="Expliquez-nous simplement votre besoin — quelques phrases suffisent."
           className={fieldClass}
         />

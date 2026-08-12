@@ -1,40 +1,15 @@
-import Link from "next/link";
 import { Section } from "@/components/layout/Section";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { OutilCard } from "@/components/outils/OutilCard";
+import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
 
-// Home V2 — Outils gratuits (docs/refonte-site-public/home/04-OUTILS-GRATUITS.md).
-// Seuls des outils réellement actifs aujourd'hui sur /outils sont listés.
-// Depuis UI-7.1, chaque outil a sa propre route dédiée (/outils/<id>) au
-// lieu d'une ancre vers une section du hub — voir
-// docs/audits/UI-7.1-PAGES-OUTILS.md, "Migration des liens". Aucun outil
-// vedette "schéma électrique" : il n'est pas encore disponible (§5, §15)
-// — l'outil le plus utilisé (section de câble) tient donc la place la
-// plus visible, sans être présenté comme l'outil vedette futur.
-const FEATURED_TOOL = {
-  title: "Section de câble",
-  text: "Trouvez la section idéale selon l'intensité, la longueur et la chute de tension admissible.",
-  href: "/outils/section-cable",
-};
-
-const SECONDARY_TOOLS = [
-  {
-    title: "Bilan de consommation",
-    text: "Calculez votre consommation journalière et la capacité batterie recommandée.",
-    href: "/outils/bilan-consommation",
-  },
-  {
-    title: "Autonomie batterie",
-    text: "Estimez combien de temps votre batterie tient selon votre consommation et sa capacité.",
-    href: "/outils/autonomie-batterie",
-  },
-  {
-    title: "Régulateur MPPT",
-    text: "Calculez la puissance MPPT nécessaire selon vos panneaux solaires et votre batterie.",
-    href: "/outils/mppt",
-  },
-];
+// Home V2 (UI-10, correctif final §11) — teaser compact de l'écosystème
+// Outils, réutilisant OutilCard tel quel (même identité visuelle que
+// /outils, mission §16 : éviter la duplication). Volontairement PAS les 6
+// cartes du hub : seulement les 3 premières, pour donner envie d'aller
+// sur /outils plutôt que d'en faire une réplique complète. Jamais un
+// retour à l'ancienne hiérarchie (1 grosse carte + 3 secondaires).
+const HOME_TEASER = OUTILS_CALCULATEURS.slice(0, 3);
 
 export function OutilsGratuits() {
   return (
@@ -48,35 +23,10 @@ export function OutilsGratuits() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        {/* Outil le plus utilisé — occupe une place plus importante */}
-        <Card className="flex flex-col justify-between p-6 lg:col-span-2">
-          <div>
-            <Badge tone="info">Le plus utilisé</Badge>
-            <h3 className="mt-3 text-xl font-bold text-neutral-950">{FEATURED_TOOL.title}</h3>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-neutral-600">{FEATURED_TOOL.text}</p>
-          </div>
-          <div className="mt-5">
-            <Button href={FEATURED_TOOL.href} variant="primary">
-              Ouvrir l&apos;outil →
-            </Button>
-          </div>
-        </Card>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:col-span-1 lg:grid-cols-1">
-          {SECONDARY_TOOLS.map((tool) => (
-            <Card key={tool.href} className="p-5">
-              <h3 className="text-sm font-bold text-neutral-950">{tool.title}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-neutral-600">{tool.text}</p>
-              <Link
-                href={tool.href}
-                className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 transition-colors duration-150 hover:decoration-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
-              >
-                Ouvrir →
-              </Link>
-            </Card>
-          ))}
-        </div>
+      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+        {HOME_TEASER.map((outil) => (
+          <OutilCard key={outil.id} outil={outil} />
+        ))}
       </div>
 
       <div className="mt-8">

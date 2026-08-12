@@ -8,7 +8,7 @@ import QuizFormations from "@/components/QuizFormations";
 // commentaire pour la logique de persistance locale du résultat réel.
 export function QuizSection() {
   return (
-    <Section id="quiz" tone="dark" className="scroll-mt-16">
+    <Section id="quiz" tone="dark" className="scroll-mt-24">
       <div className="mx-auto max-w-3xl">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-400">
           Vérifiez vos acquis

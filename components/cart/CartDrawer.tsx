@@ -175,7 +175,7 @@ export function CartDrawer() {
                 </Link>{" "}
                 ou les{" "}
                 <Link
-                  href="/prestations#accompagnement-distance"
+                  href="/prestations/accompagnement"
                   onClick={close}
                   className="font-medium text-neutral-900 underline underline-offset-4"
                 >

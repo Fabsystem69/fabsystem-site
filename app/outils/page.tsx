@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PublicHero } from "@/components/public/PublicHero";
+import { PageIntro } from "@/components/public/PageIntro";
 import { CalculateursIndex } from "@/components/outils/CalculateursIndex";
 import { BasiquesAtelier } from "@/components/outils/BasiquesAtelier";
 import { Guides } from "@/components/outils/Guides";
@@ -34,12 +34,10 @@ export const metadata: Metadata = {
 export default function OutilsPage() {
   return (
     <main className="bg-white text-neutral-900">
-      <PublicHero
+      <PageIntro
         eyebrow="Les outils FabSystem"
-        title="Préparez votre installation électrique."
-        description="Calculez et dimensionnez votre installation 12/24 V avec des outils simples et gratuits."
-        primaryAction={{ href: "#calculateurs", label: "Voir les calculateurs" }}
-        scrollTargetId="calculateurs"
+        title="Calculez, dimensionnez, vérifiez."
+        description="Des outils simples et gratuits pour préparer une installation électrique fiable."
       />
       <CalculateursIndex />
       <BasiquesAtelier />

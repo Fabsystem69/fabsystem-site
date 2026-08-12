@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import LightboxImage from "@/components/LightboxImage";
-import { PublicHero } from "@/components/public/PublicHero";
+import { PageIntro } from "@/components/public/PageIntro";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -78,15 +78,13 @@ export default function SecurisationCorrectionBateauPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
-      <PublicHero
+      <PageIntro
         title="Sécurisation / correction électrique bateau"
-        description="Corrections ciblées pour fiabiliser : protections, distribution, câblage, repérage."
-        micro="On part d’un diagnostic, puis on corrige ce qui est critique — sans tout refaire inutilement."
-        primaryAction={{ href: "/contact", label: "Demander un devis" }}
-        secondaryAction={{ href: "/contact", label: "Me contacter", variant: "secondary" }}
-        assurance={<ServiceAssurance tone="inverse" />}
-        scrollTargetId="apres-hero"
+        description="Corrections ciblées pour fiabiliser : protections, distribution, câblage, repérage. On part d’un diagnostic, puis on corrige ce qui est critique — sans tout refaire inutilement."
       />
+      <div className="mx-auto max-w-6xl px-6 pt-4">
+        <ServiceAssurance />
+      </div>
 
       <section id="apres-hero" className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
         <div className="mx-auto max-w-4xl">
