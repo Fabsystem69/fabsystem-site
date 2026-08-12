@@ -8,6 +8,7 @@ import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/
 import { getCustomerAccountOverview } from "@/lib/services/customer-account";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { getProjectAssetTypeLabel, getProjectVoltageLabel } from "@/lib/project-labels";
+import { PendingImportBanner } from "@/components/customer/dashboard/PendingImportBanner";
 
 export const metadata: Metadata = {
   title: "Mon compte",
@@ -40,6 +41,8 @@ export default async function MonComptePage() {
           Retrouvez vos projets et vos achats FabSystem.
         </p>
       </div>
+
+      <PendingImportBanner />
 
       <section>
         <div className="flex items-baseline justify-between gap-3">

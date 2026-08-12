@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { calcSection } from "@/lib/calc/section-cable";
+import { OpenProjectLink } from "@/components/outils/project-bridge/OpenProjectLink";
 
 // Extrait tel quel de components/CalcSection.tsx (UI-7.1) — aucun
 // changement de comportement.
@@ -166,6 +167,7 @@ export default function MpptCalculator() {
             <p className="text-xs text-neutral-500">
               Marge sécurité 25% appliquée sur la puissance MPPT. Sections câbles calculées avec chute de tension 3%.
             </p>
+            <OpenProjectLink label="Continuer dans mon projet" />
           </div>
         ) : (
           <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 p-8">

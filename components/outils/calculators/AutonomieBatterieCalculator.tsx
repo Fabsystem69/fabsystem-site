@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { readBilanSnapshot, type BilanSnapshot } from "@/lib/calc/bilan-storage";
+import { OpenProjectLink } from "@/components/outils/project-bridge/OpenProjectLink";
 
 // Extrait de components/CalcSection.tsx (UI-7.1). Comportement de calcul
 // inchangé. Le bilan importé (auparavant reçu en props d'un composant
@@ -377,12 +378,15 @@ export default function AutonomieBatterieCalculator() {
                 ? "Rendement système 75 % appliqué sur la production solaire. Résultat indicatif — varie selon météo, orientation et ombrage."
                 : "Estimation sans recharge. Activez le solaire pour simuler avec panneaux."}
             </p>
-            <button
-              onClick={exportCompletPDF}
-              className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-neutral-900 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-neutral-700"
-            >
-              📄 Exporter le rapport complet
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={exportCompletPDF}
+                className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-neutral-900 px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-neutral-700"
+              >
+                📄 Exporter le rapport complet
+              </button>
+              <OpenProjectLink label="Continuer dans mon projet" />
+            </div>
           </div>
         ) : (
           <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 p-8">

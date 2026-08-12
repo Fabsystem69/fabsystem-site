@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { writeBilanSnapshot, type Appareil } from "@/lib/calc/bilan-storage";
+import { AddEnergyToProjectButton } from "@/components/outils/project-bridge/AddEnergyToProjectButton";
 
 // Extrait de components/CalcSection.tsx (UI-7.1). Comportement de calcul
 // inchangé. Seule différence : au lieu de remonter son état à un
@@ -380,12 +381,15 @@ export default function BilanConsommationCalculator() {
         </div>
       )}
       {totalWh > 0 && (
-        <button
-          onClick={exportPDF}
-          className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-neutral-900 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-neutral-700"
-        >
-          📄 Exporter en PDF
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={exportPDF}
+            className="flex items-center gap-2 rounded-xl border-2 border-neutral-900 bg-neutral-900 px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-neutral-700"
+          >
+            📄 Exporter en PDF
+          </button>
+          <AddEnergyToProjectButton appareils={appareils} />
+        </div>
       )}
       <p className="text-xs text-neutral-400">
         DOD 50 % appliqué pour AGM/GEL. Pour du lithium LiFePO₄ (DOD 80 %), divisez par 1,6.

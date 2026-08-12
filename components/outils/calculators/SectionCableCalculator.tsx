@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { calcSection, fusibleRecommande } from "@/lib/calc/section-cable";
+import { AddCableToProjectButton } from "@/components/outils/project-bridge/AddCableToProjectButton";
 
 // Extrait tel quel de components/CalcSection.tsx (UI-7.1) — aucun
 // changement de comportement, uniquement déplacé vers sa propre page
@@ -137,6 +138,11 @@ export default function SectionCableCalculator() {
               Calcul basé sur la résistivité du cuivre (ρ = 0,0175 Ω·mm²/m).
               Majorez d&apos;une section si câble en conduit ou forte chaleur.
             </p>
+            <div className="mt-4">
+              <AddCableToProjectButton
+                form={{ intensite, longueur, chute, tension }}
+              />
+            </div>
           </div>
         ) : (
           <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 p-8">
