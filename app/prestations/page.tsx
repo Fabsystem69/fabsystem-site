@@ -54,7 +54,7 @@ export default async function PrestationsPage({
                 vérifier chaque étape et à débloquer les difficultés.
               </p>
             </div>
-            <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-neutral-900">
+            <span className="mt-5 inline-flex h-10 items-center gap-1 self-start whitespace-nowrap rounded-lg bg-brand-400 px-4 text-sm font-semibold text-neutral-900 transition-colors duration-150 group-hover:bg-brand-300">
               Découvrir les accompagnements
               <span aria-hidden="true" className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
             </span>
@@ -74,7 +74,7 @@ export default async function PrestationsPage({
                 diagnostic, installation, dépannage, refit.
               </p>
             </div>
-            <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-white">
+            <span className="mt-5 inline-flex h-10 items-center gap-1 self-start whitespace-nowrap rounded-lg bg-brand-400 px-4 text-sm font-semibold text-neutral-900 transition-colors duration-150 group-hover:bg-brand-300">
               Découvrir les interventions
               <span aria-hidden="true" className="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
             </span>
