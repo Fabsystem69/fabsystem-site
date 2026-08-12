@@ -92,6 +92,19 @@ export function GuidedProjectFlow({
     setFlow(readGuidedFlowState(project.id));
   }, [project.id]);
 
+  // Précédent/Suivant ne change que l'état affiché (pas de navigation de
+  // page) : sans ceci, un utilisateur qui a scrollé vers le bas sur une
+  // étape haute (ex. après avoir rempli un formulaire) atterrit au milieu
+  // — voire hors du contenu visible — de l'étape suivante, souvent plus
+  // courte. Ça se manifestait comme "la page bug, il faut rafraîchir" :
+  // le rafraîchissement remet simplement le scroll à zéro. Placé avant le
+  // `if (!flow) return null` ci-dessous pour respecter les Rules of Hooks
+  // (un hook ne peut pas suivre un retour conditionnel).
+  useEffect(() => {
+    if (!flow) return;
+    window.scrollTo(0, 0);
+  }, [flow?.stepId]);
+
   function updateFlow(patch: Partial<GuidedFlowState>) {
     setFlow((current) => {
       const next = { ...(current ?? readGuidedFlowState(project.id)), ...patch };
