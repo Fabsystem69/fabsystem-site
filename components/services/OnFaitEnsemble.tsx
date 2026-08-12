@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PrestationsDistanceOffers } from "@/components/prestations/PrestationsDistanceOffers";
 import { getPrestationsPackProductIdBySlug } from "@/lib/services/prestations-packs-catalog";
 import type { PrestationsCategorie } from "@/lib/prestations-packs";
@@ -22,7 +23,14 @@ export async function OnFaitEnsemble({ initialCategory }: { initialCategory?: Pr
   return (
     <div className="bg-neutral-950 text-white">
       <div className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
-        <p className="text-xs font-semibold uppercase tracking-widest text-brand-400">
+        <Link
+          href="/prestations"
+          className="text-sm font-medium text-neutral-400 underline underline-offset-4 hover:text-white"
+        >
+          ← Services
+        </Link>
+
+        <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-brand-400">
           On fait ensemble
         </p>
         <h1 className="mt-1.5 text-2xl font-bold text-white sm:text-3xl">

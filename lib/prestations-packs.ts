@@ -59,8 +59,8 @@ const CATEGORIE_LABELS: Record<PrestationsCategorie, string> = {
 
 const PRICES_CENTS: Record<PrestationsCategorie, Record<PrestationsPalier, number>> = {
   van: { amarrage: 8900, cap: 19900, passerelle: 49900, "grand-large": 74900 },
-  "camping-car": { amarrage: 10900, cap: 27900, passerelle: 59900, "grand-large": 89900 },
-  bateau: { amarrage: 12900, cap: 34900, passerelle: 74900, "grand-large": 109900 },
+  "camping-car": { amarrage: 8900, cap: 27900, passerelle: 59900, "grand-large": 89900 },
+  bateau: { amarrage: 8900, cap: 34900, passerelle: 74900, "grand-large": 109900 },
 };
 
 // Ebook lie par categorie. "ebook-electricite-van" existe deja et est vendu
