@@ -104,17 +104,13 @@ export function isPrestationsPackSlug(slug: string) {
   return slug.startsWith(PRESTATIONS_PACK_SLUG_PREFIX);
 }
 
-// Regle stricte (Mission 3) : Amarrage ne donne jamais acces a un ebook ;
-// Cap/Passerelle/Grand Large donnent acces a l'ebook de leur categorie
-// s'il existe (van, bateau), jamais pour camping-car.
+// Tous les paliers, y compris Amarrage/Étape, donnent acces a l'ebook de
+// leur categorie s'il existe (van, bateau) ; jamais pour camping-car, qui
+// n'a aucun ebook au catalogue (EBOOK_SLUG_BY_CATEGORIE["camping-car"] = null).
 function resolveGrantsEbookSlug(
-  palier: PrestationsPalier,
+  _palier: PrestationsPalier,
   categorie: PrestationsCategorie
 ): string | null {
-  if (palier === "amarrage") {
-    return null;
-  }
-
   return EBOOK_SLUG_BY_CATEGORIE[categorie];
 }
 

@@ -4,13 +4,11 @@ import { Button } from "@/components/ui/Button";
 
 // Home V2 — Accompagnement / "On fait ensemble"
 // (docs/refonte-site-public/home/06-ACCOMPAGNEMENT.md). Un seul CTA
-// principal, aucun prix, aucun pack commercial. Visuel : une vraie photo
-// d'installation (accompagnement personnalisé) plutôt que Volta — aucun
-// asset officiel de la mascotte n'existe dans ce dépôt (voir
-// docs/audits/UI-3-HOME.md, Visuels nécessaires) ; sa présence n'est
-// qu'« éligible », pas obligatoire (§12), donc omise plutôt qu'inventée.
-// CTA vers l'ancre réelle #on-fait-ensemble créée par la refonte Services
-// (UI-4) — remplace la destination temporaire sans ancre de la Phase UI-3.
+// principal, aucun prix, aucun pack commercial. Visuel : vraie photo
+// Fabien + client devant un tableau électrique (accompagnement réel),
+// fournie par l'utilisateur — remplace l'ancienne photo d'installation
+// seule (matériel sans humain). CTA vers l'ancre réelle
+// #on-fait-ensemble créée par la refonte Services (UI-4).
 const APPORTS = [
   { title: "Préparer", text: "Architecture, matériel, dimensionnement de votre projet." },
   { title: "Vérifier", text: "Schéma, câblage, cohérence de vos choix techniques." },
@@ -49,10 +47,10 @@ export function Accompagnement() {
 
         {/* Visuel */}
         <div className="order-1 lg:order-2">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-neutral-200">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-neutral-200">
             <Image
-              src="/preuves/install-victron.jpg"
-              alt="Installation électrique embarquée accompagnée par FabSystem"
+              src="/fab-client-accompagnement.png"
+              alt="Fabien accompagne un client sur son installation électrique, devant un tableau ouvert"
               fill
               loading="lazy"
               sizes="(max-width: 1024px) 100vw, 50vw"

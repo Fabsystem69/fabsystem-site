@@ -11,6 +11,12 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Empêche le navigateur de "corriger" la position de scroll quand du
+       contenu est inséré au-dessus/autour du viewport pendant le rendu en
+       streaming (loading.tsx puis contenu réel) : sans ça, une navigation
+       client-side vers une page force-dynamic peut sporadiquement finir
+       scrollée au milieu/bas de la nouvelle page au lieu du haut. */
+    overflow-anchor: none;
   }
 
   html,

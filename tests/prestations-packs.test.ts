@@ -38,15 +38,6 @@ test("pricing table matches the exact mission 5 price table", () => {
   }
 });
 
-test("Amarrage never grants an ebook, for any category", () => {
-  for (const categorie of ["van", "camping-car", "bateau"] as const) {
-    const definition = getPrestationsPackDefinitionBySlug(
-      buildPrestationsPackSlug("amarrage", categorie)
-    );
-    assert.equal(definition?.grantsEbookSlug, null, categorie);
-  }
-});
-
 test("Camping-car never grants an ebook, for any palier", () => {
   for (const palier of ["amarrage", "cap", "passerelle", "grand-large"] as const) {
     const definition = getPrestationsPackDefinitionBySlug(
@@ -56,15 +47,15 @@ test("Camping-car never grants an ebook, for any palier", () => {
   }
 });
 
-test("Cap/Passerelle/Grand Large grant the van ebook for van packs", () => {
-  for (const palier of ["cap", "passerelle", "grand-large"] as const) {
+test("All paliers (including Amarrage) grant the van ebook for van packs", () => {
+  for (const palier of ["amarrage", "cap", "passerelle", "grand-large"] as const) {
     const definition = getPrestationsPackDefinitionBySlug(buildPrestationsPackSlug(palier, "van"));
     assert.equal(definition?.grantsEbookSlug, "ebook-electricite-van", palier);
   }
 });
 
-test("Cap/Passerelle/Grand Large grant the bateau ebook for bateau packs", () => {
-  for (const palier of ["cap", "passerelle", "grand-large"] as const) {
+test("All paliers (including Amarrage) grant the bateau ebook for bateau packs", () => {
+  for (const palier of ["amarrage", "cap", "passerelle", "grand-large"] as const) {
     const definition = getPrestationsPackDefinitionBySlug(
       buildPrestationsPackSlug(palier, "bateau")
     );
@@ -91,13 +82,15 @@ test("buildPrestationsPackSlug round-trips through getPrestationsPackDefinitionB
 test("findPrestationsPackIncludingEbook finds a pack for the van ebook", () => {
   const definition = findPrestationsPackIncludingEbook("ebook-electricite-van");
   assert.equal(definition?.categorie, "van");
-  assert.notEqual(definition?.palier, "amarrage");
+  // Amarrage grants the ebook too désormais, et c'est le premier palier de
+  // la liste : c'est donc le pack le moins cher qui remonte en premier.
+  assert.equal(definition?.palier, "amarrage");
 });
 
 test("findPrestationsPackIncludingEbook finds a pack for the bateau ebook", () => {
   const definition = findPrestationsPackIncludingEbook("ebook-electricite-bateau");
   assert.equal(definition?.categorie, "bateau");
-  assert.notEqual(definition?.palier, "amarrage");
+  assert.equal(definition?.palier, "amarrage");
 });
 
 test("findPrestationsPackIncludingEbook returns undefined for a product with no matching pack", () => {

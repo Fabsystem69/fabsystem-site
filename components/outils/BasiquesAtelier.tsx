@@ -22,7 +22,7 @@ export function BasiquesAtelier() {
         détaillés sur Les bases.
       </p>
       <div className="mt-5">
-        <Button href="/formations#bons-gestes" variant="secondary">
+        <Button href="/formations" variant="secondary">
           Voir les basiques de l&apos;atelier →
         </Button>
       </div>
