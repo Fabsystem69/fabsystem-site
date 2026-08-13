@@ -32,7 +32,7 @@ export function VoltaGuide({
 }) {
   return (
     <div className={`flex items-start gap-3 rounded-xl border p-3.5 ${VARIANT_STYLES[variant]} ${className}`}>
-      <VoltaAvatar pose={pose} size={32} />
+      <VoltaAvatar pose={pose} size={56} />
       <div className="min-w-0 flex-1">
         {title ? <p className="text-sm font-semibold text-neutral-950">{title}</p> : null}
         <p className={`text-sm leading-relaxed text-neutral-800 ${title ? "mt-1" : ""}`}>{children}</p>

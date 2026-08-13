@@ -7,7 +7,13 @@ import TrackedLink from "@/components/TrackedLink";
 // docs/refonte-site-public/home/11-FOOTER.md : fond sombre et sobre, quatre
 // zones desktop (marque / Explorer / FabSystem / Informations), ligne basse
 // avec copyright et réseaux sociaux officiels uniquement. Aucun nouveau CTA
-// commercial, aucune newsletter, aucun Volta (règles anti-dérive §22).
+// commercial, aucune newsletter.
+//
+// UI-14 (suite) : signature Volta ajoutée dans la colonne Marque, sur
+// décision explicite — présence de marque (pas de message, pas de CTA),
+// volontairement plus grande qu'une icône pour être identifiable et
+// mémorisable, contrairement aux apparitions fonctionnelles de VoltaGuide
+// ailleurs sur le site (voir docs/audits/UI-14-VOLTA-INTEGRATION.md).
 
 // "Explorer" reprend les quatre piliers publics validés
 // (00-CAHIER-DES-CHARGES-GLOBAL.md §12) — le CDC Footer utilise encore le
@@ -91,7 +97,21 @@ export default function Footer() {
               officielle du logo pour fond sombre n'existe aujourd'hui ; le
               fichier /FabSystem-Logo.svg n'est ni recoloré ni redessiné). */}
           <div>
-            <span className="inline-flex items-center rounded-lg bg-white px-3 py-2">
+            <div className="flex items-center gap-3">
+              <Image
+                src="/volta/volta-confiant-pince.png"
+                alt="Volta, l'assistante technique FabSystem"
+                width={187}
+                height={163}
+                className="h-16 w-auto shrink-0 object-contain"
+              />
+              <div>
+                <p className="text-sm font-semibold text-white">Volta</p>
+                <p className="text-xs text-neutral-400">Assistante technique FabSystem</p>
+              </div>
+            </div>
+
+            <span className="mt-5 inline-flex items-center rounded-lg bg-white px-3 py-2">
               <Image src="/FabSystem-Logo.svg" alt="FabSystem" width={140} height={66} className="h-8 w-auto" />
             </span>
             <p className="mt-4 text-sm leading-relaxed text-neutral-400">
