@@ -48,9 +48,11 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
         {entry.shortDescription || "Description bientôt disponible."}
       </p>
 
-      {entry.formatsCount ? (
+      {entry.pageCount || entry.formatsCount ? (
         <p className="mt-3 text-xs font-medium text-neutral-500">
-          {entry.formatsCount} format{entry.formatsCount > 1 ? "s" : ""} inclus
+          {entry.pageCount ? `~${entry.pageCount} pages` : null}
+          {entry.pageCount && entry.formatsCount ? " · " : null}
+          {entry.formatsCount ? `${entry.formatsCount} format${entry.formatsCount > 1 ? "s" : ""} inclus` : null}
         </p>
       ) : null}
 

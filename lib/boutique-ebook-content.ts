@@ -18,6 +18,14 @@ export type EbookEnrichment = {
   formats?: { icon: string; title: string; detail: string }[];
   reassuranceSuffix?: string;
   showFaq?: boolean;
+  /** Volume approximatif du contenu source, arrondi à la dizaine —
+   * argument de valeur perçue (pas un nombre de pages imprimées, le
+   * format de vente est numérique). */
+  pageCount?: number;
+  /** Pages/planches réelles extraites du contenu source (docs/ebook/), pas
+   * des maquettes — preuve visuelle concrète du contenu plutôt qu'une
+   * promesse abstraite. */
+  preview?: { src: string; alt: string }[];
 };
 
 export const EBOOK_ENRICHMENT: Record<string, EbookEnrichment> = {
@@ -59,6 +67,12 @@ export const EBOOK_ENRICHMENT: Record<string, EbookEnrichment> = {
       " sont déduits de la prestation. Ce livre n'est jamais un coût perdu — au pire, c'est votre meilleure préparation avant qu'on travaille ensemble.",
     showFaq: true,
     faqVariant: "van",
+    pageCount: 400,
+    preview: [
+      { src: "/ebook/apercu/van-1-loi-ohm.jpg", alt: "Planche « La loi d'Ohm : tout ce qui freine chauffe »" },
+      { src: "/ebook/apercu/van-2-protections.jpg", alt: "Planche « Les protections »" },
+      { src: "/ebook/apercu/van-3-distribution.jpg", alt: "Planche « La distribution et les protections »" },
+    ],
   },
   "ebook-electricite-bateau": {
     coverSrc: "/ebook/couverture-bateau.jpg",
@@ -99,5 +113,11 @@ export const EBOOK_ENRICHMENT: Record<string, EbookEnrichment> = {
       " sont déduits de la prestation. Ce livre n'est jamais un coût perdu — au pire, c'est votre meilleure préparation avant qu'on travaille ensemble.",
     showFaq: true,
     faqVariant: "bateau",
+    pageCount: 500,
+    preview: [
+      { src: "/ebook/apercu/bateau-1-mise-sous-tension.jpg", alt: "Planche « Vérifier chaque circuit avant mise sous tension »" },
+      { src: "/ebook/apercu/bateau-2-diagnostic.jpg", alt: "Planche « Diagnostiquer une panne »" },
+      { src: "/ebook/apercu/bateau-3-controle-mensuel.jpg", alt: "Planche « Contrôle mensuel »" },
+    ],
   },
 };

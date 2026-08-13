@@ -15,5 +15,6 @@ export type BoutiqueGuideEntry = {
   univers?: PrestationsCategorie;
   isDeductible: boolean;
   formatsCount?: number;
+  pageCount?: number;
   owned: boolean;
 };

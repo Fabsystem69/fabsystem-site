@@ -149,6 +149,12 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                 </p>
               ) : null}
 
+              {enrichment?.pageCount ? (
+                <p className="mt-3 text-sm font-medium text-neutral-600">
+                  ~{enrichment.pageCount} pages de contenu
+                </p>
+              ) : null}
+
               <p className="mt-4 text-lg font-semibold text-neutral-900">
                 {formatEuroFromCents(price.unitAmountCents)}
               </p>
@@ -195,6 +201,31 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                 <p className="mt-3 text-sm leading-relaxed text-neutral-700 sm:text-base">
                   {product.description}
                 </p>
+              </article>
+            ) : null}
+
+            {enrichment?.preview ? (
+              <article className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+                <h2 className="text-base font-semibold text-neutral-950">Aperçu du contenu</h2>
+                <p className="mt-1 text-sm text-neutral-600">
+                  De vraies pages du guide, pas des maquettes.
+                </p>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  {enrichment.preview.map((page) => (
+                    <div
+                      key={page.src}
+                      className="overflow-hidden rounded-xl border border-neutral-200"
+                    >
+                      <Image
+                        src={page.src}
+                        alt={page.alt}
+                        width={1400}
+                        height={933}
+                        className="h-auto w-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
               </article>
             ) : null}
 
@@ -300,6 +331,14 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                   <dt className="text-neutral-500">Formats</dt>
                   <dd className="text-right font-medium text-neutral-900">
                     {enrichment.formats.length} inclus
+                  </dd>
+                </div>
+              ) : null}
+              {enrichment?.pageCount ? (
+                <div className="flex items-start justify-between gap-4">
+                  <dt className="text-neutral-500">Volume</dt>
+                  <dd className="text-right font-medium text-neutral-900">
+                    ~{enrichment.pageCount} pages
                   </dd>
                 </div>
               ) : null}

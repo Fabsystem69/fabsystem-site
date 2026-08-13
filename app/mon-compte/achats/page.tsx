@@ -100,7 +100,12 @@ export default async function MesAchatsPage({
                     {order.items.map((item) => (
                       <div key={item.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
                         <p className="text-sm font-medium text-neutral-950">{item.productName}</p>
-                        <p className="mt-1 text-sm text-neutral-600">/boutique/{item.productSlug}</p>
+                        <Link
+                          href={`/boutique/${item.productSlug}`}
+                          className="mt-1 inline-block text-sm text-neutral-600 underline underline-offset-4 hover:text-neutral-900"
+                        >
+                          Voir la fiche produit
+                        </Link>
                         <div className="mt-3 flex items-start justify-between gap-4 text-sm">
                           <span className="text-neutral-500">Quantité {item.quantity}</span>
                           <span className="font-medium text-neutral-900">

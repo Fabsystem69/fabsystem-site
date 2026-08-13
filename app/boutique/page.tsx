@@ -64,6 +64,7 @@ async function buildGuideEntries(): Promise<BoutiqueGuideEntry[]> {
         univers: getUniversForEbookSlug(product.slug),
         isDeductible: findPrestationsPackIncludingEbook(product.slug) !== undefined,
         formatsCount: enrichment?.formats?.length,
+        pageCount: enrichment?.pageCount,
         owned: existingAccess !== null,
       };
 
