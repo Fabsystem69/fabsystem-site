@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 // utiliser /services créerait un lien mort.
 export function CtaFinal() {
   return (
-    <Section tone="dark" className="border-t border-neutral-800">
+    <Section tone="dark" className="!py-12 border-t border-neutral-800">
       <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">

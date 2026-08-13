@@ -98,13 +98,18 @@ export default function Footer() {
               fichier /FabSystem-Logo.svg n'est ni recoloré ni redessiné). */}
           <div>
             <div className="flex items-center gap-3">
-              <Image
-                src="/volta/volta-confiant-pince.png"
-                alt="Volta, l'assistante technique FabSystem"
-                width={187}
-                height={163}
-                className="h-16 w-auto shrink-0 object-contain"
-              />
+              {/* Détourage non parfait sur fond sombre (léger liseré clair
+                  visible sur la fourrure) : posé sur un badge clair, comme
+                  le logo juste en dessous, plutôt que sur le fond noir. */}
+              <span className="inline-flex shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-1.5">
+                <Image
+                  src="/volta/volta-confiant-pince.png"
+                  alt="Volta, l'assistante technique FabSystem"
+                  width={187}
+                  height={163}
+                  className="h-14 w-auto object-contain"
+                />
+              </span>
               <div>
                 <p className="text-sm font-semibold text-white">Volta</p>
                 <p className="text-xs text-neutral-400">Assistante technique FabSystem</p>
