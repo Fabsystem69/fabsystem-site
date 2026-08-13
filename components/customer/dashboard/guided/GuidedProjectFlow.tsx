@@ -164,9 +164,11 @@ export function GuidedProjectFlow({
             Étape {currentIndex + 1} sur {STEP_IDS.length} — {STEP_LABELS[currentStepId]}
           </span>
           <span className="text-neutral-600">
-            {uncompletedCount > 0
-              ? `${uncompletedCount} élément${uncompletedCount > 1 ? "s" : ""} restent à renseigner`
-              : "Tout est à jour"}
+            {retainedValues.length === 0
+              ? "Vous venez de commencer"
+              : uncompletedCount > 0
+                ? `${uncompletedCount} élément${uncompletedCount > 1 ? "s" : ""} restent à renseigner`
+                : "Tout est à jour"}
           </span>
         </div>
       )}
@@ -582,7 +584,11 @@ function SchemaStep({
       helper="Ce que FabSystem a retenu jusqu'ici."
     >
       {retainedValues.length === 0 ? (
-        <p className="text-sm text-neutral-600">Rien n&apos;est encore retenu dans ce projet.</p>
+        <VoltaGuide variant="warning" pose="perplexe">
+          Rien n&apos;est encore retenu dans ce projet. Si vous avez utilisé « Calculer » sur une
+          étape précédente sans cliquer ensuite sur « Utiliser pour mon projet », le résultat n&apos;a
+          pas été enregistré — revenez sur cette étape pour le retenir.
+        </VoltaGuide>
       ) : (
         <div className="grid gap-2 sm:grid-cols-2">
           {retainedValues.map((rv) => {

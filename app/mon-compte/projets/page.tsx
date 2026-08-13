@@ -5,7 +5,11 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/format";
 import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/project";
+import { getProjectValues } from "@/lib/services/project-values";
 import { requireCustomerActor } from "@/lib/server/project-actor";
+import { listRegisteredEngineIds } from "@/lib/engines/index";
+import type { RegisteredEngineId } from "@/lib/engine-payload";
+import { moduleStatus } from "@/lib/project-module-status";
 import {
   getProjectAssetTypeLabel,
   getProjectStatusLabel,
@@ -41,6 +45,21 @@ export default async function MesProjetsPage() {
   const active = projects.filter((p) => p.status === "ACTIVE" || p.status === "DELETE_SCHEDULED");
   const archived = projects.filter((p) => p.status === "ARCHIVED");
   const atLimit = projects.length >= STANDARD_PROJECT_LIMIT;
+
+  // Repère rapide pour jongler entre plusieurs projets sans ouvrir chacun —
+  // limite à STANDARD_PROJECT_LIMIT projets, donc peu coûteux même en N+1.
+  const engineIds = listRegisteredEngineIds() as RegisteredEngineId[];
+  const progressByProjectId = new Map(
+    await Promise.all(
+      active.map(async (project) => {
+        const values = await getProjectValues(project.id);
+        const retainedCount = engineIds.filter(
+          (id) => moduleStatus(id, values) === "Retenu"
+        ).length;
+        return [project.id, { retainedCount, total: engineIds.length }] as const;
+      })
+    )
+  );
 
   return (
     <div className="space-y-8">
@@ -112,6 +131,12 @@ export default async function MesProjetsPage() {
                   {project.status === "DELETE_SCHEDULED" && project.deleteScheduledAt ? (
                     <p className="mt-2 text-xs font-semibold text-red-700">
                       Suppression programmée le {formatDate(project.deleteScheduledAt)}
+                    </p>
+                  ) : null}
+                  {progressByProjectId.has(project.id) ? (
+                    <p className="mt-2 text-xs font-medium text-neutral-500">
+                      {progressByProjectId.get(project.id)!.retainedCount}/
+                      {progressByProjectId.get(project.id)!.total} modules retenus
                     </p>
                   ) : null}
                 </div>

@@ -19,6 +19,17 @@ const TECHNOLOGIES: { value: BatteryChemistry; label: string }[] = [
   { value: "LIFEPO4", label: "LiFePO4" },
 ];
 
+// Profondeur de décharge recommandée par défaut selon la technologie —
+// 50 % est correct pour du plomb/AGM/Gel mais très conservateur pour du
+// LiFePO4 (typiquement 80-90 %). Reste modifiable, ce n'est qu'un point de
+// départ raisonnable pour éviter un dimensionnement faussé par défaut.
+const DEFAULT_DOD_BY_TECHNOLOGY: Record<BatteryChemistry, string> = {
+  LEAD_ACID: "50",
+  AGM: "50",
+  GEL: "50",
+  LIFEPO4: "80",
+};
+
 // Moteur réel : battery.sizing (lib/engines/battery-engine.ts). Lit
 // energy.dailyConsumption et energy.maxCurrent déjà retenus par le projet —
 // le moteur signale lui-même une dépendance manquante (voir l'erreur
@@ -56,7 +67,11 @@ export function BatteryModule({
           Technologie
           <select
             value={technology}
-            onChange={(e) => setTechnology(e.target.value as BatteryChemistry)}
+            onChange={(e) => {
+              const nextTechnology = e.target.value as BatteryChemistry;
+              setTechnology(nextTechnology);
+              setMaxDepthOfDischarge(DEFAULT_DOD_BY_TECHNOLOGY[nextTechnology]);
+            }}
             className="mt-1 w-full rounded-md border border-neutral-300 px-2.5 py-2 text-sm outline-none focus:border-brand-400"
           >
             {TECHNOLOGIES.map((tech) => (

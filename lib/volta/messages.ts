@@ -3,7 +3,7 @@
 // jamais d'un diagnostic ou d'une recommandation inventée pour l'occasion.
 export const VOLTA_MESSAGES = {
   guidedIntro:
-    "Je vais vous aider à avancer étape par étape. Pas besoin de connaître l'électricité : décrivez simplement votre installation.",
+    "Je vais vous aider à avancer étape par étape. Pas besoin de connaître l'électricité : décrivez simplement votre installation. À chaque étape, pensez à cliquer sur « Utiliser pour mon projet » — « Calculer » seul n'enregistre rien.",
   powerUnknown:
     "Vous ne connaissez pas la puissance de cet appareil ? Cherchez une valeur en W sur son étiquette ou sa notice. Si vous ne la trouvez pas, vous pourrez revenir plus tard.",
   batteryUnknown:
