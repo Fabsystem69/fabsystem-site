@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -74,7 +75,14 @@ export default async function MonComptePage() {
           </Card>
         ) : (
           <Card className="mt-4 p-6 text-center">
-            <p className="text-sm font-semibold text-neutral-950">
+            <Image
+              src="/volta/volta-accueillant-bras-ouverts.png"
+              alt=""
+              width={72}
+              height={72}
+              className="mx-auto h-[72px] w-[72px] object-contain"
+            />
+            <p className="mt-2 text-sm font-semibold text-neutral-950">
               Vous n&apos;avez pas encore de projet.
             </p>
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Card } from "@/components/ui/Card";
 import type { ProjectMode } from "@/lib/client/project-mode-storage";
 
@@ -26,7 +27,14 @@ export function ModeChoiceScreen({ onChoose }: { onChoose: (mode: ProjectMode) =
           <span className="absolute -top-3 left-5 rounded-full bg-brand-400 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-900">
             Recommandé
           </span>
-          <h2 className="mt-1 text-lg font-bold text-neutral-950">Être guidé</h2>
+          <Image
+            src="/volta/volta-salut.png"
+            alt=""
+            width={40}
+            height={40}
+            className="mt-1 h-10 w-10 object-contain"
+          />
+          <h2 className="mt-2 text-lg font-bold text-neutral-950">Être guidé</h2>
           <p className="mt-2 text-sm leading-relaxed text-neutral-700">
             FabSystem me pose les bonnes questions étape par étape.
           </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Section } from "@/components/layout/Section";
 
 // Services V2 — FAQ (docs/refonte-site-public/services/07-FAQ.md). Neuf
@@ -51,13 +52,22 @@ export function Faq() {
 
   return (
     <Section tone="light">
-      <div className="max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-          Questions fréquentes
-        </p>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
-          Vous avez une question ?
-        </h2>
+      <div className="flex max-w-2xl items-start gap-4">
+        <Image
+          src="/volta/volta-buste-souriant.png"
+          alt=""
+          width={48}
+          height={48}
+          className="hidden h-12 w-12 shrink-0 object-contain sm:block"
+        />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
+            Questions fréquentes
+          </p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
+            Vous avez une question ?
+          </h2>
+        </div>
       </div>
 
       <div className="mt-8 divide-y divide-neutral-200 border-y border-neutral-200">

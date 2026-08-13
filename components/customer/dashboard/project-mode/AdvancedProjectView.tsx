@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactElement } from "react";
 import { moduleStatus } from "@/lib/project-module-status";
 import { Card } from "@/components/ui/Card";
@@ -246,14 +247,17 @@ export function AdvancedProjectView({
         </section>
       ) : null}
 
-      {/* Explication unique Calculer / Utiliser pour mon projet */}
+      {/* Explication unique Calculer / Utiliser pour mon projet — UI-14 :
+          premier emplacement Volta réel (UI-12/13 y réservaient un cercle
+          neutre "i" dans cette exacte intention). */}
       <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
-        <span
-          className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-semibold text-neutral-400"
-          aria-hidden="true"
-        >
-          i
-        </span>
+        <Image
+          src="/volta/volta-pointe-tournevis.png"
+          alt=""
+          width={28}
+          height={28}
+          className="mt-0.5 h-7 w-7 shrink-0 object-contain"
+        />
         <p className="text-sm text-neutral-700">
           <strong className="font-medium text-neutral-900">Calculer</strong> essaie une valeur sans
           rien enregistrer.{" "}

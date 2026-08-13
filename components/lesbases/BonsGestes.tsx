@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Card } from "@/components/ui/Card";
 
 // Les Bases V2 — Les bons gestes
@@ -54,9 +55,18 @@ export function BonsGestes() {
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">{geste.text}</p>
 
             {"voltaNote" in geste && geste.voltaNote ? (
-              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Point de vigilance Volta
-              </p>
+              <div className="mt-3 flex items-center gap-2">
+                <Image
+                  src="/volta/volta-perplexe.png"
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="h-[22px] w-[22px] shrink-0 object-contain"
+                />
+                <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  Point de vigilance Volta
+                </p>
+              </div>
             ) : null}
 
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
