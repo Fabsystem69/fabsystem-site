@@ -371,7 +371,11 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                   <p className="mt-2 text-sm leading-relaxed text-neutral-700">
                     Retrouvez votre lien de téléchargement dans votre espace client.
                   </p>
-                  <Button href="/mon-compte" variant="primary" className="mt-4 w-full">
+                  <Button
+                    href={`/mon-compte/achats#produit-${product.slug}`}
+                    variant="primary"
+                    className="mt-4 w-full"
+                  >
                     Accéder à mon guide
                   </Button>
                 </>

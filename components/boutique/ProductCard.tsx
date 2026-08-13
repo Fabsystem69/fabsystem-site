@@ -68,8 +68,8 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
 
       <div className="mt-4">
         {entry.owned ? (
-          <Button href="/mon-compte" variant="secondary" className="w-full">
-            Accéder à mon guide
+          <Button href={`/boutique/${entry.slug}`} variant="secondary" className="w-full">
+            Voir le guide
           </Button>
         ) : (
           <Button href={`/boutique/${entry.slug}`} variant="primary" className="w-full">
