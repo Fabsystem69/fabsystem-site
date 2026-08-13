@@ -1,6 +1,7 @@
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
+import { VoltaGuide } from "@/components/volta/VoltaGuide";
 
 // Les Bases V2 — Modules (docs/refonte-site-public/les-bases/01-HERO-MODULES.md
 // §2-6). Les 3 modules et leurs données (titre, résumé, durée) sont ceux
@@ -54,6 +55,11 @@ export function Modules() {
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600 sm:text-base">
         Des modules courts et clairs pour comprendre l&apos;essentiel, étape par étape.
       </p>
+
+      <VoltaGuide variant="tip" pose="neutre" className="mt-6 max-w-2xl">
+        Suivez les 3 modules dans l&apos;ordre : chacun s&apos;appuie sur le précédent, du câble à
+        la batterie.
+      </VoltaGuide>
 
       <div className="mt-8 grid gap-5 lg:grid-cols-3">
         {MODULES.map((module) => (

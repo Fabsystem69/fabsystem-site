@@ -17,6 +17,8 @@ import {
 } from "@/lib/client/guided-flow-storage";
 import { ModeSwitch } from "../project-mode/ModeSwitch";
 import { GuidedStepShell } from "./GuidedStepShell";
+import { VoltaGuide } from "@/components/volta/VoltaGuide";
+import { VOLTA_MESSAGES } from "@/lib/volta/messages";
 import {
   EnergyIcon,
   BatteryIcon,
@@ -145,19 +147,29 @@ export function GuidedProjectFlow({
       </div>
 
       {/* Progression honnête (mission §11) : pas de pourcentage, des
-          faits dérivés des données réelles déjà calculées côté serveur. */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
-        <span className="font-medium text-neutral-900">
-          Étape {currentIndex + 1} sur {STEP_IDS.length} — {STEP_LABELS[currentStepId]}
-        </span>
-        <span className="text-neutral-600">
-          {obsoleteCount > 0
-            ? `${obsoleteCount} élément${obsoleteCount > 1 ? "s" : ""} à recalculer`
-            : uncompletedCount > 0
+          faits dérivés des données réelles déjà calculées côté serveur.
+          Volta n'intervient ici que si une obsolescence justifie une
+          explication (UI-14 §16) — sinon simple bandeau texte. */}
+      {obsoleteCount > 0 ? (
+        <VoltaGuide
+          variant="warning"
+          pose="perplexe"
+          title={`Étape ${currentIndex + 1} sur ${STEP_IDS.length} — ${STEP_LABELS[currentStepId]}`}
+        >
+          {VOLTA_MESSAGES.obsoleteExplain}
+        </VoltaGuide>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm">
+          <span className="font-medium text-neutral-900">
+            Étape {currentIndex + 1} sur {STEP_IDS.length} — {STEP_LABELS[currentStepId]}
+          </span>
+          <span className="text-neutral-600">
+            {uncompletedCount > 0
               ? `${uncompletedCount} élément${uncompletedCount > 1 ? "s" : ""} restent à renseigner`
               : "Tout est à jour"}
-        </span>
-      </div>
+          </span>
+        </div>
+      )}
 
       {currentStepId === "installation" ? (
         <InstallationStep project={project} />
@@ -227,6 +239,9 @@ function InstallationStep({ project }: { project: Project }) {
       title="Votre installation"
       helper="Ces informations ont été renseignées à la création du projet."
     >
+      <VoltaGuide variant="info" pose="neutre" className="mb-4">
+        {VOLTA_MESSAGES.guidedIntro}
+      </VoltaGuide>
       <dl className="grid gap-3 sm:grid-cols-2">
         <div>
           <dt className="text-xs text-neutral-500">Type</dt>
@@ -262,6 +277,9 @@ function BesoinsStep({
       title="Quels appareils utilisez-vous ?"
       helper="Ajoutez vos appareils avec leur puissance et leur durée d'utilisation quotidienne — FabSystem calcule votre consommation."
     >
+      <VoltaGuide variant="tip" pose="neutre" className="mb-4">
+        {VOLTA_MESSAGES.powerUnknown}
+      </VoltaGuide>
       <div className="mb-3">
         <Badge tone={status === "Retenu" ? "success" : status === "À recalculer" ? "warning" : "neutral"}>
           {status}
@@ -329,6 +347,12 @@ function BatterieStep({
           </button>
         ))}
       </div>
+
+      {flow.hasExistingBattery === "unknown" ? (
+        <VoltaGuide variant="tip" pose="perplexe" className="mt-4">
+          {VOLTA_MESSAGES.batteryUnknown}
+        </VoltaGuide>
+      ) : null}
 
       {flow.hasExistingBattery ? (
         <div className="mt-5 border-t border-neutral-200 pt-5">
@@ -422,6 +446,9 @@ function RechargeStep({
               title="Solaire"
               status={moduleStatus("solar.production", retainedValues)}
             >
+              <VoltaGuide variant="info" pose="neutre" className="mb-4">
+                {VOLTA_MESSAGES.mpptExplain}
+              </VoltaGuide>
               <SolarModule projectId={projectId} />
             </RechargeSubModule>
           ) : null}
@@ -486,6 +513,10 @@ function DistributionStep({
       title="Quels équipements devez-vous alimenter ?"
       helper="Regroupez vos appareils en circuits — FabSystem dimensionne ensuite le câble et la protection de chacun."
     >
+      <VoltaGuide variant="tip" pose="action" className="mb-4">
+        Un circuit, c&apos;est un groupe d&apos;appareils qui partagent le même fusible.
+        Regroupez-les par usage réel (éclairage, frigo, pompe...), pas par pièce.
+      </VoltaGuide>
       <div className="space-y-6">
         <RechargeSubModule icon={<DistributionIcon className="h-4 w-4" />} title="Circuits" status={circuitStatus}>
           <CircuitModule projectId={projectId} consumerNames={consumerNames} />
@@ -498,6 +529,9 @@ function DistributionStep({
               title="Câbles"
               status={moduleStatus("cable.sizing", retainedValues)}
             >
+              <VoltaGuide variant="tip" pose="action" className="mb-4">
+                {VOLTA_MESSAGES.cableDistance}
+              </VoltaGuide>
               <CableModule projectId={projectId} circuits={circuitsForChain} />
               <p className="mt-3 text-xs text-neutral-500">
                 Besoin de tester d&apos;autres hypothèses rapidement ?{" "}

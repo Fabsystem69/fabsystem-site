@@ -1,5 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
+import { VoltaGuide } from "@/components/volta/VoltaGuide";
+import { VOLTA_MESSAGES } from "@/lib/volta/messages";
 import type { ReactElement } from "react";
 import { moduleStatus } from "@/lib/project-module-status";
 import { Card } from "@/components/ui/Card";
@@ -247,24 +248,12 @@ export function AdvancedProjectView({
         </section>
       ) : null}
 
-      {/* Explication unique Calculer / Utiliser pour mon projet — UI-14 :
-          premier emplacement Volta réel (UI-12/13 y réservaient un cercle
-          neutre "i" dans cette exacte intention). */}
-      <div className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3">
-        <Image
-          src="/volta/volta-pointe-tournevis.png"
-          alt=""
-          width={28}
-          height={28}
-          className="mt-0.5 h-7 w-7 shrink-0 object-contain"
-        />
-        <p className="text-sm text-neutral-700">
-          <strong className="font-medium text-neutral-900">Calculer</strong> essaie une valeur sans
-          rien enregistrer.{" "}
-          <strong className="font-medium text-neutral-900">Utiliser pour mon projet</strong> retient
-          ce résultat comme décision.
-        </p>
-      </div>
+      {/* Explication unique Calculer / Utiliser pour mon projet — présence
+          Volta principale de cet écran (UI-14 §17 : max une par écran en
+          mode avancé, l'obsolescence ci-dessus reste en texte simple). */}
+      <VoltaGuide variant="info" pose="neutre">
+        {VOLTA_MESSAGES.calculateVsRetain}
+      </VoltaGuide>
 
       {/* 3. Valeurs retenues importantes */}
       {retainedValues.length === 0 ? (

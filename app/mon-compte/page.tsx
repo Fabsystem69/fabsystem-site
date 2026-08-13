@@ -6,10 +6,16 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/format";
 import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/project";
+import { getProjectValues } from "@/lib/services/project-values";
 import { getCustomerAccountOverview } from "@/lib/services/customer-account";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { getProjectAssetTypeLabel, getProjectVoltageLabel } from "@/lib/project-labels";
 import { PendingImportBanner } from "@/components/customer/dashboard/PendingImportBanner";
+import { listRegisteredEngineIds } from "@/lib/engines/index";
+import type { RegisteredEngineId } from "@/lib/engine-payload";
+import { moduleStatus } from "@/lib/project-module-status";
+import { VoltaGuide } from "@/components/volta/VoltaGuide";
+import { VOLTA_MESSAGES } from "@/lib/volta/messages";
 
 export const metadata: Metadata = {
   title: "Mon compte",
@@ -33,6 +39,15 @@ export default async function MonComptePage() {
   const recentProject = [...projects].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   )[0];
+
+  // UI-14 §18 — Volta n'apparaît ici que si elle a une info réelle à
+  // donner (dérivée des valeurs retenues), jamais un message générique.
+  const recentProjectValues = recentProject ? await getProjectValues(recentProject.id) : [];
+  const recentObsoleteCount = recentProjectValues.filter((rv) => rv.status === "OBSOLETE").length;
+  const engineIds = listRegisteredEngineIds() as RegisteredEngineId[];
+  const recentUncompletedCount = recentProject
+    ? engineIds.filter((id) => moduleStatus(id, recentProjectValues) === "À compléter").length
+    : 0;
 
   return (
     <div className="space-y-8">
@@ -67,6 +82,15 @@ export default async function MonComptePage() {
               {getProjectVoltageLabel(recentProject.voltage)} · Modifié le{" "}
               {formatDate(recentProject.updatedAt)}
             </p>
+            {recentObsoleteCount > 0 ? (
+              <VoltaGuide variant="warning" pose="perplexe" className="mt-3">
+                {VOLTA_MESSAGES.dashboardObsolete(recentObsoleteCount)}
+              </VoltaGuide>
+            ) : recentUncompletedCount > 0 ? (
+              <VoltaGuide variant="next" pose="confiante" className="mt-3">
+                {VOLTA_MESSAGES.dashboardTodo(recentUncompletedCount)}
+              </VoltaGuide>
+            ) : null}
             <div className="mt-4">
               <Button href={`/mon-compte/projets/${recentProject.id}`} variant="primary">
                 Continuer →
@@ -86,8 +110,8 @@ export default async function MonComptePage() {
               Vous n&apos;avez pas encore de projet.
             </p>
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-              Un projet FabSystem centralise votre installation : ce que vous avez renseigné, ce
-              que vous avez retenu, et ce qui reste à compléter.
+              Un projet centralise votre installation : ce que vous avez renseigné, ce que vous
+              avez retenu, et ce qui reste à compléter.
             </p>
             <div className="mt-4">
               <Button href="/mon-compte/projets/nouveau" variant="primary">
