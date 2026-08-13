@@ -49,7 +49,7 @@ export function Accompagnement() {
         <div className="order-1 lg:order-2">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-neutral-200">
             <Image
-              src="/fab-client-accompagnement.png"
+              src="/fab-client-accompagnement.jpg"
               alt="Fabien accompagne un client sur son installation électrique, devant un tableau ouvert"
               fill
               loading="lazy"
