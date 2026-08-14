@@ -1,23 +1,21 @@
-import { getNodesBounds, getViewportForBounds, type Node } from "@xyflow/react";
+import { getNodesBounds, type Node } from "@xyflow/react";
 import { toPng } from "html-to-image";
 import type { Bom } from "@/lib/electrical-components/bom";
 
 // Export image (CDC §38-40) : capture uniquement le canvas (pas la barre
 // d'outils ni les panneaux), cadré automatiquement sur le contenu — pas une
 // simple capture d'écran de l'éditeur avec ses boutons (§37).
-const EXPORT_PADDING = 0.15;
-const MIN_ZOOM = 0.2;
-// Relevé de 2 à 3 : avec un plancher de canvas plus grand (MIN_IMAGE_*),
-// un petit schéma a besoin de plus de zoom pour remplir raisonnablement
-// l'image plutôt que de flotter dans une grande zone blanche.
-const MAX_ZOOM = 3;
+//
+// Zoom fixe plutôt que "zoom pour faire tenir tout le schéma dans un cadre
+// de taille donnée" (retour utilisateur : "je voudrais qu'on arrive à
+// cette résolution et zoom avec un schéma entier") — l'ancienne approche
+// réduisait le zoom d'autant plus que le schéma était grand, donc chaque
+// composant devenait minuscule sur un gros schéma. Chaque composant garde
+// désormais toujours la même taille réelle ; c'est le canvas exporté qui
+// grandit pour contenir tout le schéma, jamais l'inverse.
+const EXPORT_ZOOM = 1;
+const EXPORT_PADDING_PX = 80;
 const DISCLAIMER_BAND_HEIGHT = 44;
-// Plancher de taille (retour utilisateur : export PNG "beaucoup trop petit
-// et illisible" une fois posté sur Facebook) — un schéma avec peu de
-// composants donnait une image minuscule (bounds + 160px de marge
-// seulement). Facebook recompresse et réduit les images à l'affichage :
-// partir d'une résolution confortable évite qu'un schéma simple devienne
-// illisible après ce traitement.
 const MIN_IMAGE_WIDTH = 1600;
 const MIN_IMAGE_HEIGHT = 1000;
 
@@ -153,9 +151,17 @@ export async function captureSchemaPng(nodes: Node[], projectName: string, showG
   if (!viewportEl || nodes.length === 0) return null;
 
   const bounds = getNodesBounds(nodes);
-  const imageWidth = Math.max(MIN_IMAGE_WIDTH, Math.round(bounds.width + 160));
-  const imageHeight = Math.max(MIN_IMAGE_HEIGHT, Math.round(bounds.height + 160));
-  const { x, y, zoom } = getViewportForBounds(bounds, imageWidth, imageHeight, MIN_ZOOM, MAX_ZOOM, EXPORT_PADDING);
+  // Zoom fixe (EXPORT_ZOOM) : le canvas exporté fait exactement la taille du
+  // schéma (+ marge), jamais rétréci pour tenir dans un cadre — voir le
+  // commentaire en tête de fichier.
+  const contentWidth = Math.round(bounds.width * EXPORT_ZOOM + EXPORT_PADDING_PX * 2);
+  const contentHeight = Math.round(bounds.height * EXPORT_ZOOM + EXPORT_PADDING_PX * 2);
+  const imageWidth = Math.max(MIN_IMAGE_WIDTH, contentWidth);
+  const imageHeight = Math.max(MIN_IMAGE_HEIGHT, contentHeight);
+  // Centre le contenu si le plancher MIN_IMAGE_* dépasse sa taille naturelle
+  // (petit schéma), sinon simple marge EXPORT_PADDING_PX de chaque côté.
+  const x = (imageWidth - bounds.width * EXPORT_ZOOM) / 2 - bounds.x * EXPORT_ZOOM;
+  const y = (imageHeight - bounds.height * EXPORT_ZOOM) / 2 - bounds.y * EXPORT_ZOOM;
 
   const rawDataUrl = await toPng(viewportEl, {
     backgroundColor: "#ffffff",
@@ -165,7 +171,7 @@ export async function captureSchemaPng(nodes: Node[], projectName: string, showG
     style: {
       width: `${imageWidth}px`,
       height: `${imageHeight}px`,
-      transform: `translate(${x}px, ${y}px) scale(${zoom})`,
+      transform: `translate(${x}px, ${y}px) scale(${EXPORT_ZOOM})`,
     },
   });
 
