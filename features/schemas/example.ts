@@ -91,24 +91,24 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     buildNode("switch_mst3dhr3_8", "switch", 1140, 400, { label: "Interrupteur", amperage: 0, rotation: 90 }),
 
     // Convertisseur-chargeur (Multiplus), protégé côté + par un disjoncteur
-    buildNode("ex-multiplus", "inverter-charger", 1680, 380, { label: "Convertisseur-chargeur", powerW: 1600, voltageDC: 12, chargeAmperage: 50 }),
-    buildNode("circuit-breaker_mst1ysym_3", "circuit-breaker", 1560, 160, { label: "Disjoncteur DC", amperage: 16 }),
+    buildNode("ex-multiplus", "inverter-charger", 1480, 380, { label: "Convertisseur-chargeur", powerW: 1600, voltageDC: 12, chargeAmperage: 50 }),
+    buildNode("circuit-breaker_mst1ysym_3", "circuit-breaker", 1360, 160, { label: "Disjoncteur DC", amperage: 16 }),
 
     // Écran de contrôle : agrège les liaisons VE.Direct (shunt, MPPT, Multiplus)
-    buildNode("ex-fuse-monitor", "fuse", 1780, 420, { label: "Fusible écran", fuseType: "lame", amperage: 2 }),
-    buildNode("ex-monitor", "system-monitor", 1780, 500, { label: "Écran de contrôle" }),
+    buildNode("ex-fuse-monitor", "fuse", 1580, 420, { label: "Fusible écran", fuseType: "lame", amperage: 2 }),
+    buildNode("ex-monitor", "system-monitor", 1580, 500, { label: "Écran de contrôle" }),
 
     // Retour négatif
-    buildNode("ex-shunt", "shunt", 680, 700, { label: "Shunt", amperage: 0 }),
-    buildNode("ex-busbar-neg", "busbar", 1200, 840, { label: "Busbar −", polarity: "negative", outputCount: 8 }),
+    buildNode("ex-shunt", "shunt", 680, 620, { label: "Shunt", amperage: 0 }),
+    buildNode("ex-busbar-neg", "busbar", 1200, 700, { label: "Busbar −", polarity: "negative", outputCount: 8 }),
 
     // Alimentation de quai : réseau → Multiplus (AC IN) → Tableau 220V →
     // Prise 220V, avec les fils de terre du tableau et de la prise reliés à
     // la caisse.
-    buildNode("shore-power_mst20n4n_13", "shore-power", 1660, -120, { label: "Prise de quai" }),
-    buildNode("ac-panel_mst2019n_7", "ac-panel", 2000, 40, { label: "Tableau 220V" }),
-    buildNode("socket-220v_mst1zy3g_6", "socket-220v", 2200, 40, { label: "Prise 220V", powerW: 500 }),
-    buildNode("ground_mst20cj7_10", "ground", 2100, 220, { label: "Point de masse" }),
+    buildNode("shore-power_mst20n4n_13", "shore-power", 1310, 40, { label: "Prise de quai" }),
+    buildNode("ac-panel_mst2019n_7", "ac-panel", 1650, 40, { label: "Tableau 220V" }),
+    buildNode("socket-220v_mst1zy3g_6", "socket-220v", 1850, 40, { label: "Prise 220V", powerW: 500 }),
+    buildNode("ground_mst20cj7_10", "ground", 1750, 220, { label: "Point de masse" }),
   ];
 
   const edges: SchemaEdge[] = [

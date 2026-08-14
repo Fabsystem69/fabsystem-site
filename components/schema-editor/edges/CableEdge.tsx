@@ -65,7 +65,11 @@ export function CableEdge({
 
   const rawColor = data?.color ?? "#6b7280";
   const color = darkMode ? (DARK_MODE_COLOR_OVERRIDE[rawColor.toLowerCase()] ?? rawColor) : rawColor;
-  const captionParts = [data?.label, data?.section].filter(Boolean);
+  // La longueur affichée sur le câble lui-même (retour utilisateur : sans
+  // elle, un schéma partagé "n'a aucun sens" pour qui n'a pas accès au
+  // panneau de propriétés) — pas seulement dans le récapitulatif matériel.
+  const lengthLabel = typeof data?.length === "number" ? `${String(data.length).replace(".", ",")} m` : undefined;
+  const captionParts = [data?.label, data?.section, lengthLabel].filter(Boolean);
 
   // Poignées de reconnexion maison (retour utilisateur : "la possibilité de
   // déplacer les câbles librement" ne marchait pas de façon fiable) — le
