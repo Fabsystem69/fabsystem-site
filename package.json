@@ -27,6 +27,7 @@
     "@simplewebauthn/server": "^13.3.0",
     "@supabase/supabase-js": "^2.109.0",
     "@types/pg": "^8.16.0",
+    "@vercel/analytics": "^2.0.1",
     "@xyflow/react": "^12.11.3",
     "bcryptjs": "^3.0.3",
     "html-to-image": "^1.11.13",

@@ -40,34 +40,6 @@ const LEGAL_LINKS = [
   { href: "/confidentialite", label: "Politique de confidentialité" },
 ];
 
-// Profils officiellement déclarés dans les données structurées de
-// app/layout.tsx (schema.org `sameAs`) — jamais inventés (CDC §14).
-const SOCIAL_LINKS = [
-  {
-    href: "https://www.facebook.com/fabsystem",
-    label: "FabSystem sur Facebook",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M15 8.5h2V5.2c-.35-.05-1.53-.15-2.9-.15-2.87 0-4.83 1.8-4.83 5.12v2.73H6.4v3.7h2.87V21h3.7v-8.4h2.76l.44-3.7h-3.2V10.6c0-1.07.3-1.8 1.83-1.8Z"
-          fill="currentColor"
-        />
-      </svg>
-    ),
-  },
-  {
-    href: "https://www.instagram.com/fabsystem",
-    label: "FabSystem sur Instagram",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="4" y="4" width="16" height="16" rx="4.5" stroke="currentColor" strokeWidth="1.7" />
-        <circle cx="12" cy="12" r="3.6" stroke="currentColor" strokeWidth="1.7" />
-        <circle cx="16.6" cy="7.4" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-];
-
 function FooterLinkGroup({ title, links }: { title: string; links: { href: string; label: string }[] }) {
   return (
     <div>
@@ -137,7 +109,7 @@ export default function Footer() {
         </div>
 
         {/* Ligne basse */}
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-neutral-900 pt-6 text-xs text-neutral-500 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 border-t border-neutral-900 pt-6 text-xs text-neutral-500 sm:flex-row">
           <p>
             © {year} FabSystem — Tous droits réservés
             <span className="mx-2 text-neutral-700">·</span>
@@ -145,21 +117,6 @@ export default function Footer() {
               Accès interne
             </Link>
           </p>
-
-          <div className="flex items-center gap-1">
-            {SOCIAL_LINKS.map((social) => (
-              <a
-                key={social.href}
-                href={social.href}
-                target="_blank"
-                rel="noreferrer noopener"
-                aria-label={social.label}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md text-neutral-500 transition-colors duration-150 hover:bg-neutral-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400"
-              >
-                {social.icon}
-              </a>
-            ))}
-          </div>
         </div>
       </Container>
     </footer>

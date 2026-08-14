@@ -3,6 +3,7 @@ import { Space_Grotesk } from "next/font/google";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { CartDrawerProvider } from "@/lib/client/cart-drawer-context";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 
 const spaceGrotesk = Space_Grotesk({
@@ -107,10 +108,6 @@ export default function RootLayout({
               description:
                 "Conseil, installation et dépannage en électricité embarquée pour bateaux, vans et camping-cars.",
               areaServed: ["Rhône", "Auvergne-Rhône-Alpes", "France"],
-              sameAs: [
-                "https://www.facebook.com/fabsystem",
-                "https://www.instagram.com/fabsystem"
-              ]
             }),
           }}
         />
@@ -118,6 +115,7 @@ export default function RootLayout({
           <SiteChrome>{children}</SiteChrome>
           <CartDrawer />
         </CartDrawerProvider>
+        <Analytics />
       </body>
     </html>
   );
