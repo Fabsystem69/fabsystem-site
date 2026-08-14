@@ -37,7 +37,7 @@ export function ExportMenu({ darkMode }: { darkMode: boolean }) {
   async function handleExport(kind: "png" | "pdf") {
     setBusy(true);
     try {
-      const capture = await captureSchemaPng(getNodes(), projectName, showGrid);
+      const capture = await captureSchemaPng(getNodes(), getEdges(), projectName, showGrid);
       if (!capture) return;
       if (kind === "png") downloadDataUrl(capture.dataUrl, `${slugify(projectName)}.png`);
       else openPrintablePdf(capture, projectName);
@@ -60,7 +60,7 @@ export function ExportMenu({ darkMode }: { darkMode: boolean }) {
   async function handleExportCarousel() {
     setBusy(true);
     try {
-      const parts = await captureSchemaCarousel(getNodes(), projectName, showGrid);
+      const parts = await captureSchemaCarousel(getNodes(), getEdges(), projectName, showGrid);
       if (!parts) return;
       await downloadCarouselZip(parts, projectName);
     } finally {

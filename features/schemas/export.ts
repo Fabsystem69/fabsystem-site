@@ -1,7 +1,9 @@
-import { getNodesBounds, type Node } from "@xyflow/react";
+import { getNodesBounds, type Node, type Edge } from "@xyflow/react";
 import { toPng } from "html-to-image";
 import JSZip from "jszip";
 import type { Bom } from "@/lib/electrical-components/bom";
+import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
+import type { CableEdgeData } from "@/types/schema";
 
 // Export image (CDC §38-40) : capture uniquement le canvas (pas la barre
 // d'outils ni les panneaux), cadré automatiquement sur le contenu — pas une
@@ -41,6 +43,11 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 // CSS logique de `width`×`height` — dessiner sans tenir compte de `scale`
 // ne redessine que le coin haut-gauche de l'image sur un canvas trop petit
 // et coupe tout le reste (bug corrigé : export PNG/PDF tronqué).
+interface LegendItem {
+  label: string;
+  color: string;
+}
+
 async function postProcess(
   rawDataUrl: string,
   width: number,
@@ -55,6 +62,10 @@ async function postProcess(
   // toPng() plusieurs fois sur le même nœud (source d'un bug constaté :
   // appels répétés en succession rapide qui renvoyaient la même image).
   crop?: { sx: number; sy: number; sw: number; sh: number },
+  // Cartouche + légende (retour utilisateur : "petit carré comme en dessin
+  // technique avec le nom du projet, et aussi une légende") — legend vide
+  // si aucun câble n'a de type reconnu (schéma sans composant).
+  legend: LegendItem[] = [],
 ): Promise<string> {
   const img = await loadImage(rawDataUrl);
   const canvas = document.createElement("canvas");
@@ -115,6 +126,9 @@ async function postProcess(
   }
   ctx.restore();
 
+  drawLegend(ctx, legend, w, h, scale);
+  drawTitleBlock(ctx, projectName, tileLabel, w, h, scale);
+
   // Bandeau de mention légale.
   ctx.fillStyle = "#f9fafb";
   ctx.fillRect(0, h, w, bandHeight);
@@ -131,6 +145,103 @@ async function postProcess(
   wrapText(ctx, disclaimerLine, 12 * scale, h + bandHeight / 2, w - 24 * scale, 13 * scale);
 
   return canvas.toDataURL("image/png");
+}
+
+// Légende des couleurs de câble (retour utilisateur) — coin bas-gauche du
+// schéma, une entrée par type de câble effectivement présent (pas la liste
+// complète : inutile d'expliquer le "Bus de données" sur un schéma qui n'en
+// a pas).
+function drawLegend(ctx: CanvasRenderingContext2D, legend: LegendItem[], w: number, h: number, scale: number) {
+  if (legend.length === 0) return;
+
+  const pad = 10 * scale;
+  const lineHeight = 18 * scale;
+  const swatchW = 20 * scale;
+  const titleH = 20 * scale;
+  ctx.font = `600 ${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
+  const textWidth = Math.max(...legend.map((l) => ctx.measureText(l.label).width));
+  const boxW = pad * 2 + swatchW + 8 * scale + textWidth;
+  const boxH = titleH + legend.length * lineHeight + pad;
+  const x = 16 * scale;
+  const y = h - boxH - 16 * scale;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+  ctx.strokeStyle = "#d1d5db";
+  ctx.lineWidth = scale;
+  ctx.fillRect(x, y, boxW, boxH);
+  ctx.strokeRect(x + 0.5, y + 0.5, boxW, boxH);
+
+  ctx.fillStyle = "#374151";
+  ctx.font = `700 ${10 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.fillText("LÉGENDE", x + pad, y + titleH / 2 + 2 * scale);
+
+  ctx.font = `${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
+  legend.forEach((item, i) => {
+    const rowY = y + titleH + i * lineHeight + lineHeight / 2;
+    ctx.strokeStyle = item.color;
+    ctx.lineWidth = 3 * scale;
+    ctx.beginPath();
+    ctx.moveTo(x + pad, rowY);
+    ctx.lineTo(x + pad + swatchW, rowY);
+    ctx.stroke();
+    ctx.fillStyle = "#374151";
+    ctx.fillText(item.label, x + pad + swatchW + 8 * scale, rowY);
+  });
+}
+
+// Cartouche (retour utilisateur : "petit carré comme en dessin technique
+// avec le nom du projet") — coin bas-droit, inspiré des cartouches de plan
+// technique (titre, date, mention de la partie si export en carrousel).
+function drawTitleBlock(ctx: CanvasRenderingContext2D, projectName: string, tileLabel: string | undefined, w: number, h: number, scale: number) {
+  const pad = 10 * scale;
+  const boxW = 260 * scale;
+  const rowH = 20 * scale;
+  const rows = tileLabel ? 3 : 2;
+  const boxH = pad * 2 + rows * rowH;
+  const x = w - boxW - 16 * scale;
+  const y = h - boxH - 16 * scale;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+  ctx.strokeStyle = "#d1d5db";
+  ctx.lineWidth = scale;
+  ctx.fillRect(x, y, boxW, boxH);
+  ctx.strokeRect(x + 0.5, y + 0.5, boxW, boxH);
+
+  ctx.textBaseline = "middle";
+  let rowY = y + pad + rowH / 2;
+
+  ctx.fillStyle = "#111827";
+  ctx.font = `700 ${13 * scale}px 'Space Grotesk', system-ui, sans-serif`;
+  const title = projectName || "Schéma";
+  const maxTitleWidth = boxW - pad * 2;
+  let displayTitle = title;
+  while (ctx.measureText(displayTitle).width > maxTitleWidth && displayTitle.length > 1) {
+    displayTitle = displayTitle.slice(0, -1);
+  }
+  if (displayTitle !== title) displayTitle = `${displayTitle.slice(0, -1)}…`;
+  ctx.fillText(displayTitle, x + pad, rowY);
+  rowY += rowH;
+
+  ctx.fillStyle = "#6b7280";
+  ctx.font = `${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
+  const dateStr = new Date().toLocaleDateString("fr-FR");
+  // Petite touche marketing (retour utilisateur) : le nom du site reste
+  // visible quand le schéma circule hors du site (réseaux sociaux, impression).
+  ctx.fillText(`Créé avec fabsystem.fr · ${dateStr}`, x + pad, rowY);
+
+  if (tileLabel) {
+    rowY += rowH;
+    ctx.fillStyle = "#9ca3af";
+    ctx.fillText(tileLabel, x + pad, rowY);
+  }
+}
+
+// Déduit la légende à partir des types de câble effectivement utilisés
+// dans le schéma (ordre = celui de CABLE_TYPES, jamais dupliqué).
+export function buildCableLegend(edges: Edge<CableEdgeData>[]): LegendItem[] {
+  const used = new Set(edges.map((e) => e.data?.cableType).filter(Boolean));
+  return CABLE_TYPES.filter((t) => used.has(t.value)).map((t) => ({ label: t.label, color: t.color }));
 }
 
 function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, centerY: number, maxWidth: number, lineHeight: number) {
@@ -203,12 +314,17 @@ async function captureRawSchema(viewportEl: HTMLElement, nodes: Node[]): Promise
   return { dataUrl, x0, y0, width, height };
 }
 
-export async function captureSchemaPng(nodes: Node[], projectName: string, showGrid = true): Promise<SchemaCapture | null> {
+export async function captureSchemaPng(
+  nodes: Node[],
+  edges: Edge<CableEdgeData>[],
+  projectName: string,
+  showGrid = true,
+): Promise<SchemaCapture | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
 
   const raw = await captureRawSchema(viewportEl, nodes);
-  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO);
+  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO, undefined, undefined, buildCableLegend(edges));
   return { dataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT };
 }
 
@@ -227,12 +343,28 @@ export interface CarouselCapture extends SchemaCapture {
   label: string;
 }
 
-export async function captureSchemaCarousel(nodes: Node[], projectName: string, showGrid = true): Promise<CarouselCapture[] | null> {
+export async function captureSchemaCarousel(
+  nodes: Node[],
+  edges: Edge<CableEdgeData>[],
+  projectName: string,
+  showGrid = true,
+): Promise<CarouselCapture[] | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
 
+  const legend = buildCableLegend(edges);
   const raw = await captureRawSchema(viewportEl, nodes);
-  const overviewDataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO);
+  const overviewDataUrl = await postProcess(
+    raw.dataUrl,
+    raw.width,
+    raw.height,
+    showGrid,
+    projectName,
+    EXPORT_PIXEL_RATIO,
+    "Vue d'ensemble",
+    undefined,
+    legend,
+  );
   const parts: CarouselCapture[] = [
     { dataUrl: overviewDataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT, label: "Vue d'ensemble" },
   ];
@@ -254,7 +386,7 @@ export async function captureSchemaCarousel(nodes: Node[], projectName: string, 
     const sw = Math.round(tileWidth * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
     const sh = Math.round(tileHeight * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
 
-    const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, EXPORT_PIXEL_RATIO, label, { sx, sy, sw, sh });
+    const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, EXPORT_PIXEL_RATIO, label, { sx, sy, sw, sh }, legend);
     parts.push({ dataUrl, width: tileWidth, height: tileHeight + DISCLAIMER_BAND_HEIGHT, label });
   }
 
