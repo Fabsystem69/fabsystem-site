@@ -6,10 +6,7 @@ import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaS
 // refresh, avec une enveloppe versionnée pour permettre une migration future
 // vers le format complet `.fabschema` sans casser les brouillons existants.
 const STORAGE_KEY = "fabsystem-schema:draft:v1";
-// Exportée : réutilisée par features/schemas/jsonIo.ts pour l'export/import
-// de fichier .json, même enveloppe versionnée que le brouillon local.
-export const DRAFT_FORMAT_VERSION = 1;
-const FORMAT_VERSION = DRAFT_FORMAT_VERSION;
+const FORMAT_VERSION = 1;
 
 export interface DraftEnvelope {
   format: "fabsystem-schema-draft";

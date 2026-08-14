@@ -2,25 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
-import { exportSchemaJson, importSchemaJson, SchemaJsonImportError } from "@/features/schemas/jsonIo";
 
-// Regroupe Nouveau / Exemple / Organiser / Importer / Exporter JSON (retour
-// utilisateur : "il commence à avoir beaucoup d'onglets sur le panneau
-// principal") — actions ponctuelles sur le schéma entier, peu utilisées
-// d'affilée, qui n'ont pas besoin de rester visibles en permanence
-// contrairement à Filtrer/Exporter (image).
+// Regroupe Nouveau / Exemple / Organiser (retour utilisateur : "il commence
+// à avoir beaucoup d'onglets sur le panneau principal") — actions
+// ponctuelles sur le schéma entier, peu utilisées d'affilée, qui n'ont pas
+// besoin de rester visibles en permanence contrairement à Filtrer/Exporter.
 export function FileMenu({ darkMode }: { darkMode: boolean }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const nodes = useSchemaStore((s) => s.nodes);
-  const edges = useSchemaStore((s) => s.edges);
-  const projectName = useSchemaStore((s) => s.projectName);
-  const nodesCount = nodes.length;
+  const nodesCount = useSchemaStore((s) => s.nodes.length);
   const newProject = useSchemaStore((s) => s.newProject);
   const loadExample = useSchemaStore((s) => s.loadExample);
   const autoLayout = useSchemaStore((s) => s.autoLayout);
-  const hydrate = useSchemaStore((s) => s.hydrate);
 
   useEffect(() => {
     if (!open) return;
@@ -50,31 +43,6 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
   function handleAutoLayout() {
     autoLayout();
     setOpen(false);
-  }
-
-  function handleExportJson() {
-    exportSchemaJson(nodes, edges, projectName);
-    setOpen(false);
-  }
-
-  function handleImportClick() {
-    setOpen(false);
-    fileInputRef.current?.click();
-  }
-
-  async function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = ""; // permet de resélectionner le même fichier ensuite
-    if (!file) return;
-    if (nodesCount > 0 && !window.confirm("Remplacer le schéma actuel par le fichier importé ? Le schéma actuel restera sauvegardé jusqu'à la prochaine modification.")) {
-      return;
-    }
-    try {
-      const envelope = await importSchemaJson(file);
-      hydrate({ projectName: envelope.projectName, nodes: envelope.nodes, edges: envelope.edges });
-    } catch (error) {
-      window.alert(error instanceof SchemaJsonImportError ? error.message : "Impossible de lire ce fichier.");
-    }
   }
 
   const itemClass = `block w-full px-3 py-1.5 text-left text-sm transition-base disabled:cursor-not-allowed disabled:opacity-40 ${
@@ -114,25 +82,8 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
           >
             Organiser
           </button>
-          <div className={`my-1 border-t ${darkMode ? "border-neutral-700" : "border-neutral-100"}`} />
-          <button type="button" onClick={handleImportClick} className={itemClass} title="Charger un fichier .json exporté depuis FabSystem Schéma">
-            Importer un fichier…
-          </button>
-          <button
-            type="button"
-            onClick={handleExportJson}
-            disabled={nodesCount === 0}
-            className={itemClass}
-            title="Sauvegarde complète du schéma (composants, câbles, données) — pas un rendu image"
-          >
-            Exporter en JSON
-          </button>
         </div>
       ) : null}
-      {/* Hors du bloc conditionnel `open` : un input démonté avant que
-          l'utilisateur ait choisi son fichier dans la boîte de dialogue
-          native ne déclenche jamais son onChange (bug constaté). */}
-      <input ref={fileInputRef} type="file" accept=".json,application/json" onChange={handleFileSelected} className="hidden" />
     </div>
   );
 }
