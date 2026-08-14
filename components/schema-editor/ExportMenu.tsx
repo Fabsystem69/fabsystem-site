@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
-import { captureSchemaPng, downloadDataUrl, openPrintablePdf, openPrintableBom, slugify } from "@/features/schemas/export";
+import { captureSchemaPng, captureSchemaCarousel, downloadDataUrl, openPrintablePdf, openPrintableBom, slugify } from "@/features/schemas/export";
 import { computeBom } from "@/lib/electrical-components/bom";
 
 // Export PNG / PDF / liste de matériel (CDC §36-40) : capture uniquement le
@@ -45,6 +45,27 @@ export function ExportMenu({ darkMode }: { darkMode: boolean }) {
     openPrintableBom(bom, projectName);
   }
 
+  // Carrousel (retour utilisateur : un schéma dense posté en une seule image
+  // de fil d'actualité reste illisible même en haute résolution) — 1 vue
+  // d'ensemble + 3 zooms par tiers, téléchargés à la suite (léger décalage
+  // entre chaque, certains navigateurs bloquent plusieurs téléchargements
+  // simultanés déclenchés dans la même frame).
+  async function handleExportCarousel() {
+    setBusy(true);
+    try {
+      const parts = await captureSchemaCarousel(getNodes(), projectName, showGrid);
+      if (!parts) return;
+      const base = slugify(projectName);
+      for (let i = 0; i < parts.length; i++) {
+        downloadDataUrl(parts[i].dataUrl, `${base}_${i + 1}-${parts.length}.png`);
+        if (i < parts.length - 1) await new Promise((r) => setTimeout(r, 300));
+      }
+    } finally {
+      setBusy(false);
+      setOpen(false);
+    }
+  }
+
   const itemClass = `block w-full px-3 py-1.5 text-left text-sm transition-base ${
     darkMode ? "text-neutral-200 hover:bg-neutral-800" : "text-neutral-700 hover:bg-neutral-100"
   }`;
@@ -78,6 +99,14 @@ export function ExportMenu({ darkMode }: { darkMode: boolean }) {
           </button>
           <button type="button" onClick={() => handleExport("pdf")} className={itemClass}>
             PDF
+          </button>
+          <button
+            type="button"
+            onClick={handleExportCarousel}
+            className={itemClass}
+            title="1 vue d'ensemble + 3 zooms par tiers — pour un post en carrousel (réseaux sociaux) ou une impression détaillée"
+          >
+            Carrousel (4 images)
           </button>
           <div className={`my-1 border-t ${darkMode ? "border-neutral-700" : "border-neutral-100"}`} />
           <button type="button" onClick={handleExportBom} className={itemClass}>

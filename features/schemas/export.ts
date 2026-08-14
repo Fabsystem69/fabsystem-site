@@ -47,6 +47,13 @@ async function postProcess(
   showGrid: boolean,
   projectName: string,
   scale: number,
+  tileLabel?: string,
+  // Recadrage optionnel dans l'image brute (repère pixels réels, déjà
+  // multiplié par `scale`) — sert au mode carrousel, qui découpe ses tuiles
+  // dans une unique capture pleine résolution plutôt que de rappeler
+  // toPng() plusieurs fois sur le même nœud (source d'un bug constaté :
+  // appels répétés en succession rapide qui renvoyaient la même image).
+  crop?: { sx: number; sy: number; sw: number; sh: number },
 ): Promise<string> {
   const img = await loadImage(rawDataUrl);
   const canvas = document.createElement("canvas");
@@ -83,7 +90,11 @@ async function postProcess(
   // Taille explicite (plutôt que drawImage(img, 0, 0)) : garantit un mapping
   // 1:1 avec le canvas même si la résolution réelle de l'image capturée
   // diverge légèrement de width*scale/height*scale (arrondis navigateur).
-  ctx.drawImage(img, 0, 0, w, h);
+  if (crop) {
+    ctx.drawImage(img, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, w, h);
+  } else {
+    ctx.drawImage(img, 0, 0, w, h);
+  }
 
   // Filigrane diagonal répété, peu visible.
   ctx.save();
@@ -114,7 +125,8 @@ async function postProcess(
   ctx.fillStyle = "#6b7280";
   ctx.font = `${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
   ctx.textBaseline = "middle";
-  const disclaimerLine = `Généré par FabSystem pour ${projectName || "ce schéma"} — ${SCHEMA_DISCLAIMER}`;
+  const tilePrefix = tileLabel ? `[${tileLabel}] ` : "";
+  const disclaimerLine = `${tilePrefix}Généré par FabSystem pour ${projectName || "ce schéma"} — ${SCHEMA_DISCLAIMER}`;
   wrapText(ctx, disclaimerLine, 12 * scale, h + bandHeight / 2, w - 24 * scale, 13 * scale);
 
   return canvas.toDataURL("image/png");
@@ -138,7 +150,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, center
   lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, x, startY + i * lineHeight));
 }
 
-const EXPORT_PIXEL_RATIO = 3;
+const EXPORT_PIXEL_RATIO = 4;
 
 export interface SchemaCapture {
   dataUrl: string;
@@ -146,37 +158,106 @@ export interface SchemaCapture {
   height: number;
 }
 
-export async function captureSchemaPng(nodes: Node[], projectName: string, showGrid = true): Promise<SchemaCapture | null> {
-  const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
-  if (!viewportEl || nodes.length === 0) return null;
+// Capture brute (non décorée) de tout le schéma, à la résolution
+// d'export — une seule fois, réutilisée pour l'aperçu plein format et pour
+// découper les tuiles du mode carrousel (au lieu de rappeler toPng()
+// plusieurs fois sur le même nœud : source d'un bug constaté où des appels
+// successifs rapprochés renvoyaient plusieurs fois la même image).
+interface RawCapture {
+  dataUrl: string;
+  x0: number; // origine logique (repère du schéma) du coin haut-gauche de l'image brute
+  y0: number;
+  width: number; // taille logique (CSS px, avant pixelRatio)
+  height: number;
+}
 
+async function captureRawSchema(viewportEl: HTMLElement, nodes: Node[]): Promise<RawCapture> {
   const bounds = getNodesBounds(nodes);
   // Zoom fixe (EXPORT_ZOOM) : le canvas exporté fait exactement la taille du
   // schéma (+ marge), jamais rétréci pour tenir dans un cadre — voir le
   // commentaire en tête de fichier.
   const contentWidth = Math.round(bounds.width * EXPORT_ZOOM + EXPORT_PADDING_PX * 2);
   const contentHeight = Math.round(bounds.height * EXPORT_ZOOM + EXPORT_PADDING_PX * 2);
-  const imageWidth = Math.max(MIN_IMAGE_WIDTH, contentWidth);
-  const imageHeight = Math.max(MIN_IMAGE_HEIGHT, contentHeight);
+  const width = Math.max(MIN_IMAGE_WIDTH, contentWidth);
+  const height = Math.max(MIN_IMAGE_HEIGHT, contentHeight);
   // Centre le contenu si le plancher MIN_IMAGE_* dépasse sa taille naturelle
   // (petit schéma), sinon simple marge EXPORT_PADDING_PX de chaque côté.
-  const x = (imageWidth - bounds.width * EXPORT_ZOOM) / 2 - bounds.x * EXPORT_ZOOM;
-  const y = (imageHeight - bounds.height * EXPORT_ZOOM) / 2 - bounds.y * EXPORT_ZOOM;
+  const x0 = bounds.x - ((width - bounds.width * EXPORT_ZOOM) / 2) / EXPORT_ZOOM;
+  const y0 = bounds.y - ((height - bounds.height * EXPORT_ZOOM) / 2) / EXPORT_ZOOM;
+  const x = -x0 * EXPORT_ZOOM;
+  const y = -y0 * EXPORT_ZOOM;
 
-  const rawDataUrl = await toPng(viewportEl, {
+  const dataUrl = await toPng(viewportEl, {
     backgroundColor: "#ffffff",
-    width: imageWidth,
-    height: imageHeight,
+    width,
+    height,
     pixelRatio: EXPORT_PIXEL_RATIO,
     style: {
-      width: `${imageWidth}px`,
-      height: `${imageHeight}px`,
+      width: `${width}px`,
+      height: `${height}px`,
       transform: `translate(${x}px, ${y}px) scale(${EXPORT_ZOOM})`,
     },
   });
 
-  const dataUrl = await postProcess(rawDataUrl, imageWidth, imageHeight, showGrid, projectName, EXPORT_PIXEL_RATIO);
-  return { dataUrl, width: imageWidth, height: imageHeight + DISCLAIMER_BAND_HEIGHT };
+  return { dataUrl, x0, y0, width, height };
+}
+
+export async function captureSchemaPng(nodes: Node[], projectName: string, showGrid = true): Promise<SchemaCapture | null> {
+  const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+  if (!viewportEl || nodes.length === 0) return null;
+
+  const raw = await captureRawSchema(viewportEl, nodes);
+  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO);
+  return { dataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT };
+}
+
+// Mode carrousel (retour utilisateur : poster un schéma dense en une seule
+// image de fil d'actualité le rend illisible même en haute résolution —
+// "fais un post en album/carrousel : image 1 = vue d'ensemble, puis
+// zooms sur chaque partie") — 1 vue d'ensemble + 3 zooms sur des bandes
+// verticales successives (gauche → droite, dans le sens du courant :
+// sources/charge → distribution → consommateurs/AC), découpées dans la
+// même capture brute que l'aperçu. Léger recouvrement entre bandes pour ne
+// pas couper un composant pile à la frontière.
+const CAROUSEL_PARTS = 3;
+const CAROUSEL_OVERLAP_PX = 100;
+
+export interface CarouselCapture extends SchemaCapture {
+  label: string;
+}
+
+export async function captureSchemaCarousel(nodes: Node[], projectName: string, showGrid = true): Promise<CarouselCapture[] | null> {
+  const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+  if (!viewportEl || nodes.length === 0) return null;
+
+  const raw = await captureRawSchema(viewportEl, nodes);
+  const overviewDataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO);
+  const parts: CarouselCapture[] = [
+    { dataUrl: overviewDataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT, label: "Vue d'ensemble" },
+  ];
+
+  const bounds = getNodesBounds(nodes);
+  const partWidth = bounds.width / CAROUSEL_PARTS;
+
+  for (let i = 0; i < CAROUSEL_PARTS; i++) {
+    const tileX0 = bounds.x + i * partWidth - (i > 0 ? CAROUSEL_OVERLAP_PX : 0) - EXPORT_PADDING_PX;
+    const tileX1 = bounds.x + (i + 1) * partWidth + (i < CAROUSEL_PARTS - 1 ? CAROUSEL_OVERLAP_PX : 0) + EXPORT_PADDING_PX;
+    const tileWidth = Math.round(tileX1 - tileX0);
+    const tileHeight = raw.height;
+    const label = `Partie ${i + 1}/${CAROUSEL_PARTS}`;
+
+    // Repère de l'image brute déjà capturée = tileX0/Y0 relatifs à raw.x0/y0,
+    // à l'échelle EXPORT_ZOOM * EXPORT_PIXEL_RATIO.
+    const sx = Math.max(0, Math.round((tileX0 - raw.x0) * EXPORT_ZOOM * EXPORT_PIXEL_RATIO));
+    const sy = 0;
+    const sw = Math.round(tileWidth * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
+    const sh = Math.round(tileHeight * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
+
+    const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, EXPORT_PIXEL_RATIO, label, { sx, sy, sw, sh });
+    parts.push({ dataUrl, width: tileWidth, height: tileHeight + DISCLAIMER_BAND_HEIGHT, label });
+  }
+
+  return parts;
 }
 
 export function downloadDataUrl(dataUrl: string, filename: string): void {

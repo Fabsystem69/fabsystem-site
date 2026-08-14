@@ -5,39 +5,22 @@ import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
 import { CategoryFilterMenu } from "./CategoryFilterMenu";
+import { FileMenu } from "./FileMenu";
 
 // Barre supérieure (CDC §6) : nom projet éditable, Nouveau, Annuler/Rétablir,
 // indicateur d'enregistrement discret (pas de notification intrusive, §35).
 export function Toolbar() {
   const projectName = useSchemaStore((s) => s.projectName);
   const setProjectName = useSchemaStore((s) => s.setProjectName);
-  const nodesCount = useSchemaStore((s) => s.nodes.length);
   const past = useSchemaStore((s) => s.past);
   const future = useSchemaStore((s) => s.future);
   const undo = useSchemaStore((s) => s.undo);
   const redo = useSchemaStore((s) => s.redo);
-  const newProject = useSchemaStore((s) => s.newProject);
-  const loadExample = useSchemaStore((s) => s.loadExample);
-  const autoLayout = useSchemaStore((s) => s.autoLayout);
   const saveStatus = useSchemaStore((s) => s.saveStatus);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const setIconStyle = useSchemaStore((s) => s.setIconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const setDarkMode = useSchemaStore((s) => s.setDarkMode);
-
-  function handleNewProject() {
-    if (nodesCount > 0 && !window.confirm("Repartir d'un schéma vierge ? Le schéma actuel restera sauvegardé jusqu'à la prochaine modification.")) {
-      return;
-    }
-    newProject();
-  }
-
-  function handleLoadExample() {
-    if (nodesCount > 0 && !window.confirm("Charger l'exemple à la place du schéma actuel ? Le schéma actuel restera sauvegardé jusqu'à la prochaine modification.")) {
-      return;
-    }
-    loadExample();
-  }
 
   return (
     <header
@@ -116,20 +99,7 @@ export function Toolbar() {
           {darkMode ? "☀︎" : "☾"}
         </button>
 
-        <ToolbarButton darkMode={darkMode} onClick={handleNewProject}>
-          Nouveau
-        </ToolbarButton>
-        <ToolbarButton darkMode={darkMode} onClick={handleLoadExample} title="Charger un exemple de schéma pour s'en inspirer">
-          Exemple
-        </ToolbarButton>
-        <ToolbarButton
-          darkMode={darkMode}
-          onClick={autoLayout}
-          disabled={nodesCount === 0}
-          title="Réorganise automatiquement les composants en un bloc compact, sans toucher aux connexions"
-        >
-          Organiser
-        </ToolbarButton>
+        <FileMenu darkMode={darkMode} />
         <ToolbarButton darkMode={darkMode} onClick={undo} disabled={past.length === 0} title="Annuler (Ctrl/Cmd+Z)">
           ↶
         </ToolbarButton>
