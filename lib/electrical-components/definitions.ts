@@ -446,7 +446,12 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     category: "distribution",
     subtitle: "Distribution",
     icon: "/schema-icons/busbar.svg",
-    iconPro: "/schema-icons/pro/busbar.webp",
+    iconPro: "/schema-icons/pro/busbar-positive.webp",
+    iconVariantField: "polarity",
+    iconVariants: {
+      positive: { iconPro: "/schema-icons/pro/busbar-positive.webp" },
+      negative: { iconPro: "/schema-icons/pro/busbar-negative.webp" },
+    },
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
       { id: "out-1", label: "1", kind: "positive", side: "right" },
