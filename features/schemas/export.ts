@@ -7,8 +7,19 @@ import type { Bom } from "@/lib/electrical-components/bom";
 // simple capture d'écran de l'éditeur avec ses boutons (§37).
 const EXPORT_PADDING = 0.15;
 const MIN_ZOOM = 0.2;
-const MAX_ZOOM = 2;
+// Relevé de 2 à 3 : avec un plancher de canvas plus grand (MIN_IMAGE_*),
+// un petit schéma a besoin de plus de zoom pour remplir raisonnablement
+// l'image plutôt que de flotter dans une grande zone blanche.
+const MAX_ZOOM = 3;
 const DISCLAIMER_BAND_HEIGHT = 44;
+// Plancher de taille (retour utilisateur : export PNG "beaucoup trop petit
+// et illisible" une fois posté sur Facebook) — un schéma avec peu de
+// composants donnait une image minuscule (bounds + 160px de marge
+// seulement). Facebook recompresse et réduit les images à l'affichage :
+// partir d'une résolution confortable évite qu'un schéma simple devienne
+// illisible après ce traitement.
+const MIN_IMAGE_WIDTH = 1600;
+const MIN_IMAGE_HEIGHT = 1000;
 
 export const SCHEMA_DISCLAIMER =
   "Schéma généré à titre indicatif. Il ne remplace pas la vérification et la validation par un professionnel qualifié avant toute réalisation. FabSystem décline toute responsabilité en cas d'erreur, d'omission ou de mauvaise interprétation.";
@@ -129,7 +140,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, center
   lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, x, startY + i * lineHeight));
 }
 
-const EXPORT_PIXEL_RATIO = 2;
+const EXPORT_PIXEL_RATIO = 3;
 
 export interface SchemaCapture {
   dataUrl: string;
@@ -142,8 +153,8 @@ export async function captureSchemaPng(nodes: Node[], projectName: string, showG
   if (!viewportEl || nodes.length === 0) return null;
 
   const bounds = getNodesBounds(nodes);
-  const imageWidth = Math.max(640, Math.round(bounds.width + 160));
-  const imageHeight = Math.max(480, Math.round(bounds.height + 160));
+  const imageWidth = Math.max(MIN_IMAGE_WIDTH, Math.round(bounds.width + 160));
+  const imageHeight = Math.max(MIN_IMAGE_HEIGHT, Math.round(bounds.height + 160));
   const { x, y, zoom } = getViewportForBounds(bounds, imageWidth, imageHeight, MIN_ZOOM, MAX_ZOOM, EXPORT_PADDING);
 
   const rawDataUrl = await toPng(viewportEl, {

@@ -85,11 +85,19 @@ export default function MentionsLegalesPage() {
             Propriété intellectuelle
           </h2>
           <p className="mt-2">
-            L’ensemble des contenus présents sur ce site (textes, images, logos,
-            éléments graphiques) est la propriété exclusive de FabSystem,
-            sauf mention contraire. Toute reproduction, représentation,
-            modification ou adaptation, totale ou partielle, est interdite
-            sans autorisation préalable.
+            © {new Date().getFullYear()} FabSystem — Tous droits réservés.
+            L’ensemble des éléments de ce site — textes, images, logos,
+            éléments graphiques, mais aussi le code source, les
+            fonctionnalités, les outils (dont l’éditeur de schéma
+            électrique et son catalogue de composants) et leur mise en
+            forme — est la propriété exclusive de FabSystem, sauf mention
+            contraire. Toute reproduction, représentation, extraction,
+            réutilisation, décompilation, modification ou adaptation,
+            totale ou partielle, par quelque procédé que ce soit
+            (notamment la copie du code d’une page ou son intégration sur
+            un autre site), est interdite sans autorisation écrite
+            préalable et pourra faire l’objet de poursuites conformément
+            au Code de la propriété intellectuelle.
           </p>
         </div>
 

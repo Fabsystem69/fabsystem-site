@@ -65,6 +65,14 @@ export const metadata: Metadata = {
       "Diagnostic et conseil pour installations électriques embarquées",
     images: ["/hero-fabsystem.png"],
   },
+
+  // Balise de traçabilité (retour utilisateur : "un minimum de sécurité
+  // copyright") — n'empêche rien techniquement, mais documente la
+  // titularité des droits dans le HTML lui-même, utile en cas de
+  // signalement DMCA ou de mise en demeure.
+  other: {
+    copyright: `© ${new Date().getFullYear()} FabSystem — Tous droits réservés. Reproduction interdite sans autorisation.`,
+  },
 };
 
 export const viewport: Viewport = {
