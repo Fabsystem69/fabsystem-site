@@ -174,6 +174,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subtitle: "Production",
     icon: "/schema-icons/solar-panel.svg",
     iconPro: "/schema-icons/pro/solar-panel.webp",
+    badge: { field: "powerW", unit: "W" },
     handles: [
       { id: "negative", label: "PV−", kind: "negative", side: "left" },
       { id: "positive", label: "PV+", kind: "positive", side: "right" },

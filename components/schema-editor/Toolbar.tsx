@@ -18,6 +18,7 @@ export function Toolbar() {
   const redo = useSchemaStore((s) => s.redo);
   const newProject = useSchemaStore((s) => s.newProject);
   const loadExample = useSchemaStore((s) => s.loadExample);
+  const autoLayout = useSchemaStore((s) => s.autoLayout);
   const saveStatus = useSchemaStore((s) => s.saveStatus);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const setIconStyle = useSchemaStore((s) => s.setIconStyle);
@@ -120,6 +121,14 @@ export function Toolbar() {
         </ToolbarButton>
         <ToolbarButton darkMode={darkMode} onClick={handleLoadExample} title="Charger un exemple de schéma pour s'en inspirer">
           Exemple
+        </ToolbarButton>
+        <ToolbarButton
+          darkMode={darkMode}
+          onClick={autoLayout}
+          disabled={nodesCount === 0}
+          title="Réorganise automatiquement les composants en un bloc compact, sans toucher aux connexions"
+        >
+          Organiser
         </ToolbarButton>
         <ToolbarButton darkMode={darkMode} onClick={undo} disabled={past.length === 0} title="Annuler (Ctrl/Cmd+Z)">
           ↶

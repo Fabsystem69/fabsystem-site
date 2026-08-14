@@ -10,6 +10,7 @@ import {
   type Connection,
 } from "@xyflow/react";
 import { getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS } from "@/lib/electrical-components/definitions";
+import { autoLayoutNodes } from "@/lib/electrical-components/auto-layout";
 import { buildExampleSchema } from "@/features/schemas/example";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
 
@@ -95,6 +96,7 @@ interface SchemaState {
   spliceNodeOnEdge: (edgeId: string, type: string, position: { x: number; y: number }) => void;
   duplicateNode: (id: string) => void;
   rotateNode: (id: string) => void;
+  autoLayout: () => void;
   deleteSelected: () => void;
   select: (kind: "node" | "edge" | null, id: string | null) => void;
   undo: () => void;
@@ -309,6 +311,15 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         selectedEdgeId: null,
         ...commit(state),
       };
+    }),
+
+  // Auto-agencement (retour utilisateur : export "trop petit et illisible")
+  // — recalcule toutes les positions en un bloc compact, sans toucher aux
+  // connexions ni aux données des composants.
+  autoLayout: () =>
+    set((state) => {
+      if (state.nodes.length === 0) return {};
+      return { nodes: autoLayoutNodes(state.nodes, state.edges), ...commit(state) };
     }),
 
   rotateNode: (id) =>
