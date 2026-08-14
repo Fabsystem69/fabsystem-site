@@ -1,5 +1,6 @@
 import { getNodesBounds, type Node } from "@xyflow/react";
 import { toPng } from "html-to-image";
+import JSZip from "jszip";
 import type { Bom } from "@/lib/electrical-components/bom";
 
 // Export image (CDC §38-40) : capture uniquement le canvas (pas la barre
@@ -265,6 +266,27 @@ export function downloadDataUrl(dataUrl: string, filename: string): void {
   link.href = dataUrl;
   link.download = filename;
   link.click();
+}
+
+// Regroupe les images du carrousel dans une seule archive (retour
+// utilisateur : "pour le carrousel il serait pas mieux de faire un zip ?")
+// plutôt que 4 téléchargements séparés — plus simple à récupérer, et évite
+// les navigateurs qui bloquent les téléchargements multiples déclenchés
+// d'affilée.
+export async function downloadCarouselZip(parts: CarouselCapture[], projectName: string): Promise<void> {
+  const zip = new JSZip();
+  const base = slugify(projectName);
+  parts.forEach((part, i) => {
+    const base64 = part.dataUrl.split(",")[1];
+    const slugLabel = slugify(part.label);
+    zip.file(`${String(i + 1).padStart(2, "0")}-${slugLabel}.png`, base64, { base64: true });
+  });
+  const blob = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(blob);
+  downloadDataUrl(url, `${base}_carrousel.zip`);
+  // Révocation différée : le navigateur doit avoir le temps de lire le blob
+  // pour démarrer le téléchargement avant que l'URL ne devienne invalide.
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
 export function slugify(value: string): string {

@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
-import { captureSchemaPng, captureSchemaCarousel, downloadDataUrl, openPrintablePdf, openPrintableBom, slugify } from "@/features/schemas/export";
+import {
+  captureSchemaPng,
+  captureSchemaCarousel,
+  downloadDataUrl,
+  downloadCarouselZip,
+  openPrintablePdf,
+  openPrintableBom,
+  slugify,
+} from "@/features/schemas/export";
 import { computeBom } from "@/lib/electrical-components/bom";
 
 // Export PNG / PDF / liste de matériel (CDC §36-40) : capture uniquement le
@@ -47,19 +55,14 @@ export function ExportMenu({ darkMode }: { darkMode: boolean }) {
 
   // Carrousel (retour utilisateur : un schéma dense posté en une seule image
   // de fil d'actualité reste illisible même en haute résolution) — 1 vue
-  // d'ensemble + 3 zooms par tiers, téléchargés à la suite (léger décalage
-  // entre chaque, certains navigateurs bloquent plusieurs téléchargements
-  // simultanés déclenchés dans la même frame).
+  // d'ensemble + 3 zooms par tiers, regroupés dans une seule archive zip
+  // (retour utilisateur : plus simple qu'un téléchargement par image).
   async function handleExportCarousel() {
     setBusy(true);
     try {
       const parts = await captureSchemaCarousel(getNodes(), projectName, showGrid);
       if (!parts) return;
-      const base = slugify(projectName);
-      for (let i = 0; i < parts.length; i++) {
-        downloadDataUrl(parts[i].dataUrl, `${base}_${i + 1}-${parts.length}.png`);
-        if (i < parts.length - 1) await new Promise((r) => setTimeout(r, 300));
-      }
+      await downloadCarouselZip(parts, projectName);
     } finally {
       setBusy(false);
       setOpen(false);
