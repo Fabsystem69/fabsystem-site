@@ -41,7 +41,7 @@ const LIME = "#84cc16";
 const L_05 = 2; // 0,5 mm² — retours signalisation/LED
 const L_075 = 2.5; // 0,75 mm² — petites branches consommateurs
 const L_15 = 3; // 1,5 mm² — branches consommateurs courantes
-const L_25 = 2; // 2,5 mm² — liaisons AC courtes tableau/prise
+const L_25 = 2; // 3G2,5 mm² — liaisons AC courtes tableau/prise
 const L_6 = 1.5; // 6 mm² — lignes de charge (source → busbar)
 const L_10 = 1.5; // 10 mm² — busbar → tableau fusibles / écran
 const L_16 = 1; // 16 mm² — lignes batterie principale, tronçons courts
@@ -130,7 +130,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     // disjoncteur avant de rejoindre le busbar de charge intermédiaire.
     buildEdge("ex-e8", "ex-mppt", "bat-negative", "ex-busbar-neg", "out-1", BLACK, "power-negative", "6 mm²", L_6),
     buildEdge("ex-e9", "ex-dcdc", "out-negative", "ex-busbar-neg", "out-2", BLACK, "power-negative", "6 mm²", L_6),
-    buildEdge("edge_mst1vt1f_6", "ex-mppt", "bat-positive", "circuit-breaker_mst1vjlz_5", "input", RED, "power-positive", undefined, 0.3),
+    buildEdge("edge_mst1vt1f_6", "ex-mppt", "bat-positive", "circuit-breaker_mst1vjlz_5", "input", RED, "power-positive", "6 mm²", 0.3),
     buildEdge("edge_mst1vuy1_7", "circuit-breaker_mst1vjlz_5", "output", "busbar_mst1t8m8_1", "out-3", RED, "power-positive", "6 mm²", L_6),
     buildEdge("edge_mst1w7mi_1", "ex-dcdc", "out-positive", "circuit-breaker_mst1vyr4_8", "output", RED, "power-positive", "6 mm²", L_6),
     buildEdge("edge_mst1wg0b_2", "circuit-breaker_mst1vyr4_8", "input", "busbar_mst1t8m8_1", "out-2", RED, "power-positive", "6 mm²", L_6),
@@ -148,7 +148,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     buildEdge("edge_mst38iyz_2", "switch_mst385ua_1", "input", "ex-panel", "out-2", RED, "power-positive", "0,75 mm²", L_075),
     buildEdge("xy-edge__switch_mst385ua_1output-ex-eclairagepositive", "switch_mst385ua_1", "output", "ex-eclairage", "positive", RED, "power-positive", "0,75 mm²", L_075),
     buildEdge("xy-edge__ex-panelout-3-switch_mst38upg_3output", "ex-panel", "out-3", "switch_mst38upg_3", "output", RED, "power-positive", "1,5 mm²", L_15),
-    buildEdge("edge_mst39ppu_4", "switch_mst38upg_3", "input", "ex-frigo", "positive", RED, "power-positive", undefined, 1),
+    buildEdge("edge_mst39ppu_4", "switch_mst38upg_3", "input", "ex-frigo", "positive", RED, "power-positive", "1,5 mm²", 1),
     buildEdge("xy-edge__switch_mst3cwzp_6output-ex-panelout-1", "switch_mst3cwzp_6", "output", "ex-panel", "out-1", RED, "power-positive", "1,5 mm²", L_15),
     buildEdge("edge_mst3dauh_7", "switch_mst3cwzp_6", "input", "ex-pompe", "positive", RED, "power-positive", "1,5 mm²", L_15),
     buildEdge("edge_mst3ea3y_9", "switch_mst3dhr3_8", "input", "ex-panel", "out-4", RED, "power-positive", "0,75 mm²", L_075),
@@ -177,13 +177,13 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     buildEdge("ex-e33", "ex-multiplus", "ve-direct", "ex-monitor", "ve-direct", GREEN, "data-bus", undefined, 1.5),
 
     // Quai → Multiplus (AC IN, passthrough) → Tableau 220V → Prise 220V
-    buildEdge("edge_mst20ss9_14", "shore-power_mst20n4n_13", "ac", "ex-multiplus", "ac-in", GRAY, "other", undefined, 5),
-    buildEdge("edge_mst205lj_8", "ex-multiplus", "ac-out", "ac-panel_mst2019n_7", "ac-in", GRAY, "other", "2,5 mm²", L_25),
-    buildEdge("edge_mst2099i_9", "ac-panel_mst2019n_7", "ac-out", "socket-220v_mst1zy3g_6", "ac-in", GRAY, "other", "2,5 mm²", L_25),
+    buildEdge("edge_mst20ss9_14", "shore-power_mst20n4n_13", "ac", "ex-multiplus", "ac-in", GRAY, "other", "3G2,5 mm²", 5),
+    buildEdge("edge_mst205lj_8", "ex-multiplus", "ac-out", "ac-panel_mst2019n_7", "ac-in", GRAY, "other", "3G2,5 mm²", L_25),
+    buildEdge("edge_mst2099i_9", "ac-panel_mst2019n_7", "ac-out", "socket-220v_mst1zy3g_6", "ac-in", GRAY, "other", "3G2,5 mm²", L_25),
 
     // Les fils de terre (tableau, prise) → caisse
-    buildEdge("edge_mst20hpo_12", "ac-panel_mst2019n_7", "earth", "ground_mst20cj7_10", "ground", LIME, "earth", undefined, 0.5),
-    buildEdge("edge_mst20fmn_11", "socket-220v_mst1zy3g_6", "earth", "ground_mst20cj7_10", "ground", LIME, "earth", undefined, 0.5),
+    buildEdge("edge_mst20hpo_12", "ac-panel_mst2019n_7", "earth", "ground_mst20cj7_10", "ground", LIME, "earth", "1,5 mm²", 0.5),
+    buildEdge("edge_mst20fmn_11", "socket-220v_mst1zy3g_6", "earth", "ground_mst20cj7_10", "ground", LIME, "earth", "1,5 mm²", 0.5),
   ];
 
   return { projectName: "Exemple : installation van", nodes, edges };

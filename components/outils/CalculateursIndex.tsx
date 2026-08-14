@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
-import { OutilCard, OutilComingSoonCard } from "@/components/outils/OutilCard";
-import { OUTILS_CALCULATEURS, OUTIL_A_VENIR } from "@/lib/outils-catalog";
+import { OutilCard } from "@/components/outils/OutilCard";
+import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
 
 // UI-10 (correctif final, direction SaaS technique premium validée) —
-// grille de 6 cartes homogènes (5 calculateurs réels + Schéma électrique
-// "Bientôt disponible"), même poids visuel pour chacune. Le bandeau Accès
-// rapide n'itère que sur OUTILS_CALCULATEURS (les 5 outils réels) : Schéma
-// électrique n'a aucune route, il ne doit jamais y apparaître.
+// grille de cartes homogènes, même poids visuel pour chacune (5
+// calculateurs + l'éditeur de schéma électrique, désormais un outil réel
+// au même titre que les autres). Le bandeau Accès rapide et la grille
+// itèrent tous deux sur OUTILS_CALCULATEURS, source unique.
 //
 // Carrousel évalué puis écarté : sans navigateur réel pour comparer les
 // deux rendus (voir docs/audits/UI-10-FINAL-PUBLIC-REFONTE.md, Outils),
@@ -39,7 +39,6 @@ export function CalculateursIndex() {
         {OUTILS_CALCULATEURS.map((outil) => (
           <OutilCard key={outil.id} outil={outil} />
         ))}
-        <OutilComingSoonCard outil={OUTIL_A_VENIR} />
       </div>
     </Section>
   );

@@ -69,7 +69,7 @@ export function Toolbar() {
           className={`flex rounded-md border p-0.5 text-xs font-medium ${darkMode ? "border-neutral-700" : "border-neutral-300"}`}
           role="group"
           aria-label="Style des icônes"
-          title="Simple : symboles épurés, pour débutant. Pro : icônes plus réalistes."
+          title="Symboles : pictogrammes électriques épurés. Illustrations : rendus réalistes des composants."
         >
           <button
             type="button"
@@ -84,7 +84,7 @@ export function Toolbar() {
                   : "text-neutral-600 hover:bg-neutral-100"
             }`}
           >
-            Simple
+            Symboles
           </button>
           <button
             type="button"
@@ -99,7 +99,7 @@ export function Toolbar() {
                   : "text-neutral-600 hover:bg-neutral-100"
             }`}
           >
-            Pro
+            Illustrations
           </button>
         </div>
 

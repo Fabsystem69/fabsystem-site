@@ -11,6 +11,7 @@ export const AVERAGE_CABLE_LENGTH_BY_SECTION_M: Record<string, number> = {
   "1 mm²": 2.5,
   "1,5 mm²": 3,
   "2,5 mm²": 2,
+  "3G2,5 mm²": 2,
   "4 mm²": 1.5,
   "6 mm²": 1.5,
   "10 mm²": 1.5,

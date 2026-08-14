@@ -10,9 +10,9 @@ import { Accompagnement } from "@/components/outils/Accompagnement";
 // uniquement — chaque carte mène à sa page dédiée /outils/<id>, aucun
 // formulaire complet ici, voir UI-7.1) → Les basiques de l'atelier
 // (passerelle vers Les Bases, pas de duplication de contenu) → Guides →
-// Accompagnement. Aucune section "Schéma électrique" ni "Mes projets" :
-// ni l'un ni l'autre n'existe réellement aujourd'hui (voir
-// docs/audits/UI-7-OUTILS.md, "Outils disponibles").
+// Accompagnement. "Schéma électrique" (éditeur /outils/schema) est un
+// outil réel au même titre que les calculateurs depuis son lancement ;
+// "Mes projets" n'existe toujours pas.
 // La section Guides lit le catalogue réel (même fonctions que /boutique)
 // pour un prix toujours à jour : comme /boutique et /formations, la page
 // doit donc être rendue à la requête, jamais figée au build.

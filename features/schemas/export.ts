@@ -242,6 +242,28 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
       </tbody>
     </table>`;
 
+  // Câbles de bus de données à part (retour utilisateur) : préconfectionnés,
+  // achetés à l'unité — longueur moyenne + nombre plutôt qu'un métrage total.
+  const dataBusTable =
+    bom.dataBusRows.length === 0
+      ? ""
+      : `
+    <h2>Câbles de données</h2>
+    <table>
+      <thead><tr><th>Type</th><th>Nombre de câbles</th><th>Longueur moyenne</th></tr></thead>
+      <tbody>
+        ${bom.dataBusRows
+          .map((row) => {
+            const longueur =
+              row.averageLengthM !== null
+                ? `${String(row.averageLengthM).replace(".", ",")} m${row.missingLengthCount > 0 ? ` (+ ${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""} sans longueur)` : ""}`
+                : `Longueur non renseignée (${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""})`;
+            return `<tr><td>${escapeHtml(row.label)}</td><td>${row.count}</td><td>${escapeHtml(longueur)}</td></tr>`;
+          })
+          .join("")}
+      </tbody>
+    </table>`;
+
   win.document.write(`<!doctype html>
 <html lang="fr">
 <head>
@@ -255,6 +277,7 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
   <div class="disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)} Les quantités et métrages sont calculés à partir du schéma et doivent être vérifiés avant commande.</div>
   ${componentTables}
   ${cableTable}
+  ${dataBusTable}
   <footer>Généré par FabSystem pour ${title} — fabsystem.fr</footer>
 </body>
 </html>`);

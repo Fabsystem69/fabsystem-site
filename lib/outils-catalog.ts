@@ -3,7 +3,7 @@
 // (/outils/<id>) — un seul tableau alimente les cartes du hub, les liens
 // internes (Home, Les Bases) et le contenu de chaque page calculateur.
 export type OutilMeta = {
-  id: "section-cable" | "bilan-consommation" | "autonomie-batterie" | "mppt" | "awg";
+  id: "section-cable" | "bilan-consommation" | "autonomie-batterie" | "mppt" | "awg" | "schema";
   /** Illustration technique réelle (UI-10 correctif final §4 : "composante
    * principale de l'identité SaaS de cette page") — jamais un emoji, une
    * icône générique ou un placeholder. */
@@ -57,19 +57,15 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     tag: "Référence",
     cta: "Convertir",
   },
+  {
+    id: "schema",
+    image: "/outils/schema.png",
+    title: "Schéma électrique",
+    description: "Construisez et visualisez l'architecture électrique de votre installation.",
+    tag: "Éditeur",
+    cta: "Ouvrir l'éditeur",
+  },
 ];
-
-// Sixième carte de la page /outils (correctif final §3, §6) : Schéma
-// électrique n'est pas un calculateur réel aujourd'hui — jamais dans
-// OUTILS_CALCULATEURS (qui alimente aussi le bandeau Accès rapide et les
-// routes réelles), pour ne jamais générer de lien ou d'accès rapide vers
-// une fonctionnalité qui n'existe pas.
-export const OUTIL_A_VENIR = {
-  image: "/outils/schema-bientot-disponible.png",
-  title: "Schéma électrique",
-  description: "Construisez et visualisez l'architecture électrique de votre installation.",
-  badge: "Bientôt disponible",
-} as const;
 
 export function getOutilMeta(id: OutilMeta["id"]): OutilMeta {
   const meta = OUTILS_CALCULATEURS.find((o) => o.id === id);

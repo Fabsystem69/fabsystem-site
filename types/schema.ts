@@ -105,6 +105,7 @@ export const CABLE_SECTIONS = [
   "1 mm²",
   "1,5 mm²",
   "2,5 mm²",
+  "3G2,5 mm²",
   "4 mm²",
   "6 mm²",
   "10 mm²",

@@ -1,4 +1,5 @@
 import { getComponentDefinition, getConsumerPreset, CATEGORY_LABELS } from "./definitions";
+import { getCableType } from "./cable-types";
 import type { Node, Edge } from "@xyflow/react";
 
 // Récapitulatif matériel (retour utilisateur : "un dossier récap des
@@ -24,9 +25,21 @@ export interface BomCableRow {
   missingLengthCount: number;
 }
 
+// Câbles de bus de données (VE.Direct, NMEA2000…) — pas de section en mm²,
+// et un métrage total n'a pas de sens (ce sont des câbles préconfectionnés
+// achetés à l'unité, pas au mètre) : longueur moyenne + nombre de câbles à
+// la place (retour utilisateur).
+export interface BomDataBusRow {
+  label: string;
+  count: number;
+  averageLengthM: number | null;
+  missingLengthCount: number;
+}
+
 export interface Bom {
   componentGroups: BomCategoryGroup[];
   cableRows: BomCableRow[];
+  dataBusRows: BomDataBusRow[];
   totalComponents: number;
   totalCables: number;
 }
@@ -77,10 +90,22 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     .sort((a, b) => a.category.localeCompare(b.category));
 
   const bySection = new Map<string, { count: number; totalLengthM: number; missingLengthCount: number }>();
+  const byDataBus = new Map<string, { count: number; totalLengthM: number; missingLengthCount: number }>();
   for (const edge of edges) {
-    const section = String(edge.data?.section || "Section non renseignée");
     const length = Number(edge.data?.length);
     const hasLength = Number.isFinite(length) && length > 0;
+
+    if (edge.data?.cableType === "data-bus") {
+      const label = getCableType("data-bus")?.label ?? "Bus de données";
+      const entry = byDataBus.get(label) ?? { count: 0, totalLengthM: 0, missingLengthCount: 0 };
+      entry.count += 1;
+      if (hasLength) entry.totalLengthM += length;
+      else entry.missingLengthCount += 1;
+      byDataBus.set(label, entry);
+      continue;
+    }
+
+    const section = String(edge.data?.section || "Section non renseignée");
     const entry = bySection.get(section) ?? { count: 0, totalLengthM: 0, missingLengthCount: 0 };
     entry.count += 1;
     if (hasLength) entry.totalLengthM += length;
@@ -97,5 +122,15 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     }))
     .sort((a, b) => a.section.localeCompare(b.section));
 
-  return { componentGroups, cableRows, totalComponents: nodes.length, totalCables: edges.length };
+  const dataBusRows: BomDataBusRow[] = Array.from(byDataBus.entries()).map(([label, v]) => {
+    const lengthedCount = v.count - v.missingLengthCount;
+    return {
+      label,
+      count: v.count,
+      averageLengthM: lengthedCount > 0 ? Math.round((v.totalLengthM / lengthedCount) * 10) / 10 : null,
+      missingLengthCount: v.missingLengthCount,
+    };
+  });
+
+  return { componentGroups, cableRows, dataBusRows, totalComponents: nodes.length, totalCables: edges.length };
 }
