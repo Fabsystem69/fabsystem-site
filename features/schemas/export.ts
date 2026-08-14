@@ -25,51 +25,70 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 // Grille discrète (option désactivable) + filigrane répété à faible opacité
 // (retour utilisateur : "protéger les conceptions") + bandeau de mention
 // légale — appliqués sur un canvas hors-écran après la capture brute.
-async function postProcess(rawDataUrl: string, width: number, height: number, showGrid: boolean, projectName: string): Promise<string> {
+//
+// `scale` doit correspondre au `pixelRatio` passé à toPng() : la capture
+// brute fait `width*scale` × `height*scale` pixels réels malgré un style
+// CSS logique de `width`×`height` — dessiner sans tenir compte de `scale`
+// ne redessine que le coin haut-gauche de l'image sur un canvas trop petit
+// et coupe tout le reste (bug corrigé : export PNG/PDF tronqué).
+async function postProcess(
+  rawDataUrl: string,
+  width: number,
+  height: number,
+  showGrid: boolean,
+  projectName: string,
+  scale: number,
+): Promise<string> {
   const img = await loadImage(rawDataUrl);
   const canvas = document.createElement("canvas");
-  const totalHeight = height + DISCLAIMER_BAND_HEIGHT;
-  canvas.width = width;
+  const w = width * scale;
+  const h = height * scale;
+  const bandHeight = DISCLAIMER_BAND_HEIGHT * scale;
+  const totalHeight = h + bandHeight;
+  canvas.width = w;
   canvas.height = totalHeight;
   const ctx = canvas.getContext("2d");
   if (!ctx) return rawDataUrl;
 
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, width, totalHeight);
+  ctx.fillRect(0, 0, w, totalHeight);
 
   if (showGrid) {
     ctx.strokeStyle = "rgba(17, 24, 39, 0.05)";
-    ctx.lineWidth = 1;
-    const step = 20;
-    for (let gx = 0; gx <= width; gx += step) {
+    ctx.lineWidth = scale;
+    const step = 20 * scale;
+    for (let gx = 0; gx <= w; gx += step) {
       ctx.beginPath();
       ctx.moveTo(gx + 0.5, 0);
-      ctx.lineTo(gx + 0.5, height);
+      ctx.lineTo(gx + 0.5, h);
       ctx.stroke();
     }
-    for (let gy = 0; gy <= height; gy += step) {
+    for (let gy = 0; gy <= h; gy += step) {
       ctx.beginPath();
       ctx.moveTo(0, gy + 0.5);
-      ctx.lineTo(width, gy + 0.5);
+      ctx.lineTo(w, gy + 0.5);
       ctx.stroke();
     }
   }
 
-  ctx.drawImage(img, 0, 0);
+  // Taille explicite (plutôt que drawImage(img, 0, 0)) : garantit un mapping
+  // 1:1 avec le canvas même si la résolution réelle de l'image capturée
+  // diverge légèrement de width*scale/height*scale (arrondis navigateur).
+  ctx.drawImage(img, 0, 0, w, h);
 
   // Filigrane diagonal répété, peu visible.
   ctx.save();
   ctx.globalAlpha = 0.04;
   ctx.fillStyle = "#111827";
-  ctx.font = "600 18px 'Space Grotesk', system-ui, sans-serif";
+  ctx.font = `600 ${18 * scale}px 'Space Grotesk', system-ui, sans-serif`;
   ctx.textBaseline = "middle";
   const watermarkText = "FabSystem Schéma";
-  const stepX = 420;
-  const stepY = 280;
+  const stepX = 420 * scale;
+  const stepY = 280 * scale;
   ctx.rotate((-25 * Math.PI) / 180);
   // Repère élargi pour couvrir le canvas malgré la rotation.
-  for (let wy = -height; wy < height * 1.5; wy += stepY) {
-    for (let wx = -width; wx < width * 1.5; wx += stepX) {
+  for (let wy = -h; wy < h * 1.5; wy += stepY) {
+    for (let wx = -w; wx < w * 1.5; wx += stepX) {
       ctx.fillText(watermarkText, wx, wy);
     }
   }
@@ -77,17 +96,17 @@ async function postProcess(rawDataUrl: string, width: number, height: number, sh
 
   // Bandeau de mention légale.
   ctx.fillStyle = "#f9fafb";
-  ctx.fillRect(0, height, width, DISCLAIMER_BAND_HEIGHT);
+  ctx.fillRect(0, h, w, bandHeight);
   ctx.strokeStyle = "#e5e7eb";
   ctx.beginPath();
-  ctx.moveTo(0, height + 0.5);
-  ctx.lineTo(width, height + 0.5);
+  ctx.moveTo(0, h + 0.5);
+  ctx.lineTo(w, h + 0.5);
   ctx.stroke();
   ctx.fillStyle = "#6b7280";
-  ctx.font = "11px -apple-system, 'Space Grotesk', system-ui, sans-serif";
+  ctx.font = `${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
   ctx.textBaseline = "middle";
   const disclaimerLine = `Généré par FabSystem pour ${projectName || "ce schéma"} — ${SCHEMA_DISCLAIMER}`;
-  wrapText(ctx, disclaimerLine, 12, height + DISCLAIMER_BAND_HEIGHT / 2, width - 24, 13);
+  wrapText(ctx, disclaimerLine, 12 * scale, h + bandHeight / 2, w - 24 * scale, 13 * scale);
 
   return canvas.toDataURL("image/png");
 }
@@ -110,7 +129,15 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, center
   lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, x, startY + i * lineHeight));
 }
 
-export async function captureSchemaPng(nodes: Node[], projectName: string, showGrid = true): Promise<string | null> {
+const EXPORT_PIXEL_RATIO = 2;
+
+export interface SchemaCapture {
+  dataUrl: string;
+  width: number;
+  height: number;
+}
+
+export async function captureSchemaPng(nodes: Node[], projectName: string, showGrid = true): Promise<SchemaCapture | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
 
@@ -123,7 +150,7 @@ export async function captureSchemaPng(nodes: Node[], projectName: string, showG
     backgroundColor: "#ffffff",
     width: imageWidth,
     height: imageHeight,
-    pixelRatio: 2,
+    pixelRatio: EXPORT_PIXEL_RATIO,
     style: {
       width: `${imageWidth}px`,
       height: `${imageHeight}px`,
@@ -131,7 +158,8 @@ export async function captureSchemaPng(nodes: Node[], projectName: string, showG
     },
   });
 
-  return postProcess(rawDataUrl, imageWidth, imageHeight, showGrid, projectName);
+  const dataUrl = await postProcess(rawDataUrl, imageWidth, imageHeight, showGrid, projectName, EXPORT_PIXEL_RATIO);
+  return { dataUrl, width: imageWidth, height: imageHeight + DISCLAIMER_BAND_HEIGHT };
 }
 
 export function downloadDataUrl(dataUrl: string, filename: string): void {
@@ -169,27 +197,50 @@ const PRINT_STYLE = `
   footer { margin-top: 20px; font-size: 10px; color: #9ca3af; }
 `;
 
+// Format de page (retour utilisateur : "ne pas hésiter à changer les formats
+// de page en A3 ou A2 si besoin") — un schéma large écrasé sur une A4
+// portrait fixe devient illisible à l'impression. On choisit le plus petit
+// format A-série (toujours paysage, les schémas sont presque toujours plus
+// larges que hauts) dans lequel le rendu tient à une échelle raisonnable
+// (~2 px CSS par mm, cohérent avec le pixelRatio 2 de la capture), sinon A2.
+const PAGE_FORMATS: { name: string; widthMm: number; heightMm: number }[] = [
+  { name: "A4", widthMm: 297, heightMm: 210 },
+  { name: "A3", widthMm: 420, heightMm: 297 },
+  { name: "A2", widthMm: 594, heightMm: 420 },
+];
+const CSS_PX_PER_MM = 2;
+
+function pickPageFormat(width: number, height: number): { name: string; widthMm: number; heightMm: number } {
+  const fit = PAGE_FORMATS.find((f) => width <= f.widthMm * CSS_PX_PER_MM && height <= f.heightMm * CSS_PX_PER_MM);
+  return fit ?? PAGE_FORMATS[PAGE_FORMATS.length - 1];
+}
+
 // PDF (CDC §39) : titre, schéma, date, mention légale, mention FabSystem
 // discrète — via l'impression navigateur ("Enregistrer en PDF"), sans
 // dépendance PDF supplémentaire côté client.
-export function openPrintablePdf(dataUrl: string, projectName: string): void {
+export function openPrintablePdf(capture: SchemaCapture, projectName: string): void {
   const win = window.open("", "_blank");
   if (!win) return;
   const dateStr = new Date().toLocaleDateString("fr-FR");
   const title = escapeHtml(projectName || "Schéma");
+  const page = pickPageFormat(capture.width, capture.height);
 
   win.document.write(`<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <title>${title}</title>
-<style>${PRINT_STYLE}</style>
+<style>
+  @page { size: ${page.name} landscape; margin: 10mm; }
+  ${PRINT_STYLE}
+  img { max-width: 100%; height: auto; }
+</style>
 </head>
 <body>
   <h1>${title}</h1>
-  <div class="meta">Généré le ${dateStr}</div>
+  <div class="meta">Généré le ${dateStr} · format ${page.name} paysage</div>
   <div class="disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)}</div>
-  <img src="${dataUrl}" alt="${title}" />
+  <img src="${capture.dataUrl}" alt="${title}" />
   <footer>Généré par FabSystem pour ${title} — fabsystem.fr</footer>
 </body>
 </html>`);

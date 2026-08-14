@@ -29,10 +29,10 @@ export function ExportMenu({ darkMode }: { darkMode: boolean }) {
   async function handleExport(kind: "png" | "pdf") {
     setBusy(true);
     try {
-      const dataUrl = await captureSchemaPng(getNodes(), projectName, showGrid);
-      if (!dataUrl) return;
-      if (kind === "png") downloadDataUrl(dataUrl, `${slugify(projectName)}.png`);
-      else openPrintablePdf(dataUrl, projectName);
+      const capture = await captureSchemaPng(getNodes(), projectName, showGrid);
+      if (!capture) return;
+      if (kind === "png") downloadDataUrl(capture.dataUrl, `${slugify(projectName)}.png`);
+      else openPrintablePdf(capture, projectName);
     } finally {
       setBusy(false);
       setOpen(false);
