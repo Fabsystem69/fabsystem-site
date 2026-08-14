@@ -11,7 +11,16 @@ import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 // un nouvel ebook publié apparaît ici sans modification de ce fichier.
 export const dynamic = "force-dynamic";
 
-const OUTILS_SLUGS = ["section-cable", "bilan-consommation", "autonomie-batterie", "mppt", "awg", "schema"];
+const OUTILS_SLUGS = [
+  "section-cable",
+  "bilan-consommation",
+  "autonomie-batterie",
+  "mppt",
+  "awg",
+  "schema",
+  "soc-batterie",
+  "charge-secteur",
+];
 const FORMATIONS_SLUGS = ["bases-12v", "lire-schema", "types-batteries"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

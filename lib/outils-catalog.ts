@@ -3,7 +3,15 @@
 // (/outils/<id>) — un seul tableau alimente les cartes du hub, les liens
 // internes (Home, Les Bases) et le contenu de chaque page calculateur.
 export type OutilMeta = {
-  id: "section-cable" | "bilan-consommation" | "autonomie-batterie" | "mppt" | "awg" | "schema";
+  id:
+    | "section-cable"
+    | "bilan-consommation"
+    | "autonomie-batterie"
+    | "mppt"
+    | "awg"
+    | "schema"
+    | "soc-batterie"
+    | "charge-secteur";
   /** Illustration technique réelle (UI-10 correctif final §4 : "composante
    * principale de l'identité SaaS de cette page") — jamais un emoji, une
    * icône générique ou un placeholder. */
@@ -64,6 +72,26 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     description: "Construisez et visualisez l'architecture électrique de votre installation.",
     tag: "Éditeur",
     cta: "Ouvrir l'éditeur",
+  },
+  {
+    // TODO(image) : illustration dédiée à remplacer — réutilise
+    // temporairement autonomie-batterie.png (thème batterie) en attendant.
+    id: "soc-batterie",
+    image: "/outils/autonomie-batterie.png",
+    title: "État de charge batterie",
+    description: "Estimez le % de charge de votre batterie à partir de la tension mesurée.",
+    tag: "Nouveau",
+    cta: "Estimer",
+  },
+  {
+    // TODO(image) : illustration dédiée à remplacer — réutilise
+    // temporairement section-cable.png (thème électrique) en attendant.
+    id: "charge-secteur",
+    image: "/outils/section-cable.png",
+    title: "Chargeur secteur",
+    description: "Dimensionnez votre chargeur secteur et vérifiez la compatibilité avec la borne 230V.",
+    tag: "Nouveau",
+    cta: "Calculer",
   },
 ];
 
