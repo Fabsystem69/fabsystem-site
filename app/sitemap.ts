@@ -1,8 +1,32 @@
 import type { MetadataRoute } from "next";
+import { listActiveBuyNowProducts } from "@/lib/services/catalog";
+import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Sitemap dynamique (retour utilisateur : "optimise l'affichage des pages
+// sur Google") — les pages hub (/outils, /formations, /boutique) étaient
+// listées, mais pas leurs sous-pages individuelles (chaque calculateur,
+// chaque formation, chaque produit), qui ont pourtant leur propre
+// contenu/metadata indexable. Les produits viennent du catalogue réel
+// (listActiveBuyNowProducts) plutôt que d'une liste figée à la main :
+// un nouvel ebook publié apparaît ici sans modification de ce fichier.
+export const dynamic = "force-dynamic";
+
+const OUTILS_SLUGS = ["section-cable", "bilan-consommation", "autonomie-batterie", "mppt", "awg", "schema"];
+const FORMATIONS_SLUGS = ["bases-12v", "lire-schema", "types-batteries"];
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.fabsystem.fr";
   const lastModified = new Date();
+
+  const products = await listActiveBuyNowProducts().catch(() => []);
+  const productEntries: MetadataRoute.Sitemap = products
+    .filter((product) => !isPrestationsPackSlug(product.slug))
+    .map((product) => ({
+      url: `${baseUrl}/boutique/${product.slug}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    }));
 
   return [
     {
@@ -23,12 +47,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    ...FORMATIONS_SLUGS.map((slug) => ({
+      url: `${baseUrl}/formations/${slug}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
     {
       url: `${baseUrl}/outils`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.9,
     },
+    ...OUTILS_SLUGS.map((slug) => ({
+      url: `${baseUrl}/outils/${slug}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
     {
       url: `${baseUrl}/realisations`,
       lastModified,
@@ -41,12 +77,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    {
-      url: `${baseUrl}/boutique/ebook-electricite-van`,
-      lastModified,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
+    ...productEntries,
     {
       url: `${baseUrl}/a-propos`,
       lastModified,
