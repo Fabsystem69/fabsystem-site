@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import {
   ReactFlow,
   Background,
@@ -15,7 +15,7 @@ import {
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ElectricalNode } from "./nodes/ElectricalNode";
 import { CableEdge } from "./edges/CableEdge";
-import { getConsumerPreset } from "@/lib/electrical-components/definitions";
+import { getConsumerPreset, getComponentDefinition } from "@/lib/electrical-components/definitions";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 
 const nodeTypes = { electrical: ElectricalNode };
@@ -67,8 +67,9 @@ function edgeIdAtPoint(clientX: number, clientY: number): string | null {
 // drag & drop depuis la bibliothèque, écran vide guidé tant qu'aucun
 // composant n'est posé (§54).
 export function Canvas() {
-  const nodes = useSchemaStore((s) => s.nodes) as Node<ElectricalNodeData>[];
-  const edges = useSchemaStore((s) => s.edges) as Edge<CableEdgeData>[];
+  const allNodes = useSchemaStore((s) => s.nodes) as Node<ElectricalNodeData>[];
+  const allEdges = useSchemaStore((s) => s.edges) as Edge<CableEdgeData>[];
+  const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
   const onNodesChange = useSchemaStore((s) => s.onNodesChange);
   const onEdgesChange = useSchemaStore((s) => s.onEdgesChange);
   const onConnect = useSchemaStore((s) => s.onConnect);
@@ -78,6 +79,26 @@ export function Canvas() {
   const select = useSchemaStore((s) => s.select);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const { screenToFlowPosition } = useReactFlow();
+
+  // Isolement par catégorie (retour utilisateur : "isoler le circuit MPPT ou
+  // consommateur") : les nœuds masqués disparaissent du canvas — et par
+  // ricochet des exports (PNG/PDF/liste de matériel), qui lisent l'état
+  // React Flow réel via getNodes()/getEdges(), pas le store complet. Un
+  // câble dont une seule extrémité est masquée disparaît aussi (sinon il
+  // pointerait dans le vide).
+  const nodes = useMemo(() => {
+    if (hiddenCategories.length === 0) return allNodes;
+    return allNodes.filter((n) => {
+      const def = getComponentDefinition(n.data.componentType);
+      return !def || !hiddenCategories.includes(def.category);
+    });
+  }, [allNodes, hiddenCategories]);
+
+  const edges = useMemo(() => {
+    if (hiddenCategories.length === 0) return allEdges;
+    const visibleIds = new Set(nodes.map((n) => n.id));
+    return allEdges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
+  }, [allEdges, hiddenCategories, nodes]);
 
   const handleDrop = useCallback(
     (event: React.DragEvent) => {
@@ -144,7 +165,7 @@ export function Canvas() {
         <Controls showInteractive={false} position="bottom-left" className={darkMode ? "!fill-white [&_button]:!border-neutral-700 [&_button]:!bg-neutral-800 [&_button]:!text-white [&_path]:!fill-white" : undefined} />
       </ReactFlow>
 
-      {nodes.length === 0 ? (
+      {allNodes.length === 0 ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div
             className={`rounded-2xl border border-dashed px-8 py-6 text-center backdrop-blur-sm ${
@@ -153,6 +174,17 @@ export function Canvas() {
           >
             <p className={`text-base font-semibold ${darkMode ? "text-neutral-100" : "text-neutral-800"}`}>Commence ton schéma</p>
             <p className={`mt-1 text-sm ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Glisse un composant depuis la bibliothèque.</p>
+          </div>
+        </div>
+      ) : nodes.length === 0 ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div
+            className={`rounded-2xl border border-dashed px-8 py-6 text-center backdrop-blur-sm ${
+              darkMode ? "border-neutral-700 bg-neutral-900/80" : "border-neutral-300 bg-white/80"
+            }`}
+          >
+            <p className={`text-base font-semibold ${darkMode ? "text-neutral-100" : "text-neutral-800"}`}>Rien à afficher avec ce filtre</p>
+            <p className={`mt-1 text-sm ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Aucune catégorie visible ne contient de composant.</p>
           </div>
         </div>
       ) : null}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
+import { CategoryFilterMenu } from "./CategoryFilterMenu";
 
 // Barre supérieure (CDC §6) : nom projet éditable, Nouveau, Annuler/Rétablir,
 // indicateur d'enregistrement discret (pas de notification intrusive, §35).
@@ -127,6 +128,7 @@ export function Toolbar() {
           ↷
         </ToolbarButton>
 
+        <CategoryFilterMenu darkMode={darkMode} />
         <ExportMenu darkMode={darkMode} />
         <FeedbackMenu darkMode={darkMode} />
 

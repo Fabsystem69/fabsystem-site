@@ -73,10 +73,17 @@ interface SchemaState {
   hydrated: boolean;
   iconStyle: IconStyle;
   darkMode: boolean;
+  // Filtre d'affichage (retour utilisateur : "isoler le circuit MPPT ou
+  // consommateur pour éviter d'avoir toujours tout le schéma") — catégories
+  // volontairement masquées du canvas ; vide = tout affiché. Vue seulement,
+  // ne modifie jamais les données du schéma (pas de pas d'historique).
+  hiddenCategories: string[];
 
   setProjectName: (name: string) => void;
   setIconStyle: (style: IconStyle) => void;
   setDarkMode: (value: boolean) => void;
+  toggleCategoryVisibility: (category: string) => void;
+  showAllCategories: () => void;
   onNodesChange: (changes: NodeChange<SchemaNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<SchemaEdge>[]) => void;
   onConnect: (connection: Connection) => void;
@@ -122,8 +129,18 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   hydrated: false,
   iconStyle: loadIconStyle(),
   darkMode: loadDarkMode(),
+  hiddenCategories: [],
 
   setProjectName: (name) => set({ projectName: name }),
+
+  toggleCategoryVisibility: (category) =>
+    set((state) => ({
+      hiddenCategories: state.hiddenCategories.includes(category)
+        ? state.hiddenCategories.filter((c) => c !== category)
+        : [...state.hiddenCategories, category],
+    })),
+
+  showAllCategories: () => set({ hiddenCategories: [] }),
 
   // Préférence d'affichage indépendante du schéma (pas un pas d'historique,
   // pas sauvegardée dans le brouillon) — retour utilisateur : "avoir les
@@ -383,6 +400,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       selectedEdgeId: null,
       past: [],
       future: [],
+      hiddenCategories: [],
     }),
 
   loadExample: () => {
@@ -395,6 +413,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       selectedEdgeId: null,
       past: [],
       future: [],
+      hiddenCategories: [],
     });
   },
 
@@ -408,6 +427,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       past: [],
       future: [],
       hydrated: true,
+      hiddenCategories: [],
     }),
 }));
 

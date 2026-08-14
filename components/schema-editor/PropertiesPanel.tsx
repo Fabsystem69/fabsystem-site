@@ -26,6 +26,7 @@ export function PropertiesPanel() {
   const rotateNode = useSchemaStore((s) => s.rotateNode);
   const projectName = useSchemaStore((s) => s.projectName);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
 
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : undefined;
   const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) : undefined;
@@ -285,8 +286,37 @@ export function PropertiesPanel() {
         <p>
           <span className={`font-medium ${darkMode ? "text-neutral-100" : "text-neutral-900"}`}>{projectName}</span>
         </p>
-        <p>{nodes.length} composant{nodes.length > 1 ? "s" : ""}</p>
-        <p>{edges.length} câble{edges.length > 1 ? "s" : ""}</p>
+        {(() => {
+          const visibleNodes =
+            hiddenCategories.length === 0
+              ? nodes
+              : nodes.filter((n) => {
+                  const def = getComponentDefinition(n.data.componentType);
+                  return !def || !hiddenCategories.includes(def.category);
+                });
+          const isFiltered = visibleNodes.length !== nodes.length;
+          const visibleEdges = isFiltered
+            ? (() => {
+                const visibleIds = new Set(visibleNodes.map((n) => n.id));
+                return edges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
+              })()
+            : edges;
+          return (
+            <>
+              <p>
+                {isFiltered ? `${visibleNodes.length}/${nodes.length}` : nodes.length} composant{nodes.length > 1 ? "s" : ""}
+                {isFiltered ? " affichés" : ""}
+              </p>
+              <p>
+                {isFiltered ? `${visibleEdges.length}/${edges.length}` : edges.length} câble{edges.length > 1 ? "s" : ""}
+                {isFiltered ? " affichés" : ""}
+              </p>
+              {isFiltered ? (
+                <p className={`text-xs ${darkMode ? "text-amber-400" : "text-amber-600"}`}>Filtre actif — l&apos;export ne prendra que ce qui est affiché.</p>
+              ) : null}
+            </>
+          );
+        })()}
       </div>
       <SchemaIssuesPanel nodes={nodes} edges={edges} darkMode={darkMode} />
       <p className={`mt-auto border-t px-3 py-3 text-[10px] leading-snug ${darkMode ? "border-neutral-800 text-neutral-500" : "border-neutral-100 text-neutral-400"}`}>
