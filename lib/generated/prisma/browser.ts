@@ -43,6 +43,11 @@ export type ProjectRetainedValue = Prisma.ProjectRetainedValueModel
  */
 export type ProjectValueDependency = Prisma.ProjectValueDependencyModel
 /**
+ * Model ProjectSchema
+ * 
+ */
+export type ProjectSchema = Prisma.ProjectSchemaModel
+/**
  * Model Quote
  * 
  */

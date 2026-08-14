@@ -226,6 +226,22 @@ export function AdvancedProjectView({
         </Card>
       </div>
 
+      {/* Éditeur de schéma électrique (retour utilisateur : "il manque
+          enregistrer lié au compte client") — point d'entrée symétrique au
+          bouton "Enregistrer dans mon projet" côté éditeur
+          (components/schema-editor/SaveToProjectMenu.tsx). N'affecte aucune
+          valeur retenue/moteur : le schéma vit dans son propre modèle
+          Prisma (ProjectSchema), sauvegardé séparément. */}
+      {!isDeleteScheduled ? (
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
+          <div>
+            <h2 className="text-base font-semibold text-neutral-950">Schéma électrique</h2>
+            <p className="mt-1 text-sm text-neutral-600">Dessinez et sauvegardez le schéma de câblage de ce projet.</p>
+          </div>
+          <Button href={`/outils/schema?projectId=${project.id}`}>Ouvrir l&apos;éditeur de schéma</Button>
+        </Card>
+      ) : null}
+
       {/* 2. Actions nécessaires */}
       {obsoleteCount > 0 || uncompletedCount > 0 ? (
         <section>

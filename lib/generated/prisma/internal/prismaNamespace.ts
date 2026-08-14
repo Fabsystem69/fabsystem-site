@@ -88,11 +88,11 @@ export type PrismaVersion = {
 }
 
 /**
- * Prisma Client JS version: 6.19.3
+ * Prisma Client JS version: 6.19.2
  * Query Engine version: c2990dca591cba766e3b7ef5d9e8a84796e47ab7
  */
 export const prismaVersion: PrismaVersion = {
-  client: "6.19.3",
+  client: "6.19.2",
   engine: "c2990dca591cba766e3b7ef5d9e8a84796e47ab7"
 }
 
@@ -395,6 +395,7 @@ export const ModelName = {
   Project: 'Project',
   ProjectRetainedValue: 'ProjectRetainedValue',
   ProjectValueDependency: 'ProjectValueDependency',
+  ProjectSchema: 'ProjectSchema',
   Quote: 'Quote',
   QuoteItem: 'QuoteItem',
   Invoice: 'Invoice',
@@ -433,7 +434,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "customerCapability" | "project" | "projectRetainedValue" | "projectValueDependency" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial"
+    modelProps: "customer" | "customerCapability" | "project" | "projectRetainedValue" | "projectValueDependency" | "projectSchema" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -804,6 +805,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProjectValueDependencyCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProjectValueDependencyCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProjectSchema: {
+      payload: Prisma.$ProjectSchemaPayload<ExtArgs>
+      fields: Prisma.ProjectSchemaFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectSchemaFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectSchemaFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectSchemaFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectSchemaFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectSchemaFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectSchemaCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectSchemaCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectSchemaCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectSchemaDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>
+        }
+        update: {
+          args: Prisma.ProjectSchemaUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectSchemaDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectSchemaUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectSchemaUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectSchemaUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectSchemaPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectSchemaAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectSchema>
+        }
+        groupBy: {
+          args: Prisma.ProjectSchemaGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectSchemaGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectSchemaCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectSchemaCountAggregateOutputType> | number
         }
       }
     }
@@ -2633,6 +2708,19 @@ export const ProjectValueDependencyScalarFieldEnum = {
 export type ProjectValueDependencyScalarFieldEnum = (typeof ProjectValueDependencyScalarFieldEnum)[keyof typeof ProjectValueDependencyScalarFieldEnum]
 
 
+export const ProjectSchemaScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  projectName: 'projectName',
+  nodes: 'nodes',
+  edges: 'edges',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectSchemaScalarFieldEnum = (typeof ProjectSchemaScalarFieldEnum)[keyof typeof ProjectSchemaScalarFieldEnum]
+
+
 export const QuoteScalarFieldEnum = {
   id: 'id',
   number: 'number',
@@ -3657,6 +3745,7 @@ export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   projectRetainedValue?: Prisma.ProjectRetainedValueOmit
   projectValueDependency?: Prisma.ProjectValueDependencyOmit
+  projectSchema?: Prisma.ProjectSchemaOmit
   quote?: Prisma.QuoteOmit
   quoteItem?: Prisma.QuoteItemOmit
   invoice?: Prisma.InvoiceOmit

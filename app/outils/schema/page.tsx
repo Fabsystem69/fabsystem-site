@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Editor } from "@/components/schema-editor/Editor";
 
 // Route dédiée plein écran (docs/schema/CDC_FabSystem_Schema_V1.md §66) :
@@ -12,5 +13,9 @@ export const metadata: Metadata = {
 };
 
 export default function SchemaEditorPage() {
-  return <Editor />;
+  return (
+    <Suspense fallback={<div className="flex h-screen items-center justify-center text-sm text-neutral-400">Chargement…</div>}>
+      <Editor />
+    </Suspense>
+  );
 }

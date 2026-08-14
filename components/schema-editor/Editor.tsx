@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { loadDraft, saveDraft } from "@/features/schemas/storage/localDraftStorage";
+import { fetchProjectSchema, saveProjectSchemaApi } from "@/features/schemas/projectSchemaApi";
 import { Toolbar } from "./Toolbar";
 import { ComponentLibrary } from "./ComponentLibrary";
 import { Canvas } from "./Canvas";
@@ -68,31 +70,61 @@ export function Editor() {
   const hydrated = useSchemaStore((s) => s.hydrated);
   const hydrate = useSchemaStore((s) => s.hydrate);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
+  const projectId = useSchemaStore((s) => s.projectId);
+  const setProjectId = useSchemaStore((s) => s.setProjectId);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchParams = useSearchParams();
+  const urlProjectId = searchParams.get("projectId");
 
+  // Ouverture depuis une fiche projet (retour utilisateur : "il manque
+  // enregistrer lié au compte client") — /outils/schema?projectId=xxx charge
+  // le schéma déjà sauvegardé pour ce projet s'il existe, au lieu du
+  // brouillon local. En dehors de ce cas, l'outil reste utilisable sans
+  // compte (CDC : "Gratuit, sans compte"), comportement inchangé.
   useEffect(() => {
-    const draft = loadDraft();
-    hydrate(
-      draft
-        ? { projectName: draft.projectName, nodes: draft.nodes, edges: draft.edges }
-        : { projectName: "Nouveau schéma", nodes: [], edges: [] },
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    (async () => {
+      if (urlProjectId) {
+        const remote = await fetchProjectSchema(urlProjectId);
+        setProjectId(urlProjectId);
+        if (remote) {
+          hydrate(remote);
+          return;
+        }
+        // Projet valide mais pas encore de schéma sauvegardé : on démarre
+        // vierge, déjà lié pour que la première sauvegarde y écrive.
+        hydrate({ projectName: "Nouveau schéma", nodes: [], edges: [] });
+        return;
+      }
+      const draft = loadDraft();
+      hydrate(
+        draft
+          ? { projectName: draft.projectName, nodes: draft.nodes, edges: draft.edges }
+          : { projectName: "Nouveau schéma", nodes: [], edges: [] },
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    })();
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
     setSaveStatus("saving");
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
+    debounceRef.current = setTimeout(async () => {
+      // Toujours un filet de sécurité local, même quand un projet est lié
+      // (fonctionne hors-ligne, survit à une session expirée).
       saveDraft({ projectName, nodes, edges });
+      if (projectId) {
+        const ok = await saveProjectSchemaApi(projectId, { projectName, nodes, edges });
+        setSaveStatus(ok ? "saved" : "error");
+        return;
+      }
       setSaveStatus("saved");
     }, AUTOSAVE_DELAY_MS);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectName, nodes, edges, hydrated]);
+  }, [projectName, nodes, edges, hydrated, projectId]);
 
   const darkMode = useSchemaStore((s) => s.darkMode);
 

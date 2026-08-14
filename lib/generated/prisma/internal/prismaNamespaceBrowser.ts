@@ -54,6 +54,7 @@ export const ModelName = {
   Project: 'Project',
   ProjectRetainedValue: 'ProjectRetainedValue',
   ProjectValueDependency: 'ProjectValueDependency',
+  ProjectSchema: 'ProjectSchema',
   Quote: 'Quote',
   QuoteItem: 'QuoteItem',
   Invoice: 'Invoice',
@@ -178,6 +179,19 @@ export const ProjectValueDependencyScalarFieldEnum = {
 } as const
 
 export type ProjectValueDependencyScalarFieldEnum = (typeof ProjectValueDependencyScalarFieldEnum)[keyof typeof ProjectValueDependencyScalarFieldEnum]
+
+
+export const ProjectSchemaScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  projectName: 'projectName',
+  nodes: 'nodes',
+  edges: 'edges',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectSchemaScalarFieldEnum = (typeof ProjectSchemaScalarFieldEnum)[keyof typeof ProjectSchemaScalarFieldEnum]
 
 
 export const QuoteScalarFieldEnum = {

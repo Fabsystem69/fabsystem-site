@@ -583,6 +583,18 @@ function SchemaStep({
       title="Synthèse de votre projet"
       helper="Ce que FabSystem a retenu jusqu'ici."
     >
+      {/* Éditeur de schéma électrique interactif (retour utilisateur : "il
+          manque enregistrer lié au compte client") — distinct de la
+          synthèse textuelle ci-dessous (moteur diagram.model), qui ne
+          génère aucun rendu graphique. */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white p-4">
+        <div>
+          <p className="text-sm font-medium text-neutral-900">Éditeur de schéma</p>
+          <p className="mt-0.5 text-sm text-neutral-600">Dessinez et sauvegardez le schéma de câblage de ce projet.</p>
+        </div>
+        <Button href={`/outils/schema?projectId=${projectId}`}>Ouvrir l&apos;éditeur de schéma</Button>
+      </div>
+
       {retainedValues.length === 0 ? (
         <VoltaGuide variant="warning" pose="perplexe">
           Rien n&apos;est encore retenu dans ce projet. Si vous avez utilisé « Calculer » sur une

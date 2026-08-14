@@ -70,7 +70,7 @@ interface SchemaState {
   selectedEdgeId: string | null;
   past: Snapshot[];
   future: Snapshot[];
-  saveStatus: "saved" | "saving";
+  saveStatus: "saved" | "saving" | "error";
   hydrated: boolean;
   iconStyle: IconStyle;
   darkMode: boolean;
@@ -79,8 +79,14 @@ interface SchemaState {
   // volontairement masquées du canvas ; vide = tout affiché. Vue seulement,
   // ne modifie jamais les données du schéma (pas de pas d'historique).
   hiddenCategories: string[];
+  // Project client lié (retour utilisateur : "il manque enregistrer lié au
+  // compte client") — null = brouillon local uniquement (comportement par
+  // défaut, sans compte). Non persisté dans le schéma lui-même : c'est un
+  // lien de sauvegarde, pas une donnée du dessin.
+  projectId: string | null;
 
   setProjectName: (name: string) => void;
+  setProjectId: (id: string | null) => void;
   setIconStyle: (style: IconStyle) => void;
   setDarkMode: (value: boolean) => void;
   toggleCategoryVisibility: (category: string) => void;
@@ -103,7 +109,7 @@ interface SchemaState {
   redo: () => void;
   newProject: () => void;
   loadExample: () => void;
-  setSaveStatus: (status: "saved" | "saving") => void;
+  setSaveStatus: (status: "saved" | "saving" | "error") => void;
   hydrate: (snapshot: { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] }) => void;
 }
 
@@ -132,8 +138,10 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   iconStyle: loadIconStyle(),
   darkMode: loadDarkMode(),
   hiddenCategories: [],
+  projectId: null,
 
   setProjectName: (name) => set({ projectName: name }),
+  setProjectId: (id) => set({ projectId: id }),
 
   toggleCategoryVisibility: (category) =>
     set((state) => ({
@@ -412,6 +420,9 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       past: [],
       future: [],
       hiddenCategories: [],
+      // Repartir de zéro délie le projet client — sinon la prochaine
+      // sauvegarde automatique écraserait son schéma avec une page vierge.
+      projectId: null,
     }),
 
   loadExample: () => {
@@ -425,6 +436,9 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       past: [],
       future: [],
       hiddenCategories: [],
+      // Même raison que newProject : ne jamais laisser l'exemple écraser
+      // le schéma sauvegardé d'un projet client.
+      projectId: null,
     });
   },
 

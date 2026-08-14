@@ -6,6 +6,7 @@ import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
 import { CategoryFilterMenu } from "./CategoryFilterMenu";
 import { FileMenu } from "./FileMenu";
+import { SaveToProjectMenu } from "./SaveToProjectMenu";
 
 // Barre supérieure (CDC §6) : nom projet éditable, Nouveau, Annuler/Rétablir,
 // indicateur d'enregistrement discret (pas de notification intrusive, §35).
@@ -109,10 +110,11 @@ export function Toolbar() {
 
         <CategoryFilterMenu darkMode={darkMode} />
         <ExportMenu darkMode={darkMode} />
+        <SaveToProjectMenu darkMode={darkMode} />
         <FeedbackMenu darkMode={darkMode} />
 
         <span className={`ml-2 min-w-[6.5rem] text-right text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-          {saveStatus === "saving" ? "Enregistrement…" : "Enregistré"}
+          {saveStatus === "saving" ? "Enregistrement…" : saveStatus === "error" ? "Erreur d'enregistrement" : "Enregistré"}
         </span>
       </div>
     </header>
