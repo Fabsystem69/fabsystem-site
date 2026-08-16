@@ -66,6 +66,7 @@ export type SchemaSaveAssistantCode =
   | "AUTH_REQUIRED"
   | "ACCESS_DENIED"
   | "PROJECT_NOT_FOUND"
+  | "SERVICE_UNAVAILABLE"
   | "RATE_LIMITED"
   | "PAYLOAD_TOO_LARGE"
   | "BAD_REQUEST"

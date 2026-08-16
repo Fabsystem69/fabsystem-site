@@ -1,5 +1,7 @@
 import type { PrismaClient, ProjectSchema, Prisma } from "@/lib/generated/prisma/client";
+import { serviceUnavailable } from "@/lib/http-errors";
 import type { OwnershipActor } from "@/lib/ownership";
+import { logServerEvent } from "@/lib/server-log";
 import { getProject } from "@/lib/services/project";
 
 type PrismaClientLike = PrismaClient;
@@ -23,6 +25,41 @@ export type ProjectSchemaDb = {
   upsert(projectId: string, data: SaveProjectSchemaInput): Promise<ProjectSchema>;
   findSummariesByProjectIds(projectIds: string[]): Promise<ProjectSchemaSummary[]>;
 };
+
+type ProjectSchemaServiceDeps = {
+  assertOwnedProject?: typeof getProject;
+  reportSchemaStorageMissing?: (operation: string, error: unknown) => void;
+};
+
+function isProjectSchemaTableMissingError(error: unknown) {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as {
+    code?: unknown;
+    message?: unknown;
+    meta?: { modelName?: unknown };
+  };
+  const messageMentionsModel =
+    typeof candidate.message === "string" && candidate.message.includes("ProjectSchema");
+  const metaMentionsModel = candidate.meta?.modelName === "ProjectSchema";
+
+  return candidate.code === "P2021" && (messageMentionsModel || metaMentionsModel);
+}
+
+function defaultReportSchemaStorageMissing(operation: string, error: unknown) {
+  logServerEvent("warn", "project-schema storage table missing", {
+    operation,
+    error,
+  });
+}
+
+function projectSchemaStorageUnavailableError() {
+  return serviceUnavailable(
+    "Le cloud du schema n'est pas encore initialise sur cette base. Lancez la migration Prisma puis reessayez."
+  );
+}
 
 function createPrismaProjectSchemaDb(client: PrismaClientLike): ProjectSchemaDb {
   return {
@@ -51,20 +88,38 @@ async function getDefaultProjectSchemaService() {
   return createProjectSchemaService(createPrismaProjectSchemaDb(prisma));
 }
 
-export function createProjectSchemaService(db: ProjectSchemaDb) {
+export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSchemaServiceDeps = {}) {
   // getProject() vérifie déjà la propriété du Project (jamais l'id seul,
   // MASTER-10 §40) — même garde réutilisée telle quelle, pas dupliquée.
-  const assertOwnedProject = getProject;
+  const assertOwnedProject = deps.assertOwnedProject ?? getProject;
+  const reportSchemaStorageMissing =
+    deps.reportSchemaStorageMissing ?? defaultReportSchemaStorageMissing;
 
   return {
     async getProjectSchema(actor: OwnershipActor, projectId: string): Promise<ProjectSchema | null> {
       const project = await assertOwnedProject(actor, projectId);
-      return db.findByProjectId(project.id);
+      try {
+        return await db.findByProjectId(project.id);
+      } catch (error) {
+        if (isProjectSchemaTableMissingError(error)) {
+          reportSchemaStorageMissing("getProjectSchema", error);
+          return null;
+        }
+        throw error;
+      }
     },
 
     async saveProjectSchema(actor: OwnershipActor, projectId: string, input: SaveProjectSchemaInput): Promise<ProjectSchema> {
       const project = await assertOwnedProject(actor, projectId);
-      return db.upsert(project.id, input);
+      try {
+        return await db.upsert(project.id, input);
+      } catch (error) {
+        if (isProjectSchemaTableMissingError(error)) {
+          reportSchemaStorageMissing("saveProjectSchema", error);
+          throw projectSchemaStorageUnavailableError();
+        }
+        throw error;
+      }
     },
 
     // Pas de vérification de propriété ici : réservé à un appelant qui a
@@ -73,7 +128,16 @@ export function createProjectSchemaService(db: ProjectSchemaDb) {
     // une seule requête groupée plutôt qu'un N+1 avec re-vérification à
     // chaque projet).
     async listProjectSchemaSummaries(projectIds: string[]): Promise<Map<string, ProjectSchemaSummary>> {
-      const rows = await db.findSummariesByProjectIds(projectIds);
+      let rows: ProjectSchemaSummary[];
+      try {
+        rows = await db.findSummariesByProjectIds(projectIds);
+      } catch (error) {
+        if (isProjectSchemaTableMissingError(error)) {
+          reportSchemaStorageMissing("listProjectSchemaSummaries", error);
+          return new Map();
+        }
+        throw error;
+      }
       return new Map(rows.map((row) => [row.projectId, row]));
     },
   };

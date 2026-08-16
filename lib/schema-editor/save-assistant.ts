@@ -8,6 +8,8 @@ export function buildCloudStatusMessage(problem: SchemaApiProblem, phase: "open"
     case "ACCESS_DENIED":
     case "PROJECT_NOT_FOUND":
       return "Projet cloud indisponible";
+    case "SERVICE_UNAVAILABLE":
+      return "Cloud du schema indisponible";
     case "RATE_LIMITED":
       return "Cloud temporairement limité";
     case "PAYLOAD_TOO_LARGE":
@@ -48,6 +50,13 @@ export function buildCloudAssistant(problem: SchemaApiProblem, phase: "open" | "
         title: "Projet cloud introuvable",
         message:
           "Le projet demandé n'existe plus ou le lien est périmé. Ouvrez un projet existant depuis votre espace client, ou continuez en local.",
+      };
+    case "SERVICE_UNAVAILABLE":
+      return {
+        code: "SERVICE_UNAVAILABLE",
+        title: "Le cloud du schema n'est pas encore pret sur cette base",
+        message:
+          "Le projet reste accessible, mais le stockage du schema n'est pas encore initialise dans cette base. Continuez en local, telechargez un fichier .fabschema, puis relancez apres la migration de la base.",
       };
     case "RATE_LIMITED":
       return {

@@ -36,6 +36,7 @@ export type SchemaApiErrorCode =
   | "RATE_LIMITED"
   | "PAYLOAD_TOO_LARGE"
   | "BAD_REQUEST"
+  | "SERVICE_UNAVAILABLE"
   | "NETWORK"
   | "UNKNOWN";
 
@@ -71,6 +72,7 @@ function mapSchemaApiCode(status: number, code: string | null): SchemaApiErrorCo
   if (code === "PAYLOAD_TOO_LARGE" || status === 413) return "PAYLOAD_TOO_LARGE";
   if (code === "RATE_LIMITED" || status === 429) return "RATE_LIMITED";
   if (code === "CONFLICT" || status === 409) return "CONFLICT";
+  if (code === "SERVICE_UNAVAILABLE" || status === 503) return "SERVICE_UNAVAILABLE";
   if (status === 401) return "AUTH_REQUIRED";
   if (status === 403) return "ACCESS_DENIED";
   if (status === 404) return "PROJECT_NOT_FOUND";
