@@ -37,18 +37,46 @@ export async function LesBases() {
       <div className={`mt-8 grid gap-6 ${ebook ? "lg:grid-cols-[1.6fr_1fr]" : ""}`}>
         {/* Les bases — élément principal */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">Les bases</p>
-          <h3 className="mt-2 text-xl font-bold text-neutral-950">
-            Les fondamentaux de l&apos;électricité embarquée, gratuitement
-          </h3>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-neutral-600">
-            Modules, quiz et bons gestes pour comprendre avant de se lancer — sans reproduire tout
-            un guide complet.
-          </p>
-          <div className="mt-5">
-            <Button href="/formations" variant="secondary">
-              Voir les bases →
-            </Button>
+          <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-neutral-500">Les bases</p>
+              <h3 className="mt-2 text-xl font-bold text-neutral-950">
+                Les fondamentaux de l&apos;électricité embarquée, gratuitement
+              </h3>
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-neutral-600">
+                Modules, quiz et bons gestes pour comprendre avant de se lancer — sans reproduire tout
+                un guide complet.
+              </p>
+              <div className="mt-5">
+                <Button href="/formations" variant="secondary">
+                  Voir les bases →
+                </Button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-brand-200 bg-brand-50/70 p-4">
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/volta/volta-actif-tournevis.png"
+                  alt=""
+                  width={336}
+                  height={163}
+                  className="h-14 w-auto shrink-0 object-contain"
+                />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">
+                    Coaching Volta
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-neutral-950">
+                    Volta vous aide à repérer l&apos;essentiel
+                  </p>
+                </div>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+                Repères simples, erreurs fréquentes et logique de progression pour avancer sans se
+                perdre dans le jargon.
+              </p>
+            </div>
           </div>
         </div>
 

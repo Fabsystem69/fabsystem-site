@@ -159,10 +159,7 @@ export function ConfianceCarousel({
         </div>
 
         <div className="mt-5" aria-live={isPaused ? "polite" : "off"}>
-          <div className="text-5xl leading-none text-brand-300" aria-hidden="true">
-            “
-          </div>
-          <blockquote className="-mt-2 text-base leading-8 text-neutral-800 sm:text-lg">
+          <blockquote className="border-l-2 border-brand-300 pl-4 text-base leading-8 text-neutral-800 sm:text-lg">
             {current.quote}
           </blockquote>
         </div>

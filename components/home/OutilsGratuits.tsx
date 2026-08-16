@@ -1,7 +1,7 @@
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { OutilCard } from "@/components/outils/OutilCard";
-import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
+import { getOutilMeta, type OutilMeta } from "@/lib/outils-catalog";
 
 // Home V2 (UI-10, correctif final §11) — teaser compact de l'écosystème
 // Outils, réutilisant OutilCard tel quel (même identité visuelle que
@@ -9,7 +9,11 @@ import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
 // cartes du hub : seulement les 3 premières, pour donner envie d'aller
 // sur /outils plutôt que d'en faire une réplique complète. Jamais un
 // retour à l'ancienne hiérarchie (1 grosse carte + 3 secondaires).
-const HOME_TEASER = OUTILS_CALCULATEURS.slice(0, 3);
+const HOME_TEASER: OutilMeta[] = [
+  { ...getOutilMeta("section-cable"), tag: "Essentiel" },
+  getOutilMeta("bilan-consommation"),
+  { ...getOutilMeta("schema"), tag: "Le plus utilisé" },
+];
 
 export function OutilsGratuits() {
   return (
