@@ -65,13 +65,19 @@ export type ProjectFollowUpDossier = {
   dossierChecklist: string[];
 };
 
-export type PublicP280LightKit = {
+export type PublicLightKit = {
   purchases: PurchaseItem[];
   budgetBaseCents: number;
   budgetWithOptionsCents: number;
   schemaUrl: string;
   editorUrl: string;
+  schemaLabel: string;
+  baseSummary: string;
+  optionSummary: string;
+  printNote: string;
 };
+
+export type PublicP280LightKit = PublicLightKit;
 
 const STEP_TEMPLATES = [
   {
@@ -460,5 +466,136 @@ export function getPublicP280LightKit(): PublicP280LightKit {
     budgetWithOptionsCents: 277259,
     schemaUrl: "/schemas-electriques/schema-aferiy-p280-van",
     editorUrl: "/outils/schema?template=station-aferiy-p280",
+    schemaLabel: "AFERIY P280 van",
+    baseSummary: "Montage P280 + solaire + 12 V + 230 V fixe.",
+    optionSummary: "Version propre avec DC060 et kit officiel AFERIY.",
+    printNote:
+      "Version light issue du guide P280 : liste d'achats, schéma conseillé et liens utiles. Pour un suivi complet dans le cloud, utilisez la version Suivi projet dans l'espace client FabSystem.",
+  };
+}
+
+const VICTRON_LIGHT_PURCHASES: PurchaseItem[] = [
+  {
+    priority: "Indispensable",
+    block: "Énergie",
+    name: "Batterie LiFePO4 150 Ah",
+    why: "Base service simple et crédible pour le frigo, l'eau, l'USB, les LED et le petit 230 V.",
+    budgetCents: 34999,
+    statusLabel: "À acheter",
+    href: "https://fr.eco-worthy.com/products/batterie-lithium-lifepo4-12v-150ah-avec-bluetooth-protection-basse-temperature",
+  },
+  {
+    priority: "Indispensable",
+    block: "Énergie",
+    name: "MultiPlus Compact 12/800/35-16",
+    why: "Garde un vrai 230 V embarqué sans partir sur un convertisseur trop lourd pour ce cas d'usage.",
+    budgetCents: 47700,
+    statusLabel: "À acheter",
+    href: "https://www.laboutiquesolaire.com/victron-energy-convertisseurs-chargeurs-multiplus-compact/1044-victron-energy-convertisseur-chargeur-multiplus-compact-12-800-35-16-8719076053029.html",
+  },
+  {
+    priority: "Indispensable",
+    block: "Solaire",
+    name: "Solaire 200 W + MPPT + pose",
+    why: "Panneau souple, SmartSolar 75/15 et accessoires de pose pour garder une recharge simple et lisible.",
+    budgetCents: 26386,
+    statusLabel: "À acheter",
+    href: "https://www.idealo.fr/prix/6019083/victron-smartsolar-mppt-75-15.html",
+  },
+  {
+    priority: "Indispensable",
+    block: "Suivi",
+    name: "SmartShunt 300A + coupe-batterie 275A",
+    why: "Pour couper proprement le système et suivre la batterie service sans estimation approximative.",
+    budgetCents: 11106,
+    statusLabel: "À acheter",
+    href: "https://ledenicheur.fr/product.php?p=14880979",
+  },
+  {
+    priority: "Indispensable",
+    block: "12 V",
+    name: "WeatherDeck + protection principale + USB + LED",
+    why: "Le cœur de la distribution 12 V avec les usages du quotidien déjà prévus.",
+    budgetCents: 24520,
+    statusLabel: "À acheter",
+    href: "https://skysat.fr/en/products/blue-sea-weatherdeck-waterproof-circuit-breaker-panel-6-positions",
+  },
+  {
+    priority: "Indispensable",
+    block: "Câblage",
+    name: "Câbles et consommables",
+    why: "Sections principales, départs secondaires, cosses, gaines et consommables de pose.",
+    budgetCents: 31000,
+    statusLabel: "À acheter",
+    href: "https://www.h2r-equipements.com/420-cables-electriques-camping-car",
+  },
+  {
+    priority: "Indispensable",
+    block: "Froid",
+    name: "Dometic NRX 50E",
+    why: "Le frigo à compression qui sert de repère de consommation dans ce montage.",
+    budgetCents: 49900,
+    statusLabel: "À acheter",
+    href: "https://www.cabesto.com/fr/refrigerateur-nrx-50e-dometic-nu-0021887.html",
+  },
+  {
+    priority: "Indispensable",
+    block: "Eau",
+    name: "Kit eau complet",
+    why: "Pompe, filtre, vase, douchette, tuyaux et raccords pour un circuit propre dès le départ.",
+    budgetCents: 32668,
+    statusLabel: "À acheter",
+    href: "https://www.mon-camping-car.com/prise-douche-exterieure-blanche.html",
+  },
+  {
+    priority: "Indispensable",
+    block: "230 V",
+    name: "Kit quai + protections + prises fixes",
+    why: "Pour garder un petit réseau 230 V sérieux, lisible et réellement protégé.",
+    budgetCents: 17446,
+    statusLabel: "À acheter",
+    href: "https://www.h2r-equipements.com/socle-et-prise-electrique-carrosserie-van-et-camping-car/5737-haba-socle-cee-p17-a-encastrer.html",
+  },
+  {
+    priority: "Option officielle",
+    block: "Recharge roulage",
+    name: "Orion-Tr Smart 12/12-18A",
+    why: "Solution propre si la recharge alternateur fait partie du besoin réel.",
+    budgetCents: 12896,
+    statusLabel: "Option",
+    href: "https://www.idealo.fr/prix/202091650/victron-orion-tr-dc-dc-12-12-18-220-w.html",
+  },
+  {
+    priority: "Option officielle",
+    block: "Recharge roulage",
+    name: "Câblage et protections Orion",
+    why: "Compléter l'Orion avec des liaisons 16 mm² et des protections cohérentes.",
+    budgetCents: 7500,
+    statusLabel: "Option",
+    href: "https://www.h2r-equipements.com/420-cables-electriques-camping-car",
+  },
+  {
+    priority: "Option officielle",
+    block: "Suivi",
+    name: "VE.Bus Smart Dongle",
+    why: "Ajoute le suivi du MultiPlus dans VictronConnect si vous voulez une lecture plus unifiée.",
+    budgetCents: 9127,
+    statusLabel: "Option",
+    href: "https://ledenicheur.fr/product.php?p=13245432",
+  },
+];
+
+export function getPublicVictronLightKit(): PublicLightKit {
+  return {
+    purchases: VICTRON_LIGHT_PURCHASES,
+    budgetBaseCents: 275725,
+    budgetWithOptionsCents: 305248,
+    schemaUrl: "/schemas-electriques/schema-victron-leger-van",
+    editorUrl: "/outils/schema?template=victron-light-van",
+    schemaLabel: "Victron leger van",
+    baseSummary: "Montage Victron leger avec solaire 200 W, vrai 12 V et petit 230 V fixe.",
+    optionSummary: "Version avec recharge alternateur Orion et suivi MultiPlus.",
+    printNote:
+      "Version light issue du guide Victron leger : liste d'achats, schéma conseillé et liens utiles. Pour un suivi complet dans le cloud, utilisez la version Suivi projet dans l'espace client FabSystem.",
   };
 }

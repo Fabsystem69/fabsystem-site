@@ -2,15 +2,17 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatEuroFromCents } from "@/lib/format";
-import { getPublicP280LightKit } from "@/lib/project-follow-up";
+import { getPublicP280LightKit, getPublicVictronLightKit } from "@/lib/project-follow-up";
 import { ProjectPrintButton } from "@/components/project-follow-up/ProjectPrintButton";
 
 export function LightProjectKit({
   projectCtaHref,
+  variant = "p280",
 }: {
   projectCtaHref?: string | null;
+  variant?: "p280" | "victron";
 }) {
-  const kit = getPublicP280LightKit();
+  const kit = variant === "victron" ? getPublicVictronLightKit() : getPublicP280LightKit();
   const baseRows = kit.purchases.filter((item) => item.priority === "Indispensable");
   const optionRows = kit.purchases.filter((item) => item.priority === "Option officielle");
 
@@ -40,7 +42,7 @@ export function LightProjectKit({
           <p className="mt-2 text-2xl font-semibold text-neutral-950">
             {formatEuroFromCents(kit.budgetBaseCents)}
           </p>
-          <p className="mt-1 text-sm text-neutral-600">Montage P280 + solaire + 12 V + 230 V fixe.</p>
+          <p className="mt-1 text-sm text-neutral-600">{kit.baseSummary}</p>
         </Card>
         <Card className="p-4 print:shadow-none">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
@@ -49,13 +51,13 @@ export function LightProjectKit({
           <p className="mt-2 text-2xl font-semibold text-neutral-950">
             {formatEuroFromCents(kit.budgetWithOptionsCents)}
           </p>
-          <p className="mt-1 text-sm text-neutral-600">Version propre avec DC060 et kit officiel AFERIY.</p>
+          <p className="mt-1 text-sm text-neutral-600">{kit.optionSummary}</p>
         </Card>
         <Card className="p-4 print:shadow-none">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
             Schéma conseillé
           </p>
-          <p className="mt-2 text-sm font-semibold text-neutral-950">AFERIY P280 van</p>
+          <p className="mt-2 text-sm font-semibold text-neutral-950">{kit.schemaLabel}</p>
           <div className="mt-3 flex flex-wrap gap-2 print:hidden">
             <Button href={kit.schemaUrl} variant="secondary" className="h-9 min-h-9 px-3 text-xs">
               Voir la fiche
@@ -188,11 +190,7 @@ export function LightProjectKit({
 
       <div className="mt-6 hidden rounded-[24px] border border-neutral-200 p-4 text-xs leading-relaxed text-neutral-600 print:block">
         <p className="font-semibold text-neutral-950">Note impression</p>
-        <p className="mt-1">
-          Version light issue du guide P280 : liste d&apos;achats, schéma conseillé et liens utiles.
-          Pour un suivi complet dans le cloud, utilisez la version Suivi projet dans l&apos;espace
-          client FabSystem.
-        </p>
+        <p className="mt-1">{kit.printNote}</p>
       </div>
     </section>
   );

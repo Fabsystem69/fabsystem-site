@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PageIntro } from "@/components/public/PageIntro";
+import { LightProjectKit } from "@/components/project-follow-up/LightProjectKit";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { VoltaGuide } from "@/components/volta/VoltaGuide";
@@ -51,6 +52,7 @@ const outlineItems = [
   { id: "monitoring", label: "Monitoring" },
   { id: "ac", label: "230V et securite" },
   { id: "avis", label: "Avis global" },
+  { id: "kit", label: "Kit imprimable" },
   { id: "sources", label: "Sources" },
 ] as const;
 
@@ -912,6 +914,10 @@ export default async function InstallationElectriqueVanVictronLegerePage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section id="kit" className="scroll-mt-24 border-b border-neutral-200 py-8">
+          <LightProjectKit variant="victron" projectCtaHref={projectCtaHref} />
         </section>
 
         <section id="sources" className="scroll-mt-24 pt-8">

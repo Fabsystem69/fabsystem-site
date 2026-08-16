@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { VoltaGuide } from "@/components/volta/VoltaGuide";
@@ -48,10 +49,37 @@ export function BonsGestes() {
       <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
         Les bons gestes
       </h2>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+        Trois repères simples pour éviter les erreurs de base avant même de parler matériel,
+        calculs ou optimisation.
+      </p>
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px] sm:items-end">
+        <div className="rounded-[24px] border border-neutral-200 bg-white p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+            À retenir
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+            Le fusible protège le câble, une cosse mal sertie chauffe avant de lâcher, et une
+            section sous-dimensionnée reste un vrai risque d&apos;échauffement.
+          </p>
+        </div>
+
+        <figure className="overflow-hidden rounded-[24px] border border-neutral-200 bg-white shadow-sm">
+          <Image
+            src="/formations/bons-gestes-a-retenir.webp"
+            alt="Vignette des bons gestes à retenir en câblage"
+            width={960}
+            height={720}
+            sizes="(max-width: 640px) 100vw, 220px"
+            className="h-36 w-full object-cover object-center sm:h-40"
+          />
+        </figure>
+      </div>
+
+      <div className="mt-5 space-y-3">
         {BONS_GESTES.map((geste) => (
-          <Card key={geste.title} className="p-5">
+          <Card key={geste.title} className="p-4">
             <h3 className="text-base font-semibold text-neutral-950">{geste.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-neutral-700">{geste.text}</p>
 
