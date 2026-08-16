@@ -285,7 +285,7 @@ export default async function InstallationVanAferiyP280Page() {
       />
 
       <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-6 lg:grid-cols-[3fr_2fr]">
+        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-6 lg:grid-cols-[1.25fr_0.95fr]">
           <div className="rounded-[28px] border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
             <div className="flex flex-wrap gap-2">
               <Badge tone="info">Cas concret</Badge>
@@ -316,11 +316,49 @@ export default async function InstallationVanAferiyP280Page() {
             </VoltaGuide>
           </div>
 
+          <div className="grid gap-6">
+            <figure className="overflow-hidden rounded-[28px] border border-neutral-200 bg-neutral-50">
+              <Image
+                src="/articles/aferiy-p280-architecture-van.webp"
+                alt="Illustration d'un van aménagé autour d'une AFERIY P280 avec panneau solaire, réseau 12V et prises AC."
+                width={1600}
+                height={893}
+                priority
+                sizes="(max-width: 1024px) 100vw, 520px"
+                className="h-[220px] w-full object-cover sm:h-[280px] lg:h-[250px]"
+              />
+              <figcaption className="border-t border-neutral-200 bg-white px-5 py-4 text-sm leading-relaxed text-neutral-600">
+                L&apos;architecture logique ici : un XT90 pour le solaire, un XT90 pour le DC060,
+                une entrée AC pour le quai ou le secteur, un XT60 pour un petit réseau 12V fixe, et
+                une sortie AC séparée pour deux prises 230V.
+              </figcaption>
+            </figure>
+
+            <figure className="rounded-[28px] border border-neutral-200 bg-white p-5">
+              <div className="grid items-center gap-4 sm:grid-cols-[160px_1fr] lg:grid-cols-1">
+                <Image
+                  src="/articles/aferiy-p280-produit.webp"
+                  alt="Photo produit officielle de l'AFERIY P280"
+                  width={1000}
+                  height={1000}
+                  sizes="(max-width: 1024px) 40vw, 220px"
+                  className="mx-auto h-auto w-full max-w-[220px] rounded-2xl border border-neutral-200 bg-neutral-50"
+                />
+                <figcaption className="text-sm leading-relaxed text-neutral-600">
+                  La photo aide à repérer la machine, mais le vrai sujet côté schéma reste
+                  l&apos;organisation des deux entrées XT90, de la sortie XT60 et de la distribution aval.
+                </figcaption>
+              </div>
+            </figure>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-6xl px-6 pb-6">
           <aside className="rounded-[28px] border border-neutral-200 bg-white p-5 sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
               Ce qu&apos;AFERIY annonce
             </p>
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               {repereItems.map((item) => (
                 <div key={item.title} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
                   <p className="text-sm font-semibold text-neutral-950">{item.title}</p>
@@ -329,40 +367,6 @@ export default async function InstallationVanAferiyP280Page() {
               ))}
             </div>
           </aside>
-        </div>
-
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 pb-6 lg:grid-cols-[2fr_1fr]">
-          <figure className="overflow-hidden rounded-[28px] border border-neutral-200 bg-neutral-50">
-            <Image
-              src="/articles/aferiy-p280-architecture-van.webp"
-              alt="Illustration d'un van aménagé autour d'une AFERIY P280 avec panneau solaire, réseau 12V et prises AC."
-              width={1600}
-              height={893}
-              priority
-              sizes="(max-width: 1024px) 100vw, 780px"
-              className="h-auto w-full"
-            />
-            <figcaption className="border-t border-neutral-200 bg-white px-5 py-4 text-sm leading-relaxed text-neutral-600">
-              L&apos;architecture logique ici : un XT90 pour le solaire, un XT90 pour le DC060,
-              une entrée AC pour le quai ou le secteur, un XT60 pour un petit réseau 12V fixe, et
-              une sortie AC séparée pour deux prises 230V.
-            </figcaption>
-          </figure>
-
-          <figure className="rounded-[28px] border border-neutral-200 bg-white p-5">
-            <Image
-              src="/articles/aferiy-p280-produit.webp"
-              alt="Photo produit officielle de l'AFERIY P280"
-              width={1000}
-              height={1000}
-              sizes="(max-width: 1024px) 60vw, 320px"
-              className="mx-auto h-auto w-full max-w-[320px] rounded-2xl border border-neutral-200 bg-neutral-50"
-            />
-            <figcaption className="mt-4 text-sm leading-relaxed text-neutral-600">
-              La photo aide à repérer la machine, mais le vrai sujet côté schéma reste
-              l&apos;organisation des deux entrées XT90, de la sortie XT60 et de la distribution aval.
-            </figcaption>
-          </figure>
         </div>
       </section>
 

@@ -490,7 +490,7 @@ export default async function InstallationElectriqueVanVictronLegerePage() {
           </aside>
         </div>
 
-        <div className="mx-auto px-6 pb-6">
+        <div className="mx-auto max-w-5xl px-6 pb-6">
           <figure className="overflow-hidden rounded-[28px] border border-neutral-200 bg-neutral-50">
             <Image
               src="/articles/installation-electrique-van-victron-legere.jpg"
@@ -498,8 +498,8 @@ export default async function InstallationElectriqueVanVictronLegerePage() {
               width={1600}
               height={1194}
               priority
-              sizes="100vw"
-              className="h-auto w-full"
+              sizes="(max-width: 1024px) 100vw, 960px"
+              className="h-[240px] w-full object-cover sm:h-[320px] lg:h-[360px]"
             />
             <figcaption className="border-t border-neutral-200 bg-white px-5 py-4 text-sm leading-relaxed text-neutral-600">
               Le schema d&apos;intention est simple : un panneau 200W, un SmartSolar MPPT 75/15, une

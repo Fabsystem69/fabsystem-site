@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -74,6 +76,8 @@ const GUIDES = [
     href: "/installation-electrique-van",
     badge: "Guide pratique",
     meta: "Van aménagé",
+    imageSrc: "/articles/installation-electrique-van-guide.webp",
+    imageAlt: "Illustration de planification d'une installation electrique de van",
     title: "Bien dimensionner une installation van avant d'acheter",
     description:
       "Un article de synthèse pour remettre les priorités dans le bon ordre : besoins réels, batterie, recharge, convertisseur 230V, câbles et protections.",
@@ -87,6 +91,8 @@ const GUIDES = [
     href: "/installation-van-batterie-tout-en-un-aferiy-p280",
     badge: "Cas concret",
     meta: "AFERIY P280",
+    imageSrc: "/articles/aferiy-p280-architecture-van.webp",
+    imageAlt: "Illustration d'un van amenage autour d'une AFERIY P280",
     title: "Monter un van simple autour d'une batterie tout-en-un",
     description:
       "Un cas d'usage concret autour de l'AFERIY P280 : double XT90, sortie XT60 12V, panneau 200W et deux prises AC à traiter avec sérieux.",
@@ -100,6 +106,8 @@ const GUIDES = [
     href: "/installation-electrique-van-victron-legere",
     badge: "Cas concret",
     meta: "Victron leger",
+    imageSrc: "/articles/installation-electrique-van-victron-legere.jpg",
+    imageAlt: "Illustration d'une architecture Victron legere pour van",
     title: "Construire un van propre autour d'une batterie classique",
     description:
       "Une base autour d'une LiFePO4 150Ah, d'un SmartSolar 75/15, d'un MultiPlus 12/800, d'un SmartShunt et d'un Orion 18A optionnel.",
@@ -155,50 +163,70 @@ export function Modules() {
         ))}
       </div>
 
-      <article className="mt-8 rounded-[28px] border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
+      <article className="mt-8 rounded-[28px] border border-neutral-200 bg-neutral-950 p-5 text-white sm:p-6">
         <div className="max-w-3xl">
           <div className="flex flex-wrap gap-2">
-            <Badge tone="info">Guides pratiques</Badge>
+            <Badge tone="info">Articles & cas concrets</Badge>
             <Badge tone="neutral">À lire après les 6 modules</Badge>
           </div>
-          <h3 className="mt-3 text-xl font-bold tracking-tight text-neutral-950">
-            Approfondir avec trois guides plus concrets
+          <h3 className="mt-3 text-xl font-bold tracking-tight text-white">
+            Trois lectures pour passer des bases a un vrai projet
           </h3>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-700 sm:text-base">
+          <p className="mt-2 text-sm leading-relaxed text-white/72 sm:text-base">
             Une fois les fondamentaux compris, ces trois lectures vous aident à passer d&apos;une notion
             théorique à une vraie logique de projet.
           </p>
         </div>
 
-        <div className="mt-5 grid gap-4 xl:grid-cols-3">
+        <div className="mt-5 grid gap-4 lg:grid-cols-3">
           {GUIDES.map((guide) => (
-            <div key={guide.href} className="rounded-2xl border border-neutral-200 bg-white p-5">
-              <div className="flex flex-wrap gap-2">
-                <Badge tone="info">{guide.badge}</Badge>
-                <Badge tone="neutral">{guide.meta}</Badge>
-              </div>
-              <h4 className="mt-3 text-lg font-bold tracking-tight text-neutral-950">
-                {guide.title}
-              </h4>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-700">{guide.description}</p>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {guide.highlights.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm leading-relaxed text-neutral-700"
-                  >
-                    {item}
+            <article
+              key={guide.href}
+              className="overflow-hidden rounded-[24px] border border-white/10 bg-white text-neutral-900 shadow-[0_18px_42px_rgba(0,0,0,0.16)]"
+            >
+              <Link href={guide.href} className="group block">
+                <div className="relative aspect-[16/10] overflow-hidden bg-neutral-100">
+                  <Image
+                    src={guide.imageSrc}
+                    alt={guide.imageAlt}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 33vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/20 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full bg-brand-400 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-950">
+                        {guide.badge}
+                      </span>
+                      <span className="rounded-full bg-white/14 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                        {guide.meta}
+                      </span>
+                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              </Link>
 
-              <div className="mt-4">
-                <Button href={guide.href} variant="secondary" className="w-full sm:w-auto">
-                  Lire le guide →
-                </Button>
+              <div className="p-5">
+                <h4 className="text-lg font-bold tracking-tight text-neutral-950">{guide.title}</h4>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-700">{guide.description}</p>
+
+                <ul className="mt-4 space-y-2">
+                  {guide.highlights.slice(0, 2).map((item) => (
+                    <li key={item} className="flex gap-2 text-sm leading-relaxed text-neutral-700">
+                      <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-5">
+                  <Button href={guide.href} variant="secondary" className="w-full">
+                    Lire l&apos;article →
+                  </Button>
+                </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </article>
