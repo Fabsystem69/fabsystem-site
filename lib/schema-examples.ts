@@ -24,6 +24,38 @@ export const FEATURED_SCHEMA_EXAMPLE_SLUG = "schema-aferiy-p280-van";
 
 export const SCHEMA_EXAMPLES: SchemaExample[] = [
   {
+    slug: "schema-victron-leger-van",
+    templateId: "victron-light-van",
+    title: "Schéma Victron léger pour van",
+    metaTitle: "Schéma Victron léger van : MPPT 75/15, MultiPlus 800 et LiFePO4 150Ah",
+    metaDescription:
+      "Exemple de schéma Victron léger pour van avec batterie LiFePO4 150Ah, SmartSolar MPPT 75/15, MultiPlus Compact 12/800, SmartShunt et Orion 18A optionnel.",
+    description:
+      "Une base cohérente pour un van simple et évolutif, avec un vrai réseau 12V, un petit 230V propre et un monitoring Bluetooth sans surdimensionnement.",
+    thumbnailSrc: "/articles/installation-electrique-van-victron-legere.jpg",
+    thumbnailAlt: "Illustration d'une architecture Victron légère pour van",
+    audience: "Débutant motivé à intermédiaire",
+    level: "Complet mais raisonnable",
+    context:
+      "VW T5/T6 ou van équivalent qui veut rester lisible : frigo, pompe, USB, LED, prise de quai, solaire 200W et deux prises 230V pour petits chargeurs.",
+    flow: ["Panneau 200W", "MPPT 75/15", "Batterie LiFePO4 150Ah", "SmartShunt + tableau 12V", "MultiPlus 12/800", "Orion 18A optionnel"],
+    highlights: [
+      "Voir comment une installation Victron légère reste sérieuse sans tomber dans un système trop lourd pour un usage classique.",
+      "Repérer clairement la séparation entre la batterie service, la distribution 12V et le petit réseau 230V.",
+      "Comprendre où placer le shunt, le fusible principal et les protections autour du MultiPlus.",
+    ],
+    includes: [
+      "Un solaire 200W via SmartSolar MPPT 75/15.",
+      "Une batterie LiFePO4 150Ah avec SmartShunt et distribution 12V dédiée.",
+      "Une recharge secteur via MultiPlus Compact 12/800/35-16 et une recharge alternateur via Orion 18A en option.",
+    ],
+    watchouts: [
+      "Le 230V fixe dans le mobilier demande toujours une vraie logique de protection et de mise en œuvre, même avec un MultiPlus.",
+      "Les longueurs réelles de câble et le calibre du fusible principal doivent être recalculés pour votre implantation.",
+      "Le monitoring du MultiPlus dans VictronConnect demande un VE.Bus Smart Dongle si vous voulez un suivi unifié dans l'application.",
+    ],
+  },
+  {
     slug: "schema-electrique-van-complet",
     templateId: "van-complet",
     title: "Schéma électrique van complet 12V",

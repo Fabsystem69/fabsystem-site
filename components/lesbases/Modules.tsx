@@ -96,6 +96,19 @@ const GUIDES = [
       "Garder une vraie prudence sur les prises 230V fixes dans le van",
     ],
   },
+  {
+    href: "/installation-electrique-van-victron-legere",
+    badge: "Cas concret",
+    meta: "Victron leger",
+    title: "Construire un van propre autour d'une batterie classique",
+    description:
+      "Une base autour d'une LiFePO4 150Ah, d'un SmartSolar 75/15, d'un MultiPlus 12/800, d'un SmartShunt et d'un Orion 18A optionnel.",
+    highlights: [
+      "Garder le 12V comme base de vie a bord et le 230V pour les petits chargeurs",
+      "Voir comment structurer une architecture Victron lisible sans surdimensionnement",
+      "Repartir ensuite du schema et du projet cloud pour adapter le montage a votre van",
+    ],
+  },
 ] as const;
 
 export function Modules() {
@@ -149,15 +162,15 @@ export function Modules() {
             <Badge tone="neutral">À lire après les 6 modules</Badge>
           </div>
           <h3 className="mt-3 text-xl font-bold tracking-tight text-neutral-950">
-            Approfondir avec deux guides plus concrets
+            Approfondir avec trois guides plus concrets
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-neutral-700 sm:text-base">
-            Une fois les fondamentaux compris, ces deux lectures vous aident à passer d&apos;une notion
+            Une fois les fondamentaux compris, ces trois lectures vous aident à passer d&apos;une notion
             théorique à une vraie logique de projet.
           </p>
         </div>
 
-        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+        <div className="mt-5 grid gap-4 xl:grid-cols-3">
           {GUIDES.map((guide) => (
             <div key={guide.href} className="rounded-2xl border border-neutral-200 bg-white p-5">
               <div className="flex flex-wrap gap-2">

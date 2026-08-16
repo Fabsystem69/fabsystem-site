@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const PROJECT_STARTER_IDS = ["aferiy-p280-guide"] as const;
+export const PROJECT_STARTER_IDS = ["aferiy-p280-guide", "victron-light-guide"] as const;
 
 export const projectStarterSchema = z.enum(PROJECT_STARTER_IDS);
 

@@ -181,9 +181,9 @@ export default function SchemasElectriquesPage() {
             laisse l&apos;ouvrir dans l&apos;éditeur FabSystem pour le modifier.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-            Vous avez actuellement {SCHEMA_EXAMPLE_COUNT} bases différentes. Le dernier repère
-            publié autour de l&apos;AFERIY P280 passe volontairement en tête pour être retrouvé plus
-            vite.
+            Vous avez actuellement {SCHEMA_EXAMPLE_COUNT} bases différentes. Le repère AFERIY P280
+            reste volontairement mis en avant, pendant que les autres architectures restent
+            accessibles juste en dessous.
           </p>
         </div>
       </Section>

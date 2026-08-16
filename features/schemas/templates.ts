@@ -263,6 +263,225 @@ function buildPowerStationTemplate(): { projectName: string; nodes: SchemaNode[]
   return { projectName: "Gabarit : station électrique tout-en-1", nodes: [...zones, ...nodes], edges };
 }
 
+function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  const nodes: SchemaNode[] = [
+    buildNode("vl-solar", "solar-panel", 40, 120, {
+      label: "Panneau solaire 200W",
+      powerW: 200,
+      voltage: 0,
+    }),
+    buildNode("vl-mppt", "mppt", 320, 110, {
+      label: "SmartSolar MPPT 75/15",
+      amperage: 15,
+      systemVoltage: 12,
+      brandModelId: "victron-smartsolar-75-15",
+      brand: "Victron",
+      model: "SmartSolar MPPT 75/15",
+    }),
+    buildNode("vl-mppt-fuse", "fuse", 580, 110, {
+      label: "Fusible MPPT",
+      fuseType: "midi",
+      amperage: 20,
+    }),
+    buildNode("vl-start-battery", "battery", 40, 430, {
+      label: "Batterie véhicule 12V",
+      voltage: 12,
+      capacityAh: 100,
+      technology: "agm",
+      brandModelId: "renogy-agm-100ah",
+      brand: "Véhicule",
+      model: "Batterie moteur",
+    }),
+    buildNode("vl-dcdc-fuse", "fuse", 300, 420, {
+      label: "Fusible Orion",
+      fuseType: "midi",
+      amperage: 25,
+    }),
+    buildNode("vl-dcdc", "dcdc", 520, 390, {
+      label: "Orion-Tr Smart 12/12-18A",
+      voltageIn: 12,
+      voltageOut: 12,
+      amperage: 18,
+      brandModelId: "victron-orion-tr-18a",
+      brand: "Victron",
+      model: "Orion-Tr Smart 12/12-18A",
+    }),
+    buildNode("vl-service-battery", "battery", 930, 290, {
+      label: "Batterie LiFePO4 150Ah",
+      voltage: 12,
+      capacityAh: 150,
+      technology: "lifepo4",
+      brand: "Eco-Worthy",
+      model: "LiFePO4 12V 150Ah Bluetooth",
+    }),
+    buildNode("vl-main-fuse", "fuse", 1160, 180, {
+      label: "Fusible principal 100A",
+      fuseType: "anl",
+      amperage: 100,
+    }),
+    buildNode("vl-switch", "battery-switch", 1330, 180, {
+      label: "Coupe-batterie 275A",
+      amperage: 275,
+    }),
+    buildNode("vl-busbar-pos", "busbar", 1490, 260, {
+      label: "Busbar + 12V",
+      polarity: "positive",
+      outputCount: 3,
+    }),
+    buildNode("vl-shunt", "shunt", 1160, 400, {
+      label: "SmartShunt 300A",
+      amperage: 300,
+    }),
+    buildNode("vl-busbar-neg", "busbar", 1480, 430, {
+      label: "Busbar −",
+      polarity: "negative",
+      outputCount: 7,
+    }),
+    buildNode("vl-distribution", "distribution-panel", 1720, 350, {
+      label: "Blue Sea WeatherDeck 6 positions",
+      layout: "with-fuses",
+      outputCount: 4,
+    }),
+    buildNode("vl-switch-frigo", "switch", 1950, 210, {
+      label: "Interrupteur",
+      amperage: 0,
+    }),
+    buildNode("vl-frigo", "consumer", 2140, 170, {
+      label: "Frigo 12V",
+      presetType: "refrigerateur",
+      powerW: 45,
+    }),
+    buildNode("vl-switch-pompe", "switch", 1950, 360, {
+      label: "Interrupteur",
+      amperage: 0,
+    }),
+    buildNode("vl-pompe", "consumer", 2140, 320, {
+      label: "Pompe a eau",
+      presetType: "pompe-eau",
+      powerW: 60,
+    }),
+    buildNode("vl-switch-usb", "switch", 1950, 510, {
+      label: "Interrupteur",
+      amperage: 0,
+    }),
+    buildNode("vl-usb", "consumer", 2130, 470, {
+      label: "Ports USB",
+      presetType: "prise-usb-12v",
+      powerW: 15,
+    }),
+    buildNode("vl-switch-led", "switch", 1780, 560, {
+      label: "Interrupteur",
+      amperage: 0,
+      rotation: 90,
+    }),
+    buildNode("vl-led", "consumer", 1880, 650, {
+      label: "Eclairage LED",
+      presetType: "eclairage-led",
+      powerW: 10,
+      rotation: 270,
+    }),
+    buildNode("vl-monitor-fuse", "fuse", 1660, 80, {
+      label: "Fusible suivi",
+      fuseType: "lame",
+      amperage: 2,
+    }),
+    buildNode("vl-monitor", "system-monitor", 1910, 40, {
+      label: "Monitoring Bluetooth",
+    }),
+    buildNode("vl-multiplus-breaker", "circuit-breaker", 1630, 160, {
+      label: "Protection MultiPlus",
+      amperage: 100,
+    }),
+    buildNode("vl-multiplus", "inverter-charger", 1830, 120, {
+      label: "MultiPlus Compact 12/800/35-16",
+      powerW: 800,
+      voltageDC: 12,
+      chargeAmperage: 35,
+      brand: "Victron",
+      model: "MultiPlus Compact 12/800/35-16",
+    }),
+    buildNode("vl-shore", "shore-power", 1610, -60, {
+      label: "Prise de quai",
+    }),
+    buildNode("vl-ac-panel", "ac-panel", 2150, -120, {
+      label: "Coffret diff + disj 230V",
+    }),
+    buildNode("vl-socket-1", "socket-220v", 2370, -180, {
+      label: "Prise 230V 1",
+      powerW: 300,
+    }),
+    buildNode("vl-socket-2", "socket-220v", 2370, -40, {
+      label: "Prise 230V 2",
+      powerW: 300,
+    }),
+    buildNode("vl-ground", "ground", 2320, 130, {
+      label: "Point de masse",
+    }),
+  ];
+
+  const edges: SchemaEdge[] = [
+    buildEdge("vl-e1", "vl-solar", "positive", "vl-mppt", "pv-positive", RED, "power-positive", "4 mm²", 3),
+    buildEdge("vl-e2", "vl-solar", "negative", "vl-mppt", "pv-negative", BLACK, "power-negative", "4 mm²", 3),
+    buildEdge("vl-e3", "vl-mppt", "bat-positive", "vl-mppt-fuse", "input", RED, "power-positive", "6 mm²", 1.2),
+    buildEdge("vl-e4", "vl-mppt-fuse", "output", "vl-service-battery", "positive", RED, "power-positive", "6 mm²", 1.2),
+    buildEdge("vl-e5", "vl-mppt", "bat-negative", "vl-busbar-neg", "input", BLACK, "power-negative", "6 mm²", 1.5),
+
+    buildEdge("vl-e6", "vl-start-battery", "positive", "vl-dcdc-fuse", "input", RED, "power-positive", "16 mm²", 1.5),
+    buildEdge("vl-e7", "vl-dcdc-fuse", "output", "vl-dcdc", "in-positive", RED, "power-positive", "16 mm²", 1),
+    buildEdge("vl-e8", "vl-start-battery", "negative", "vl-dcdc", "in-negative", BLACK, "power-negative", "16 mm²", 1.5),
+    buildEdge("vl-e9", "vl-dcdc", "out-positive", "vl-service-battery", "positive", RED, "power-positive", "16 mm²", 2),
+    buildEdge("vl-e10", "vl-dcdc", "out-negative", "vl-busbar-neg", "out-1", BLACK, "power-negative", "16 mm²", 2),
+
+    buildEdge("vl-e11", "vl-service-battery", "positive", "vl-main-fuse", "input", RED, "power-positive", "35 mm²", 0.6),
+    buildEdge("vl-e12", "vl-main-fuse", "output", "vl-switch", "input", RED, "power-positive", "35 mm²", 0.5),
+    buildEdge("vl-e13", "vl-switch", "output", "vl-busbar-pos", "input", RED, "power-positive", "35 mm²", 0.6),
+    buildEdge("vl-e14", "vl-service-battery", "negative", "vl-shunt", "battery", BLACK, "power-negative", "35 mm²", 0.6),
+    buildEdge("vl-e15", "vl-shunt", "system", "vl-busbar-neg", "input", BLACK, "power-negative", "35 mm²", 0.6),
+
+    buildEdge("vl-e16", "vl-busbar-pos", "out-1", "vl-distribution", "input", RED, "power-positive", "10 mm²", 1.5),
+    buildEdge("vl-e17", "vl-distribution", "out-1", "vl-switch-frigo", "input", RED, "power-positive", "4 mm²", 2.5),
+    buildEdge("vl-e18", "vl-switch-frigo", "output", "vl-frigo", "positive", RED, "power-positive", "4 mm²", 1),
+    buildEdge("vl-e19", "vl-distribution", "out-2", "vl-switch-pompe", "input", RED, "power-positive", "4 mm²", 2.5),
+    buildEdge("vl-e20", "vl-switch-pompe", "output", "vl-pompe", "positive", RED, "power-positive", "4 mm²", 1),
+    buildEdge("vl-e21", "vl-distribution", "out-3", "vl-switch-usb", "input", RED, "power-positive", "2,5 mm²", 2),
+    buildEdge("vl-e22", "vl-switch-usb", "output", "vl-usb", "positive", RED, "power-positive", "2,5 mm²", 1),
+    buildEdge("vl-e23", "vl-distribution", "out-4", "vl-switch-led", "input", RED, "power-positive", "1,5 mm²", 2, { x: 1850, y: 520 }),
+    buildEdge("vl-e24", "vl-switch-led", "output", "vl-led", "positive", RED, "power-positive", "1,5 mm²", 1),
+
+    buildEdge("vl-e25", "vl-busbar-neg", "out-2", "vl-frigo", "negative", BLACK, "power-negative", "4 mm²", 2.5),
+    buildEdge("vl-e26", "vl-busbar-neg", "out-3", "vl-pompe", "negative", BLACK, "power-negative", "4 mm²", 2.5),
+    buildEdge("vl-e27", "vl-busbar-neg", "out-4", "vl-usb", "negative", BLACK, "power-negative", "2,5 mm²", 2),
+    buildEdge("vl-e28", "vl-busbar-neg", "out-5", "vl-led", "negative", BLACK, "power-negative", "1,5 mm²", 2),
+
+    buildEdge("vl-e29", "vl-busbar-pos", "out-2", "vl-multiplus-breaker", "input", RED, "power-positive", "35 mm²", 1),
+    buildEdge("vl-e30", "vl-multiplus-breaker", "output", "vl-multiplus", "dc-positive", RED, "power-positive", "35 mm²", 0.6),
+    buildEdge("vl-e31", "vl-busbar-neg", "out-6", "vl-multiplus", "dc-negative", BLACK, "power-negative", "35 mm²", 1),
+    buildEdge("vl-e32", "vl-shore", "ac", "vl-multiplus", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("vl-e33", "vl-multiplus", "ac-out", "vl-ac-panel", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("vl-e34", "vl-ac-panel", "ac-out", "vl-socket-1", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("vl-e35", "vl-ac-panel", "ac-out", "vl-socket-2", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("vl-e36", "vl-ac-panel", "earth", "vl-ground", "ground", LIME, "earth", "1,5 mm²", 1),
+    buildEdge("vl-e37", "vl-socket-1", "earth", "vl-ground", "ground", LIME, "earth", "1,5 mm²", 1),
+    buildEdge("vl-e38", "vl-socket-2", "earth", "vl-ground", "ground", LIME, "earth", "1,5 mm²", 1),
+
+    buildEdge("vl-e39", "vl-busbar-pos", "out-3", "vl-monitor-fuse", "input", RED, "power-positive", "0,75 mm²", 1),
+    buildEdge("vl-e40", "vl-monitor-fuse", "output", "vl-monitor", "positive", RED, "power-positive", "0,75 mm²", 1),
+    buildEdge("vl-e41", "vl-busbar-neg", "out-7", "vl-monitor", "negative", BLACK, "power-negative", "0,75 mm²", 1),
+    buildEdge("vl-e42", "vl-shunt", "ve-direct", "vl-monitor", "ve-direct", "#16a34a", "data-bus", undefined, 1.5),
+    buildEdge("vl-e43", "vl-mppt", "ve-direct", "vl-monitor", "ve-direct", "#16a34a", "data-bus", undefined, 1.5),
+  ];
+
+  const zones: SchemaNode[] = [
+    buildZone("vl-zone-solar", -20, 40, 760, 190, "Solaire 200W + MPPT", "#f59e0b"),
+    buildZone("vl-zone-drive", -20, 330, 760, 250, "Recharge alternateur (option Orion)", "#10b981"),
+    buildZone("vl-zone-battery", 780, 140, 860, 430, "Batterie service + protections", "#3b82f6"),
+    buildZone("vl-zone-ac", 1570, -220, 910, 420, "Prise de quai + 230V leger", "#7c3aed"),
+    buildZone("vl-zone-dc", 1630, 170, 700, 610, "Distribution 12V", "#14b8a6"),
+  ];
+
+  return { projectName: "Gabarit : Victron leger van", nodes: [...zones, ...nodes], edges };
+}
+
 function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
   const nodes: SchemaNode[] = [
     buildNode("af-solar", "solar-panel", 40, 120, {
@@ -442,6 +661,12 @@ export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
     label: "La station électrique",
     description: "Panneau solaire + prise de quai en entrée d'une station tout-en-1, avec un circuit 220V protégé et un circuit 12V (frigo, éclairage, pompe) en sortie — pas de batterie ni d'onduleur séparés à câbler.",
     build: buildPowerStationTemplate,
+  },
+  {
+    id: "victron-light-van",
+    label: "Le Victron leger",
+    description: "Une base coherente pour van autour d'une batterie LiFePO4 150Ah, d'un MPPT 75/15, d'un MultiPlus Compact 12/800, d'un SmartShunt et d'un Orion 18A optionnel.",
+    build: buildVictronLightVanTemplate,
   },
   {
     id: "station-aferiy-p280",
