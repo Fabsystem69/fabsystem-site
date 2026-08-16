@@ -48,7 +48,7 @@ export default async function DashboardTestimonialsPage({
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
         <AdminPageHeader
           title="Témoignages clients"
-          description="Modération des avis clients affichés sur le site. Un témoignage n'est jamais visible publiquement tant qu'il n'est pas explicitement publié."
+          description="Modération des avis clients affichés sur le site. Les témoignages soumis depuis la page publique arrivent ici non publiés, puis sont relus avant mise en ligne."
           actions={
             <>
               <AdminButton variant="primary" href="/dashboard/content/testimonials/new">
