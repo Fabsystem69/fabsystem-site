@@ -41,8 +41,8 @@ export function SaveToProjectMenu({ darkMode }: { darkMode: boolean }) {
     setOpen((v) => !v);
     if (status === "idle") {
       setStatus("loading");
-      const list = await listMyProjects();
-      setProjects(list);
+      const result = await listMyProjects();
+      setProjects(result.ok ? result.projects : null);
       setStatus("loaded");
     }
   }

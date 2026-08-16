@@ -1,3 +1,4 @@
+import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
 import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaStore";
 
 // Client léger pour l'API projects/[projectId]/schema (retour utilisateur :
@@ -13,6 +14,12 @@ export interface ProjectSummary {
   name: string;
 }
 
+export interface CreateProjectInput {
+  name: string;
+  assetType: ProjectAssetType;
+  voltage: ProjectVoltage;
+}
+
 export interface RemoteSchema {
   projectName: string;
   nodes: SchemaNode[];
@@ -24,6 +31,8 @@ export type SchemaApiErrorCode =
   | "AUTH_REQUIRED"
   | "ACCESS_DENIED"
   | "PROJECT_NOT_FOUND"
+  | "CONFLICT"
+  | "QUOTA_REACHED"
   | "RATE_LIMITED"
   | "PAYLOAD_TOO_LARGE"
   | "BAD_REQUEST"
@@ -41,7 +50,19 @@ export type FetchProjectSchemaResult =
   | { ok: true; schema: RemoteSchema | null }
   | { ok: false; problem: SchemaApiProblem };
 
+export type ListProjectsResult =
+  | { ok: true; projects: ProjectSummary[] }
+  | { ok: false; problem: SchemaApiProblem };
+
 export type SaveProjectSchemaResult =
+  | { ok: true }
+  | { ok: false; problem: SchemaApiProblem };
+
+export type CreateProjectResult =
+  | { ok: true; project: ProjectSummary }
+  | { ok: false; problem: SchemaApiProblem };
+
+export type DeleteProjectResult =
   | { ok: true }
   | { ok: false; problem: SchemaApiProblem };
 
@@ -49,6 +70,7 @@ function mapSchemaApiCode(status: number, code: string | null): SchemaApiErrorCo
   if (code === "BAD_REQUEST") return "BAD_REQUEST";
   if (code === "PAYLOAD_TOO_LARGE" || status === 413) return "PAYLOAD_TOO_LARGE";
   if (code === "RATE_LIMITED" || status === 429) return "RATE_LIMITED";
+  if (code === "CONFLICT" || status === 409) return "CONFLICT";
   if (status === 401) return "AUTH_REQUIRED";
   if (status === 403) return "ACCESS_DENIED";
   if (status === 404) return "PROJECT_NOT_FOUND";
@@ -80,15 +102,91 @@ function networkProblem(): SchemaApiProblem {
 
 // Liste les projets du client connecté — null si pas connecté (401),
 // jamais une exception pour ce cas attendu.
-export async function listMyProjects(): Promise<ProjectSummary[] | null> {
+export async function listMyProjects(): Promise<ListProjectsResult> {
   try {
     const res = await fetch("/api/projects", { credentials: "include" });
-    if (res.status === 401 || res.status === 403) return null;
-    if (!res.ok) return null;
-    const data = await res.json();
-    return (data.projects ?? []).map((p: { id: string; name: string }) => ({ id: p.id, name: p.name }));
+    if (!res.ok) {
+      return { ok: false, problem: await readSchemaApiProblem(res) };
+    }
+    const data = (await res.json().catch(() => null)) as {
+      projects?: Array<{ id: string; name: string }>;
+    } | null;
+    return {
+      ok: true,
+      projects: (data?.projects ?? []).map((p) => ({ id: p.id, name: p.name })),
+    };
   } catch {
-    return null;
+    return { ok: false, problem: networkProblem() };
+  }
+}
+
+export async function createProjectApi(input: CreateProjectInput): Promise<CreateProjectResult> {
+  try {
+    const res = await fetch("/api/projects", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    });
+
+    if (!res.ok) {
+      const problem = await readSchemaApiProblem(res);
+      if (problem.code === "CONFLICT") {
+        return {
+          ok: false,
+          problem: {
+            ...problem,
+            code: "QUOTA_REACHED",
+          },
+        };
+      }
+      return { ok: false, problem };
+    }
+
+    const data = (await res.json().catch(() => null)) as {
+      project?: { id: string; name: string };
+    } | null;
+
+    if (!data?.project) {
+      return {
+        ok: false,
+        problem: {
+          status: res.status,
+          code: "UNKNOWN",
+          message: "Projet cloud introuvable dans la réponse",
+          retryAfterSeconds: null,
+        },
+      };
+    }
+
+    return {
+      ok: true,
+      project: {
+        id: data.project.id,
+        name: data.project.name,
+      },
+    };
+  } catch {
+    return { ok: false, problem: networkProblem() };
+  }
+}
+
+export async function deleteProjectApi(projectId: string): Promise<DeleteProjectResult> {
+  try {
+    const res = await fetch(`/api/projects/${projectId}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirm: true }),
+    });
+
+    if (!res.ok) {
+      return { ok: false, problem: await readSchemaApiProblem(res) };
+    }
+
+    return { ok: true };
+  } catch {
+    return { ok: false, problem: networkProblem() };
   }
 }
 

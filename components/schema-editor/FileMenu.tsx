@@ -6,8 +6,17 @@ import { captureSchemaThumbnail } from "@/features/schemas/export";
 import { downloadPortableSchemaFile, readPortableSchemaFile } from "@/features/schemas/file-transfer";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { SCHEMA_TEMPLATES } from "@/features/schemas/templates";
-import { listMyProjects, saveProjectSchemaApi, type ProjectSummary } from "@/features/schemas/projectSchemaApi";
+import {
+  createProjectApi,
+  deleteProjectApi,
+  listMyProjects,
+  saveProjectSchemaApi,
+  type ProjectSummary,
+  type SchemaApiProblem,
+} from "@/features/schemas/projectSchemaApi";
 import { getComponentDefinition, CATEGORY_LABELS } from "@/lib/electrical-components/definitions";
+import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
+import { PROJECT_ASSET_TYPE_LABELS, PROJECT_VOLTAGE_LABELS } from "@/lib/project-labels";
 import { buildCloudAssistant, buildCloudStatusMessage } from "@/lib/schema-editor/save-assistant";
 
 // Regroupe Nouveau / Exemples / Organiser (retour utilisateur : "il commence
@@ -19,6 +28,8 @@ import { buildCloudAssistant, buildCloudStatusMessage } from "@/lib/schema-edito
 // (SCHEMA_TEMPLATES) — plusieurs points de départ par cas d'usage, pas un
 // seul exemple figé.
 export function FileMenu({ darkMode }: { darkMode: boolean }) {
+  const DEFAULT_CLOUD_ASSET_TYPE: ProjectAssetType = "BOAT";
+  const DEFAULT_CLOUD_VOLTAGE: ProjectVoltage = "UNKNOWN";
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,7 +78,16 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
   const [saveOpen, setSaveOpen] = useState(false);
   const [projectsStatus, setProjectsStatus] = useState<"idle" | "loading" | "loaded">("idle");
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
+  const [projectsProblem, setProjectsProblem] = useState<SchemaApiProblem | null>(null);
   const [linking, setLinking] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createPending, setCreatePending] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+  const [cloudFeedback, setCloudFeedback] = useState<{ tone: "success" | "error"; message: string } | null>(null);
+  const [createName, setCreateName] = useState("");
+  const [createAssetType, setCreateAssetType] = useState<ProjectAssetType>(DEFAULT_CLOUD_ASSET_TYPE);
+  const [createVoltage, setCreateVoltage] = useState<ProjectVoltage>(DEFAULT_CLOUD_VOLTAGE);
   const [fileFeedback, setFileFeedback] = useState<string | null>(null);
   const projectId = useSchemaStore((s) => s.projectId);
   const setProjectId = useSchemaStore((s) => s.setProjectId);
@@ -75,6 +95,7 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
   const nodes = useSchemaStore((s) => s.nodes);
   const edges = useSchemaStore((s) => s.edges);
   const linkedProject = projects?.find((p) => p.id === projectId);
+  const cloudProjects = projects ?? [];
 
   useEffect(() => {
     if (!open) return;
@@ -85,13 +106,74 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  function buildProjectsLoadMessage(problem: SchemaApiProblem) {
+    if (problem.code === "AUTH_REQUIRED" || problem.code === "ACCESS_DENIED") {
+      return "Le cloud est réservé aux comptes connectés. Connectez-vous pour retrouver vos projets ou en créer un nouveau.";
+    }
+    if (problem.code === "NETWORK") {
+      return "Impossible de joindre le cloud pour l'instant. Réessayez dans quelques secondes.";
+    }
+    return "Impossible de charger vos projets cloud pour le moment.";
+  }
+
+  function buildCreateProjectMessage(problem: SchemaApiProblem) {
+    if (problem.code === "AUTH_REQUIRED" || problem.code === "ACCESS_DENIED") {
+      return "Votre session client n'est plus active. Reconnectez-vous pour créer un projet cloud.";
+    }
+    if (problem.code === "QUOTA_REACHED") {
+      return "La limite actuelle de projets est atteinte. Archivez ou supprimez un projet existant pour libérer une place.";
+    }
+    if (problem.code === "BAD_REQUEST") {
+      return "Le projet cloud n'a pas pu être créé. Vérifiez le nom puis réessayez.";
+    }
+    if (problem.code === "NETWORK") {
+      return "Impossible de joindre le cloud pour créer le projet.";
+    }
+    return "Le projet cloud n'a pas pu être créé pour le moment.";
+  }
+
+  function buildDeleteProjectMessage(problem: SchemaApiProblem) {
+    if (problem.code === "AUTH_REQUIRED" || problem.code === "ACCESS_DENIED") {
+      return "Votre session client n'est plus active. Reconnectez-vous pour supprimer ce projet.";
+    }
+    if (problem.code === "PROJECT_NOT_FOUND") {
+      return "Ce projet a déjà disparu du cloud. Rechargez la liste pour repartir sur l'état réel.";
+    }
+    if (problem.code === "CONFLICT") {
+      return "Ce projet ne peut pas être supprimé immédiatement pour le moment. Ouvrez-le dans le dashboard si vous devez d'abord annuler une suppression programmée.";
+    }
+    if (problem.code === "NETWORK") {
+      return "Impossible de joindre le cloud pour supprimer ce projet.";
+    }
+    return "Le projet cloud n'a pas pu être supprimé pour le moment.";
+  }
+
+  async function loadCloudProjects() {
+    setProjectsStatus("loading");
+    setProjectsProblem(null);
+    setCloudFeedback(null);
+    const result = await listMyProjects();
+    if (result.ok) {
+      setProjects(result.projects);
+      setProjectsProblem(null);
+      const shouldOpenCreate = result.projects.length === 0;
+      setCreateOpen(shouldOpenCreate);
+      if (shouldOpenCreate && createName.trim().length === 0) {
+        setCreateName(projectName.trim() || "Mon projet");
+      }
+    } else {
+      setProjects(null);
+      setProjectsProblem(result.problem);
+    }
+    setProjectsStatus("loaded");
+  }
+
   async function handleToggleSave() {
-    setSaveOpen((v) => !v);
+    const nextOpen = !saveOpen;
+    setSaveOpen(nextOpen);
+    if (!nextOpen) return;
     if (projectsStatus === "idle") {
-      setProjectsStatus("loading");
-      const list = await listMyProjects();
-      setProjects(list);
-      setProjectsStatus("loaded");
+      await loadCloudProjects();
     }
   }
 
@@ -105,6 +187,7 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
   async function handleLinkProject(id: string) {
     setLinking(true);
     setFileFeedback(null);
+    setCloudFeedback(null);
     const thumbnail = await captureSchemaThumbnail(nodes).catch(() => null);
     const result = await saveProjectSchemaApi(id, { projectName, nodes, edges, thumbnail });
     setLinking(false);
@@ -123,6 +206,75 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
       message: buildCloudStatusMessage(result.problem, "save"),
     });
     setSaveAssistant(buildCloudAssistant(result.problem, "save"));
+  }
+
+  async function handleCreateProject() {
+    const trimmedName = createName.trim();
+    if (!trimmedName) {
+      setCreateError("Le nom du projet cloud est obligatoire.");
+      return;
+    }
+
+    setCreatePending(true);
+    setCreateError(null);
+    setCloudFeedback(null);
+    const result = await createProjectApi({
+      name: trimmedName,
+      assetType: createAssetType,
+      voltage: createVoltage,
+    });
+    setCreatePending(false);
+
+    if (!result.ok) {
+      setCreateError(buildCreateProjectMessage(result.problem));
+      return;
+    }
+
+    setProjects((current) => {
+      const next = current ? current.filter((project) => project.id !== result.project.id) : [];
+      return [result.project, ...next];
+    });
+    setProjectsProblem(null);
+    setCreateOpen(false);
+    await handleLinkProject(result.project.id);
+  }
+
+  async function handleDeleteProject(project: ProjectSummary) {
+    const confirmed = window.confirm(
+      `Supprimer définitivement le projet cloud « ${project.name} » ? Cette action efface aussi son schéma sauvegardé et ne peut pas être annulée.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingProjectId(project.id);
+    setCloudFeedback(null);
+    const result = await deleteProjectApi(project.id);
+    setDeletingProjectId(null);
+
+    if (!result.ok) {
+      setCloudFeedback({ tone: "error", message: buildDeleteProjectMessage(result.problem) });
+      return;
+    }
+
+    const nextProjects = cloudProjects.filter((item) => item.id !== project.id);
+    setProjects(nextProjects);
+    setCloudFeedback({ tone: "success", message: `Projet supprimé : ${project.name}` });
+
+    if (projectId === project.id) {
+      setProjectId(null);
+      setSaveAssistant(null);
+      setSaveStatus("saved", {
+        scope: "local",
+        message: "Projet cloud supprimé, mode local actif",
+      });
+      syncProjectInUrl(null);
+    }
+
+    if (nextProjects.length === 0) {
+      setCreateOpen(true);
+      if (!createName.trim()) {
+        setCreateName(projectName.trim() || "Mon projet");
+      }
+    }
   }
 
   function handleNewProject() {
@@ -213,6 +365,7 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
   const itemClass = `block w-full px-3 py-1.5 text-left text-sm transition-base disabled:cursor-not-allowed disabled:opacity-40 ${
     darkMode ? "text-neutral-200 hover:bg-neutral-800" : "text-neutral-700 hover:bg-neutral-100"
   }`;
+  const cloudBusy = linking || createPending || deletingProjectId !== null;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -368,41 +521,230 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
             <div className={`mx-2 mb-1 rounded-md border ${darkMode ? "border-neutral-700 bg-neutral-900" : "border-neutral-100 bg-neutral-50"}`}>
               {projectsStatus === "loading" ? (
                 <p className={`px-3 py-2 text-xs ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Chargement…</p>
-              ) : projects === null ? (
+              ) : projectsProblem ? (
                 <div className="px-3 py-2">
                   <p className={`text-xs ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>
-                    Le cloud est réservé aux comptes connectés. Sans compte, utilisez l&apos;export .fabschema pour garder une copie.
+                    {buildProjectsLoadMessage(projectsProblem)}
                   </p>
-                  <Link href="/connexion-client" className={`mt-1.5 inline-block text-xs font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-700"} hover:underline`}>
-                    Se connecter
-                  </Link>
+                  {projectsProblem.code === "AUTH_REQUIRED" || projectsProblem.code === "ACCESS_DENIED" ? (
+                    <Link href="/connexion-client" className={`mt-1.5 inline-block text-xs font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-700"} hover:underline`}>
+                      Se connecter
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void loadCloudProjects()}
+                      className={`mt-1.5 inline-block text-xs font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-700"} hover:underline`}
+                    >
+                      Réessayer
+                    </button>
+                  )}
                 </div>
-              ) : projects.length === 0 ? (
+              ) : cloudProjects.length === 0 ? (
                 <div className="px-3 py-2">
-                  <p className={`text-xs ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>Aucun projet pour l&apos;instant.</p>
-                  <Link href="/mon-compte/projets/nouveau" className={`mt-1.5 inline-block text-xs font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-700"} hover:underline`}>
-                    Créer un projet
-                  </Link>
+                  <p className={`text-xs ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>
+                    Aucun projet cloud pour l&apos;instant. Créez-en un ici et FabSystem y enregistrera ce schéma automatiquement.
+                  </p>
+                  {cloudFeedback ? (
+                    <p
+                      className={`mt-2 text-xs ${
+                        cloudFeedback.tone === "error"
+                          ? darkMode
+                            ? "text-amber-300"
+                            : "text-amber-700"
+                          : darkMode
+                            ? "text-emerald-300"
+                            : "text-emerald-700"
+                      }`}
+                    >
+                      {cloudFeedback.message}
+                    </p>
+                  ) : null}
+                  <div className="mt-2 space-y-2">
+                    <input
+                      type="text"
+                      value={createName}
+                      onChange={(event) => setCreateName(event.target.value)}
+                      maxLength={120}
+                      placeholder="Nom du projet cloud"
+                      className={`w-full rounded-md border px-2.5 py-1.5 text-sm outline-none ${
+                        darkMode
+                          ? "border-neutral-700 bg-neutral-950 text-neutral-100 placeholder:text-neutral-500"
+                          : "border-neutral-300 bg-white text-neutral-800 placeholder:text-neutral-400"
+                      }`}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className={`text-[11px] ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
+                        Type
+                        <select
+                          value={createAssetType}
+                          onChange={(event) => setCreateAssetType(event.target.value as ProjectAssetType)}
+                          className={`mt-1 block w-full rounded-md border px-2 py-1.5 text-sm ${
+                            darkMode ? "border-neutral-700 bg-neutral-950 text-neutral-100" : "border-neutral-300 bg-white text-neutral-800"
+                          }`}
+                        >
+                          {Object.entries(PROJECT_ASSET_TYPE_LABELS).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className={`text-[11px] ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
+                        Tension
+                        <select
+                          value={createVoltage}
+                          onChange={(event) => setCreateVoltage(event.target.value as ProjectVoltage)}
+                          className={`mt-1 block w-full rounded-md border px-2 py-1.5 text-sm ${
+                            darkMode ? "border-neutral-700 bg-neutral-950 text-neutral-100" : "border-neutral-300 bg-white text-neutral-800"
+                          }`}
+                        >
+                          {Object.entries(PROJECT_VOLTAGE_LABELS).map(([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                    {createError ? (
+                      <p className={`text-xs ${darkMode ? "text-amber-300" : "text-amber-700"}`}>{createError}</p>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => void handleCreateProject()}
+                      disabled={createPending || linking}
+                      className={`w-full rounded-md border px-3 py-1.5 text-sm font-medium transition-base disabled:cursor-not-allowed disabled:opacity-40 ${
+                        darkMode ? "border-emerald-600/60 text-emerald-300 hover:bg-emerald-500/10" : "border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                      }`}
+                    >
+                      {createPending || linking ? "Création..." : "Créer et enregistrer dans le cloud"}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
                   <p className={`px-3 py-1.5 text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>
                     La liaison cloud n&apos;est confirmée qu&apos;après une première sauvegarde réussie.
                   </p>
-                  {projects.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => handleLinkProject(p.id)}
-                      disabled={linking}
-                      className={`block w-full px-3 py-1.5 text-left text-sm transition-base ${
-                        darkMode ? "text-neutral-200 hover:bg-neutral-800" : "text-neutral-700 hover:bg-neutral-100"
+                  {cloudProjects.map((p) => (
+                    <div key={p.id} className={`flex items-center gap-2 px-3 py-1.5 ${darkMode ? "hover:bg-neutral-800/70" : "hover:bg-neutral-100/80"}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleLinkProject(p.id)}
+                        disabled={cloudBusy}
+                        className={`min-w-0 flex-1 text-left text-sm transition-base disabled:cursor-not-allowed disabled:opacity-40 ${
+                          darkMode ? "text-neutral-200" : "text-neutral-700"
+                        }`}
+                        title={p.id === projectId ? "Projet actuellement lié" : "Lier ce schéma à ce projet cloud"}
+                      >
+                        {p.id === projectId ? "✓ " : ""}
+                        {p.name}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteProject(p)}
+                        disabled={cloudBusy}
+                        className={`shrink-0 rounded-md px-2 py-1 text-xs font-semibold transition-base disabled:cursor-not-allowed disabled:opacity-40 ${
+                          darkMode ? "text-red-300 hover:bg-red-500/10" : "text-red-700 hover:bg-red-50"
+                        }`}
+                        title={`Supprimer définitivement ${p.name}`}
+                      >
+                        {deletingProjectId === p.id ? "..." : "Supprimer"}
+                      </button>
+                    </div>
+                  ))}
+                  {cloudFeedback ? (
+                    <p
+                      className={`px-3 pb-1 pt-1 text-xs ${
+                        cloudFeedback.tone === "error"
+                          ? darkMode
+                            ? "text-amber-300"
+                            : "text-amber-700"
+                          : darkMode
+                            ? "text-emerald-300"
+                            : "text-emerald-700"
                       }`}
                     >
-                      {p.id === projectId ? "✓ " : ""}
-                      {p.name}
+                      {cloudFeedback.message}
+                    </p>
+                  ) : null}
+                  <div className={`mt-1 border-t px-3 py-2 ${darkMode ? "border-neutral-700" : "border-neutral-200"}`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCreateOpen((value) => !value);
+                        setCreateError(null);
+                        if (!createName.trim()) setCreateName(projectName.trim() || "Mon projet");
+                      }}
+                      className={`text-xs font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-700"} hover:underline`}
+                    >
+                      {createOpen ? "Masquer la création" : "+ Nouveau projet cloud"}
                     </button>
-                  ))}
+                    {createOpen ? (
+                      <div className="mt-2 space-y-2">
+                        <input
+                          type="text"
+                          value={createName}
+                          onChange={(event) => setCreateName(event.target.value)}
+                          maxLength={120}
+                          placeholder="Nom du projet cloud"
+                          className={`w-full rounded-md border px-2.5 py-1.5 text-sm outline-none ${
+                            darkMode
+                              ? "border-neutral-700 bg-neutral-950 text-neutral-100 placeholder:text-neutral-500"
+                              : "border-neutral-300 bg-white text-neutral-800 placeholder:text-neutral-400"
+                          }`}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <label className={`text-[11px] ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
+                            Type
+                            <select
+                              value={createAssetType}
+                              onChange={(event) => setCreateAssetType(event.target.value as ProjectAssetType)}
+                              className={`mt-1 block w-full rounded-md border px-2 py-1.5 text-sm ${
+                                darkMode ? "border-neutral-700 bg-neutral-950 text-neutral-100" : "border-neutral-300 bg-white text-neutral-800"
+                              }`}
+                            >
+                              {Object.entries(PROJECT_ASSET_TYPE_LABELS).map(([value, label]) => (
+                                <option key={value} value={value}>
+                                  {label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className={`text-[11px] ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
+                            Tension
+                            <select
+                              value={createVoltage}
+                              onChange={(event) => setCreateVoltage(event.target.value as ProjectVoltage)}
+                              className={`mt-1 block w-full rounded-md border px-2 py-1.5 text-sm ${
+                                darkMode ? "border-neutral-700 bg-neutral-950 text-neutral-100" : "border-neutral-300 bg-white text-neutral-800"
+                              }`}
+                            >
+                              {Object.entries(PROJECT_VOLTAGE_LABELS).map(([value, label]) => (
+                                <option key={value} value={value}>
+                                  {label}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        </div>
+                        {createError ? (
+                          <p className={`text-xs ${darkMode ? "text-amber-300" : "text-amber-700"}`}>{createError}</p>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => void handleCreateProject()}
+                          disabled={cloudBusy}
+                          className={`w-full rounded-md border px-3 py-1.5 text-sm font-medium transition-base disabled:cursor-not-allowed disabled:opacity-40 ${
+                            darkMode ? "border-emerald-600/60 text-emerald-300 hover:bg-emerald-500/10" : "border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                          }`}
+                        >
+                          {createPending || linking ? "Création..." : "Créer et enregistrer dans le cloud"}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 </>
               )}
             </div>

@@ -65,7 +65,7 @@ export default async function MesProjetsPage() {
   // Miniature + statut du schéma sur chaque carte (retour utilisateur : "je
   // n'arrive même pas à retrouver mon schéma directement dans dashboard") —
   // une seule requête groupée, pas de N+1.
-  const schemaSummaries = await listProjectSchemaSummaries(active.map((p) => p.id));
+  const schemaSummaries = await listProjectSchemaSummaries(projects.map((p) => p.id));
 
   return (
     <div className="space-y-8">
@@ -115,12 +115,10 @@ export default async function MesProjetsPage() {
         <div className="space-y-3">
           {active.map((project) => {
             const schema = schemaSummaries.get(project.id);
+            const canOpenSchemaDirectly = project.status === "ACTIVE";
             return (
-              <Link
-                key={project.id}
-                href={`/mon-compte/projets/${project.id}`}
-                className="flex flex-wrap items-start gap-4 rounded-card border border-neutral-200 bg-white p-5 shadow-card transition-colors hover:border-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
-              >
+              <Card key={project.id} className="p-5 transition-colors hover:border-neutral-300">
+                <div className="flex flex-wrap items-start gap-4">
                 {schema?.thumbnail ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -136,8 +134,13 @@ export default async function MesProjetsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-base font-semibold text-neutral-950">{project.name}</h2>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/mon-compte/projets/${project.id}`}
+                          className="text-base font-semibold text-neutral-950 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                        >
+                          {project.name}
+                        </Link>
                         <Badge tone={statusBadgeTone(project.status)}>
                           {getProjectStatusLabel(project.status)}
                         </Badge>
@@ -150,6 +153,11 @@ export default async function MesProjetsPage() {
                       <p className="mt-1 text-xs text-neutral-500">
                         Modifié le {formatDate(project.updatedAt)}
                       </p>
+                      {schema ? (
+                        <p className="mt-1 text-xs font-medium text-emerald-700">
+                          Schéma enregistré le {formatDate(schema.updatedAt)}
+                        </p>
+                      ) : null}
                       {project.status === "DELETE_SCHEDULED" && project.deleteScheduledAt ? (
                         <p className="mt-2 text-xs font-semibold text-red-700">
                           Suppression programmée le {formatDate(project.deleteScheduledAt)}
@@ -162,12 +170,28 @@ export default async function MesProjetsPage() {
                         </p>
                       ) : null}
                     </div>
-                    <span className="shrink-0 text-sm font-semibold text-neutral-600">
-                      Ouvrir →
-                    </span>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      {canOpenSchemaDirectly ? (
+                        <Button
+                          href={`/outils/schema?projectId=${project.id}`}
+                          variant={schema ? "primary" : "secondary"}
+                          className="h-9 min-h-9 px-3 text-xs"
+                        >
+                          {schema ? "Ouvrir le schéma" : "Créer le schéma"}
+                        </Button>
+                      ) : null}
+                      <Button
+                        href={`/mon-compte/projets/${project.id}`}
+                        variant={canOpenSchemaDirectly ? "secondary" : "primary"}
+                        className="h-9 min-h-9 px-3 text-xs"
+                      >
+                        Voir le projet
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </Link>
+                </div>
+              </Card>
             );
           })}
         </div>
@@ -177,23 +201,51 @@ export default async function MesProjetsPage() {
         <div>
           <h2 className="text-base font-semibold text-neutral-950">Archives</h2>
           <div className="mt-3 space-y-3">
-            {archived.map((project) => (
-              <Link
+            {archived.map((project) => {
+              const schema = schemaSummaries.get(project.id);
+              return (
+              <Card
                 key={project.id}
-                href={`/mon-compte/projets/${project.id}`}
-                className="block rounded-card border border-neutral-200 bg-neutral-50 p-5 transition-colors hover:border-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                className="bg-neutral-50 p-5 transition-colors hover:border-neutral-300"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-sm font-semibold text-neutral-800">{project.name}</h3>
+                    <Link
+                      href={`/mon-compte/projets/${project.id}`}
+                      className="text-sm font-semibold text-neutral-800 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                    >
+                      {project.name}
+                    </Link>
                     <p className="mt-1 text-xs text-neutral-500">
                       {getProjectAssetTypeLabel(project.assetType)} · Archivé
                     </p>
+                    {schema ? (
+                      <p className="mt-1 text-xs font-medium text-emerald-700">
+                        Schéma enregistré le {formatDate(schema.updatedAt)}
+                      </p>
+                    ) : null}
                   </div>
-                  <span className="text-sm font-semibold text-neutral-500">Ouvrir →</span>
+                  <div className="flex flex-wrap gap-2">
+                    {schema ? (
+                      <Button
+                        href={`/outils/schema?projectId=${project.id}`}
+                        variant="secondary"
+                        className="h-9 min-h-9 px-3 text-xs"
+                      >
+                        Ouvrir le schéma
+                      </Button>
+                    ) : null}
+                    <Button
+                      href={`/mon-compte/projets/${project.id}`}
+                      variant={schema ? "tertiary" : "secondary"}
+                      className="h-9 min-h-9 px-3 text-xs"
+                    >
+                      Voir le projet
+                    </Button>
+                  </div>
                 </div>
-              </Link>
-            ))}
+              </Card>
+            )})}
           </div>
         </div>
       ) : null}
