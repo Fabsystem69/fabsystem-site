@@ -1,102 +1,115 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Section } from "@/components/layout/Section";
+"use client";
 
-// Home V2 — Trois univers (docs/refonte-site-public/home/02-TROIS-UNIVERS.md).
-// Exactement trois univers, chacun une vraie porte d'entrée. Les pages
-// dédiées /bateau, /van, /camping-car ne sont pas suffisamment spécifiées
-// dans les CDC pour être créées (aucun fichier univers/*.md n'existe —
-// voir docs/audits/UI-4-SERVICES-UNIVERS.md, Univers) : conformément à
-// l'option B validée par cette même phase, chaque univers mène vers une
-// destination distincte et fonctionnelle de Services (/prestations),
-// pré-sélectionnant le bon onglet dans "On fait ensemble" et "Je confie"
-// via ?univers=. Les trois cartes ne pointent plus toutes vers la même
-// destination générique (état temporaire de la Phase UI-3, résolu ici).
+import Image from "next/image";
+import { Section } from "@/components/layout/Section";
+import type { PrestationsCategorie } from "@/lib/prestations-packs";
+import { useHomeUniverse } from "@/components/home/HomeUniverseProvider";
+
 const UNIVERS: {
+  id: PrestationsCategorie;
   name: string;
   text: string;
-  href: string;
-  photo?: { src: string; alt: string };
+  photo: { src: string; alt: string };
 }[] = [
   {
-    // Photo réelle fournie pour UI-9 FINAL (fab-bateau.png reste réservé au
-    // portrait de Fabien, voir app/a-propos/page.tsx — jamais réutilisé ici).
+    id: "bateau",
     name: "Bateau",
-    text: "Électricité et systèmes embarqués à bord.",
-    href: "/prestations?univers=bateau",
-    photo: { src: "/univers/bateau.png", alt: "Installation électrique embarquée sur un voilier" },
+    text: "Diagnostic, charge, servitudes et contraintes marines.",
+    photo: { src: "/univers/bateau.png", alt: "Installation electrique embarquee sur un voilier" },
   },
   {
+    id: "van",
     name: "Van",
-    text: "Concevoir une installation fiable et adaptée à l'autonomie recherchée.",
-    href: "/prestations?univers=van",
-    photo: { src: "/univers/van.png", alt: "Installation solaire organisée dans un van aménagé" },
+    text: "Autonomie, 12V, solaire et implantation compacte.",
+    photo: { src: "/univers/van.png", alt: "Installation solaire organisee dans un van amenage" },
   },
   {
+    id: "camping-car",
     name: "Camping-car",
-    text: "Comprendre, améliorer ou reprendre son installation électrique.",
-    href: "/prestations?univers=camping-car",
-    photo: { src: "/univers/camping-car.png", alt: "Compartiment électrique aménagé dans un camping-car" },
+    text: "Reprise de l'existant, lithium, recharge et fiabilisation.",
+    photo: { src: "/univers/camping-car.png", alt: "Compartiment electrique amenage dans un camping-car" },
   },
 ];
 
-type UniversTile = (typeof UNIVERS)[number];
-
-function UniversCard({ univers }: { univers: UniversTile }) {
+function UniversCard({
+  univers,
+  isActive,
+  onSelect,
+}: {
+  univers: (typeof UNIVERS)[number];
+  isActive: boolean;
+  onSelect: (univers: PrestationsCategorie) => void;
+}) {
   return (
-    <Link
-      href={univers.href}
-      aria-label={`${univers.name} — ${univers.text} Découvrir`}
-      className="transition-base group relative flex min-h-[260px] flex-col justify-end overflow-hidden rounded-2xl border border-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 sm:min-h-[320px]"
+    <button
+      type="button"
+      aria-pressed={isActive}
+      onClick={() => onSelect(univers.id)}
+      className={`transition-base group relative flex min-h-[180px] flex-col justify-end overflow-hidden rounded-2xl border text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 sm:min-h-[210px] ${
+        isActive
+          ? "border-brand-400 shadow-[0_18px_40px_rgba(255,200,0,0.2)]"
+          : "border-neutral-200 hover:border-neutral-300"
+      }`}
     >
-      {univers.photo ? (
-        <>
-          <Image
-            src={univers.photo.src}
-            alt=""
-            fill
-            sizes="(max-width: 1024px) 100vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-        </>
-      ) : (
-        // Aucune photographie réelle disponible pour cet univers dans ce
-        // dépôt (voir docs/audits/UI-3-HOME.md, Visuels nécessaires) :
-        // traitement typographique sobre plutôt qu'une photo de stock ou
-        // générique, en attendant une vraie photographie.
-        <div className="absolute inset-0 bg-neutral-950" />
-      )}
+      <Image
+        src={univers.photo.src}
+        alt=""
+        fill
+        sizes="(max-width: 768px) 100vw, 33vw"
+        className={`object-cover transition-transform duration-300 ${isActive ? "scale-[1.02]" : "group-hover:scale-[1.03]"}`}
+      />
+      <div className={`absolute inset-0 ${isActive ? "bg-gradient-to-t from-black/80 via-black/35 to-black/10" : "bg-gradient-to-t from-black/75 via-black/20 to-transparent"}`} />
 
-      <div className="relative z-10 p-6">
-        <p className="text-xl font-bold text-white">{univers.name}</p>
-        <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-white/80">{univers.text}</p>
-        <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-400">
-          Découvrir
-          <span aria-hidden="true" className="transition-transform duration-150 group-hover:translate-x-0.5">
-            →
+      <div className="relative z-10 p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-lg font-bold text-white">{univers.name}</p>
+          <span
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+              isActive ? "bg-brand-400 text-neutral-950" : "bg-white/12 text-white/78"
+            }`}
+          >
+            {isActive ? "Actif" : "Choisir"}
           </span>
-        </span>
+        </div>
+        <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/82">{univers.text}</p>
       </div>
-    </Link>
+    </button>
   );
 }
 
 export function TroisUnivers() {
+  const { selectedUniverse, selectedUniverseLabel, selectUniverse } = useHomeUniverse();
+
   return (
-    <Section id="apres-hero" tone="light" className="scroll-mt-24">
+    <Section
+      id="apres-hero"
+      tone="muted"
+      containerClassName="max-w-4xl"
+      className="scroll-mt-24 !pt-0 !pb-8 sm:!pb-10"
+    >
       <div className="max-w-2xl">
-        <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
+        <h2 className="text-xl font-bold tracking-tight text-neutral-950 sm:text-[1.55rem]">
           Bateau, van ou camping-car
         </h2>
-        <p className="mt-3 text-base leading-relaxed text-neutral-600">
-          Des installations électriques pensées pour les contraintes réelles de chaque usage.
+        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+          Selectionnez votre univers pour garder des liens et un parcours plus coherents sur cette
+          page.
+        </p>
+        <p className="mt-3 text-sm font-semibold text-neutral-900">
+          {selectedUniverseLabel
+            ? `${selectedUniverseLabel} actuellement selectionne.`
+            : "Aucun univers retenu pour l'instant."}
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {UNIVERS.map((univers) => (
-          <UniversCard key={univers.name} univers={univers} />
+          <UniversCard
+            key={univers.id}
+            univers={univers}
+            isActive={selectedUniverse === univers.id}
+            onSelect={selectUniverse}
+          />
         ))}
       </div>
     </Section>

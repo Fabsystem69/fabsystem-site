@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
+import { useHomeUniverse } from "@/components/home/HomeUniverseProvider";
 
 // Home V2 — Parcours (docs/refonte-site-public/home/03-PARCOURS.md).
 // Exactement trois niveaux, aucun nom commercial de pack. Progression
@@ -35,12 +38,19 @@ const STEPS = [
 ] as const;
 
 export function Parcours() {
+  const { selectedUniverseLabel, selectionQuery } = useHomeUniverse();
+
   return (
     <Section id="parcours" tone="muted" className="scroll-mt-24">
       <div className="max-w-2xl">
         <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
           Comment souhaitez-vous avancer ?
         </h2>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+          {selectedUniverseLabel
+            ? `Univers actif : ${selectedUniverseLabel}. Les liens de cette page se calent sur cet univers.`
+            : "Choisissez votre univers juste en dessous pour adapter les accompagnements et les services a votre cas."}
+        </p>
       </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-3 lg:gap-6">
@@ -61,21 +71,25 @@ export function Parcours() {
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">{step.text}</p>
 
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-              {step.ctas.map((cta) =>
-                cta.variant === "primary" ? (
-                  <Button key={cta.href + cta.label} href={cta.href} variant="primary">
+              {step.ctas.map((cta) => {
+                const href = cta.href.startsWith("/prestations")
+                  ? `${cta.href}${selectionQuery}`
+                  : cta.href;
+
+                return cta.variant === "primary" ? (
+                  <Button key={href + cta.label} href={href} variant="primary">
                     {cta.label} →
                   </Button>
                 ) : (
                   <Link
-                    key={cta.href + cta.label}
-                    href={cta.href}
+                    key={href + cta.label}
+                    href={href}
                     className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 transition-colors duration-150 hover:decoration-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                   >
                     {cta.label} →
                   </Link>
-                )
-              )}
+                );
+              })}
             </div>
           </div>
         ))}

@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
+import { useHomeUniverse } from "@/components/home/HomeUniverseProvider";
 
 // Home V2 — Accompagnement / "On fait ensemble"
 // (docs/refonte-site-public/home/06-ACCOMPAGNEMENT.md). Un seul CTA
@@ -16,6 +19,8 @@ const APPORTS = [
 ];
 
 export function Accompagnement() {
+  const { selectionQuery, selectedUniverseLabel } = useHomeUniverse();
+
   return (
     <Section tone="dark" containerClassName="max-w-4xl" className="!py-8 sm:!py-10">
       <div className="grid items-center gap-5 lg:grid-cols-[1.35fr_0.65fr] lg:gap-8">
@@ -31,6 +36,11 @@ export function Accompagnement() {
             Vous gardez la main sur votre projet, Fabien vous aide à faire les bons choix,
             vérifier votre installation et avancer sans rester bloqué.
           </p>
+          {selectedUniverseLabel ? (
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/65">
+              Univers actif : {selectedUniverseLabel}
+            </p>
+          ) : null}
 
           <dl className="mt-4 grid gap-2 sm:grid-cols-3">
             {APPORTS.map((apport) => (
@@ -45,7 +55,7 @@ export function Accompagnement() {
           </dl>
 
           <div className="mt-4">
-            <Button href="/prestations/accompagnement" variant="primary">
+            <Button href={`/prestations/accompagnement${selectionQuery}`} variant="primary">
               Découvrir l&apos;accompagnement →
             </Button>
           </div>

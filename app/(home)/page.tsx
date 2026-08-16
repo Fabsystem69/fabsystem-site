@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { HomeUniverseProvider } from "@/components/home/HomeUniverseProvider";
 import { PublicHero } from "@/components/public/PublicHero";
 import { TroisUnivers } from "@/components/home/TroisUnivers";
 import { Parcours } from "@/components/home/Parcours";
@@ -8,13 +9,11 @@ import { Accompagnement } from "@/components/home/Accompagnement";
 import { Confiance } from "@/components/home/Confiance";
 import { CtaFinal } from "@/components/home/CtaFinal";
 
-// Home V2 (UI-3), conforme à docs/refonte-site-public/home/00-HOME-ARCHITECTURE.md
-// §5 : Header (global, SiteChrome) → Hero → Trois univers → Parcours →
-// Outils gratuits → Les bases → Accompagnement → Confiance (conditionnelle)
-// → CTA final → Footer (global). Section "Boutique" ("Des ressources pour
-// aller plus loin") retirée à la demande explicite de l'utilisateur — la
-// Boutique reste accessible via la nav et via /les-bases. Témoignages lus
-// en base à chaque requête (jamais de rendu figé au build).
+// Home V2 : le sélecteur d'univers reste présent, mais il devient un
+// configurateur compact placé juste après le bloc "Comment souhaitez-vous
+// avancer ?". Il ne redirige plus immédiatement : il préconfigure les CTA
+// de la home via le provider client dédié, tout en laissant la page
+// d'accueil en place.
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
@@ -40,15 +39,17 @@ export default function HomePage() {
         description="Bateau, van ou camping-car : apprenez à faire vous-même, avancez avec Fabien ou confiez votre installation."
         primaryAction={{ href: "#parcours", label: "Comment Fabien peut m'aider" }}
         secondaryAction={{ href: "/outils", label: "Découvrir les outils gratuits", variant: "secondary" }}
-        scrollTargetId="apres-hero"
+        scrollTargetId="parcours"
       />
-      <TroisUnivers />
-      <Parcours />
-      <OutilsGratuits />
-      <LesBases />
-      <Accompagnement />
-      <Confiance />
-      <CtaFinal />
+      <HomeUniverseProvider>
+        <Parcours />
+        <TroisUnivers />
+        <OutilsGratuits />
+        <LesBases />
+        <Accompagnement />
+        <Confiance />
+        <CtaFinal />
+      </HomeUniverseProvider>
     </main>
   );
 }

@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
+import { useHomeUniverse } from "@/components/home/HomeUniverseProvider";
 
 // Home V2 — CTA final (docs/refonte-site-public/home/10-CTA-FINAL.md).
 // Texte, CTA et destinations repris tels quels. Aucune photo, aucune
@@ -15,6 +18,8 @@ import { Button } from "@/components/ui/Button";
 // utilisée par Parcours.tsx et Accompagnement.tsx pour la même raison) —
 // utiliser /services créerait un lien mort.
 export function CtaFinal() {
+  const { selectionQuery, selectedUniverseLabel } = useHomeUniverse();
+
   return (
     <Section tone="dark" className="!py-12 border-t border-neutral-800">
       <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -25,6 +30,11 @@ export function CtaFinal() {
           <p className="mt-3 max-w-md text-base leading-relaxed text-neutral-400">
             Expliquez-moi où vous en êtes. On trouvera la façon la plus adaptée d&apos;avancer.
           </p>
+          {selectedUniverseLabel ? (
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/65">
+              Univers actif : {selectedUniverseLabel}
+            </p>
+          ) : null}
         </div>
 
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
@@ -32,7 +42,7 @@ export function CtaFinal() {
             Parler de mon projet
           </Button>
           <Link
-            href="/prestations"
+            href={`/prestations${selectionQuery}`}
             className="inline-flex h-10 items-center justify-center gap-1 text-sm font-semibold text-neutral-300 transition-colors duration-150 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Voir les services →
