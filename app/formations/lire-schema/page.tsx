@@ -286,6 +286,13 @@ export default function Module2Page() {
         duration="~20 min"
         level="Débutant"
         steps={steps}
+        voltaNote={{
+          title: "Le conseil de Volta",
+          message:
+            "Lisez toujours un schéma dans le même sens : source, protection, distribution, puis retour. Quand cette logique est claire, le dessin devient beaucoup moins impressionnant.",
+          variant: "tip",
+          pose: "neutre",
+        }}
         prevModule={{ href: "/formations/bases-12v", label: "Les bases du 12V" }}
         nextModule={{ href: "/formations/types-batteries", label: "Types de batteries" }}
       />

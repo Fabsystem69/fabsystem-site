@@ -1,6 +1,7 @@
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { OutilCard } from "@/components/outils/OutilCard";
+import { SchemaExamplesTeaser } from "@/components/schema-examples/SchemaExamplesTeaser";
 import { getOutilMeta, type OutilMeta } from "@/lib/outils-catalog";
 
 // Home V2 (UI-10, correctif final §11) — teaser compact de l'écosystème
@@ -17,23 +18,29 @@ const HOME_TEASER: OutilMeta[] = [
 
 export function OutilsGratuits() {
   return (
-    <Section tone="light">
-      <div className="max-w-2xl">
-        <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
+    <Section
+      tone="light"
+      containerClassName="max-w-4xl"
+      className="!py-8 sm:!py-10"
+    >
+      <div className="max-w-xl">
+        <h2 className="text-xl font-bold tracking-tight text-neutral-950 sm:text-[1.7rem]">
           Des outils gratuits pour avancer tout de suite
         </h2>
-        <p className="mt-3 text-base leading-relaxed text-neutral-600">
+        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
           Calculez, dimensionnez et préparez votre installation, gratuitement et sans compte.
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {HOME_TEASER.map((outil) => (
-          <OutilCard key={outil.id} outil={outil} />
+          <OutilCard key={outil.id} outil={outil} variant="compact" />
         ))}
       </div>
 
-      <div className="mt-8">
+      <SchemaExamplesTeaser className="mt-5" />
+
+      <div className="mt-5">
         <Button href="/outils" variant="tertiary">
           Voir tous les outils →
         </Button>

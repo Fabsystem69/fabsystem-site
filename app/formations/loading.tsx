@@ -27,8 +27,8 @@ export default function FormationsLoading() {
       </div>
 
       <div className="mx-auto max-w-6xl animate-pulse px-6 py-8">
-        <div className="grid gap-4 sm:grid-cols-3">
-          {[0, 1, 2].map((i) => (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="rounded-card border border-neutral-200 p-5 shadow-card">
               <SkeletonLine width="w-16" height="h-3" />
               <SkeletonLine width="w-32" height="h-5" className="mt-2" />

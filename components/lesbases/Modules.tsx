@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import { VoltaGuide } from "@/components/volta/VoltaGuide";
 
 // Les Bases V2 — Modules (docs/refonte-site-public/les-bases/01-HERO-MODULES.md
-// §2-6). Les 3 modules et leurs données (titre, résumé, durée) sont ceux
+// §2-6). Les modules et leurs données (titre, résumé, durée) sont ceux
 // réellement publiés sous app/formations/<slug>/page.tsx — repris tels
 // quels, aucune durée inventée pour cette refonte. Aucune progression
 // affichée : le projet n'a aujourd'hui aucune persistance réelle de
@@ -12,13 +12,12 @@ import { VoltaGuide } from "@/components/volta/VoltaGuide";
 // ModuleStepper), donc chaque carte reste à l'état standard conformément à
 // 01-HERO-MODULES.md §2 ("Ne jamais simuler une progression").
 //
-// Desktop : les 3 cartes tiennent côte à côte (§4). Mobile : empilement
-// vertical simple plutôt que le carrousel manuel décrit en §5 — ce dernier
-// n'est qu'autorisé ("peuvent être présentés"), pas imposé ; avec
-// seulement 3 modules, un empilement reste pleinement lisible, accessible
-// sans JS et cohérent avec la contrainte de performance de cette mission
-// ("pas de JS client pour de simples contenus éditoriaux") — voir
-// Arbitrages du rapport.
+// Desktop : 6 cartes en grille 3 × 2. Mobile : empilement vertical simple
+// plutôt que le carrousel manuel décrit en §5 — ce dernier n'est
+// qu'autorisé ("peuvent être présentés"), pas imposé ; un empilement reste
+// pleinement lisible, accessible sans JS et cohérent avec la contrainte de
+// performance de cette mission ("pas de JS client pour de simples contenus
+// éditoriaux") — voir Arbitrages du rapport.
 const MODULES = [
   {
     order: 1,
@@ -44,6 +43,30 @@ const MODULES = [
     duration: "~25 min",
     href: "/formations/types-batteries",
   },
+  {
+    order: 4,
+    title: "Construire une distribution 12V propre",
+    description:
+      "Ordre logique des composants, fusible principal, sectionneur, shunt, busbars et départs par circuit.",
+    duration: "~25 min",
+    href: "/formations/distribution-12v",
+  },
+  {
+    order: 5,
+    title: "Bien recharger ses batteries",
+    description:
+      "Comprendre les sources de charge, les phases de recharge et les différences entre AGM, GEL et lithium.",
+    duration: "~25 min",
+    href: "/formations/recharger-batteries",
+  },
+  {
+    order: 6,
+    title: "Utiliser un multimètre sans se tromper",
+    description:
+      "Mesurer une tension, tester une continuité et diagnostiquer une panne simple sans prendre de risque inutile.",
+    duration: "~20 min",
+    href: "/formations/multimetre",
+  },
 ] as const;
 
 export function Modules() {
@@ -57,11 +80,11 @@ export function Modules() {
       </p>
 
       <VoltaGuide variant="tip" pose="neutre" className="mt-6 max-w-2xl">
-        Suivez les 3 modules dans l&apos;ordre : chacun s&apos;appuie sur le précédent, du câble à
-        la batterie.
+        Suivez les 6 modules dans l&apos;ordre : chacun s&apos;appuie sur le précédent, des bases du
+        12 V jusqu&apos;aux mesures de diagnostic.
       </VoltaGuide>
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-3">
+      <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         {MODULES.map((module) => (
           <article
             key={module.href}

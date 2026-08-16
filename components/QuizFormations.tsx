@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import Link from "next/link";
 
 interface Question {
@@ -176,12 +176,14 @@ export default function QuizFormations() {
     const stored = readStoredResult();
     if (!stored) return;
 
-    setAnswers(stored.answers);
-    setState("finished");
-
     const restoredScore = stored.answers.filter((a, i) => a === questions[i].correct).length;
     const restoredPct = Math.round((restoredScore / questions.length) * 100);
-    setViewMode(restoredPct >= SATISFACTORY_THRESHOLD_PCT ? "compact" : "full");
+
+    startTransition(() => {
+      setAnswers(stored.answers);
+      setState("finished");
+      setViewMode(restoredPct >= SATISFACTORY_THRESHOLD_PCT ? "compact" : "full");
+    });
   }, []);
 
   const q = questions[currentQ];
@@ -239,8 +241,8 @@ export default function QuizFormations() {
               Testez vos connaissances
             </h3>
             <p className="mt-2 text-sm text-neutral-600">
-              {questions.length} questions sur les 3 modules — loi d&apos;Ohm, schémas électriques,
-              types de batteries. Comptez environ 5–10 minutes.
+              {questions.length} questions sur les 3 premiers modules — loi d&apos;Ohm, schémas
+              électriques, types de batteries. Comptez environ 5–10 minutes.
             </p>
           </div>
           <div className="shrink-0 text-right">

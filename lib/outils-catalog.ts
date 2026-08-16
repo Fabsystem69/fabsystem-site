@@ -27,7 +27,7 @@ export type OutilMeta = {
 export const OUTILS_CALCULATEURS: OutilMeta[] = [
   {
     id: "section-cable",
-    image: "/outils/section-cable.png",
+    image: "/outils/section-cable.webp",
     title: "Section de câble",
     description: "Dimensionnez vos câbles 12/24 V selon l'intensité, la longueur et la chute de tension.",
     tag: "Le plus utilisé",
@@ -35,7 +35,7 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
   },
   {
     id: "bilan-consommation",
-    image: "/outils/bilan-consommation.png",
+    image: "/outils/bilan-consommation.webp",
     title: "Bilan de consommation",
     description: "Listez vos appareils et estimez votre consommation quotidienne.",
     tag: "Essentiel",
@@ -43,7 +43,7 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
   },
   {
     id: "autonomie-batterie",
-    image: "/outils/autonomie-batterie.png",
+    image: "/outils/autonomie-batterie.webp",
     title: "Autonomie batterie",
     description: "Estimez combien de temps votre installation peut fonctionner sur batterie.",
     tag: "Avec solaire",
@@ -51,7 +51,7 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
   },
   {
     id: "mppt",
-    image: "/outils/mppt.png",
+    image: "/outils/mppt.webp",
     title: "Régulateur MPPT",
     description: "Dimensionnez la puissance MPPT adaptée à vos panneaux et à votre batterie.",
     tag: "Solaire",
@@ -59,7 +59,7 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
   },
   {
     id: "awg",
-    image: "/outils/awg.png",
+    image: "/outils/awg.webp",
     title: "AWG ↔ mm²",
     description: "Convertissez rapidement les sections de câble entre standards AWG et métrique.",
     tag: "Référence",
@@ -67,27 +67,23 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
   },
   {
     id: "schema",
-    image: "/outils/schema.png",
+    image: "/outils/schema.webp",
     title: "Schéma électrique",
     description: "Construisez et visualisez l'architecture électrique de votre installation.",
     tag: "Éditeur",
     cta: "Ouvrir l'éditeur",
   },
   {
-    // TODO(image) : illustration dédiée à remplacer — réutilise
-    // temporairement autonomie-batterie.png (thème batterie) en attendant.
     id: "soc-batterie",
-    image: "/outils/autonomie-batterie.png",
+    image: "/outils/soc-batterie.webp",
     title: "État de charge batterie",
     description: "Estimez le % de charge de votre batterie à partir de la tension mesurée.",
     tag: "Nouveau",
     cta: "Estimer",
   },
   {
-    // TODO(image) : illustration dédiée à remplacer — réutilise
-    // temporairement section-cable.png (thème électrique) en attendant.
     id: "charge-secteur",
-    image: "/outils/section-cable.png",
+    image: "/outils/charge-secteur.webp",
     title: "Chargeur secteur",
     description: "Dimensionnez votre chargeur secteur et vérifiez la compatibilité avec la borne 230V.",
     tag: "Nouveau",

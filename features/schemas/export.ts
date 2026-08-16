@@ -2,7 +2,7 @@ import { getNodesBounds, type Node, type Edge } from "@xyflow/react";
 import { toPng, toSvg } from "html-to-image";
 import JSZip from "jszip";
 import type { Bom } from "@/lib/electrical-components/bom";
-import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
+import { CABLE_TYPES } from "@/lib/electrical-components/cable-types";
 import type { CableEdgeData, ElectricalNodeData } from "@/types/schema";
 
 // Export image (CDC §38-40) : capture uniquement le canvas (pas la barre
@@ -18,12 +18,18 @@ import type { CableEdgeData, ElectricalNodeData } from "@/types/schema";
 // grandit pour contenir tout le schéma, jamais l'inverse.
 const EXPORT_ZOOM = 1;
 const EXPORT_PADDING_PX = 80;
-const DISCLAIMER_BAND_HEIGHT = 44;
+const EXPORT_FOOTER_HEIGHT = 64;
+const EXPORT_FOOTER_PADDING_PX = 12;
+const EXPORT_LOGO_SRC = "/FabSystem-Logo.svg";
+const EXPORT_LOGO_TARGET_HEIGHT_PX = 28;
 const MIN_IMAGE_WIDTH = 1600;
 const MIN_IMAGE_HEIGHT = 1000;
 
 export const SCHEMA_DISCLAIMER =
   "Schéma généré à titre indicatif. Il ne remplace pas la vérification et la validation par un professionnel qualifié avant toute réalisation. FabSystem décline toute responsabilité en cas d'erreur, d'omission ou de mauvaise interprétation.";
+
+let exportLogoImagePromise: Promise<HTMLImageElement | null> | null = null;
+let exportLogoDataUrlPromise: Promise<string | null> | null = null;
 
 // Isolement par zone à l'export (retour utilisateur : "dans les zones je
 // voudrais pouvoir isoler uniquement la zone pour les imprimer, beaucoup
@@ -69,6 +75,57 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = reject;
     img.src = src;
   });
+}
+
+function readBlobAsDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error ?? new Error("Lecture du blob impossible"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadExportLogoImage(): Promise<HTMLImageElement | null> {
+  if (!exportLogoImagePromise) {
+    exportLogoImagePromise = loadImage(EXPORT_LOGO_SRC).catch(() => null);
+  }
+  return exportLogoImagePromise;
+}
+
+async function loadExportLogoDataUrl(): Promise<string | null> {
+  if (!exportLogoDataUrlPromise) {
+    exportLogoDataUrlPromise = fetch(EXPORT_LOGO_SRC)
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return readBlobAsDataUrl(await response.blob());
+      })
+      .catch(() => null);
+  }
+  return exportLogoDataUrlPromise;
+}
+
+function decodeDataUrlToText(dataUrl: string): string {
+  const commaIndex = dataUrl.indexOf(",");
+  if (commaIndex === -1) return dataUrl;
+
+  const header = dataUrl.slice(0, commaIndex);
+  const payload = dataUrl.slice(commaIndex + 1);
+  if (header.includes(";base64")) {
+    const binary = atob(payload);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+  return decodeURIComponent(payload);
+}
+
+function computeLogoSize(logo: { naturalWidth: number; naturalHeight: number }, scale = 1) {
+  const maxHeight = EXPORT_LOGO_TARGET_HEIGHT_PX * scale;
+  const ratio = logo.naturalHeight > 0 ? logo.naturalWidth / logo.naturalHeight : 1;
+  return {
+    width: maxHeight * ratio,
+    height: maxHeight,
+  };
 }
 
 // Grille discrète (option désactivable) + filigrane répété à faible opacité
@@ -146,11 +203,12 @@ async function postProcess(
   equipment: EquipmentListItem[] = [],
 ): Promise<string> {
   const img = await loadImage(rawDataUrl);
+  const logo = await loadExportLogoImage();
   const canvas = document.createElement("canvas");
   const w = width * scale;
   const h = height * scale;
-  const bandHeight = DISCLAIMER_BAND_HEIGHT * scale;
-  const totalHeight = h + bandHeight;
+  const footerHeight = EXPORT_FOOTER_HEIGHT * scale;
+  const totalHeight = h + footerHeight;
   canvas.width = w;
   canvas.height = totalHeight;
   const ctx = canvas.getContext("2d");
@@ -208,22 +266,46 @@ async function postProcess(
   drawTitleBlock(ctx, projectName, tileLabel, w, h, scale);
   drawEquipmentList(ctx, equipment, w, scale);
 
-  // Bandeau de mention légale.
+  drawFooter(ctx, projectName, tileLabel, w, h, footerHeight, scale, logo);
+
+  return canvas.toDataURL("image/png");
+}
+
+function drawFooter(
+  ctx: CanvasRenderingContext2D,
+  projectName: string,
+  tileLabel: string | undefined,
+  w: number,
+  h: number,
+  footerHeight: number,
+  scale: number,
+  logo: HTMLImageElement | null,
+) {
   ctx.fillStyle = "#f9fafb";
-  ctx.fillRect(0, h, w, bandHeight);
+  ctx.fillRect(0, h, w, footerHeight);
   ctx.strokeStyle = "#e5e7eb";
   ctx.beginPath();
   ctx.moveTo(0, h + 0.5);
   ctx.lineTo(w, h + 0.5);
   ctx.stroke();
+
+  const padding = EXPORT_FOOTER_PADDING_PX * scale;
+  let logoSpace = 0;
+
+  if (logo) {
+    const size = computeLogoSize(logo, scale);
+    const logoX = w - padding - size.width;
+    const logoY = h + (footerHeight - size.height) / 2;
+    ctx.drawImage(logo, logoX, logoY, size.width, size.height);
+    logoSpace = size.width + padding;
+  }
+
   ctx.fillStyle = "#6b7280";
   ctx.font = `${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
   ctx.textBaseline = "middle";
   const tilePrefix = tileLabel ? `[${tileLabel}] ` : "";
   const disclaimerLine = `${tilePrefix}Généré par FabSystem pour ${projectName || "ce schéma"} — ${SCHEMA_DISCLAIMER}`;
-  wrapText(ctx, disclaimerLine, 12 * scale, h + bandHeight / 2, w - 24 * scale, 13 * scale);
-
-  return canvas.toDataURL("image/png");
+  wrapText(ctx, disclaimerLine, padding, h + footerHeight / 2, w - padding * 2 - logoSpace, 13 * scale, 2);
 }
 
 // Légende des couleurs de câble (retour utilisateur) — coin bas-gauche du
@@ -396,7 +478,15 @@ export function buildCableLegend(edges: Edge<CableEdgeData>[]): LegendItem[] {
   return CABLE_TYPES.filter((t) => used.has(t.value)).map((t) => ({ label: t.label, color: t.color }));
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, centerY: number, maxWidth: number, lineHeight: number) {
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  centerY: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines = 2,
+) {
   const words = text.split(" ");
   const lines: string[] = [];
   let current = "";
@@ -410,8 +500,16 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, x: number, center
     }
   }
   if (current) lines.push(current);
-  const startY = centerY - ((lines.length - 1) * lineHeight) / 2;
-  lines.slice(0, 2).forEach((line, i) => ctx.fillText(line, x, startY + i * lineHeight));
+  const limitedLines = lines.slice(0, maxLines);
+  if (lines.length > maxLines) {
+    let lastLine = limitedLines[maxLines - 1] ?? "";
+    while (lastLine.length > 1 && ctx.measureText(`${lastLine}…`).width > maxWidth) {
+      lastLine = lastLine.slice(0, -1);
+    }
+    limitedLines[maxLines - 1] = `${lastLine}…`;
+  }
+  const startY = centerY - ((limitedLines.length - 1) * lineHeight) / 2;
+  limitedLines.forEach((line, i) => ctx.fillText(line, x, startY + i * lineHeight));
 }
 
 const EXPORT_PIXEL_RATIO = 4;
@@ -510,18 +608,76 @@ export async function captureSchemaPng(
 
   const raw = await captureRawSchema(viewportEl, nodes);
   const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO, undefined, undefined, buildCableLegend(edges), buildEquipmentList(nodes));
-  return { dataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT };
+  return { dataUrl, width: raw.width, height: raw.height + EXPORT_FOOTER_HEIGHT };
 }
 
-// Export SVG (V2 — inspiré de Wireframe qui propose PNG/PDF/SVG).
-// Contrairement à captureSchemaPng, pas de postProcess : le filigrane et le
-// cartouche sont dessinés sur un <canvas> 2D lors du postProcess raster, une
-// technique qui ne s'applique pas au SVG. Le SVG reste donc "nu" (schéma
-// seul, cadré comme le PNG). Limite à connaître : toSvg() (html-to-image)
-// encapsule le DOM du canvas dans un <foreignObject> plutôt que de produire
-// des tracés vectoriels natifs par composant — s'affiche correctement dans
-// un navigateur, mais le support de <foreignObject> varie selon les
-// logiciels vectoriels (pas de "vrai" SVG éditable élément par élément).
+async function decorateSvgExport(dataUrl: string, width: number, height: number): Promise<string> {
+  const svgMarkup = decodeDataUrlToText(dataUrl);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(svgMarkup, "image/svg+xml");
+  if (doc.querySelector("parsererror")) return dataUrl;
+
+  const svg = doc.documentElement;
+  const svgNamespace = "http://www.w3.org/2000/svg";
+  const xlinkNamespace = "http://www.w3.org/1999/xlink";
+  const totalHeight = height + EXPORT_FOOTER_HEIGHT;
+
+  svg.setAttribute("width", String(width));
+  svg.setAttribute("height", String(totalHeight));
+  svg.setAttribute("viewBox", `0 0 ${width} ${totalHeight}`);
+  svg.setAttribute("xmlns:xlink", xlinkNamespace);
+
+  const footerBg = doc.createElementNS(svgNamespace, "rect");
+  footerBg.setAttribute("x", "0");
+  footerBg.setAttribute("y", String(height));
+  footerBg.setAttribute("width", String(width));
+  footerBg.setAttribute("height", String(EXPORT_FOOTER_HEIGHT));
+  footerBg.setAttribute("fill", "#f9fafb");
+  svg.appendChild(footerBg);
+
+  const footerLine = doc.createElementNS(svgNamespace, "line");
+  footerLine.setAttribute("x1", "0");
+  footerLine.setAttribute("y1", String(height + 0.5));
+  footerLine.setAttribute("x2", String(width));
+  footerLine.setAttribute("y2", String(height + 0.5));
+  footerLine.setAttribute("stroke", "#e5e7eb");
+  footerLine.setAttribute("stroke-width", "1");
+  svg.appendChild(footerLine);
+
+  const footerText = doc.createElementNS(svgNamespace, "text");
+  footerText.setAttribute("x", String(EXPORT_FOOTER_PADDING_PX));
+  footerText.setAttribute("y", String(height + EXPORT_FOOTER_HEIGHT / 2 + 4));
+  footerText.setAttribute("fill", "#6b7280");
+  footerText.setAttribute("font-size", "11");
+  footerText.setAttribute("font-family", "-apple-system, system-ui, sans-serif");
+  footerText.textContent = "Genere avec FabSystem - fabsystem.fr";
+  svg.appendChild(footerText);
+
+  const logoDataUrl = await loadExportLogoDataUrl();
+  if (logoDataUrl) {
+    const logoHeight = EXPORT_LOGO_TARGET_HEIGHT_PX;
+    const logoWidth = logoHeight * (843 / 400);
+    const logoX = width - EXPORT_FOOTER_PADDING_PX - logoWidth;
+    const logoY = height + (EXPORT_FOOTER_HEIGHT - logoHeight) / 2;
+    const image = doc.createElementNS(svgNamespace, "image");
+    image.setAttribute("x", String(logoX));
+    image.setAttribute("y", String(logoY));
+    image.setAttribute("width", String(logoWidth));
+    image.setAttribute("height", String(logoHeight));
+    image.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    image.setAttribute("href", logoDataUrl);
+    image.setAttributeNS(xlinkNamespace, "xlink:href", logoDataUrl);
+    svg.appendChild(image);
+  }
+
+  const serialized = new XMLSerializer().serializeToString(doc);
+  return readBlobAsDataUrl(new Blob([serialized], { type: "image/svg+xml;charset=utf-8" }));
+}
+
+// Export SVG (V2 — inspiré de Wireframe qui propose PNG/PDF/SVG). Le rendu
+// garde son principe actuel (capture via <foreignObject>) mais reçoit
+// désormais un pied de page de marque avec le logo FabSystem pour rester
+// cohérent avec les exports raster.
 export async function captureSchemaSvg(nodes: Node[]): Promise<SchemaCapture | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
@@ -543,7 +699,7 @@ export async function captureSchemaSvg(nodes: Node[]): Promise<SchemaCapture | n
     },
   });
 
-  return { dataUrl, width, height };
+  return { dataUrl: await decorateSvgExport(dataUrl, width, height), width, height: height + EXPORT_FOOTER_HEIGHT };
 }
 
 // Mode carrousel (retour utilisateur : poster un schéma dense en une seule
@@ -585,7 +741,7 @@ export async function captureSchemaCarousel(
     buildEquipmentList(nodes),
   );
   const parts: CarouselCapture[] = [
-    { dataUrl: overviewDataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT, label: "Vue d'ensemble" },
+    { dataUrl: overviewDataUrl, width: raw.width, height: raw.height + EXPORT_FOOTER_HEIGHT, label: "Vue d'ensemble" },
   ];
 
   const bounds = getNodesBounds(nodes);
@@ -606,7 +762,7 @@ export async function captureSchemaCarousel(
     const sh = Math.round(tileHeight * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
 
     const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, EXPORT_PIXEL_RATIO, label, { sx, sy, sw, sh }, legend);
-    parts.push({ dataUrl, width: tileWidth, height: tileHeight + DISCLAIMER_BAND_HEIGHT, label });
+    parts.push({ dataUrl, width: tileWidth, height: tileHeight + EXPORT_FOOTER_HEIGHT, label });
   }
 
   return parts;

@@ -16,6 +16,13 @@ import {
 
 const CUSTOMER_TYPES = ["VAN", "CAMPING_CAR", "BOAT", "OTHER"] as const;
 
+function revalidatePublicTestimonialsPaths() {
+  revalidatePath("/");
+  revalidatePath("/prestations");
+  revalidatePath("/prestations/accompagnement");
+  revalidatePath("/temoignage");
+}
+
 function getErrorMessage(error: unknown) {
   if (isHttpError(error)) {
     return error.message;
@@ -119,6 +126,7 @@ export async function updateTestimonialAction(formData: FormData) {
       isVerifiedPurchase: formData.get("isVerifiedPurchase") === "on",
     });
     revalidatePath("/dashboard/content/testimonials");
+    revalidatePublicTestimonialsPaths();
     redirectTarget = buildListRedirect({ success: "Temoignage mis a jour." });
   } catch (error) {
     redirectTarget = buildEditRedirect(id, { error: getErrorMessage(error) });
@@ -137,7 +145,7 @@ export async function setTestimonialPublishedAction(formData: FormData) {
   try {
     await setTestimonialPublished(id, isPublished);
     revalidatePath("/dashboard/content/testimonials");
-    revalidatePath("/prestations");
+    revalidatePublicTestimonialsPaths();
     redirectTarget = buildListRedirect({
       success: isPublished ? "Temoignage publie." : "Temoignage masque.",
     });
@@ -158,7 +166,7 @@ export async function setTestimonialFeaturedAction(formData: FormData) {
   try {
     await setTestimonialFeatured(id, isFeatured);
     revalidatePath("/dashboard/content/testimonials");
-    revalidatePath("/prestations");
+    revalidatePublicTestimonialsPaths();
     redirectTarget = buildListRedirect({
       success: isFeatured ? "Temoignage mis en avant." : "Mise en avant retiree.",
     });
@@ -179,7 +187,7 @@ export async function setTestimonialDisplayOrderAction(formData: FormData) {
   try {
     await setTestimonialDisplayOrder(id, displayOrder);
     revalidatePath("/dashboard/content/testimonials");
-    revalidatePath("/prestations");
+    revalidatePublicTestimonialsPaths();
     redirectTarget = buildListRedirect({ success: "Ordre d'affichage mis a jour." });
   } catch (error) {
     redirectTarget = buildListRedirect({ error: getErrorMessage(error) });
@@ -197,6 +205,7 @@ export async function deleteTestimonialAction(formData: FormData) {
   try {
     await deleteTestimonial(id);
     revalidatePath("/dashboard/content/testimonials");
+    revalidatePublicTestimonialsPaths();
     redirectTarget = buildListRedirect({ success: "Temoignage supprime." });
   } catch (error) {
     redirectTarget = buildListRedirect({ error: getErrorMessage(error) });

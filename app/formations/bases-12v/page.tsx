@@ -390,6 +390,13 @@ export default function Module1Page() {
         duration="~30 min"
         level="Débutant"
         steps={steps}
+        voltaNote={{
+          title: "Le conseil de Volta",
+          message:
+            "En 12 V, les gros consommateurs font très vite grimper le courant. Gardez toujours cet ordre d'idée en tête quand vous comparez puissance, section de câble et protections.",
+          variant: "info",
+          pose: "confiante",
+        }}
         nextModule={{ href: "/formations/lire-schema", label: "Lire un schéma électrique" }}
       />
     </>

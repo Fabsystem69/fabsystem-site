@@ -96,6 +96,8 @@ export function Editor() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParams = useSearchParams();
   const urlProjectId = searchParams.get("projectId");
+  const urlTemplateId = searchParams.get("template");
+  const urlTemplate = urlTemplateId ? getSchemaTemplate(urlTemplateId) : null;
 
   // Écran de démarrage guidé (V2, retour utilisateur : "le choix des
   // gabarits n'est pas ergonomique, il faut être guidé à l'ouverture") —
@@ -113,9 +115,13 @@ export function Editor() {
   // le brouillon local n'est plus repris silencieusement : voir
   // EditorStartPicker.
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    async function bootEditor() {
       if (urlProjectId) {
         const remote = await fetchProjectSchema(urlProjectId);
+        if (cancelled) return;
+
         if (remote.ok) {
           setProjectId(urlProjectId);
           hydrate(remote.schema ?? buildBlankSchema());
@@ -129,6 +135,7 @@ export function Editor() {
 
         hydrate(buildBlankSchema());
         setProjectId(null);
+        setPendingDraft(null);
         setSaveStatus("saved", {
           scope: "local",
           message: "Mode local actif",
@@ -136,27 +143,53 @@ export function Editor() {
         setSaveAssistant(buildCloudAssistant(remote.problem, "open"));
         return;
       }
+
+      setProjectId(null);
+      setSaveAssistant(null);
+
+      if (urlTemplate) {
+        hydrate(urlTemplate.build());
+        setPendingDraft(null);
+        setSaveStatus("saved", {
+          scope: "local",
+          message: "Gabarit chargé",
+        });
+        return;
+      }
+
       setPendingDraft(loadDraft());
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    }
+
+    void bootEditor();
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrate, setProjectId, setSaveAssistant, setSaveStatus, urlProjectId, urlTemplate]);
 
   function handleChooseContinue() {
     if (!pendingDraft) return;
+    setProjectId(null);
+    setSaveAssistant(null);
     hydrate({ projectName: pendingDraft.projectName, nodes: pendingDraft.nodes, edges: pendingDraft.edges });
   }
 
   function handleChooseTemplate(id: string) {
     const template = getSchemaTemplate(id);
     if (!template) return;
+    setProjectId(null);
+    setSaveAssistant(null);
     hydrate(template.build());
   }
 
   function handleChooseBlank() {
+    setProjectId(null);
+    setSaveAssistant(null);
     hydrate({ projectName: "Nouveau schéma", nodes: [], edges: [] });
   }
 
   function handleChooseGuided() {
+    setProjectId(null);
+    setSaveAssistant(null);
     startGuidedMode();
   }
 
@@ -242,7 +275,7 @@ export function Editor() {
   // pop up et avoir l'éditeur derrière") plutôt qu'un écran qui remplace
   // toute la page — l'éditeur en fond montre un canvas vide (état initial du
   // store), cohérent avec ce qu'on va afficher une fois le choix fait.
-  const showStartPicker = !urlProjectId && !hydrated && pendingDraft !== undefined;
+  const showStartPicker = !urlProjectId && !urlTemplate && !hydrated && pendingDraft !== undefined;
 
   if (!hydrated && urlProjectId) {
     return <div className="flex h-screen items-center justify-center text-sm text-neutral-400">Chargement…</div>;

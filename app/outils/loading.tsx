@@ -3,7 +3,7 @@ import { SkeletonLine, SkeletonBlock } from "@/components/ui/Skeleton";
 // UI-12 (suite) — /outils est en `force-dynamic` : la section Guides
 // (components/outils/Guides.tsx) lit le catalogue produit en base à
 // chaque requête, comme /boutique. Squelette repris sur l'ordre réel de
-// la page (app/outils/page.tsx) : intro compacte → grille de 6
+// la page (app/outils/page.tsx) : intro compacte → grille de 8
 // calculateurs (CalculateursIndex, statique) → Les basiques de l'atelier
 // (statique) → Guides (fetch réel) → Accompagnement (statique).
 export default function OutilsLoading() {
@@ -19,15 +19,15 @@ export default function OutilsLoading() {
 
       <div className="mx-auto max-w-6xl animate-pulse px-6 py-8">
         <div className="flex flex-wrap gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonBlock key={i} className="h-8 w-28 rounded-full" />
           ))}
         </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="rounded-2xl border border-neutral-200 p-0 shadow-card">
-              <SkeletonBlock className="h-36 w-full rounded-b-none rounded-t-2xl" />
-              <div className="p-5">
+              <SkeletonBlock className="h-32 w-full rounded-b-none rounded-t-2xl" />
+              <div className="p-4">
                 <SkeletonLine width="w-16" height="h-3" />
                 <SkeletonLine width="w-28" height="h-5" className="mt-2" />
                 <SkeletonLine width="w-full" height="h-4" className="mt-2" />

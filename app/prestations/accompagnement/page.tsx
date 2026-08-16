@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { OnFaitEnsemble } from "@/components/services/OnFaitEnsemble";
+import { Confiance } from "@/components/home/Confiance";
 import { resolvePrestationsCategorie } from "@/lib/prestations-search-params";
 
 // UI-10 §4 — page dédiée à l'accompagnement, extraite de /prestations
@@ -28,6 +29,7 @@ export default async function AccompagnementPage({
   return (
     <main>
       <OnFaitEnsemble initialCategory={initialCategory} />
+      <Confiance />
     </main>
   );
 }

@@ -84,7 +84,7 @@ export function ConfianceCarousel({
 
   return (
     <div
-      className="relative overflow-hidden rounded-[2rem] border border-neutral-200 bg-[radial-gradient(circle_at_top_left,_rgba(255,213,79,0.22),_transparent_32%),linear-gradient(180deg,_rgba(250,250,250,0.96),_rgba(255,255,255,1))] p-4 shadow-card sm:p-5"
+      className="relative overflow-hidden rounded-[1.7rem] border border-neutral-200 bg-[radial-gradient(circle_at_top_left,_rgba(255,213,79,0.2),_transparent_32%),linear-gradient(180deg,_rgba(250,250,250,0.96),_rgba(255,255,255,1))] p-3 shadow-card sm:p-4"
       aria-label="Carrousel de témoignages clients"
       aria-roledescription="carousel"
       onMouseEnter={() => setIsPaused(true)}
@@ -116,21 +116,21 @@ export function ConfianceCarousel({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-8 top-7 h-[84%] rounded-[1.75rem] border border-neutral-200/80 bg-white/70"
+        className="pointer-events-none absolute inset-x-6 top-5 h-[82%] rounded-[1.4rem] border border-neutral-200/80 bg-white/70"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-12 top-10 h-[78%] rounded-[1.5rem] border border-neutral-200/70 bg-white/55"
+        className="pointer-events-none absolute inset-x-9 top-8 h-[76%] rounded-[1.2rem] border border-neutral-200/70 bg-white/55"
       />
 
-      <article className="relative z-10 rounded-[1.6rem] border border-white/90 bg-white/95 p-5 shadow-[0_22px_55px_rgba(15,23,42,0.08)] sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <article className="relative z-10 rounded-[1.35rem] border border-white/90 bg-white/95 p-4 shadow-[0_18px_42px_rgba(15,23,42,0.08)] sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1">
               <Stars rating={current.rating} />
               <span className="text-xs font-semibold text-brand-700">{current.rating}/5</span>
             </div>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500">
+            <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-500">
               Témoignage {currentIndex + 1}
               {hasMultipleTestimonials ? ` / ${testimonials.length}` : ""}
             </p>
@@ -141,7 +141,7 @@ export function ConfianceCarousel({
               <button
                 type="button"
                 onClick={() => goToIndex(currentIndex - 1)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-lg text-neutral-700 transition-colors duration-150 hover:border-neutral-400 hover:text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-base text-neutral-700 transition-colors duration-150 hover:border-neutral-400 hover:text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                 aria-label="Voir le témoignage précédent"
               >
                 ←
@@ -149,7 +149,7 @@ export function ConfianceCarousel({
               <button
                 type="button"
                 onClick={() => goToIndex(currentIndex + 1)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-lg text-neutral-700 transition-colors duration-150 hover:border-neutral-400 hover:text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 bg-white text-base text-neutral-700 transition-colors duration-150 hover:border-neutral-400 hover:text-neutral-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                 aria-label="Voir le témoignage suivant"
               >
                 →
@@ -158,13 +158,13 @@ export function ConfianceCarousel({
           ) : null}
         </div>
 
-        <div className="mt-5" aria-live={isPaused ? "polite" : "off"}>
-          <blockquote className="border-l-2 border-brand-300 pl-4 text-base leading-8 text-neutral-800 sm:text-lg">
+        <div className="mt-4" aria-live={isPaused ? "polite" : "off"}>
+          <blockquote className="border-l-2 border-brand-300 pl-3 text-sm leading-7 text-neutral-800 sm:text-[15px]">
             {current.quote}
           </blockquote>
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-4">
+        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
           <span className="text-sm font-semibold text-neutral-950">{current.displayName}</span>
 
           {current.context ? (
@@ -181,7 +181,7 @@ export function ConfianceCarousel({
         </div>
 
         {hasMultipleTestimonials ? (
-          <div className="mt-5 flex flex-wrap items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {testimonials.map((testimonial, index) => {
               const isActive = index === currentIndex;
 

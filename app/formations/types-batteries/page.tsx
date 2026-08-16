@@ -320,7 +320,15 @@ export default function Module3Page() {
         duration="~25 min"
         level="Débutant"
         steps={steps}
+        voltaNote={{
+          title: "Le conseil de Volta",
+          message:
+            "Ne choisissez pas une batterie sur le marketing seul. Regardez d'abord votre usage réel, votre recharge disponible et la façon dont le banc sera câblé.",
+          variant: "warning",
+          pose: "perplexe",
+        }}
         prevModule={{ href: "/formations/lire-schema", label: "Lire un schéma électrique" }}
+        nextModule={{ href: "/formations/distribution-12v", label: "Construire une distribution 12V propre" }}
       />
     </>
   );

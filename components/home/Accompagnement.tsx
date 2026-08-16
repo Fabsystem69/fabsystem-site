@@ -17,28 +17,34 @@ const APPORTS = [
 
 export function Accompagnement() {
   return (
-    <Section tone="light" containerClassName="max-w-5xl" className="!py-16 sm:!py-20">
-      <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10">
+    <Section tone="dark" containerClassName="max-w-4xl" className="!py-8 sm:!py-10">
+      <div className="grid items-center gap-5 lg:grid-cols-[1.35fr_0.65fr] lg:gap-8">
         {/* Contenu — prioritaire sur mobile (§6) */}
-        <div className="order-2 max-w-lg lg:order-1">
-          <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-[2rem]">
+        <div className="order-2 max-w-xl lg:order-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-400">
+            On fait ensemble
+          </p>
+          <h2 className="mt-2 text-xl font-bold tracking-tight text-white sm:text-[1.7rem]">
             Vous faites. Je vous accompagne.
           </h2>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-neutral-600 sm:text-base">
+          <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-300">
             Vous gardez la main sur votre projet, Fabien vous aide à faire les bons choix,
             vérifier votre installation et avancer sans rester bloqué.
           </p>
 
-          <dl className="mt-5 space-y-3">
+          <dl className="mt-4 grid gap-2 sm:grid-cols-3">
             {APPORTS.map((apport) => (
-              <div key={apport.title}>
-                <dt className="text-sm font-bold text-neutral-950">{apport.title}</dt>
-                <dd className="mt-0.5 text-sm leading-relaxed text-neutral-600">{apport.text}</dd>
+              <div
+                key={apport.title}
+                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5"
+              >
+                <dt className="text-sm font-bold text-brand-300">{apport.title}</dt>
+                <dd className="mt-0.5 text-xs leading-relaxed text-neutral-300">{apport.text}</dd>
               </div>
             ))}
           </dl>
 
-          <div className="mt-5">
+          <div className="mt-4">
             <Button href="/prestations/accompagnement" variant="primary">
               Découvrir l&apos;accompagnement →
             </Button>
@@ -46,16 +52,18 @@ export function Accompagnement() {
         </div>
 
         {/* Visuel */}
-        <div className="order-1 mx-auto w-full max-w-sm lg:order-2 lg:max-w-md">
-          <div className="relative aspect-[4/4.6] w-full overflow-hidden rounded-2xl border border-neutral-200">
-            <Image
-              src="/fab-client-accompagnement.jpg"
-              alt="Fabien accompagne un client sur son installation électrique, devant un tableau ouvert"
-              fill
-              loading="lazy"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
+        <div className="order-1 mx-auto w-full max-w-[220px] lg:order-2 lg:max-w-[240px]">
+          <div className="rounded-2xl border border-brand-300/40 bg-brand-50/90 p-2 shadow-[0_16px_42px_rgba(0,0,0,0.24)]">
+            <div className="relative aspect-[4/4.35] w-full overflow-hidden rounded-[1rem] border border-neutral-900/10">
+              <Image
+                src="/fab-client-accompagnement.jpg"
+                alt="Fabien accompagne un client sur son installation électrique, devant un tableau ouvert"
+                fill
+                loading="lazy"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
+              />
+            </div>
           </div>
         </div>
       </div>

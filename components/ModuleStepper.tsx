@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { VoltaGuide, type VoltaGuideVariant } from "@/components/volta/VoltaGuide";
+import type { VoltaPose } from "@/components/volta/VoltaAvatar";
 
 export interface ModuleStep {
   title: string;
   content: React.ReactNode;
+}
+
+interface ModuleVoltaNote {
+  title?: string;
+  message: string;
+  variant?: VoltaGuideVariant;
+  pose?: VoltaPose;
 }
 
 interface ModuleStepperProps {
@@ -15,6 +24,7 @@ interface ModuleStepperProps {
   duration?: string;
   level?: string;
   steps: ModuleStep[];
+  voltaNote?: ModuleVoltaNote;
   prevModule?: { href: string; label: string };
   nextModule?: { href: string; label: string };
 }
@@ -26,6 +36,7 @@ export default function ModuleStepper({
   duration,
   level,
   steps,
+  voltaNote,
   prevModule,
   nextModule,
 }: ModuleStepperProps) {
@@ -65,6 +76,17 @@ export default function ModuleStepper({
         )}
       </div>
       <h1 className="mt-3 text-2xl font-bold tracking-tight text-neutral-900">{moduleTitle}</h1>
+
+      {voltaNote ? (
+        <VoltaGuide
+          variant={voltaNote.variant ?? "info"}
+          pose={voltaNote.pose ?? "neutre"}
+          title={voltaNote.title}
+          className="mt-5"
+        >
+          {voltaNote.message}
+        </VoltaGuide>
+      ) : null}
 
       {/* ── Barre de progression ── */}
       <div className="mt-6">

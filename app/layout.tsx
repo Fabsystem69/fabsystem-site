@@ -2,6 +2,7 @@ import "./globals.css";
 import { Space_Grotesk } from "next/font/google";
 import { SiteChrome } from "@/components/SiteChrome";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { ChunkLoadAutoReload } from "@/components/dev/ChunkLoadAutoReload";
 import { CartDrawerProvider } from "@/lib/client/cart-drawer-context";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
@@ -112,6 +113,7 @@ export default function RootLayout({
           }}
         />
         <CartDrawerProvider>
+          {process.env.NODE_ENV === "development" ? <ChunkLoadAutoReload /> : null}
           <SiteChrome>{children}</SiteChrome>
           <CartDrawer />
         </CartDrawerProvider>

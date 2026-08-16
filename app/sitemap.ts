@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listActiveBuyNowProducts } from "@/lib/services/catalog";
 import { isPrestationsPackSlug } from "@/lib/prestations-packs";
+import { SCHEMA_EXAMPLE_SLUGS } from "@/lib/schema-examples";
 
 // Sitemap dynamique (retour utilisateur : "optimise l'affichage des pages
 // sur Google") — les pages hub (/outils, /formations, /boutique) étaient
@@ -21,7 +22,14 @@ const OUTILS_SLUGS = [
   "soc-batterie",
   "charge-secteur",
 ];
-const FORMATIONS_SLUGS = ["bases-12v", "lire-schema", "types-batteries"];
+const FORMATIONS_SLUGS = [
+  "bases-12v",
+  "lire-schema",
+  "types-batteries",
+  "distribution-12v",
+  "recharger-batteries",
+  "multimetre",
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.fabsystem.fr";
@@ -80,6 +88,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    {
+      url: `${baseUrl}/schemas-electriques`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    ...SCHEMA_EXAMPLE_SLUGS.map((slug) => ({
+      url: `${baseUrl}/schemas-electriques/${slug}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
     {
       url: `${baseUrl}/boutique`,
       lastModified,
