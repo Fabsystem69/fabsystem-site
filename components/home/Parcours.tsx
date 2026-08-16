@@ -41,43 +41,48 @@ export function Parcours() {
   const { selectedUniverseLabel, selectionQuery } = useHomeUniverse();
 
   return (
-    <Section id="parcours" tone="muted" className="scroll-mt-24">
-      <div className="max-w-2xl">
-        <h2 className="text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">
+    <Section
+      id="parcours"
+      tone="muted"
+      containerClassName="max-w-5xl"
+      className="scroll-mt-24 !py-8 sm:!py-10"
+    >
+      <div className="max-w-xl">
+        <h2 className="text-xl font-bold tracking-tight text-neutral-950 sm:text-[1.7rem]">
           Comment souhaitez-vous avancer ?
         </h2>
-        <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+        <p className="mt-2 text-sm leading-relaxed text-neutral-600">
           {selectedUniverseLabel
             ? `Univers actif : ${selectedUniverseLabel}. Les liens de cette page se calent sur cet univers.`
             : "Choisissez votre univers juste en dessous pour adapter les accompagnements et les services a votre cas."}
         </p>
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-3 lg:gap-6">
+      <div className="mt-7 grid gap-5 lg:grid-cols-3 lg:gap-5">
         {STEPS.map((step, index) => (
-          <div key={step.n} className="relative">
+          <div key={step.n} className="relative rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
             {/* Connecteur discret desktop : ligne horizontale reliant les
                 étapes (progression visuelle, MASTER-12 : pas de flèches
                 énormes, pas de couleur différente par étape). */}
             {index > 0 ? (
               <div
                 aria-hidden="true"
-                className="absolute -left-3 top-5 hidden h-px w-6 bg-neutral-300 lg:block"
+                className="absolute -left-3 top-8 hidden h-px w-6 bg-neutral-300 lg:block"
               />
             ) : null}
 
             <span className="text-sm font-bold text-brand-500">{step.n}</span>
-            <h3 className="mt-2 text-lg font-bold text-neutral-950">{step.title}</h3>
+            <h3 className="mt-2 text-base font-bold text-neutral-950 sm:text-lg">{step.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">{step.text}</p>
 
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
               {step.ctas.map((cta) => {
                 const href = cta.href.startsWith("/prestations")
                   ? `${cta.href}${selectionQuery}`
                   : cta.href;
 
                 return cta.variant === "primary" ? (
-                  <Button key={href + cta.label} href={href} variant="primary">
+                  <Button key={href + cta.label} href={href} variant="primary" className="h-9 min-h-9 px-3.5">
                     {cta.label} →
                   </Button>
                 ) : (

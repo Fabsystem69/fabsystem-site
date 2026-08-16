@@ -45,7 +45,7 @@ function UniversCard({
       type="button"
       aria-pressed={isActive}
       onClick={() => onSelect(univers.id)}
-      className={`transition-base group relative flex min-h-[180px] flex-col justify-end overflow-hidden rounded-2xl border text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 sm:min-h-[210px] ${
+      className={`transition-base group relative flex min-h-[176px] flex-col justify-end overflow-hidden rounded-2xl border text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 sm:min-h-[208px] ${
         isActive
           ? "border-brand-400 shadow-[0_18px_40px_rgba(255,200,0,0.2)]"
           : "border-neutral-200 hover:border-neutral-300"
@@ -58,20 +58,30 @@ function UniversCard({
         sizes="(max-width: 768px) 100vw, 33vw"
         className={`object-cover transition-transform duration-300 ${isActive ? "scale-[1.02]" : "group-hover:scale-[1.03]"}`}
       />
-      <div className={`absolute inset-0 ${isActive ? "bg-gradient-to-t from-black/80 via-black/35 to-black/10" : "bg-gradient-to-t from-black/75 via-black/20 to-transparent"}`} />
+      <div
+        className={`absolute inset-0 ${
+          isActive
+            ? "bg-gradient-to-t from-black/92 via-black/62 to-black/18"
+            : "bg-gradient-to-t from-black/88 via-black/54 to-black/16"
+        }`}
+      />
 
-      <div className="relative z-10 p-4 sm:p-5">
+      <div className="relative z-10 p-3.5 sm:p-4">
+        <div className="rounded-[20px] border border-white/10 bg-black/42 p-4 shadow-[0_12px_28px_rgba(0,0,0,0.24)] backdrop-blur-[2px]">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-lg font-bold text-white">{univers.name}</p>
+          <p className="text-lg font-bold tracking-tight text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.5)]">
+            {univers.name}
+          </p>
           <span
             className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-              isActive ? "bg-brand-400 text-neutral-950" : "bg-white/12 text-white/78"
+              isActive ? "bg-brand-400 text-neutral-950 shadow-sm" : "bg-white/18 text-white"
             }`}
           >
             {isActive ? "Actif" : "Choisir"}
           </span>
         </div>
-        <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/82">{univers.text}</p>
+        <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/92">{univers.text}</p>
+        </div>
       </div>
     </button>
   );
@@ -85,7 +95,7 @@ export function TroisUnivers() {
       id="apres-hero"
       tone="muted"
       containerClassName="max-w-4xl"
-      className="scroll-mt-24 !pt-0 !pb-8 sm:!pb-10"
+      className="scroll-mt-24 !pt-0 !pb-7 sm:!pb-9"
     >
       <div className="max-w-2xl">
         <h2 className="text-xl font-bold tracking-tight text-neutral-950 sm:text-[1.55rem]">
