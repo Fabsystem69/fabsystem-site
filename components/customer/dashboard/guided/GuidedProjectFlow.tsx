@@ -95,8 +95,13 @@ export function GuidedProjectFlow({
   const [flow, setFlow] = useState<GuidedFlowState | null>(null);
 
   useEffect(() => {
+    // Cette lecture dépend de localStorage : on l'attend volontairement
+    // côté client après hydratation pour éviter tout mismatch SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFlow(readGuidedFlowState(project.id));
   }, [project.id]);
+
+  const currentStepIdForScroll = flow?.stepId;
 
   // Précédent/Suivant ne change que l'état affiché (pas de navigation de
   // page) : sans ceci, un utilisateur qui a scrollé vers le bas sur une
@@ -107,9 +112,9 @@ export function GuidedProjectFlow({
   // `if (!flow) return null` ci-dessous pour respecter les Rules of Hooks
   // (un hook ne peut pas suivre un retour conditionnel).
   useEffect(() => {
-    if (!flow) return;
+    if (!currentStepIdForScroll) return;
     window.scrollTo(0, 0);
-  }, [flow?.stepId]);
+  }, [currentStepIdForScroll]);
 
   function updateFlow(patch: Partial<GuidedFlowState>) {
     setFlow((current) => {
@@ -146,7 +151,12 @@ export function GuidedProjectFlow({
               {getProjectAssetTypeLabel(project.assetType)} · {getProjectVoltageLabel(project.voltage)}
             </p>
           </div>
-          <ModeSwitch projectId={project.id} current="guided" onSwitch={onSwitchMode} />
+          <div className="flex flex-wrap gap-2">
+            <Button href={`/mon-compte/projets/${project.id}/suivi`} variant="secondary">
+              Suivi projet
+            </Button>
+            <ModeSwitch projectId={project.id} current="guided" onSwitch={onSwitchMode} />
+          </div>
         </div>
       </div>
 

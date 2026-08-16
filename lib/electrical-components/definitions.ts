@@ -726,6 +726,28 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // le plafond de `boxSize` (voir ElectricalNode.tsx), donc la taille
     // maximale possible plutôt que la taille "standard" des autres boîtiers.
     minIconBoxSize: 84,
+    getHandles: (data) => {
+      if (data.connectorLayout === "dual-xt90-xt60") {
+        return [
+          { id: "xt90-1-negative", label: "XT90 #1 −", kind: "negative", side: "left" as const },
+          { id: "xt90-1-positive", label: "XT90 #1 +", kind: "positive", side: "left" as const },
+          { id: "xt90-2-negative", label: "XT90 #2 −", kind: "negative", side: "left" as const },
+          { id: "xt90-2-positive", label: "XT90 #2 +", kind: "positive", side: "left" as const },
+          { id: "ac-in", label: "AC IN", kind: "neutral", side: "top" as const },
+          { id: "ac-out", label: "AC OUT", kind: "neutral", side: "right" as const },
+          { id: "xt60-negative", label: "XT60 −", kind: "negative", side: "bottom" as const },
+          { id: "xt60-positive", label: "XT60 +", kind: "positive", side: "bottom" as const },
+        ];
+      }
+      return [
+        { id: "pv-negative", label: "PV−", kind: "negative", side: "left" as const },
+        { id: "pv-positive", label: "PV+", kind: "positive", side: "left" as const },
+        { id: "ac-in", label: "AC IN", kind: "neutral", side: "top" as const },
+        { id: "ac-out", label: "AC OUT", kind: "neutral", side: "right" as const },
+        { id: "dc-negative", label: "DC 12V−", kind: "negative", side: "bottom" as const },
+        { id: "dc-positive", label: "DC 12V+", kind: "positive", side: "bottom" as const },
+      ];
+    },
     handles: [
       { id: "pv-negative", label: "PV−", kind: "negative", side: "left" },
       { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },

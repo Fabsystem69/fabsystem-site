@@ -14,6 +14,7 @@ import {
   getSchemaExampleBySlug,
   getSchemaExampleHref,
   getSchemaExampleTemplate,
+  getSchemaExampleThumbnailAbsoluteUrl,
 } from "@/lib/schema-examples";
 
 type PageProps = {
@@ -43,6 +44,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: example.metaTitle,
       description: example.metaDescription,
       url: getSchemaExampleAbsoluteUrl(example.slug),
+      images: getSchemaExampleThumbnailAbsoluteUrl(example.slug)
+        ? [
+            {
+              url: getSchemaExampleThumbnailAbsoluteUrl(example.slug) ?? "",
+              width: 1200,
+              height: 896,
+              alt: example.thumbnailAlt,
+            },
+          ]
+        : undefined,
     },
   };
 }

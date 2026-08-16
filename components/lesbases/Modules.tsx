@@ -69,6 +69,35 @@ const MODULES = [
   },
 ] as const;
 
+const GUIDES = [
+  {
+    href: "/installation-electrique-van",
+    badge: "Guide pratique",
+    meta: "Van aménagé",
+    title: "Bien dimensionner une installation van avant d'acheter",
+    description:
+      "Un article de synthèse pour remettre les priorités dans le bon ordre : besoins réels, batterie, recharge, convertisseur 230V, câbles et protections.",
+    highlights: [
+      "Éviter de surdimensionner ou sous-dimensionner dès le départ",
+      "Relier les modules de base à un vrai projet de van",
+      "Revenir ensuite aux outils et aux schémas avec une logique claire",
+    ],
+  },
+  {
+    href: "/installation-van-batterie-tout-en-un-aferiy-p280",
+    badge: "Cas concret",
+    meta: "AFERIY P280",
+    title: "Monter un van simple autour d'une batterie tout-en-un",
+    description:
+      "Un cas d'usage concret autour de l'AFERIY P280 : double XT90, sortie XT60 12V, panneau 200W et deux prises AC à traiter avec sérieux.",
+    highlights: [
+      "Voir comment structurer le 12V fixe à partir d'une sortie XT60",
+      "Comprendre où une station tout-en-un simplifie vraiment le projet",
+      "Garder une vraie prudence sur les prises 230V fixes dans le van",
+    ],
+  },
+] as const;
+
 export function Modules() {
   return (
     <Section id="modules" tone="light" className="scroll-mt-24">
@@ -112,6 +141,54 @@ export function Modules() {
           </article>
         ))}
       </div>
+
+      <article className="mt-8 rounded-[28px] border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
+        <div className="max-w-3xl">
+          <div className="flex flex-wrap gap-2">
+            <Badge tone="info">Guides pratiques</Badge>
+            <Badge tone="neutral">À lire après les 6 modules</Badge>
+          </div>
+          <h3 className="mt-3 text-xl font-bold tracking-tight text-neutral-950">
+            Approfondir avec deux guides plus concrets
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-neutral-700 sm:text-base">
+            Une fois les fondamentaux compris, ces deux lectures vous aident à passer d&apos;une notion
+            théorique à une vraie logique de projet.
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          {GUIDES.map((guide) => (
+            <div key={guide.href} className="rounded-2xl border border-neutral-200 bg-white p-5">
+              <div className="flex flex-wrap gap-2">
+                <Badge tone="info">{guide.badge}</Badge>
+                <Badge tone="neutral">{guide.meta}</Badge>
+              </div>
+              <h4 className="mt-3 text-lg font-bold tracking-tight text-neutral-950">
+                {guide.title}
+              </h4>
+              <p className="mt-2 text-sm leading-relaxed text-neutral-700">{guide.description}</p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {guide.highlights.map((item) => (
+                  <div
+                    key={item}
+                    className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm leading-relaxed text-neutral-700"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4">
+                <Button href={guide.href} variant="secondary" className="w-full sm:w-auto">
+                  Lire le guide →
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </article>
     </Section>
   );
 }

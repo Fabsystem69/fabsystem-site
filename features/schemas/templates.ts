@@ -263,6 +263,161 @@ function buildPowerStationTemplate(): { projectName: string; nodes: SchemaNode[]
   return { projectName: "Gabarit : station électrique tout-en-1", nodes: [...zones, ...nodes], edges };
 }
 
+function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  const nodes: SchemaNode[] = [
+    buildNode("af-solar", "solar-panel", 40, 120, {
+      label: "Panneau flexible 200W",
+      powerW: 200,
+      voltage: 0,
+    }),
+    buildNode("af-veh-battery", "battery", 40, 460, {
+      label: "Batterie véhicule 12V",
+      voltage: 12,
+      capacityAh: 100,
+      technology: "agm",
+      brandModelId: "renogy-agm-100ah",
+      brand: "Renogy",
+      model: "Deep Cycle AGM 12V/100Ah",
+    }),
+    buildNode("af-dcdc-fuse", "fuse", 290, 440, {
+      label: "Fusible charge véhicule",
+      fuseType: "midi",
+      amperage: 60,
+    }),
+    buildNode("af-dcdc", "dcdc", 500, 390, {
+      label: "Chargeur DC-DC compatible",
+      voltageIn: 12,
+      voltageOut: 12,
+      amperage: 50,
+    }),
+    buildNode("af-station", "power-station", 860, 190, {
+      label: "AFERIY P280",
+      powerW: 2800,
+      capacityWh: 2048,
+      brandModelId: "aferiy-p280",
+      brand: "AFERIY",
+      model: "P280",
+      connectorLayout: "dual-xt90-xt60",
+    }),
+    buildNode("shore-power_msvzcqef_1", "shore-power", 780, 80, {
+      label: "Prise de quai",
+    }),
+    buildNode("af-ac-panel", "ac-panel", 1200, -220, {
+      label: "Tableau 230V",
+    }),
+    buildNode("af-socket-1", "socket-220v", 1540, -260, {
+      label: "Prise AC 1",
+      powerW: 500,
+    }),
+    buildNode("af-socket-2", "socket-220v", 1540, -100, {
+      label: "Prise AC 2",
+      powerW: 500,
+    }),
+    buildNode("af-ground", "ground", 1500, 120, {
+      label: "Point de masse",
+    }),
+    buildNode("af-dc-fuse", "fuse", 1020, 320, {
+      label: "Fusible principal XT60",
+      fuseType: "midi",
+      amperage: 25,
+    }),
+    buildNode("af-panel", "distribution-panel", 1320, 410, {
+      label: "Tableau 12V",
+      layout: "with-fuses",
+      outputCount: 4,
+    }),
+    buildNode("af-busbar-neg", "busbar", 1240, 520, {
+      label: "Busbar −",
+      polarity: "negative",
+      outputCount: 4,
+    }),
+    buildNode("af-switch-frigo", "switch", 1610, 300, {
+      label: "Interrupteur",
+      amperage: 0,
+    }),
+    buildNode("af-frigo", "consumer", 1800, 250, {
+      label: "Réfrigérateur 12V",
+      presetType: "refrigerateur",
+      powerW: 45,
+    }),
+    buildNode("af-switch-pompe", "switch", 1600, 470, {
+      label: "Interrupteur",
+      amperage: 0,
+    }),
+    buildNode("af-pompe", "consumer", 1800, 420, {
+      label: "Pompe à eau",
+      presetType: "pompe-eau",
+      powerW: 60,
+    }),
+    buildNode("af-switch-usb", "switch", 1600, 640, {
+      label: "Interrupteur",
+      amperage: 0,
+    }),
+    buildNode("af-usb", "consumer", 1790, 590, {
+      label: "Ports USB",
+      presetType: "prise-usb-12v",
+      powerW: 15,
+    }),
+    buildNode("af-switch-led", "switch", 1400, 640, {
+      label: "Interrupteur",
+      amperage: 0,
+      rotation: 90,
+    }),
+    buildNode("af-led", "consumer", 1500, 730, {
+      label: "Éclairage LED",
+      presetType: "eclairage-led",
+      powerW: 10,
+      rotation: 270,
+    }),
+  ];
+
+  const edges: SchemaEdge[] = [
+    buildEdge("af-e1", "af-solar", "positive", "af-station", "xt90-1-positive", RED, "power-positive", "4 mm²", 3),
+    buildEdge("af-e2", "af-solar", "negative", "af-station", "xt90-1-negative", BLACK, "power-negative", "4 mm²", 3),
+    buildEdge("af-e3", "af-veh-battery", "positive", "af-dcdc-fuse", "input", RED, "power-positive", "10 mm²", 1.5),
+    buildEdge("af-e4", "af-dcdc-fuse", "output", "af-dcdc", "in-positive", RED, "power-positive", "10 mm²", 1),
+    buildEdge("af-e5", "af-veh-battery", "negative", "af-dcdc", "in-negative", BLACK, "power-negative", "10 mm²", 1.5),
+    buildEdge("af-e6", "af-dcdc", "out-positive", "af-station", "xt90-2-positive", RED, "power-positive", "10 mm²", 2),
+    buildEdge("af-e7", "af-dcdc", "out-negative", "af-station", "xt90-2-negative", BLACK, "power-negative", "10 mm²", 2),
+
+    buildEdge("af-e8", "af-station", "xt60-positive", "af-dc-fuse", "input", RED, "power-positive", "6 mm²", 1),
+    buildEdge("af-e9", "af-dc-fuse", "output", "af-panel", "input", RED, "power-positive", "6 mm²", 1),
+    buildEdge("af-e10", "af-station", "xt60-negative", "af-busbar-neg", "input", BLACK, "power-negative", "6 mm²", 1.5),
+
+    buildEdge("af-e11", "af-panel", "out-1", "af-switch-frigo", "input", RED, "power-positive", "1,5 mm²", 2.5),
+    buildEdge("af-e12", "af-switch-frigo", "output", "af-frigo", "positive", RED, "power-positive", "1,5 mm²", 1),
+    buildEdge("af-e13", "af-panel", "out-2", "af-switch-pompe", "input", RED, "power-positive", "1,5 mm²", 2.5, { x: 1380, y: 520 }),
+    buildEdge("af-e14", "af-switch-pompe", "output", "af-pompe", "positive", RED, "power-positive", "1,5 mm²", 1),
+    buildEdge("af-e15", "af-panel", "out-3", "af-switch-usb", "input", RED, "power-positive", "0,75 mm²", 2),
+    buildEdge("af-e16", "af-switch-usb", "output", "af-usb", "positive", RED, "power-positive", "0,75 mm²", 1),
+    buildEdge("af-e17", "af-panel", "out-4", "af-switch-led", "input", RED, "power-positive", "0,75 mm²", 2, { x: 1520.5, y: 570 }),
+    buildEdge("af-e18", "af-switch-led", "output", "af-led", "positive", RED, "power-positive", "0,75 mm²", 1),
+
+    buildEdge("af-e19", "af-busbar-neg", "out-1", "af-frigo", "negative", BLACK, "power-negative", "1,5 mm²", 2, { x: 1540, y: 300 }),
+    buildEdge("af-e20", "af-busbar-neg", "out-2", "af-pompe", "negative", BLACK, "power-negative", "1,5 mm²", 2, { x: 1720, y: 620 }),
+    buildEdge("af-e21", "af-busbar-neg", "out-3", "af-usb", "negative", BLACK, "power-negative", "0,75 mm²", 2, { x: 1440, y: 300 }),
+    buildEdge("af-e22", "af-busbar-neg", "out-4", "af-led", "negative", BLACK, "power-negative", "0,75 mm²", 2),
+
+    buildEdge("af-e23", "af-station", "ac-out", "af-ac-panel", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("af-e24", "af-ac-panel", "ac-out", "af-socket-1", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("af-e25", "af-ac-panel", "ac-out", "af-socket-2", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("af-e26", "af-ac-panel", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
+    buildEdge("af-e27", "af-socket-1", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
+    buildEdge("af-e28", "af-socket-2", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
+    buildEdge("edge_msvzcvid_2", "shore-power_msvzcqef_1", "ac", "af-station", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+  ];
+
+  const zones: SchemaNode[] = [
+    buildZone("af-zone-solar", -20, 40, 360, 220, "XT90 solaire", "#f59e0b"),
+    buildZone("af-zone-veh", -20, 330, 700, 280, "Recharge véhicule / DC-DC (optionnel)", "#10b981"),
+    buildZone("af-zone-station", 700, 40, 410, 340, "AFERIY P280", "#6366f1"),
+    buildZone("af-zone-ac", 1180, -300, 520, 500, "230V fixe", "#7c3aed"),
+    buildZone("af-zone-12v", 1220, 240, 740, 580, "Réseau 12V via XT60", "#3b82f6"),
+  ];
+
+  return { projectName: "Gabarit : AFERIY P280 van", nodes: [...zones, ...nodes], edges };
+}
+
 export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
   {
     id: "van-complet",
@@ -287,6 +442,12 @@ export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
     label: "La station électrique",
     description: "Panneau solaire + prise de quai en entrée d'une station tout-en-1, avec un circuit 220V protégé et un circuit 12V (frigo, éclairage, pompe) en sortie — pas de batterie ni d'onduleur séparés à câbler.",
     build: buildPowerStationTemplate,
+  },
+  {
+    id: "station-aferiy-p280",
+    label: "AFERIY P280 dans un van",
+    description: "Cas concret autour d'une AFERIY P280 : un XT90 pour le solaire, un XT90 pour la recharge véhicule / DC-DC, une sortie XT60 12V protégée et deux prises AC fixes à traiter avec sérieux.",
+    build: buildAferiyP280Template,
   },
 ];
 

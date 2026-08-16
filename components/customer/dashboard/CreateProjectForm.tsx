@@ -12,11 +12,19 @@ import { PROJECT_ASSET_TYPE_LABELS, PROJECT_VOLTAGE_LABELS } from "@/lib/project
 const ASSET_TYPES: ProjectAssetType[] = ["BOAT", "VAN", "MOTORHOME", "OTHER"];
 const VOLTAGES: ProjectVoltage[] = ["V12", "V24", "UNKNOWN"];
 
-export function CreateProjectForm() {
+export function CreateProjectForm({
+  defaults,
+}: {
+  defaults?: {
+    name?: string;
+    assetType?: ProjectAssetType;
+    voltage?: ProjectVoltage;
+  };
+}) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [assetType, setAssetType] = useState<ProjectAssetType>("BOAT");
-  const [voltage, setVoltage] = useState<ProjectVoltage>("UNKNOWN");
+  const [name, setName] = useState(defaults?.name ?? "");
+  const [assetType, setAssetType] = useState<ProjectAssetType>(defaults?.assetType ?? "BOAT");
+  const [voltage, setVoltage] = useState<ProjectVoltage>(defaults?.voltage ?? "UNKNOWN");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

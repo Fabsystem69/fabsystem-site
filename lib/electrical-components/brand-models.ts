@@ -88,6 +88,7 @@ export const BRAND_MODELS: BrandModel[] = [
   // fourni), pas une estimation.
   { id: "bluetti-elite-300", brand: "Bluetti", model: "Elite 300", componentType: "power-station", defaults: { powerW: 2400, capacityWh: 3014.4 }, iconPro: "/schema-icons/pro/brand/bluetti-elite-300.webp" },
   { id: "ecoflow-delta-3", brand: "EcoFlow", model: "Delta 3", componentType: "power-station", defaults: { powerW: 1600, capacityWh: 1024 }, iconPro: "/schema-icons/pro/brand/ecoflow-delta-3.webp" },
+  { id: "aferiy-p280", brand: "AFERIY", model: "P280", componentType: "power-station", defaults: { powerW: 2800, capacityWh: 2048, connectorLayout: "dual-xt90-xt60" }, iconPro: "/schema-icons/pro/brand/aferiy-p280.webp" },
 
   // Shunt / monitoring
   { id: "victron-smartshunt-500a", brand: "Victron", model: "SmartShunt 500A", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-500a.png" },

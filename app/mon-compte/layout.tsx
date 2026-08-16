@@ -20,8 +20,8 @@ export default async function MonCompteLayout({ children }: { children: ReactNod
   }
 
   return (
-    <main className="bg-white text-neutral-900">
-      <div className="border-b border-neutral-200 bg-neutral-50">
+    <main className="bg-white text-neutral-900 print:bg-white">
+      <div className="border-b border-neutral-200 bg-neutral-50 print:hidden">
         <div className="mx-auto max-w-6xl px-6 py-6">
           <Link
             href="/"
@@ -36,16 +36,16 @@ export default async function MonCompteLayout({ children }: { children: ReactNod
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
-        <div className="grid gap-8 lg:grid-cols-[200px_minmax(0,1fr)]">
-          <aside className="lg:sticky lg:top-6 lg:self-start">
+      <div className="mx-auto max-w-6xl px-6 py-8 sm:py-10 print:max-w-none print:px-0 print:py-0">
+        <div className="grid gap-8 lg:grid-cols-[200px_minmax(0,1fr)] print:block">
+          <aside className="lg:sticky lg:top-6 lg:self-start print:hidden">
             <DashboardNav />
             <div className="mt-6 hidden lg:block">
               <LogoutButton />
             </div>
           </aside>
 
-          <div className="min-w-0">{children}</div>
+          <div className="min-w-0 print:min-w-0">{children}</div>
         </div>
       </div>
     </main>

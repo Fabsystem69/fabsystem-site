@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { SCHEMA_EXAMPLE_COUNT } from "@/lib/schema-examples";
 
 const EXAMPLE_TAGS = [
   "Solaire simple",
@@ -28,7 +29,7 @@ export function SchemaExamplesTeaser({ className = "" }: { className?: string })
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap gap-2">
             <Badge tone="info">Exemples concrets</Badge>
-            <Badge tone="success">4 fiches</Badge>
+            <Badge tone="success">{SCHEMA_EXAMPLE_COUNT} fiches</Badge>
           </div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
             Nouveau repère
@@ -37,8 +38,9 @@ export function SchemaExamplesTeaser({ className = "" }: { className?: string })
             Besoin d&apos;un point de départ avant d&apos;éditer votre propre schéma ?
           </h3>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-neutral-600">
-            Retrouvez 4 exemples lisibles avec explications, points de vigilance, ouverture directe
-            dans l&apos;éditeur et impression PDF pour garder une base claire sous les yeux.
+            Retrouvez {SCHEMA_EXAMPLE_COUNT} exemples lisibles avec explications, points de
+            vigilance, ouverture directe dans l&apos;éditeur et impression PDF pour garder une
+            base claire sous les yeux.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">

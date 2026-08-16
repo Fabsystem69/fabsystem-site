@@ -171,6 +171,13 @@ export default async function MesProjetsPage() {
                       ) : null}
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
+                      <Button
+                        href={`/mon-compte/projets/${project.id}/suivi`}
+                        variant="secondary"
+                        className="h-9 min-h-9 px-3 text-xs"
+                      >
+                        Suivi projet
+                      </Button>
                       {canOpenSchemaDirectly ? (
                         <Button
                           href={`/outils/schema?projectId=${project.id}`}

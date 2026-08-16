@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { CreateProjectForm } from "@/components/customer/dashboard/CreateProjectForm";
 import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/project";
 import { requireCustomerActor } from "@/lib/server/project-actor";
+import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
 
 export const metadata: Metadata = {
   title: "Nouveau projet",
@@ -19,11 +20,30 @@ export const metadata: Metadata = {
 // une erreur ensuite. Le backend (lib/services/project.ts, conflict 409)
 // reste la source de vérité et le seul contrôle réellement bloquant ;
 // cette vérification n'est qu'un confort d'affichage en amont.
-export default async function NouveauProjetPage() {
+type PageProps = {
+  searchParams?: Promise<{
+    name?: string;
+    assetType?: string;
+    voltage?: string;
+  }>;
+};
+
+const ASSET_TYPES: ProjectAssetType[] = ["BOAT", "VAN", "MOTORHOME", "OTHER"];
+const VOLTAGES: ProjectVoltage[] = ["V12", "V24", "UNKNOWN"];
+
+export default async function NouveauProjetPage({ searchParams }: PageProps) {
   const actor = await requireCustomerActor();
   const customerId = actor.role === "customer" ? actor.customerId : "";
   const projects = await listProjectsForCustomer(actor, customerId);
   const limitReached = projects.length >= STANDARD_PROJECT_LIMIT;
+  const params = searchParams ? await searchParams : undefined;
+  const defaultName = params?.name?.trim() || undefined;
+  const defaultAssetType = ASSET_TYPES.includes(params?.assetType as ProjectAssetType)
+    ? (params?.assetType as ProjectAssetType)
+    : undefined;
+  const defaultVoltage = VOLTAGES.includes(params?.voltage as ProjectVoltage)
+    ? (params?.voltage as ProjectVoltage)
+    : undefined;
 
   return (
     <div className="max-w-xl space-y-6">
@@ -60,7 +80,13 @@ export default async function NouveauProjetPage() {
           </div>
         </Card>
       ) : (
-        <CreateProjectForm />
+        <CreateProjectForm
+          defaults={{
+            name: defaultName,
+            assetType: defaultAssetType,
+            voltage: defaultVoltage,
+          }}
+        />
       )}
     </div>
   );

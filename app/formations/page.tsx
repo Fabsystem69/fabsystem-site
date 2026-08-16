@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Les bases",
   description:
-    "Les fondamentaux de l'électricité embarquée, expliqués simplement et gratuitement : modules, bons gestes, outils et quiz.",
+    "Les fondamentaux de l'électricité embarquée, expliqués simplement et gratuitement : modules, guides pratiques, bons gestes, outils et quiz.",
   alternates: {
     canonical: "/formations",
   },
@@ -39,7 +39,7 @@ export default function FormationsPage() {
       <PageIntro
         eyebrow="Les bases"
         title="Comprendre avant de se lancer."
-        description="Les fondamentaux de l'électricité embarquée, expliqués simplement et gratuitement."
+        description="Les fondamentaux de l'électricité embarquée, expliqués simplement et gratuitement, avec modules, guides pratiques et outils utiles."
       />
 
       <nav

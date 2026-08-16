@@ -143,7 +143,6 @@ export function AdvancedProjectView({
   project,
   retainedValues,
   dependencies,
-  engineIds,
   defaultVoltageV,
   consumerNames,
   circuitsForChain,
@@ -255,9 +254,14 @@ export function AdvancedProjectView({
                   : "Aucun schéma pour l'instant — dessinez le câblage de ce projet."}
               </p>
             </div>
-            <Button href={`/outils/schema?projectId=${project.id}`}>
-              {hasSchema ? "Ouvrir l'éditeur de schéma" : "Créer le schéma"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button href={`/mon-compte/projets/${project.id}/suivi`} variant="secondary">
+                Suivi projet
+              </Button>
+              <Button href={`/outils/schema?projectId=${project.id}`}>
+                {hasSchema ? "Ouvrir l'éditeur de schéma" : "Créer le schéma"}
+              </Button>
+            </div>
           </div>
         </Card>
       ) : null}
