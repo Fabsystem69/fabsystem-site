@@ -61,26 +61,28 @@ function UniversCard({
       <div
         className={`absolute inset-0 ${
           isActive
-            ? "bg-gradient-to-t from-black/92 via-black/62 to-black/18"
-            : "bg-gradient-to-t from-black/88 via-black/54 to-black/16"
+            ? "bg-gradient-to-t from-black/96 via-black/72 to-black/20"
+            : "bg-gradient-to-t from-black/92 via-black/62 to-black/18"
         }`}
       />
 
-      <div className="relative z-10 p-3.5 sm:p-4">
-        <div className="rounded-[20px] border border-white/10 bg-black/42 p-4 shadow-[0_12px_28px_rgba(0,0,0,0.24)] backdrop-blur-[2px]">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-lg font-bold tracking-tight text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.5)]">
-            {univers.name}
+      <div className="relative z-10 p-2.5 sm:p-3">
+        <div className="rounded-[18px] border border-white/12 bg-neutral-950/82 p-4 shadow-[0_16px_34px_rgba(0,0,0,0.34)] backdrop-blur-sm">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-lg font-bold tracking-tight text-white">
+              {univers.name}
+            </p>
+            <span
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                isActive ? "bg-brand-400 text-neutral-950 shadow-sm" : "bg-white/20 text-white"
+              }`}
+            >
+              {isActive ? "Actif" : "Choisir"}
+            </span>
+          </div>
+          <p className="mt-2 max-w-none text-sm leading-relaxed text-white">
+            {univers.text}
           </p>
-          <span
-            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-              isActive ? "bg-brand-400 text-neutral-950 shadow-sm" : "bg-white/18 text-white"
-            }`}
-          >
-            {isActive ? "Actif" : "Choisir"}
-          </span>
-        </div>
-        <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/92">{univers.text}</p>
         </div>
       </div>
     </button>
