@@ -44,6 +44,14 @@ scripts/.tmp-*
 # contenu source des ebooks (HTML/EPUB volumineux), jamais commite
 /ebook/
 
+# dossiers de travail locaux / nettoyage manuel
+/dash/
+/local-only/
+/outputs/
+/tmp/
+lib/generated/prisma/* [0-9].ts
+.claude/settings.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

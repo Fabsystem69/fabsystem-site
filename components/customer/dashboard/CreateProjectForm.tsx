@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
+import type { ProjectStarterId } from "@/lib/project-starter-contract";
 import { PROJECT_ASSET_TYPE_LABELS, PROJECT_VOLTAGE_LABELS } from "@/lib/project-labels";
 
 // Espace client V2 (UI-8) — création minimale (MASTER-06 §8-9) : nom,
@@ -19,6 +20,7 @@ export function CreateProjectForm({
     name?: string;
     assetType?: ProjectAssetType;
     voltage?: ProjectVoltage;
+    starter?: ProjectStarterId;
   };
 }) {
   const router = useRouter();
@@ -44,7 +46,12 @@ export function CreateProjectForm({
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: trimmedName, assetType, voltage }),
+        body: JSON.stringify({
+          name: trimmedName,
+          assetType,
+          voltage,
+          starter: defaults?.starter,
+        }),
       });
 
       const data = (await response.json().catch(() => null)) as

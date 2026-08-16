@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { badRequest } from "@/lib/http-errors";
+import { projectStarterSchema } from "@/lib/project-starter-contract";
 
 // Valeurs alignées sur ProjectAssetType / ProjectVoltage (prisma/schema.prisma).
 // Aucune valeur de tension par défaut inventée : "Je ne sais pas" = UNKNOWN
@@ -11,6 +12,7 @@ export const createProjectInputSchema = z.object({
   name: z.string().trim().min(1).max(120),
   assetType: projectAssetTypeSchema,
   voltage: projectVoltageSchema,
+  starter: projectStarterSchema.optional(),
 });
 
 // Création manuelle Admin (MASTER-04 §4) : le customerId cible est fourni

@@ -261,6 +261,7 @@ export default async function InstallationVanAferiyP280Page() {
     name: "Van VW T5/T6 - installation AFERIY P280",
     assetType: "VAN",
     voltage: "V12",
+    starter: "aferiy-p280-guide",
   });
   const projectCtaHref = session
     ? `/mon-compte/projets/nouveau?${convertToProjectParams.toString()}`

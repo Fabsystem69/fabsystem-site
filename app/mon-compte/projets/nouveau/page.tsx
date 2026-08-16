@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { CreateProjectForm } from "@/components/customer/dashboard/CreateProjectForm";
 import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/project";
+import { isProjectStarterId } from "@/lib/project-starter-contract";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
 
@@ -25,6 +26,7 @@ type PageProps = {
     name?: string;
     assetType?: string;
     voltage?: string;
+    starter?: string;
   }>;
 };
 
@@ -44,6 +46,7 @@ export default async function NouveauProjetPage({ searchParams }: PageProps) {
   const defaultVoltage = VOLTAGES.includes(params?.voltage as ProjectVoltage)
     ? (params?.voltage as ProjectVoltage)
     : undefined;
+  const defaultStarter = isProjectStarterId(params?.starter) ? params?.starter : undefined;
 
   return (
     <div className="max-w-xl space-y-6">
@@ -85,6 +88,7 @@ export default async function NouveauProjetPage({ searchParams }: PageProps) {
             name: defaultName,
             assetType: defaultAssetType,
             voltage: defaultVoltage,
+            starter: defaultStarter,
           }}
         />
       )}

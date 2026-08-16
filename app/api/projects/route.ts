@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { toErrorResponse } from "@/lib/http-errors";
 import { parseCreateProjectInput } from "@/lib/project-payload";
+import { logServerEvent } from "@/lib/server-log";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { requireCustomerActor } from "@/lib/server/project-actor";
-import { createProject, listProjectsForCustomer } from "@/lib/services/project";
+import { createProject, deleteProject, listProjectsForCustomer } from "@/lib/services/project";
+import { applyProjectStarter } from "@/lib/project-starters";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const actor = await requireCustomerActor();
     const projects = await listProjectsForCustomer(
@@ -44,6 +46,23 @@ export async function POST(request: Request) {
       assetType: input.assetType,
       voltage: input.voltage,
     });
+
+    if (input.starter) {
+      try {
+        await applyProjectStarter(actor, project, input.starter);
+      } catch (error) {
+        try {
+          await deleteProject(actor, project.id, { confirm: true });
+        } catch (rollbackError) {
+          logServerEvent("error", "api.projects.post: starter rollback failed", {
+            projectId: project.id,
+            starter: input.starter,
+            error: rollbackError,
+          });
+        }
+        throw error;
+      }
+    }
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (error) {
