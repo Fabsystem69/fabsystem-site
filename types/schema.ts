@@ -1,7 +1,12 @@
 // Modèle de données FabSystem Schéma V1 (docs/schema/CDC_FabSystem_Schema_V1.md §14-15).
 // Les nodes/edges React Flow utilisent ces types via leur champ `data`.
 
-export type ComponentCategory = "sources" | "charge" | "protection" | "distribution" | "mesure" | "conversion" | "consommateurs";
+// Familles pensées type de produit plutôt que rôle électrique (retour
+// utilisateur : "pense débutant néophyte... réfléchi en type solaire,
+// convertisseur, chargeur, batterie") — un débutant qui ne sait pas encore
+// ce qu'est un "MPPT" reconnaît "Solaire" comme famille de rayon plutôt que
+// l'ancien découpage par rôle (source/charge/distribution).
+export type ComponentCategory = "solar" | "battery" | "charger" | "converter" | "wiring" | "measurement" | "consumers";
 
 export type HandleKind = "positive" | "negative" | "neutral" | "earth";
 
@@ -26,6 +31,10 @@ export interface ComponentDefinition {
   type: string;
   label: string;
   category: ComponentCategory;
+  /** Sous-famille au sein de la catégorie, pour regrouper visuellement dans
+   * la bibliothèque (ex. "Batteries" vs "Répartiteurs" dans la famille
+   * Batterie) — purement d'affichage, pas de logique dessus. */
+  subcategory?: string;
   subtitle?: string;
   handles: ComponentHandleDef[];
   /**
@@ -68,6 +77,22 @@ export interface ComponentDefinition {
    * fusible) — retour utilisateur : "je voudrais que l'intensité apparaisse".
    */
   badge?: { field: string; unit?: string };
+  /**
+   * Force l'affichage des étiquettes de bornes même avec seulement 2 bornes
+   * (par défaut masquées : "+/− déjà clair par la couleur") — pour les
+   * composants où le libellé porte une info au-delà de la simple polarité,
+   * ex. "PV−"/"PV+" sur un panneau solaire (retour utilisateur).
+   */
+  alwaysShowHandleLabels?: boolean;
+  /**
+   * Taille minimale (px) de la vignette icône, quand le calcul automatique
+   * (basé sur le nombre de bornes par côté) donnerait une taille trop
+   * discrète pour l'importance visuelle du composant — retour utilisateur :
+   * "possible d'augmenter la taille de la vignette des batteries". N'agrandit
+   * jamais au-delà du plafond déjà en place pour les gros composants
+   * (busbar…), juste un plancher plus haut que la taille par défaut.
+   */
+  minIconBoxSize?: number;
 }
 
 export type IconStyle = "simple" | "pro";
@@ -97,6 +122,23 @@ export interface CableEdgeData extends Record<string, unknown> {
   cableType?: string;
   /** Longueur du câble en mètres (facultatif) — sert au récapitulatif matériel. */
   length?: number;
+  /** Point de coude choisi à la main, en coordonnées absolues de canvas
+   * (retour utilisateur : "déplacer le câble pour mieux agencer le
+   * schéma"). Plusieurs approches "relatives au tracé auto" ont été
+   * essayées avant celle-ci (décalage x/y, fraction le long du tracé via
+   * `getSmoothStepPath({ stepPosition })`…) et abandonnées, chacune ayant
+   * son propre lot de bugs (vignette décrochée du câble, axe unique,
+   * glisser qui ne fonctionne plus après le premier). Fonctionnement
+   * actuel, suivant le retour explicite "la vignette câble devrait avoir
+   * les mêmes propriétés qu'une vignette item" : ce point est matérialisé
+   * par un vrai nœud React Flow (`CableWaypointNode`, ajouté uniquement à
+   * la liste de rendu — jamais dans les nœuds persistés du schéma) qui se
+   * déplace avec le même mécanisme natif, éprouvé, que n'importe quel
+   * composant. Comme pour un composant, il ne suit pas automatiquement les
+   * nœuds connectés si on les déplace ensuite — l'utilisateur le réajuste
+   * au besoin, exactement comme il repositionnerait un élément du schéma.
+   * `undefined` = routage automatique (comportement inchangé). */
+  bendPoint?: { x: number; y: number };
 }
 
 export const CABLE_SECTIONS = [

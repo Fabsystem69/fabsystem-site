@@ -137,7 +137,7 @@ export const ENGINE_LABELS: Record<RegisteredEngineId, string> = {
   "circuit.structure": "Circuits",
   "cable.sizing": "Câbles",
   "protection.selection": "Protections",
-  "diagram.model": "Schéma",
+  "diagram.model": "Synthèse circuits",
 };
 
 export const ENERGY_CHAIN: RegisteredEngineId[] = [
@@ -172,7 +172,8 @@ export const ENGINE_DESCRIPTIONS: Record<RegisteredEngineId, string> = {
   "circuit.structure": "Regroupez vos consommateurs déjà retenus en circuits logiques.",
   "cable.sizing": "Dimensionne les conducteurs de chaque circuit déjà retenu.",
   "protection.selection": "Choisit la protection adaptée à chaque circuit déjà câblé.",
-  "diagram.model": "Assemble les circuits déjà retenus (circuit, câble, protection) en un schéma.",
+  "diagram.model":
+    "Récapitule les circuits déjà retenus (circuit, câble, protection) — texte uniquement, pas de dessin. Pour un schéma visuel, utilisez l'éditeur de schéma.",
 };
 
 // UI-12 — regroupement visuel en deux familles (mission §5), affichage

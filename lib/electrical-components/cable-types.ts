@@ -16,6 +16,12 @@ export const CABLE_TYPES: CableType[] = [
   { value: "control", label: "Commande / contrôle", color: "#2563eb" },
   { value: "data-bus", label: "Bus de données (NMEA2000, VE.Direct, CAN…)", color: "#16a34a" },
   { value: "earth", label: "Terre (PE) — vert/jaune", color: "#84cc16" },
+  // V2, retour utilisateur : les câbles secteur (3G2,5, 3G1,5…) atterrissaient
+  // dans "Autre" en gris, trop proche visuellement du noir de "Puissance −".
+  // Catégorie et couleur dédiées, distinctes des deux. Violet plutôt
+  // qu'orange (retour utilisateur : "l'orange porte à confusion" — trop
+  // proche du jaune/orange déjà utilisé ailleurs comme couleur d'alerte).
+  { value: "ac-230v", label: "Câblage 230V (secteur / quai)", color: "#7c3aed" },
   { value: "other", label: "Autre", color: "#6b7280" },
 ];
 

@@ -152,6 +152,8 @@ export function AdvancedProjectView({
   obsoleteCount,
   uncompletedCount,
   nextAction,
+  schemaThumbnail,
+  hasSchema,
   onSwitchMode,
 }: {
   project: Project;
@@ -166,6 +168,8 @@ export function AdvancedProjectView({
   obsoleteCount: number;
   uncompletedCount: number;
   nextAction: string;
+  schemaThumbnail: string | null;
+  hasSchema: boolean;
   onSwitchMode?: (mode: "guided" | "advanced") => void;
 }) {
   return (
@@ -233,12 +237,28 @@ export function AdvancedProjectView({
           valeur retenue/moteur : le schéma vit dans son propre modèle
           Prisma (ProjectSchema), sauvegardé séparément. */}
       {!isDeleteScheduled ? (
-        <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
-          <div>
-            <h2 className="text-base font-semibold text-neutral-950">Schéma électrique</h2>
-            <p className="mt-1 text-sm text-neutral-600">Dessinez et sauvegardez le schéma de câblage de ce projet.</p>
+        <Card className="flex flex-wrap items-center gap-4 p-5">
+          {schemaThumbnail ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={schemaThumbnail}
+              alt="Aperçu du schéma électrique"
+              className="h-20 w-32 shrink-0 rounded-lg border border-neutral-200 object-cover"
+            />
+          ) : null}
+          <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-neutral-950">Schéma électrique</h2>
+              <p className="mt-1 text-sm text-neutral-600">
+                {hasSchema
+                  ? "Dessinez et sauvegardez le schéma de câblage de ce projet."
+                  : "Aucun schéma pour l'instant — dessinez le câblage de ce projet."}
+              </p>
+            </div>
+            <Button href={`/outils/schema?projectId=${project.id}`}>
+              {hasSchema ? "Ouvrir l'éditeur de schéma" : "Créer le schéma"}
+            </Button>
           </div>
-          <Button href={`/outils/schema?projectId=${project.id}`}>Ouvrir l&apos;éditeur de schéma</Button>
         </Card>
       ) : null}
 

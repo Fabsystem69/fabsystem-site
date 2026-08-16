@@ -72,6 +72,8 @@ export function GuidedProjectFlow({
   circuitsForChain,
   obsoleteCount,
   uncompletedCount,
+  schemaThumbnail,
+  hasSchema,
   onSwitchMode,
 }: {
   project: Project;
@@ -86,6 +88,8 @@ export function GuidedProjectFlow({
   obsoleteCount: number;
   uncompletedCount: number;
   nextAction: string;
+  schemaThumbnail: string | null;
+  hasSchema: boolean;
   onSwitchMode: (mode: "guided" | "advanced") => void;
 }) {
   const [flow, setFlow] = useState<GuidedFlowState | null>(null);
@@ -213,6 +217,8 @@ export function GuidedProjectFlow({
           circuitsForChain={circuitsForChain}
           retainedValues={retainedValues}
           dependencies={dependencies}
+          schemaThumbnail={schemaThumbnail}
+          hasSchema={hasSchema}
         />
       )}
 
@@ -571,11 +577,15 @@ function SchemaStep({
   circuitsForChain,
   retainedValues,
   dependencies,
+  schemaThumbnail,
+  hasSchema,
 }: {
   projectId: string;
   circuitsForChain: { id: string; name: string }[];
   retainedValues: ProjectRetainedValue[];
   dependencies: ProjectValueDependency[];
+  schemaThumbnail: string | null;
+  hasSchema: boolean;
 }) {
   return (
     <GuidedStepShell
@@ -587,12 +597,28 @@ function SchemaStep({
           manque enregistrer lié au compte client") — distinct de la
           synthèse textuelle ci-dessous (moteur diagram.model), qui ne
           génère aucun rendu graphique. */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white p-4">
-        <div>
-          <p className="text-sm font-medium text-neutral-900">Éditeur de schéma</p>
-          <p className="mt-0.5 text-sm text-neutral-600">Dessinez et sauvegardez le schéma de câblage de ce projet.</p>
+      <div className="mb-4 flex flex-wrap items-center gap-4 rounded-lg border border-neutral-200 bg-white p-4">
+        {schemaThumbnail ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={schemaThumbnail}
+            alt="Aperçu du schéma électrique"
+            className="h-16 w-24 shrink-0 rounded-lg border border-neutral-200 object-cover"
+          />
+        ) : null}
+        <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-neutral-900">Éditeur de schéma</p>
+            <p className="mt-0.5 text-sm text-neutral-600">
+              {hasSchema
+                ? "Dessinez et sauvegardez le schéma de câblage de ce projet."
+                : "Aucun schéma pour l'instant — dessinez le câblage de ce projet."}
+            </p>
+          </div>
+          <Button href={`/outils/schema?projectId=${projectId}`}>
+            {hasSchema ? "Ouvrir l'éditeur de schéma" : "Créer le schéma"}
+          </Button>
         </div>
-        <Button href={`/outils/schema?projectId=${projectId}`}>Ouvrir l&apos;éditeur de schéma</Button>
       </div>
 
       {retainedValues.length === 0 ? (
@@ -634,7 +660,7 @@ function SchemaStep({
         <div className="mt-6 border-t border-neutral-200 pt-6">
           <RechargeSubModule
             icon={<DiagramIcon className="h-4 w-4" />}
-            title="Schéma"
+            title="Synthèse circuits"
             status={moduleStatus("diagram.model", retainedValues)}
           >
             <DiagramModule projectId={projectId} circuits={circuitsForChain} />

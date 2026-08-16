@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { captureSchemaThumbnail } from "@/features/schemas/export";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { listMyProjects, saveProjectSchemaApi, type ProjectSummary } from "@/features/schemas/projectSchemaApi";
+import { buildCloudAssistant, buildCloudStatusMessage } from "@/lib/schema-editor/save-assistant";
 
 // Lie le schéma courant à un Project client (retour utilisateur : "il
 // manque enregistrer lié au compte client") — reste entièrement optionnel :
@@ -23,6 +25,8 @@ export function SaveToProjectMenu({ darkMode }: { darkMode: boolean }) {
   const projectName = useSchemaStore((s) => s.projectName);
   const nodes = useSchemaStore((s) => s.nodes);
   const edges = useSchemaStore((s) => s.edges);
+  const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
+  const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
 
   useEffect(() => {
     if (!open) return;
@@ -45,15 +49,25 @@ export function SaveToProjectMenu({ darkMode }: { darkMode: boolean }) {
 
   async function handleLink(id: string) {
     setSaving(true);
-    setProjectId(id);
-    const ok = await saveProjectSchemaApi(id, { projectName, nodes, edges });
+    const thumbnail = await captureSchemaThumbnail(nodes).catch(() => null);
+    const result = await saveProjectSchemaApi(id, { projectName, nodes, edges, thumbnail });
     setSaving(false);
-    if (ok) {
+    if (result.ok) {
+      setProjectId(id);
+      setSaveAssistant(null);
+      setSaveStatus("saved", { scope: "cloud", message: "Cloud enregistré" });
       const url = new URL(window.location.href);
       url.searchParams.set("projectId", id);
       window.history.replaceState(null, "", url.toString());
       setOpen(false);
+      return;
     }
+
+    setSaveStatus("error", {
+      scope: "cloud",
+      message: buildCloudStatusMessage(result.problem, "save"),
+    });
+    setSaveAssistant(buildCloudAssistant(result.problem, "save"));
   }
 
   const itemClass = `block w-full px-3 py-1.5 text-left text-sm transition-base ${

@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
-import { CategoryFilterMenu } from "./CategoryFilterMenu";
 import { FileMenu } from "./FileMenu";
-import { SaveToProjectMenu } from "./SaveToProjectMenu";
+import { DarkModeToggle } from "./DisplayMenu";
 
 // Barre supérieure (CDC §6) : nom projet éditable, Nouveau, Annuler/Rétablir,
 // indicateur d'enregistrement discret (pas de notification intrusive, §35).
@@ -18,10 +17,21 @@ export function Toolbar() {
   const undo = useSchemaStore((s) => s.undo);
   const redo = useSchemaStore((s) => s.redo);
   const saveStatus = useSchemaStore((s) => s.saveStatus);
-  const iconStyle = useSchemaStore((s) => s.iconStyle);
-  const setIconStyle = useSchemaStore((s) => s.setIconStyle);
+  const saveMessage = useSchemaStore((s) => s.saveMessage);
   const darkMode = useSchemaStore((s) => s.darkMode);
-  const setDarkMode = useSchemaStore((s) => s.setDarkMode);
+
+  const saveToneClass =
+    saveStatus === "error"
+      ? darkMode
+        ? "text-amber-300"
+        : "text-amber-700"
+      : saveStatus === "saving"
+        ? darkMode
+          ? "text-sky-300"
+          : "text-sky-700"
+        : darkMode
+          ? "text-emerald-300"
+          : "text-emerald-700";
 
   return (
     <header
@@ -51,54 +61,7 @@ export function Toolbar() {
       />
 
       <div className="ml-auto flex items-center gap-1.5">
-        <div
-          className={`flex rounded-md border p-0.5 text-xs font-medium ${darkMode ? "border-neutral-700" : "border-neutral-300"}`}
-          role="group"
-          aria-label="Style des icônes"
-          title="Symboles : pictogrammes électriques épurés. Illustrations : rendus réalistes des composants."
-        >
-          <button
-            type="button"
-            onClick={() => setIconStyle("simple")}
-            className={`rounded px-2.5 py-1 transition-base ${
-              iconStyle === "simple"
-                ? darkMode
-                  ? "bg-white text-neutral-900"
-                  : "bg-neutral-900 text-white"
-                : darkMode
-                  ? "text-neutral-400 hover:bg-neutral-800"
-                  : "text-neutral-600 hover:bg-neutral-100"
-            }`}
-          >
-            Symboles
-          </button>
-          <button
-            type="button"
-            onClick={() => setIconStyle("pro")}
-            className={`rounded px-2.5 py-1 transition-base ${
-              iconStyle === "pro"
-                ? darkMode
-                  ? "bg-white text-neutral-900"
-                  : "bg-neutral-900 text-white"
-                : darkMode
-                  ? "text-neutral-400 hover:bg-neutral-800"
-                  : "text-neutral-600 hover:bg-neutral-100"
-            }`}
-          >
-            Illustrations
-          </button>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setDarkMode(!darkMode)}
-          title={darkMode ? "Passer en vue jour" : "Passer en vue nuit"}
-          className={`rounded-md border px-2.5 py-1.5 text-sm transition-base ${
-            darkMode ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-neutral-300 text-neutral-700 hover:bg-neutral-100"
-          }`}
-        >
-          {darkMode ? "☀︎" : "☾"}
-        </button>
+        <DarkModeToggle darkMode={darkMode} />
 
         <FileMenu darkMode={darkMode} />
         <ToolbarButton darkMode={darkMode} onClick={undo} disabled={past.length === 0} title="Annuler (Ctrl/Cmd+Z)">
@@ -108,13 +71,11 @@ export function Toolbar() {
           ↷
         </ToolbarButton>
 
-        <CategoryFilterMenu darkMode={darkMode} />
         <ExportMenu darkMode={darkMode} />
-        <SaveToProjectMenu darkMode={darkMode} />
         <FeedbackMenu darkMode={darkMode} />
 
-        <span className={`ml-2 min-w-[6.5rem] text-right text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-          {saveStatus === "saving" ? "Enregistrement…" : saveStatus === "error" ? "Erreur d'enregistrement" : "Enregistré"}
+        <span className={`ml-2 max-w-[13rem] text-right text-xs ${saveToneClass}`} title={saveMessage}>
+          {saveMessage}
         </span>
       </div>
     </header>

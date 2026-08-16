@@ -7,19 +7,33 @@ import {
   BackgroundVariant,
   Controls,
   ConnectionMode,
+  PanOnScrollMode,
   useReactFlow,
   type Node,
   type Edge,
   type Connection,
+  type NodeChange,
 } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ElectricalNode } from "./nodes/ElectricalNode";
-import { CableEdge } from "./edges/CableEdge";
+import { CableEdge, cableCaption } from "./edges/CableEdge";
+import { CableWaypointNode } from "./nodes/CableWaypointNode";
+import { ZoneNode } from "./nodes/ZoneNode";
 import { getConsumerPreset, getComponentDefinition } from "@/lib/electrical-components/definitions";
+import { filterNodesByZone, filterEdgesForNodes } from "@/features/schemas/export";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 
-const nodeTypes = { electrical: ElectricalNode };
+const nodeTypes = { electrical: ElectricalNode, cableWaypoint: CableWaypointNode, zone: ZoneNode };
 const edgeTypes = { cable: CableEdge };
+
+// Préfixe des nœuds de coude de câble synthétiques (retour utilisateur : "la
+// vignette câble devrait avoir les mêmes propriétés qu'une vignette item…
+// les câbles les suivent parfaitement") — ajoutés uniquement à la liste
+// passée à <ReactFlow>, jamais aux nœuds persistés du schéma (voir plus
+// bas) : ni le récapitulatif matériel, ni les contrôles électriques, ni la
+// sauvegarde ne doivent en avoir connaissance, seul `edge.data.bendPoint`
+// est source de vérité.
+const WAYPOINT_ID_PREFIX = "wp-";
 
 // Composants qui s'intercalent automatiquement quand on les dépose sur un
 // câble existant (retour utilisateur : "spécifiquement pour les fusibles,
@@ -70,12 +84,15 @@ export function Canvas() {
   const allNodes = useSchemaStore((s) => s.nodes) as Node<ElectricalNodeData>[];
   const allEdges = useSchemaStore((s) => s.edges) as Edge<CableEdgeData>[];
   const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
+  const exportIsolatedZoneId = useSchemaStore((s) => s.exportIsolatedZoneId);
   const onNodesChange = useSchemaStore((s) => s.onNodesChange);
   const onEdgesChange = useSchemaStore((s) => s.onEdgesChange);
   const onConnect = useSchemaStore((s) => s.onConnect);
   const addComponent = useSchemaStore((s) => s.addComponent);
+  const addZone = useSchemaStore((s) => s.addZone);
   const spliceNodeOnEdge = useSchemaStore((s) => s.spliceNodeOnEdge);
   const reconnectEdgeAction = useSchemaStore((s) => s.reconnectEdge);
+  const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const select = useSchemaStore((s) => s.select);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const { screenToFlowPosition } = useReactFlow();
@@ -87,18 +104,82 @@ export function Canvas() {
   // câble dont une seule extrémité est masquée disparaît aussi (sinon il
   // pointerait dans le vide).
   const nodes = useMemo(() => {
-    if (hiddenCategories.length === 0) return allNodes;
-    return allNodes.filter((n) => {
+    // Isolement export par zone (retour utilisateur : "isoler uniquement la
+    // zone pour les imprimer") — posé juste avant une capture d'export par
+    // ExportMenu.tsx ; s'applique AVANT le filtre par catégorie pour que les
+    // deux filtres se cumulent si jamais les deux sont actifs en même temps.
+    const zoneFiltered = filterNodesByZone(allNodes, exportIsolatedZoneId);
+    if (hiddenCategories.length === 0) return zoneFiltered;
+    return zoneFiltered.filter((n) => {
       const def = getComponentDefinition(n.data.componentType);
       return !def || !hiddenCategories.includes(def.category);
     });
-  }, [allNodes, hiddenCategories]);
+  }, [allNodes, hiddenCategories, exportIsolatedZoneId]);
 
   const edges = useMemo(() => {
-    if (hiddenCategories.length === 0) return allEdges;
-    const visibleIds = new Set(nodes.map((n) => n.id));
-    return allEdges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
-  }, [allEdges, hiddenCategories, nodes]);
+    if (hiddenCategories.length === 0 && !exportIsolatedZoneId) return allEdges;
+    return filterEdgesForNodes(allEdges, nodes);
+  }, [allEdges, hiddenCategories, exportIsolatedZoneId, nodes]);
+
+  // Nœuds de coude de câble (retour utilisateur : "la vignette câble
+  // devrait avoir les mêmes propriétés qu'une vignette item… les câbles les
+  // suivent parfaitement") — un vrai nœud React Flow par câble déplacé,
+  // ajouté seulement ici (jamais dans le store) pour que son glisser passe
+  // par le même mécanisme natif, éprouvé, que n'importe quel composant.
+  const waypointNodes = useMemo<Node[]>(
+    () =>
+      edges
+        .filter((e) => e.data?.bendPoint)
+        .map((e) => ({
+          id: `${WAYPOINT_ID_PREFIX}${e.id}`,
+          type: "cableWaypoint",
+          position: e.data!.bendPoint!,
+          // Par défaut `position` désigne le coin haut-gauche du nœud — le
+          // tracé du câble doit passer par son CENTRE (comme l'ancienne
+          // vignette, centrée via `translate(-50%,-50%)`). `origin: [0.5,
+          // 0.5]` réoriente ce point de référence sans toucher au réglage
+          // global `nodeOrigin` de <ReactFlow>, qui s'appliquerait à tort à
+          // tous les vrais composants du schéma.
+          origin: [0.5, 0.5] as [number, number],
+          data: { edgeId: e.id, label: cableCaption(e.data) },
+          draggable: true,
+          selectable: false,
+          zIndex: 1001,
+        })),
+    [edges],
+  );
+
+  const reactFlowNodes = useMemo<Node[]>(() => [...nodes, ...waypointNodes], [nodes, waypointNodes]);
+
+  // Sépare les changements de position des nœuds de coude synthétiques (à
+  // écrire dans `edge.data.bendPoint`) des changements sur de vrais nœuds
+  // du schéma (route normale du store) — un nœud de coude n'existe jamais
+  // dans `state.nodes`, le laisser passer par `onNodesChange` du store
+  // serait un no-op silencieux qui perdrait le déplacement.
+  const handleNodesChange = useCallback(
+    (changes: NodeChange<Node>[]) => {
+      const waypointChanges: { edgeId: string; position: { x: number; y: number }; trackHistory: boolean }[] = [];
+      const realChanges: NodeChange<Node>[] = [];
+      for (const change of changes) {
+        if ("id" in change && change.id.startsWith(WAYPOINT_ID_PREFIX)) {
+          if (change.type === "position" && change.position) {
+            waypointChanges.push({
+              edgeId: change.id.slice(WAYPOINT_ID_PREFIX.length),
+              position: change.position,
+              trackHistory: change.dragging === false,
+            });
+          }
+          continue;
+        }
+        realChanges.push(change);
+      }
+      for (const { edgeId, position, trackHistory } of waypointChanges) {
+        updateEdgeData(edgeId, { bendPoint: position }, { trackHistory });
+      }
+      if (realChanges.length > 0) onNodesChange(realChanges as Parameters<typeof onNodesChange>[0]);
+    },
+    [onNodesChange, updateEdgeData],
+  );
 
   const handleDrop = useCallback(
     (event: React.DragEvent) => {
@@ -106,6 +187,10 @@ export function Canvas() {
       const type = event.dataTransfer.getData("application/fabsystem-component");
       if (!type) return;
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      if (type === "zone") {
+        addZone({ x: position.x - 190, y: position.y - 130 });
+        return;
+      }
       const presetValue = event.dataTransfer.getData("application/fabsystem-preset");
       const preset = presetValue ? getConsumerPreset(presetValue) : undefined;
       const dataOverride = preset
@@ -121,7 +206,7 @@ export function Canvas() {
       }
       addComponent(type, position, dataOverride);
     },
-    [addComponent, spliceNodeOnEdge, screenToFlowPosition],
+    [addComponent, addZone, spliceNodeOnEdge, screenToFlowPosition],
   );
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
@@ -139,9 +224,9 @@ export function Canvas() {
   return (
     <div className={`relative h-full flex-1 ${darkMode ? "bg-neutral-950" : "bg-neutral-50"}`} onDrop={handleDrop} onDragOver={handleDragOver}>
       <ReactFlow
-        nodes={nodes}
+        nodes={reactFlowNodes}
         edges={edges}
-        onNodesChange={onNodesChange}
+        onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onReconnect={handleReconnect}
@@ -150,14 +235,36 @@ export function Canvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
+        // V2, retour utilisateur : "pour relier chaque élément, cliquer sur
+        // la sortie qu'on veut relier et cliquer sur l'entrée de l'autre
+        // élément, ou inversement" — fonctionnalité native de React Flow
+        // (pas de logique maison à maintenir : gère déjà l'annulation via
+        // Échap/reclic sur la même borne, et le retour visuel pendant la
+        // connexion). Le glisser-déposer existant reste inchangé, les deux
+        // méthodes coexistent.
+        connectOnClick
         snapToGrid
         snapGrid={[20, 20]}
         deleteKeyCode={["Backspace", "Delete"]}
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0.2}
         maxZoom={2}
+        // V2, retour utilisateur : le geste à deux doigts sur trackpad
+        // zoomait au lieu de déplacer le canvas — comportement par défaut
+        // de React Flow (zoomOnScroll=true, panOnScroll=false). On inverse
+        // pour suivre la convention trackpad usuelle (Figma, Miro…) : deux
+        // doigts qui défilent déplacent, le pincement zoome (zoomOnPinch
+        // reste actif ; les navigateurs remontent un pincement comme un
+        // wheel event avec ctrlKey, que React Flow gère séparément).
+        panOnScroll
+        panOnScrollMode={PanOnScrollMode.Free}
+        zoomOnScroll={false}
+        zoomOnPinch
         proOptions={{ hideAttribution: true }}
-        onNodeClick={(_, node) => select("node", node.id)}
+        onNodeClick={(_, node) => {
+          if (node.id.startsWith(WAYPOINT_ID_PREFIX)) return;
+          select("node", node.id);
+        }}
         onEdgeClick={(_, edge) => select("edge", edge.id)}
         onPaneClick={() => select(null, null)}
       >

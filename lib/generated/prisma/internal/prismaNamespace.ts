@@ -2714,6 +2714,7 @@ export const ProjectSchemaScalarFieldEnum = {
   projectName: 'projectName',
   nodes: 'nodes',
   edges: 'edges',
+  thumbnail: 'thumbnail',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { Handle, Position, useUpdateNodeInternals, type NodeProps, type Node } from "@xyflow/react";
 import { getComponentDefinition, getNodeIcon, getEffectiveHandles, getHandleLabel } from "@/lib/electrical-components/definitions";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
@@ -15,13 +15,13 @@ import type { ElectricalNodeData, HandleKind } from "@/types/schema";
 // nom en petit texte en dessous — plus proche d'un symbole de schéma que
 // d'une carte d'information.
 const CATEGORY_ACCENT: Record<string, string> = {
-  sources: "border-emerald-500",
-  protection: "border-red-500",
-  distribution: "border-amber-500",
-  consommateurs: "border-sky-500",
-  charge: "border-violet-500",
-  mesure: "border-neutral-500",
-  conversion: "border-neutral-500",
+  solar: "border-amber-500",
+  battery: "border-emerald-500",
+  charger: "border-violet-500",
+  converter: "border-neutral-500",
+  wiring: "border-red-500",
+  measurement: "border-neutral-500",
+  consumers: "border-sky-500",
 };
 
 const HANDLE_DOT_COLOR: Record<HandleKind, string> = {
@@ -56,6 +56,7 @@ const BOX_BASE = 44;
 export function ElectricalNode({ id, data, selected }: NodeProps<Node<ElectricalNodeData>>) {
   const def = getComponentDefinition(data.componentType);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
+  const darkMode = useSchemaStore((s) => s.darkMode);
   const updateNodeInternals = useUpdateNodeInternals();
   const rotation = Number(data.rotation) || 0;
   const outputCount = Number(data.outputCount) || 0;
@@ -69,10 +70,11 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
     updateNodeInternals(id);
   }, [id, rotation, outputCount, updateNodeInternals]);
 
-  if (!def) return null;
-
-  const icon = getNodeIcon(def, data, iconStyle);
-  const effectiveHandles = getEffectiveHandles(def, data);
+  // Calculs sûrs même si `def` est introuvable (repli sur des tableaux
+  // vides) : les Hooks ci-dessous doivent s'exécuter dans le même ordre à
+  // chaque rendu, donc le "if (!def) return null" ne peut arriver qu'après
+  // eux — jamais avant un Hook (règle de React).
+  const effectiveHandles = def ? getEffectiveHandles(def, data) : [];
   const handlesWithSide = effectiveHandles.map((handle) => ({
     handle,
     side: rotateSide(handle.side, rotation),
@@ -82,48 +84,164 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
 
   // Bornes dont la polarité dépend d'une propriété du composant (ex.
   // busbar) plutôt que d'être fixe dans la définition.
-  const dynamicAccent = def.resolveHandleKind
+  const dynamicAccent = def?.resolveHandleKind
     ? { borderColor: HANDLE_DOT_COLOR[def.resolveHandleKind(data, effectiveHandles[0])] }
     : undefined;
 
-  // La boîte (liseré + icône) grandit seulement si un côté porte plusieurs
-  // bornes empilées (MPPT, DC-DC… jusqu'à 4 par côté), pour ne jamais les
-  // faire se chevaucher — sinon elle reste au format compact minimal.
-  // Plafonnée : au-delà d'un certain nombre de bornes par côté, on rapproche
-  // les points plutôt que de faire grossir la vignette indéfiniment — retour
-  // utilisateur : "éviter de faire grossir les busbar... trop imposant par
-  // rapport aux autres éléments".
+  // La boîte icône (juste l'icône + son liseré, pas les étiquettes) grandit
+  // seulement si un côté porte plusieurs bornes empilées (MPPT, DC-DC…
+  // jusqu'à 4 par côté), pour ne jamais les faire se chevaucher — sinon
+  // elle reste au format compact minimal. Plafonnée : au-delà d'un certain
+  // nombre de bornes par côté, on rapproche les points plutôt que de faire
+  // grossir la vignette indéfiniment — retour utilisateur : "éviter de
+  // faire grossir les busbar... trop imposant par rapport aux autres
+  // éléments".
   const maxPerSide = Math.max(bySide.left.length, bySide.right.length, bySide.top.length, bySide.bottom.length, 1);
-  const boxSize = Math.min(84, Math.max(BOX_BASE, maxPerSide * 14 + 16));
+  const boxSize = Math.min(84, Math.max(BOX_BASE, def?.minIconBoxSize ?? 0, maxPerSide * 14 + 16));
+
+  // Étiquettes de bornes intégrées à l'intérieur du contour (V2, retour
+  // utilisateur : "les indications de voie sont toujours chevauchées par le
+  // câble... mieux vaut les intégrer à l'intérieur de la vignette, cela
+  // l'agrandit et gagne en visibilité") — un câble s'arrête toujours pile au
+  // bord du contour (là où vit le point de connexion), donc un texte purement
+  // à l'intérieur de ce contour ne peut plus jamais se faire traverser. La
+  // grille CSS ci-dessous laisse le navigateur calculer la vraie largeur du
+  // texte (pas d'estimation approximative en JS, source d'un bug précédent
+  // avec les vignettes de câble) ; les colonnes/lignes vides se réduisent
+  // naturellement à 0 pour les composants à 2 bornes (apparence inchangée).
+  const showLabels = effectiveHandles.length > 2 || def?.alwaysShowHandleLabels === true;
+  const sideLabels = (side: Side) => (showLabels && def ? bySide[side].map(({ handle }) => getHandleLabel(def, data, handle)) : []);
+  const leftLabels = sideLabels("left");
+  const rightLabels = sideLabels("right");
+  const topLabels = sideLabels("top");
+  const bottomLabels = sideLabels("bottom");
+
+  const sideColumnClass = (align: "start" | "end" | "center", axis: "row" | "col") =>
+    `grid gap-0.5 whitespace-nowrap text-[7px] font-semibold leading-none text-neutral-500 ${
+      axis === "col" ? `items-center justify-items-${align}` : `justify-items-center`
+    }`;
+
+  // Symétrie gauche/droite et haut/bas mesurée pour de vrai (bug constaté :
+  // `1fr auto 1fr` ne suffit pas à égaliser des colonnes/lignes dans un
+  // conteneur dimensionné par son contenu — les pistes `fr` ne se
+  // répartissent un espace excédentaire que si le conteneur a une taille
+  // définie, ce qui n'est pas le cas ici. On mesure donc la largeur/hauteur
+  // réelle de chaque côté après rendu, et on impose la plus grande des deux
+  // aux deux — l'icône reste au vrai centre quel que soit le texte.
+  const leftRef = useRef<HTMLDivElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const leftRightKey = `${leftLabels.join("|")}::${rightLabels.join("|")}`;
+  const topBottomKey = `${topLabels.join("|")}::${bottomLabels.join("|")}`;
+
+  // Mutation DOM directe plutôt qu'un state React : un simple ajustement
+  // visuel de largeur/hauteur après mesure, pas une donnée qui doit vivre
+  // dans le rendu React (évite aussi un aller-retour setState-dans-effet).
+  useLayoutEffect(() => {
+    const w = Math.max(leftRef.current?.scrollWidth ?? 0, rightRef.current?.scrollWidth ?? 0);
+    if (leftRef.current) leftRef.current.style.width = w ? `${w}px` : "";
+    if (rightRef.current) rightRef.current.style.width = w ? `${w}px` : "";
+  }, [leftRightKey]);
+
+  useLayoutEffect(() => {
+    const h = Math.max(topRef.current?.scrollHeight ?? 0, bottomRef.current?.scrollHeight ?? 0);
+    if (topRef.current) topRef.current.style.height = h ? `${h}px` : "";
+    if (bottomRef.current) bottomRef.current.style.height = h ? `${h}px` : "";
+  }, [topBottomKey]);
+
+  if (!def) return null;
+  const icon = getNodeIcon(def, data, iconStyle);
 
   return (
-    <div className="relative flex w-24 flex-col items-center gap-1">
+    <div className="relative flex w-fit flex-col items-center gap-1">
       <div
-        className={`relative flex items-center justify-center rounded-lg border-2 bg-white shadow-sm transition-shadow ${
+        className={`relative grid rounded-lg border-2 bg-white shadow-sm transition-shadow ${
           dynamicAccent ? "" : (CATEGORY_ACCENT[def.category] ?? "border-neutral-400")
         } ${selected ? "ring-2 ring-brand-400 ring-offset-1" : ""}`}
-        style={{ ...dynamicAccent, width: boxSize, height: boxSize }}
+        style={{
+          ...dynamicAccent,
+          gridTemplateColumns: "auto auto auto",
+          gridTemplateRows: "auto auto auto",
+          gridTemplateAreas: `"tl top tr" "left icon right" "bl bottom br"`,
+        }}
       >
-        {icon ? (
-          // eslint-disable-next-line @next/next/no-img-element -- icônes de bibliothèque à chemin dynamique, pas des images de contenu
-          <img src={icon} alt="" className="h-[70%] w-[70%] object-contain" />
-        ) : (
-          <span className="px-1 text-center text-[9px] font-semibold uppercase leading-tight text-neutral-400">
-            {def.label}
-          </span>
+        {topLabels.length > 0 && (
+          <div
+            ref={topRef}
+            style={{ gridArea: "top", gridTemplateColumns: `repeat(${topLabels.length}, 1fr)` }}
+            className={`${sideColumnClass("center", "row")} px-1.5 pt-1`}
+          >
+            {topLabels.map((label, i) => (
+              <span key={i}>{label}</span>
+            ))}
+          </div>
+        )}
+        {leftLabels.length > 0 && (
+          <div
+            ref={leftRef}
+            style={{ gridArea: "left", gridTemplateRows: `repeat(${leftLabels.length}, 1fr)` }}
+            className={`${sideColumnClass("end", "col")} py-1.5 pl-1.5`}
+          >
+            {leftLabels.map((label, i) => (
+              <span key={i}>{label}</span>
+            ))}
+          </div>
         )}
 
+        <div style={{ gridArea: "icon", width: boxSize, height: boxSize }} className="relative flex items-center justify-center">
+          {icon ? (
+            // eslint-disable-next-line @next/next/no-img-element -- icônes de bibliothèque à chemin dynamique, pas des images de contenu
+            <img src={icon} alt="" className="h-[70%] w-[70%] object-contain" />
+          ) : (
+            <span className="px-1 text-center text-[9px] font-semibold uppercase leading-tight text-neutral-400">{def.label}</span>
+          )}
+        </div>
+
         {def.badge && data[def.badge.field] ? (
+          // Ancré au coin de la vignette entière (pas de l'icône seule,
+          // devenue une cellule centrale plus étroite depuis l'intégration
+          // des étiquettes de bornes) — sinon le badge chevauche le texte
+          // de la borne du bas quand il y en a une (bug constaté : "30A" sur
+          // "Communication").
           <span className="absolute -bottom-1.5 -right-1.5 rounded-full border border-white bg-neutral-900 px-1 text-[8px] font-bold leading-tight text-white shadow-sm">
             {String(data[def.badge.field])}
             {def.badge.unit ?? ""}
           </span>
         ) : null}
 
+        {rightLabels.length > 0 && (
+          <div
+            ref={rightRef}
+            style={{ gridArea: "right", gridTemplateRows: `repeat(${rightLabels.length}, 1fr)` }}
+            className={`${sideColumnClass("start", "col")} py-1.5 pr-1.5`}
+          >
+            {rightLabels.map((label, i) => (
+              <span key={i}>{label}</span>
+            ))}
+          </div>
+        )}
+        {bottomLabels.length > 0 && (
+          <div
+            ref={bottomRef}
+            style={{ gridArea: "bottom", gridTemplateColumns: `repeat(${bottomLabels.length}, 1fr)` }}
+            className={`${sideColumnClass("center", "row")} px-1.5 pb-1`}
+          >
+            {bottomLabels.map((label, i) => (
+              <span key={i}>{label}</span>
+            ))}
+          </div>
+        )}
+
         {handlesWithSide.map(({ handle, side }) => {
           const group = bySide[side];
           const indexInGroup = group.findIndex((e) => e.handle.id === handle.id);
-          const percent = ((indexInGroup + 1) / (group.length + 1)) * 100;
+          // Même formule que la répartition des étiquettes ci-dessus
+          // (`repeat(N, 1fr)`, dont chaque case centre son contenu au milieu
+          // de sa fraction 1/N) : le point de connexion s'aligne pile avec
+          // son étiquette, plutôt que sur une répartition légèrement
+          // différente.
+          const percent = ((indexInGroup + 0.5) / group.length) * 100;
           const isVertical = side === "left" || side === "right";
           const kind = def.resolveHandleKind ? def.resolveHandleKind(data, handle) : handle.kind;
 
@@ -144,42 +262,14 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
             />
           );
         })}
-
-        {/* Repère visible des bornes sur les boîtiers à plusieurs entrées/
-            sorties (MPPT, DC-DC, chargeur secteur, convertisseur, busbar,
-            platine de fusibles…) — retour utilisateur : identifier le
-            boîtier sans avoir à survoler chaque borne. Inutile sur un
-            composant à 2 bornes (+/− déjà clair par la couleur). */}
-        {effectiveHandles.length > 2
-          ? handlesWithSide.map(({ handle, side }) => {
-              const group = bySide[side];
-              const indexInGroup = group.findIndex((e) => e.handle.id === handle.id);
-              const percent = ((indexInGroup + 1) / (group.length + 1)) * 100;
-              const labelStyle: CSSProperties =
-                side === "left"
-                  ? { left: -3, top: `${percent}%`, transform: "translate(-100%, -50%)", textAlign: "right" }
-                  : side === "right"
-                    ? { right: -3, top: `${percent}%`, transform: "translate(100%, -50%)", textAlign: "left" }
-                    : side === "top"
-                      ? { top: -3, left: `${percent}%`, transform: "translate(-50%, -100%)", textAlign: "center" }
-                      : { bottom: -3, left: `${percent}%`, transform: "translate(-50%, 100%)", textAlign: "center" };
-
-              return (
-                <span
-                  key={`label-${handle.id}`}
-                  className="pointer-events-none absolute whitespace-nowrap text-[7px] font-semibold leading-none text-neutral-500"
-                  style={labelStyle}
-                >
-                  {getHandleLabel(def, data, handle)}
-                </span>
-              );
-            })
-          : null}
       </div>
 
       <div
-        className={`max-w-full truncate rounded px-1 text-[10px] font-medium leading-tight text-neutral-700 ${
-          selected ? "bg-brand-100" : ""
+        // Fond opaque même hors sélection (retour utilisateur : les câbles
+        // qui passent sous un nœud traversaient visuellement son nom) —
+        // même logique que le fond ajouté aux étiquettes de bornes.
+        className={`max-w-full truncate rounded px-1 text-[10px] font-medium leading-tight ${
+          selected ? "bg-brand-100 text-neutral-700" : darkMode ? "bg-neutral-950 text-neutral-300" : "bg-white text-neutral-700"
         }`}
         title={String(data.label ?? def.label)}
       >

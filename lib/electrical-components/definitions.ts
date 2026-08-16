@@ -1,4 +1,5 @@
 import type { ComponentDefinition, ComponentHandleDef, IconStyle } from "@/types/schema";
+import { getBrandModel } from "@/lib/electrical-components/brand-models";
 
 // Consommateurs courants à bord (CDC §13 : "peuvent techniquement utiliser
 // le même node de base avec une apparence différente" — ici, un préréglage
@@ -20,6 +21,7 @@ export interface ConsumerPreset {
 export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "eclairage-led", label: "Éclairage LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp" },
   { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp" },
+  { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp" },
   { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp" },
   { value: "prise-usb-12v", label: "Prise USB / 12 V", typicalPowerW: 15, iconPro: "/schema-icons/pro/prise-usb-12v.webp" },
   { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp" },
@@ -134,7 +136,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "battery",
     label: "Batterie",
-    category: "sources",
+    category: "battery",
+    subcategory: "batteries",
     subtitle: "Source d'énergie",
     icon: "/schema-icons/battery.svg",
     iconPro: "/schema-icons/pro/battery-lifepo.webp",
@@ -144,6 +147,10 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       lifepo4: { iconPro: "/schema-icons/pro/battery-lifepo.webp" },
     },
     badge: { field: "capacityAh", unit: "Ah" },
+    // Retour utilisateur : "possible d'augmenter la taille de la vignette
+    // des batteries" — composant central du schéma, mérite d'être plus
+    // visible que la taille par défaut (2 bornes = taille minimale).
+    minIconBoxSize: 64,
     handles: [
       { id: "positive", label: "+", kind: "positive", side: "right" },
       { id: "negative", label: "−", kind: "negative", side: "left" },
@@ -170,11 +177,16 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "solar-panel",
     label: "Panneau solaire",
-    category: "charge",
+    category: "solar",
+    subcategory: "panneaux",
     subtitle: "Production",
     icon: "/schema-icons/solar-panel.svg",
     iconPro: "/schema-icons/pro/solar-panel.webp",
     badge: { field: "powerW", unit: "W" },
+    // Retour utilisateur : "rajouter les vignettes PV− et PV+ sur le
+    // panneau solaire" — "PV" porte une info utile (photovoltaïque) au-delà
+    // de la simple polarité, contrairement à un +/− générique.
+    alwaysShowHandleLabels: true,
     handles: [
       { id: "negative", label: "PV−", kind: "negative", side: "left" },
       { id: "positive", label: "PV+", kind: "positive", side: "right" },
@@ -189,11 +201,16 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "mppt",
     label: "Régulateur MPPT",
-    category: "charge",
+    category: "solar",
+    subcategory: "regulateurs",
     subtitle: "Charge",
     icon: "/schema-icons/mppt.svg",
     iconPro: "/schema-icons/pro/mppt.webp",
     badge: { field: "amperage", unit: "A" },
+    // Retour utilisateur : "augmente la taille des différents boîtiers MPPT,
+    // chargeur, DC-DC etc" — même logique que la batterie, plus visible que
+    // la taille minimale par défaut (2 bornes/côté).
+    minIconBoxSize: 64,
     handles: [
       { id: "pv-negative", label: "PV−", kind: "negative", side: "left" },
       { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
@@ -211,11 +228,13 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "pwm",
     label: "Régulateur PWM",
-    category: "charge",
+    category: "solar",
+    subcategory: "regulateurs",
     subtitle: "Charge",
     icon: "/schema-icons/mppt.svg",
     iconPro: "/schema-icons/pro/pwm.webp",
     badge: { field: "amperage", unit: "A" },
+    minIconBoxSize: 64,
     handles: [
       { id: "pv-negative", label: "PV−", kind: "negative", side: "left" },
       { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
@@ -232,11 +251,13 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "dcdc",
     label: "Chargeur DC/DC",
-    category: "charge",
+    category: "charger",
+    subcategory: "dcdc",
     subtitle: "Charge",
     icon: "/schema-icons/dcdc.svg",
     iconPro: "/schema-icons/pro/dcdc.webp",
     badge: { field: "amperage", unit: "A" },
+    minIconBoxSize: 64,
     handles: [
       { id: "in-negative", label: "IN−", kind: "negative", side: "left" },
       { id: "in-positive", label: "IN+", kind: "positive", side: "left" },
@@ -254,11 +275,13 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ac-charger",
     label: "Chargeur secteur",
-    category: "charge",
+    category: "charger",
+    subcategory: "secteur",
     subtitle: "Charge",
     icon: "/schema-icons/ac-charger.svg",
     iconPro: "/schema-icons/pro/ac-charger.webp",
     badge: { field: "chargeAmperage", unit: "A" },
+    minIconBoxSize: 64,
     handles: [
       { id: "ac-in", label: "230V IN", kind: "neutral", side: "left" },
       { id: "ac-out", label: "230V OUT", kind: "neutral", side: "left", optional: true },
@@ -275,7 +298,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "alternator",
     label: "Alternateur",
-    category: "charge",
+    category: "charger",
+    subcategory: "alternateur",
     subtitle: "Charge",
     icon: "/schema-icons/alternator.svg",
     iconPro: "/schema-icons/pro/alternator.webp",
@@ -299,7 +323,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // commutée par ce composant.
     type: "battery-isolator",
     label: "Répartiteur de charge",
-    category: "charge",
+    category: "battery",
+    subcategory: "repartiteurs",
     subtitle: "Isolateur multi-batteries",
     icon: "/schema-icons/dcdc.svg",
     iconPro: "/schema-icons/pro/battery-isolator.webp",
@@ -332,7 +357,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // fixe, les deux bornes sont équivalentes.
     type: "battery-combiner",
     label: "Combineur de batteries",
-    category: "charge",
+    category: "battery",
+    subcategory: "repartiteurs",
     subtitle: "Relais de couplage",
     icon: "/schema-icons/battery-switch.svg",
     iconPro: "/schema-icons/pro/battery-combiner.webp",
@@ -349,7 +375,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "shore-power",
     label: "Prise de quai",
-    category: "charge",
+    category: "charger",
+    subcategory: "secteur",
     subtitle: "Source secteur",
     icon: "/schema-icons/ac-charger.svg",
     iconPro: "/schema-icons/pro/shore-power.webp",
@@ -360,7 +387,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "fuse",
     label: "Fusible",
-    category: "protection",
+    category: "wiring",
+    subcategory: "protection",
     subtitle: "Protection",
     icon: "/schema-icons/fuse.svg",
     iconPro: "/schema-icons/pro/fuse.webp",
@@ -391,7 +419,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "circuit-breaker",
     label: "Disjoncteur DC",
-    category: "protection",
+    category: "wiring",
+    subcategory: "protection",
     subtitle: "Protection",
     icon: "/schema-icons/circuit-breaker.svg",
     iconPro: "/schema-icons/pro/circuit-breaker.webp",
@@ -409,7 +438,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "battery-switch",
     label: "Coupe-batterie",
-    category: "protection",
+    category: "wiring",
+    subcategory: "protection",
     subtitle: "Protection",
     icon: "/schema-icons/battery-switch.svg",
     iconPro: "/schema-icons/pro/battery-switch.webp",
@@ -426,7 +456,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "switch",
     label: "Interrupteur",
-    category: "distribution",
+    category: "wiring",
+    subcategory: "distribution",
     subtitle: "Commande",
     icon: "/schema-icons/switch.svg",
     iconPro: "/schema-icons/pro/switch.webp",
@@ -443,7 +474,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "busbar",
     label: "Busbar",
-    category: "distribution",
+    category: "wiring",
+    subcategory: "distribution",
     subtitle: "Distribution",
     icon: "/schema-icons/busbar.svg",
     iconPro: "/schema-icons/pro/busbar-positive.webp",
@@ -484,7 +516,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "distribution-panel",
     label: "Tableau de distribution",
-    category: "distribution",
+    category: "wiring",
+    subcategory: "distribution",
     subtitle: "Distribution",
     icon: "/schema-icons/busbar.svg",
     iconPro: "/schema-icons/pro/distribution-panel.webp",
@@ -522,7 +555,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ac-panel",
     label: "Tableau 220V",
-    category: "distribution",
+    category: "wiring",
+    subcategory: "distribution",
     subtitle: "Distribution AC",
     icon: "/schema-icons/busbar.svg",
     iconPro: "/schema-icons/pro/ac-panel.webp",
@@ -537,7 +571,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "fuse-block",
     label: "Platine de fusibles",
-    category: "protection",
+    category: "wiring",
+    subcategory: "protection",
     subtitle: "Protection",
     icon: "/schema-icons/busbar.svg",
     iconPro: "/schema-icons/pro/fuse-block.webp",
@@ -567,7 +602,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ground",
     label: "Point de masse",
-    category: "distribution",
+    category: "wiring",
+    subcategory: "masse",
     subtitle: "Châssis",
     icon: "/schema-icons/ground.svg",
     handles: [{ id: "ground", label: "Masse", kind: "negative", side: "left" }],
@@ -582,7 +618,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // et n'apparaît donc pas comme borne.
     type: "bilge-pump",
     label: "Pompe de cale",
-    category: "consommateurs",
+    category: "consumers",
     icon: "/schema-icons/consumer.svg",
     iconPro: "/schema-icons/pro/pompe-cale.webp",
     handles: [
@@ -599,7 +635,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "socket-220v",
     label: "Prise 220V",
-    category: "consommateurs",
+    category: "consumers",
     subtitle: "Prise secteur",
     icon: "/schema-icons/consumer.svg",
     iconPro: "/schema-icons/pro/socket-220v.webp",
@@ -616,7 +652,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "shunt",
     label: "Shunt",
-    category: "mesure",
+    category: "measurement",
     subtitle: "Mesure",
     icon: "/schema-icons/shunt.svg",
     iconPro: "/schema-icons/pro/shunt.webp",
@@ -634,7 +670,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "system-monitor",
     label: "Écran de contrôle",
-    category: "mesure",
+    category: "measurement",
     subtitle: "Mesure",
     icon: "/schema-icons/shunt.svg",
     iconPro: "/schema-icons/pro/system-monitor.webp",
@@ -649,10 +685,11 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "inverter",
     label: "Convertisseur 12/230V",
-    category: "conversion",
+    category: "converter",
     subtitle: "Conversion",
     icon: "/schema-icons/inverter.svg",
     iconPro: "/schema-icons/pro/inverter-pure.webp",
+    minIconBoxSize: 64,
     handles: [
       { id: "dc-negative", label: "DC−", kind: "negative", side: "left" },
       { id: "dc-positive", label: "DC+", kind: "positive", side: "left" },
@@ -667,16 +704,61 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     ],
   },
   {
+    // Station électrique portable "tout-en-1" (retour utilisateur : "si
+    // c'est un nouveau produit c'est station électrique (batterie, mppt,
+    // convertisseur 220, affichage) tout intégré" — type dédié plutôt que
+    // rattaché à inverter-charger comme fait dans un premier temps : à la
+    // différence d'un Multiplus, elle contient AUSSI son propre régulateur
+    // solaire et sa batterie, elle a donc une entrée PV directe en plus des
+    // bornes AC. L'écran n'a pas de borne : intégré au boîtier, jamais câblé
+    // à part. Sortie DC 12V ajoutée (retour utilisateur : gabarit avec un
+    // circuit 12V alimenté depuis la station) — la plupart de ces stations
+    // ont un port 12V/10A en façade en plus des prises 230V.
+    type: "power-station",
+    label: "Station électrique tout-en-1",
+    category: "battery",
+    subcategory: "stations",
+    subtitle: "Batterie + MPPT + onduleur intégrés",
+    icon: "/schema-icons/inverter.svg",
+    iconPro: "/schema-icons/pro/inverter.webp",
+    badge: { field: "capacityWh", unit: "Wh" },
+    // Retour utilisateur : "agrandi l'icône de batterie tout en 1" — 84 est
+    // le plafond de `boxSize` (voir ElectricalNode.tsx), donc la taille
+    // maximale possible plutôt que la taille "standard" des autres boîtiers.
+    minIconBoxSize: 84,
+    handles: [
+      { id: "pv-negative", label: "PV−", kind: "negative", side: "left" },
+      { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
+      { id: "ac-in", label: "AC IN", kind: "neutral", side: "top" },
+      { id: "ac-out", label: "AC OUT", kind: "neutral", side: "right" },
+      { id: "dc-negative", label: "DC 12V−", kind: "negative", side: "bottom" },
+      { id: "dc-positive", label: "DC 12V+", kind: "positive", side: "bottom" },
+    ],
+    defaultData: { powerW: 1200, capacityWh: 1024 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "powerW", label: "Puissance onduleur", type: "number", unit: "W" },
+      { key: "capacityWh", label: "Capacité batterie", type: "number", unit: "Wh", help: "Souvent indiquée en Wh (pas en Ah) sur ce type de produit." },
+    ],
+  },
+  {
     type: "inverter-charger",
-    label: "Convertisseur-chargeur",
-    category: "conversion",
-    subtitle: "Conversion",
+    label: "Chargeur-convertisseur tout-en-1",
+    category: "charger",
+    subcategory: "tout-en-1",
+    subtitle: "Type Multiplus",
     // CDC §12 : "Convertisseur-chargeur — option V1 si le développement
     // reste raisonnable" — type Victron Multiplus (onduleur + chargeur
-    // secteur bidirectionnel dans le même boîtier).
+    // secteur bidirectionnel dans le même boîtier). Rangé dans la famille
+    // Chargeur (pas Convertisseur) — retour utilisateur : "les deux
+    // convertisseurs ça se comprend pas, met juste le convertisseur 12/230
+    // tout seul, et l'autre dans la partie chargeur" — ce boîtier charge la
+    // batterie depuis le secteur autant qu'il convertit, contrairement au
+    // simple onduleur ("inverter") qui ne fait que convertir.
     icon: "/schema-icons/inverter.svg",
     iconPro: "/schema-icons/pro/inverter.webp",
     badge: { field: "chargeAmperage", unit: "A" },
+    minIconBoxSize: 64,
     handles: [
       { id: "dc-negative", label: "DC−", kind: "negative", side: "left" },
       { id: "dc-positive", label: "DC+", kind: "positive", side: "left" },
@@ -695,7 +777,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "consumer",
     label: "Consommateur",
-    category: "consommateurs",
+    category: "consumers",
     subtitle: "Générique",
     icon: "/schema-icons/consumer.svg",
     iconPro: "/schema-icons/pro/consumer.webp",
@@ -746,8 +828,17 @@ export function getComponentIcon(def: ComponentDefinition, style: IconStyle): st
 
 // Certains composants affichent une icône plus précise que leur icône
 // générique selon une propriété (ex. "réfrigérateur" pour un consommateur,
-// "AGM" vs "LiFePO4" pour une batterie) — voir `iconVariantField`.
+// "AGM" vs "LiFePO4" pour une batterie) — voir `iconVariantField`. Priorité
+// au visuel du modèle de marque exact quand il en a un (retour
+// utilisateur : bibliothèque de rendus Victron, "agrémenter la
+// bibliothèque existante quand on choisit un modèle précis avoir l'icône")
+// — sinon (marque sans correspondance visuelle, ou générique) on retombe
+// sur la logique par variante existante.
 export function getNodeIcon(def: ComponentDefinition, data: Record<string, unknown>, style: IconStyle): string | undefined {
+  if (style === "pro" && typeof data.brandModelId === "string") {
+    const brandIcon = getBrandModel(data.brandModelId)?.iconPro;
+    if (brandIcon) return brandIcon;
+  }
   if (def.iconVariantField) {
     const key = data[def.iconVariantField];
     if (typeof key === "string") {
@@ -760,11 +851,30 @@ export function getNodeIcon(def: ComponentDefinition, data: Record<string, unkno
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {
-  sources: "Sources",
-  charge: "Charge",
-  protection: "Protections",
+  solar: "Solaire",
+  battery: "Batterie",
+  charger: "Chargeur",
+  converter: "Convertisseur",
+  wiring: "Protection & câblage",
+  measurement: "Mesure",
+  consumers: "Appareils",
+};
+
+// Sous-familles au sein d'une catégorie (regroupement visuel dans la
+// bibliothèque uniquement, voir `ComponentDefinition.subcategory`) — retour
+// utilisateur : "créer même des sous-familles". Les composants sans
+// `subcategory` restent affichés hors groupe, en tête de leur catégorie.
+export const SUBCATEGORY_LABELS: Record<string, string> = {
+  panneaux: "Panneaux",
+  regulateurs: "Régulateurs",
+  batteries: "Batteries",
+  repartiteurs: "Répartiteurs & combineurs",
+  stations: "Stations tout-en-1",
+  dcdc: "DC/DC",
+  secteur: "Secteur",
+  alternateur: "Alternateur",
+  "tout-en-1": "Tout-en-1",
+  protection: "Protection",
   distribution: "Distribution",
-  mesure: "Mesure",
-  conversion: "Conversion",
-  consommateurs: "Consommateurs",
+  masse: "Masse",
 };

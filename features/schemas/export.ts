@@ -1,9 +1,9 @@
 import { getNodesBounds, type Node, type Edge } from "@xyflow/react";
-import { toPng } from "html-to-image";
+import { toPng, toSvg } from "html-to-image";
 import JSZip from "jszip";
 import type { Bom } from "@/lib/electrical-components/bom";
 import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
-import type { CableEdgeData } from "@/types/schema";
+import type { CableEdgeData, ElectricalNodeData } from "@/types/schema";
 
 // Export image (CDC §38-40) : capture uniquement le canvas (pas la barre
 // d'outils ni les panneaux), cadré automatiquement sur le contenu — pas une
@@ -24,6 +24,43 @@ const MIN_IMAGE_HEIGHT = 1000;
 
 export const SCHEMA_DISCLAIMER =
   "Schéma généré à titre indicatif. Il ne remplace pas la vérification et la validation par un professionnel qualifié avant toute réalisation. FabSystem décline toute responsabilité en cas d'erreur, d'omission ou de mauvaise interprétation.";
+
+// Isolement par zone à l'export (retour utilisateur : "dans les zones je
+// voudrais pouvoir isoler uniquement la zone pour les imprimer, beaucoup
+// plus intelligent que par famille") — contrairement au filtre par
+// catégorie (hiddenCategories), qui masque des TYPES de composants dans
+// tout le schéma, isoler une zone garde uniquement ce qui se trouve
+// GÉOMÉTRIQUEMENT à l'intérieur du rectangle choisi, quels que soient les
+// types de composants qu'elle contient. Purement géométrique et calculé à
+// l'export (rien de persisté) : cohérent avec le choix de ne pas créer de
+// lien de rattachement automatique quand on glisse un composant dans une
+// zone — un composant "appartient" à une zone simplement parce qu'il est
+// dessus au moment de l'export, ni plus ni moins.
+export function filterNodesByZone<T extends Node>(nodes: T[], zoneId: string | null): T[] {
+  if (!zoneId) return nodes;
+  const zone = nodes.find((n) => n.id === zoneId);
+  if (!zone) return nodes;
+  const zw = zone.measured?.width ?? zone.width ?? 0;
+  const zh = zone.measured?.height ?? zone.height ?? 0;
+  const zx1 = zone.position.x;
+  const zy1 = zone.position.y;
+  const zx2 = zx1 + zw;
+  const zy2 = zy1 + zh;
+  return nodes.filter((n) => {
+    if (n.id === zoneId) return true;
+    if (n.type === "zone") return false;
+    const w = n.measured?.width ?? n.width ?? 0;
+    const h = n.measured?.height ?? n.height ?? 0;
+    const cx = n.position.x + w / 2;
+    const cy = n.position.y + h / 2;
+    return cx >= zx1 && cx <= zx2 && cy >= zy1 && cy <= zy2;
+  });
+}
+
+export function filterEdgesForNodes<T extends Edge>(edges: T[], nodes: Node[]): T[] {
+  const ids = new Set(nodes.map((n) => n.id));
+  return edges.filter((e) => ids.has(e.source) && ids.has(e.target));
+}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -48,6 +85,44 @@ interface LegendItem {
   color: string;
 }
 
+export interface EquipmentListItem {
+  label: string;
+  detail: string;
+}
+
+// Rappel des équipements installés (V2, retour utilisateur : "surtout le
+// choix des boîtiers qui est important, Victron Phoenix etc., pour avoir
+// une page avec tout le nécessaire pour lire le schéma") — ajouté sur
+// l'export PNG/PDF, utile pour relire d'un coup d'œil ce qui est prévu sans
+// rouvrir l'éditeur. Distinct de la « Liste de matériel » (export séparé,
+// plus complet : câbles, fusibles, tous composants) : ici seulement ce qui
+// aide à identifier le matériel réel — d'abord les composants avec une
+// marque/modèle choisi (le plus utile pour retrouver une notice), puis les
+// appareils consommateurs avec leur puissance.
+const APPLIANCE_TYPES = new Set(["consumer", "bilge-pump"]);
+
+export function buildEquipmentList(nodes: Node[]): EquipmentListItem[] {
+  const withBrandModel: EquipmentListItem[] = [];
+  const appliances: EquipmentListItem[] = [];
+
+  for (const n of nodes) {
+    const data = n.data as ElectricalNodeData;
+    const label = String(data.label ?? "Composant");
+    const brand = typeof data.brand === "string" ? data.brand : "";
+    const model = typeof data.model === "string" ? data.model : "";
+    if (brand && model) {
+      withBrandModel.push({ label, detail: `${brand} ${model}` });
+      continue;
+    }
+    if (APPLIANCE_TYPES.has(data.componentType)) {
+      const powerW = Number(data.powerW) || 0;
+      appliances.push({ label, detail: powerW > 0 ? `${powerW} W` : "—" });
+    }
+  }
+
+  return [...withBrandModel, ...appliances];
+}
+
 async function postProcess(
   rawDataUrl: string,
   width: number,
@@ -66,6 +141,9 @@ async function postProcess(
   // technique avec le nom du projet, et aussi une légende") — legend vide
   // si aucun câble n'a de type reconnu (schéma sans composant).
   legend: LegendItem[] = [],
+  // Rappel des équipements installés (retour utilisateur) — vide sur les
+  // tuiles zoomées du carrousel, seulement sur la vue d'ensemble.
+  equipment: EquipmentListItem[] = [],
 ): Promise<string> {
   const img = await loadImage(rawDataUrl);
   const canvas = document.createElement("canvas");
@@ -128,6 +206,7 @@ async function postProcess(
 
   drawLegend(ctx, legend, w, h, scale);
   drawTitleBlock(ctx, projectName, tileLabel, w, h, scale);
+  drawEquipmentList(ctx, equipment, w, scale);
 
   // Bandeau de mention légale.
   ctx.fillStyle = "#f9fafb";
@@ -188,6 +267,79 @@ function drawLegend(ctx: CanvasRenderingContext2D, legend: LegendItem[], w: numb
     ctx.fillStyle = "#374151";
     ctx.fillText(item.label, x + pad + swatchW + 8 * scale, rowY);
   });
+}
+
+// Tronque un texte à une largeur max (mesurée avec la police déjà réglée
+// sur `ctx`), en ajoutant une ellipse — même principe que le titre du
+// cartouche (`drawTitleBlock`), pour éviter qu'une référence de marque
+// longue ne fasse exploser la largeur de la boîte.
+function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let result = text;
+  while (result.length > 1 && ctx.measureText(`${result}…`).width > maxWidth) {
+    result = result.slice(0, -1);
+  }
+  return `${result}…`;
+}
+
+// Rappel des équipements installés (retour utilisateur : "surtout le choix
+// des boîtiers... pour avoir une page avec tout le nécessaire pour lire le
+// schéma") — coin haut-droit, seule zone encore libre (légende en
+// bas-gauche, cartouche en bas-droit). Nombre de lignes plafonné pour ne
+// jamais envahir le schéma : au-delà, une ligne "+N autres" résume le reste
+// plutôt que de faire grandir la boîte indéfiniment. Largeur de colonne
+// plafonnée aussi (un nom de modèle peut être long) — tronqué avec ellipse.
+const EQUIPMENT_LIST_MAX_ROWS = 10;
+const EQUIPMENT_LABEL_MAX_WIDTH_PX = 130;
+const EQUIPMENT_DETAIL_MAX_WIDTH_PX = 190;
+
+function drawEquipmentList(ctx: CanvasRenderingContext2D, equipment: EquipmentListItem[], w: number, scale: number) {
+  if (equipment.length === 0) return;
+
+  const visible = equipment.slice(0, EQUIPMENT_LIST_MAX_ROWS);
+  const extra = equipment.length - visible.length;
+  const rowCount = visible.length + (extra > 0 ? 1 : 0);
+  const labelMaxWidth = EQUIPMENT_LABEL_MAX_WIDTH_PX * scale;
+  const detailMaxWidth = EQUIPMENT_DETAIL_MAX_WIDTH_PX * scale;
+
+  const pad = 10 * scale;
+  const lineHeight = 18 * scale;
+  const titleH = 20 * scale;
+  ctx.font = `${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
+  const labelWidth = Math.min(labelMaxWidth, Math.max(...visible.map((d) => ctx.measureText(d.label).width)));
+  const detailWidth = Math.min(detailMaxWidth, Math.max(...visible.map((d) => ctx.measureText(d.detail).width)));
+  const boxW = pad * 2 + labelWidth + 16 * scale + detailWidth;
+  const boxH = titleH + rowCount * lineHeight + pad;
+  const x = w - boxW - 16 * scale;
+  const y = 16 * scale;
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
+  ctx.strokeStyle = "#d1d5db";
+  ctx.lineWidth = scale;
+  ctx.fillRect(x, y, boxW, boxH);
+  ctx.strokeRect(x + 0.5, y + 0.5, boxW, boxH);
+
+  ctx.fillStyle = "#374151";
+  ctx.font = `700 ${10 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.fillText("ÉQUIPEMENTS INSTALLÉS", x + pad, y + titleH / 2 + 2 * scale);
+
+  ctx.font = `${11 * scale}px -apple-system, 'Space Grotesk', system-ui, sans-serif`;
+  visible.forEach((item, i) => {
+    const rowY = y + titleH + i * lineHeight + lineHeight / 2;
+    ctx.fillStyle = "#374151";
+    ctx.textAlign = "left";
+    ctx.fillText(truncateToWidth(ctx, item.label, labelMaxWidth), x + pad, rowY);
+    ctx.fillStyle = "#9ca3af";
+    ctx.textAlign = "right";
+    ctx.fillText(truncateToWidth(ctx, item.detail, detailMaxWidth), x + boxW - pad, rowY);
+    ctx.textAlign = "left";
+  });
+  if (extra > 0) {
+    const rowY = y + titleH + visible.length * lineHeight + lineHeight / 2;
+    ctx.fillStyle = "#9ca3af";
+    ctx.fillText(`+${extra} autres`, x + pad, rowY);
+  }
 }
 
 // Cartouche (retour utilisateur : "petit carré comme en dessin technique
@@ -314,6 +466,39 @@ async function captureRawSchema(viewportEl: HTMLElement, nodes: Node[]): Promise
   return { dataUrl, x0, y0, width, height };
 }
 
+// Miniature basse résolution pour la carte projet du dashboard (retour
+// utilisateur : "je n'arrive même pas à retrouver mon schéma directement
+// dans dashboard") — capture brute sans grille/filigrane/cartouche (inutile
+// à cette taille), générée à chaque sauvegarde liée à un projet.
+const THUMBNAIL_MAX_WIDTH = 480;
+const THUMBNAIL_PIXEL_RATIO = 1;
+
+export async function captureSchemaThumbnail(nodes: Node[]): Promise<string | null> {
+  const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+  if (!viewportEl || nodes.length === 0) return null;
+
+  const bounds = getNodesBounds(nodes);
+  const contentWidth = bounds.width + EXPORT_PADDING_PX * 2;
+  const contentHeight = bounds.height + EXPORT_PADDING_PX * 2;
+  const zoom = Math.min(1, THUMBNAIL_MAX_WIDTH / contentWidth);
+  const width = Math.max(1, Math.round(contentWidth * zoom));
+  const height = Math.max(1, Math.round(contentHeight * zoom));
+  const x = -(bounds.x - EXPORT_PADDING_PX) * zoom;
+  const y = -(bounds.y - EXPORT_PADDING_PX) * zoom;
+
+  return toPng(viewportEl, {
+    backgroundColor: "#ffffff",
+    width,
+    height,
+    pixelRatio: THUMBNAIL_PIXEL_RATIO,
+    style: {
+      width: `${width}px`,
+      height: `${height}px`,
+      transform: `translate(${x}px, ${y}px) scale(${zoom})`,
+    },
+  });
+}
+
 export async function captureSchemaPng(
   nodes: Node[],
   edges: Edge<CableEdgeData>[],
@@ -324,8 +509,41 @@ export async function captureSchemaPng(
   if (!viewportEl || nodes.length === 0) return null;
 
   const raw = await captureRawSchema(viewportEl, nodes);
-  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO, undefined, undefined, buildCableLegend(edges));
+  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO, undefined, undefined, buildCableLegend(edges), buildEquipmentList(nodes));
   return { dataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT };
+}
+
+// Export SVG (V2 — inspiré de Wireframe qui propose PNG/PDF/SVG).
+// Contrairement à captureSchemaPng, pas de postProcess : le filigrane et le
+// cartouche sont dessinés sur un <canvas> 2D lors du postProcess raster, une
+// technique qui ne s'applique pas au SVG. Le SVG reste donc "nu" (schéma
+// seul, cadré comme le PNG). Limite à connaître : toSvg() (html-to-image)
+// encapsule le DOM du canvas dans un <foreignObject> plutôt que de produire
+// des tracés vectoriels natifs par composant — s'affiche correctement dans
+// un navigateur, mais le support de <foreignObject> varie selon les
+// logiciels vectoriels (pas de "vrai" SVG éditable élément par élément).
+export async function captureSchemaSvg(nodes: Node[]): Promise<SchemaCapture | null> {
+  const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+  if (!viewportEl || nodes.length === 0) return null;
+
+  const bounds = getNodesBounds(nodes);
+  const width = Math.round(bounds.width + EXPORT_PADDING_PX * 2);
+  const height = Math.round(bounds.height + EXPORT_PADDING_PX * 2);
+  const x = -(bounds.x - EXPORT_PADDING_PX);
+  const y = -(bounds.y - EXPORT_PADDING_PX);
+
+  const dataUrl = await toSvg(viewportEl, {
+    backgroundColor: "#ffffff",
+    width,
+    height,
+    style: {
+      width: `${width}px`,
+      height: `${height}px`,
+      transform: `translate(${x}px, ${y}px) scale(1)`,
+    },
+  });
+
+  return { dataUrl, width, height };
 }
 
 // Mode carrousel (retour utilisateur : poster un schéma dense en une seule
@@ -364,6 +582,7 @@ export async function captureSchemaCarousel(
     "Vue d'ensemble",
     undefined,
     legend,
+    buildEquipmentList(nodes),
   );
   const parts: CarouselCapture[] = [
     { dataUrl: overviewDataUrl, width: raw.width, height: raw.height + DISCLAIMER_BAND_HEIGHT, label: "Vue d'ensemble" },
@@ -462,8 +681,23 @@ const PAGE_FORMATS: { name: string; widthMm: number; heightMm: number }[] = [
 ];
 const CSS_PX_PER_MM = 2;
 
+// Bug corrigé : le calcul ne déduisait ni les marges de @page (10mm de
+// chaque côté) ni la place prise par le titre, la date, le bandeau
+// d'avertissement et le pied de page (PRINT_STYLE) — le schéma "tenait"
+// selon ce calcul mais débordait quand même sur une 2e page à l'impression
+// réelle, qui elle inclut ce contenu autour de l'image.
+const PAGE_MARGIN_MM = 10;
+// Estimation prudente (titre + date + bandeau d'avertissement sur 2 lignes
+// + pied de page + padding du corps), en mm à ~2 px CSS/mm — mieux vaut
+// changer de format un cran plus tôt que reproduire le bug à l'envers.
+const PRINT_CHROME_HEIGHT_MM = 55;
+
 function pickPageFormat(width: number, height: number): { name: string; widthMm: number; heightMm: number } {
-  const fit = PAGE_FORMATS.find((f) => width <= f.widthMm * CSS_PX_PER_MM && height <= f.heightMm * CSS_PX_PER_MM);
+  const fit = PAGE_FORMATS.find((f) => {
+    const usableWidthPx = (f.widthMm - PAGE_MARGIN_MM * 2) * CSS_PX_PER_MM;
+    const usableHeightPx = (f.heightMm - PAGE_MARGIN_MM * 2 - PRINT_CHROME_HEIGHT_MM) * CSS_PX_PER_MM;
+    return width <= usableWidthPx && height <= usableHeightPx;
+  });
   return fit ?? PAGE_FORMATS[PAGE_FORMATS.length - 1];
 }
 
@@ -476,6 +710,13 @@ export function openPrintablePdf(capture: SchemaCapture, projectName: string): v
   const dateStr = new Date().toLocaleDateString("fr-FR");
   const title = escapeHtml(projectName || "Schéma");
   const page = pickPageFormat(capture.width, capture.height);
+  // Filet de sécurité au-delà du choix de format : même au format A2 (le
+  // plus grand disponible), un schéma très dense peut rester plus haut que
+  // la place restante une fois le titre/disclaimer/pied de page comptés —
+  // contraindre l'image en mm (même espace que @page, pas de conversion
+  // px/mm approximative) garantit qu'elle tient toujours sur une page,
+  // quitte à être affichée plus petite.
+  const imgMaxHeightMm = Math.max(60, page.heightMm - PAGE_MARGIN_MM * 2 - PRINT_CHROME_HEIGHT_MM);
 
   win.document.write(`<!doctype html>
 <html lang="fr">
@@ -485,7 +726,7 @@ export function openPrintablePdf(capture: SchemaCapture, projectName: string): v
 <style>
   @page { size: ${page.name} landscape; margin: 10mm; }
   ${PRINT_STYLE}
-  img { max-width: 100%; height: auto; }
+  img { max-width: 100%; max-height: ${imgMaxHeightMm}mm; width: auto; height: auto; object-fit: contain; }
 </style>
 </head>
 <body>

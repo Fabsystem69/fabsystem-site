@@ -11,11 +11,16 @@ import {
 } from "@xyflow/react";
 import { getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS } from "@/lib/electrical-components/definitions";
 import { autoLayoutNodes } from "@/lib/electrical-components/auto-layout";
-import { buildExampleSchema } from "@/features/schemas/example";
+import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps } from "@/lib/electrical-components/auto-size";
+import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
+import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
+import { getSchemaTemplate } from "@/features/schemas/templates";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
 
 const ICON_STYLE_STORAGE_KEY = "fabsystem-schema:icon-style";
 const DARK_MODE_STORAGE_KEY = "fabsystem-schema:dark-mode";
+const LEFT_PANEL_COLLAPSED_KEY = "fabsystem-schema:left-panel-collapsed";
+const RIGHT_PANEL_COLLAPSED_KEY = "fabsystem-schema:right-panel-collapsed";
 
 function loadIconStyle(): IconStyle {
   if (typeof window === "undefined") return "simple";
@@ -28,6 +33,15 @@ function loadIconStyle(): IconStyle {
 function loadDarkMode(): boolean {
   if (typeof window === "undefined") return false;
   return window.localStorage.getItem(DARK_MODE_STORAGE_KEY) === "1";
+}
+
+// Bandeaux latéraux réductibles (V2, retour utilisateur) — plus d'espace
+// canvas sur petit écran ou pour se concentrer sur le dessin. Préférence
+// d'affichage pure, comme darkMode/iconStyle : pas un pas d'historique, pas
+// dans le brouillon du schéma.
+function loadPanelCollapsed(key: string): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(key) === "1";
 }
 
 const DEFAULT_CABLE_TYPE_BY_KIND: Record<HandleKind, string> = {
@@ -45,12 +59,39 @@ interface Snapshot {
   edges: SchemaEdge[];
 }
 
+export type SchemaSaveScope = "local" | "cloud";
+
+export type SchemaSaveAssistantCode =
+  | "LOCAL_STORAGE_UNAVAILABLE"
+  | "AUTH_REQUIRED"
+  | "ACCESS_DENIED"
+  | "PROJECT_NOT_FOUND"
+  | "RATE_LIMITED"
+  | "PAYLOAD_TOO_LARGE"
+  | "BAD_REQUEST"
+  | "NETWORK"
+  | "UNKNOWN";
+
+export interface SchemaSaveAssistant {
+  code: SchemaSaveAssistantCode;
+  title: string;
+  message: string;
+  retryAfterSeconds?: number | null;
+}
+
 const HANDLE_COLORS: Record<HandleKind, string> = {
   positive: "#dc2626",
   negative: "#111827",
   neutral: "#6b7280",
   earth: "#84cc16",
 };
+
+// Palette des zones (retour utilisateur : "zone MPPT solaire, zone 230V…")
+// — couleurs distinctes de celles déjà utilisées pour les câbles
+// (lib/electrical-components/cable-types.ts), pour ne jamais laisser croire
+// qu'une couleur de zone a une signification électrique. Chaque nouvelle
+// zone prend la suivante dans l'ordre, cycliquement.
+export const ZONE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#14b8a6"];
 
 let idCounter = 0;
 function nextId(prefix: string): string {
@@ -71,58 +112,133 @@ interface SchemaState {
   past: Snapshot[];
   future: Snapshot[];
   saveStatus: "saved" | "saving" | "error";
+  saveScope: SchemaSaveScope;
+  saveMessage: string;
+  saveAssistant: SchemaSaveAssistant | null;
   hydrated: boolean;
   iconStyle: IconStyle;
   darkMode: boolean;
+  leftPanelCollapsed: boolean;
+  rightPanelCollapsed: boolean;
   // Filtre d'affichage (retour utilisateur : "isoler le circuit MPPT ou
   // consommateur pour éviter d'avoir toujours tout le schéma") — catégories
   // volontairement masquées du canvas ; vide = tout affiché. Vue seulement,
   // ne modifie jamais les données du schéma (pas de pas d'historique).
   hiddenCategories: string[];
+  // Isolement export par zone (retour utilisateur : "isoler uniquement la
+  // zone pour les imprimer, beaucoup plus intelligent que par famille") —
+  // même principe que `hiddenCategories` : purement un filtre d'affichage
+  // consommé par Canvas.tsx, jamais un pas d'historique. Posé juste avant
+  // une capture d'export (ExportMenu.tsx) le temps que React Flow ne rende
+  // plus que le contenu de la zone choisie, puis remis à `null` juste
+  // après — sans quoi la capture (qui lit le DOM réel du canvas, pas
+  // seulement les tableaux nodes/edges) continuerait d'inclure les
+  // composants voisins simplement parce qu'ils sont encore affichés.
+  exportIsolatedZoneId: string | null;
   // Project client lié (retour utilisateur : "il manque enregistrer lié au
   // compte client") — null = brouillon local uniquement (comportement par
   // défaut, sans compte). Non persisté dans le schéma lui-même : c'est un
   // lien de sauvegarde, pas une donnée du dessin.
   projectId: string | null;
+  // V2, retour utilisateur : "à chaque ajout d'élément comme batterie,
+  // MPPT, DC-DC, Multiplus... ouvrir un pop up pour choisir le modèle avec
+  // puissance" — posé par `addComponent` juste après la création d'un nœud
+  // d'un type qui a des modèles de marque catalogués (voir
+  // lib/electrical-components/brand-models.ts), consommé par
+  // ModelPickerModal. `null` = aucune popup à afficher.
+  pendingModelPickerNodeId: string | null;
+  // V2, retour utilisateur : "pour l'ajout de fusible ou câble, je veux la
+  // section et ampérage... automatique quand celui est connecté et ouvre le
+  // pop up pour modifier". Posé par `onConnect` quand la nouvelle connexion
+  // permet un calcul (consommateur de puissance connue à proximité) —
+  // sinon reste `null`, pas de popup vide.
+  pendingSizingTarget: { kind: "cable"; edgeId: string } | { kind: "fuse"; nodeId: string } | null;
+  // Mode guidé pas à pas (retour utilisateur : "capable de faire un schéma
+  // basique... en mode guidé étape par étape") — préférence d'affichage pure
+  // comme darkMode/iconStyle : pas un pas d'historique, pas persistée dans
+  // le brouillon. Consommée par GuidedTutorial.tsx et ComponentLibrary.tsx
+  // (mise en évidence du composant à ajouter) via lib/schema-editor/useGuidedStep.
+  guidedMode: boolean;
+  // Index explicite plutôt que dérivé de `isComplete` : les étapes
+  // "explain" (intro/conclusion) n'ont pas d'action à détecter dans le
+  // schéma, elles n'avancent que via le bouton "Suivant" de
+  // GuidedTutorial.tsx. Les étapes "task" avancent automatiquement (voir
+  // l'effet qui appelle `advanceGuidedStep` dans ce composant).
+  guidedStepIndex: number;
 
   setProjectName: (name: string) => void;
   setProjectId: (id: string | null) => void;
   setIconStyle: (style: IconStyle) => void;
   setDarkMode: (value: boolean) => void;
+  toggleLeftPanel: () => void;
+  toggleRightPanel: () => void;
   toggleCategoryVisibility: (category: string) => void;
   showAllCategories: () => void;
+  setExportIsolatedZoneId: (id: string | null) => void;
   onNodesChange: (changes: NodeChange<SchemaNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<SchemaEdge>[]) => void;
   onConnect: (connection: Connection) => void;
   addComponent: (type: string, position: { x: number; y: number }, dataOverride?: Record<string, unknown>) => void;
-  updateNodeData: (id: string, patch: Record<string, unknown>) => void;
-  updateEdgeData: (id: string, patch: Record<string, unknown>) => void;
+  /** Zone colorée (retour utilisateur : "possible de créer des carrés de
+   * couleur pour créer des zones de schéma") — un nœud comme un autre
+   * (`data.componentType: "zone"`), volontairement hors du catalogue
+   * `COMPONENT_DEFINITIONS` : pas un vrai composant électrique, juste un
+   * regroupement visuel dans lequel l'utilisateur glisse des composants à
+   * la main (pas de logique de rattachement automatique). */
+  addZone: (position: { x: number; y: number }) => void;
+  updateNodeData: (id: string, patch: Record<string, unknown>, options?: { trackHistory?: boolean }) => void;
+  updateEdgeData: (id: string, patch: Record<string, unknown>, options?: { trackHistory?: boolean }) => void;
   setOutputCount: (id: string, count: number) => void;
   reconnectEdge: (oldEdge: SchemaEdge, newConnection: Connection) => void;
   spliceNodeOnEdge: (edgeId: string, type: string, position: { x: number; y: number }) => void;
   duplicateNode: (id: string) => void;
   rotateNode: (id: string) => void;
   autoLayout: () => void;
+  /** Recalcule la section de tous les câbles éligibles ; renvoie le nombre modifié. */
+  recalculateAllCableSections: () => number;
+  /** Recalcule le calibre de tous les fusibles/disjoncteurs éligibles ; renvoie le nombre modifié. */
+  recalculateAllFuseRatings: () => number;
   deleteSelected: () => void;
   select: (kind: "node" | "edge" | null, id: string | null) => void;
   undo: () => void;
   redo: () => void;
   newProject: () => void;
-  loadExample: () => void;
-  setSaveStatus: (status: "saved" | "saving" | "error") => void;
+  loadTemplate: (id: string) => void;
+  setSaveStatus: (
+    status: "saved" | "saving" | "error",
+    options?: { scope?: SchemaSaveScope; message?: string }
+  ) => void;
+  setSaveAssistant: (assistant: SchemaSaveAssistant | null) => void;
   hydrate: (snapshot: { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] }) => void;
+  dismissModelPicker: () => void;
+  dismissSizingPopup: () => void;
+  startGuidedMode: () => void;
+  exitGuidedMode: () => void;
+  advanceGuidedStep: () => void;
+  retreatGuidedStep: () => void;
 }
 
 // Historique undo/redo par snapshots (docs/schema/CDC_FabSystem_Schema_V1.md
 // §29) : granularité volontairement grossière pour cette première ébauche —
-// un pas d'historique par ajout, suppression, connexion ou fin de
-// déplacement. Les modifications de propriétés dans le panneau ne créent pas
-// encore de pas d'historique dédié (limitation connue, à affiner plus tard).
+// un pas d'historique par ajout, suppression, connexion, réglage dans les
+// panneaux ou fin de déplacement significatif. Les déplacements
+// intermédiaires des points de câble restent exclus de l'historique pour ne
+// pas polluer l'undo pendant le glisser.
 function commit(state: SchemaState): Pick<SchemaState, "past" | "future"> {
   return {
     past: [...state.past, cloneSnapshot(state.nodes, state.edges)].slice(-50),
     future: [],
   };
+}
+
+function defaultSaveMessage(status: SchemaState["saveStatus"], scope: SchemaSaveScope) {
+  if (status === "saving") {
+    return scope === "cloud" ? "Enregistrement cloud…" : "Enregistrement local…";
+  }
+  if (status === "error") {
+    return scope === "cloud" ? "Erreur de sauvegarde cloud" : "Erreur de brouillon local";
+  }
+  return scope === "cloud" ? "Cloud enregistré" : "Brouillon local enregistré";
 }
 
 export const useSchemaStore = create<SchemaState>((set) => ({
@@ -134,11 +250,21 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   past: [],
   future: [],
   saveStatus: "saved",
+  saveScope: "local",
+  saveMessage: "Brouillon local prêt",
+  saveAssistant: null,
   hydrated: false,
   iconStyle: loadIconStyle(),
   darkMode: loadDarkMode(),
+  leftPanelCollapsed: loadPanelCollapsed(LEFT_PANEL_COLLAPSED_KEY),
+  rightPanelCollapsed: loadPanelCollapsed(RIGHT_PANEL_COLLAPSED_KEY),
   hiddenCategories: [],
+  exportIsolatedZoneId: null,
   projectId: null,
+  pendingModelPickerNodeId: null,
+  pendingSizingTarget: null,
+  guidedMode: false,
+  guidedStepIndex: 0,
 
   setProjectName: (name) => set({ projectName: name }),
   setProjectId: (id) => set({ projectId: id }),
@@ -152,6 +278,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
 
   showAllCategories: () => set({ hiddenCategories: [] }),
 
+  setExportIsolatedZoneId: (id) => set({ exportIsolatedZoneId: id }),
+
   // Préférence d'affichage indépendante du schéma (pas un pas d'historique,
   // pas sauvegardée dans le brouillon) — retour utilisateur : "avoir les
   // deux choix d'icône soit débutant soit pro".
@@ -164,6 +292,20 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     if (typeof window !== "undefined") window.localStorage.setItem(DARK_MODE_STORAGE_KEY, value ? "1" : "0");
     set({ darkMode: value });
   },
+
+  toggleLeftPanel: () =>
+    set((state) => {
+      const next = !state.leftPanelCollapsed;
+      if (typeof window !== "undefined") window.localStorage.setItem(LEFT_PANEL_COLLAPSED_KEY, next ? "1" : "0");
+      return { leftPanelCollapsed: next };
+    }),
+
+  toggleRightPanel: () =>
+    set((state) => {
+      const next = !state.rightPanelCollapsed;
+      if (typeof window !== "undefined") window.localStorage.setItem(RIGHT_PANEL_COLLAPSED_KEY, next ? "1" : "0");
+      return { rightPanelCollapsed: next };
+    }),
 
   onNodesChange: (changes) =>
     set((state) => {
@@ -195,6 +337,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       const kind = handleDef && def ? (def.resolveHandleKind ? def.resolveHandleKind(sourceNode!.data, handleDef) : handleDef.kind) : undefined;
       const color = kind ? HANDLE_COLORS[kind] : HANDLE_COLORS.neutral;
       const cableType = kind ? DEFAULT_CABLE_TYPE_BY_KIND[kind] : "other";
+      const targetNode = state.nodes.find((n) => n.id === connection.target);
+      const defaultPreset = getEdgeDefaultPreset(sourceNode?.data.componentType, targetNode?.data.componentType, cableType);
 
       const edge: SchemaEdge = {
         id: nextId("edge"),
@@ -203,11 +347,36 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         target: connection.target,
         targetHandle: connection.targetHandle,
         type: "cable",
-        data: { color, cableType },
+        data: { color, cableType, ...defaultPreset },
       };
+
+      // Popup de dimensionnement (V2, retour utilisateur) — pour le câble :
+      // systématique sur tout câble de puissance (+ ou −), qu'un ampérage
+      // soit devinable ou non (retour utilisateur explicite : le popup ne
+      // s'affichait que si un consommateur de puissance connue était
+      // directement atteignable — pas assez de cas couverts, "je pense le
+      // plus simple c'est de l'activer pour tous les câbles puissance
+      // positif et négatif" ; l'intensité reste modifiable à la main dans
+      // le popup si elle n'a pas pu être estimée). Le calibre de
+      // fusible/disjoncteur reste conditionné à une estimation réussie —
+      // non concerné par cette demande.
+      let pendingSizingTarget: SchemaState["pendingSizingTarget"] = null;
+      if (cableType === "power-positive" || cableType === "power-negative") {
+        pendingSizingTarget = { kind: "cable", edgeId: edge.id };
+      }
+      if (!pendingSizingTarget) {
+        const nextEdges = [...state.edges, edge];
+        const FUSE_TYPES = new Set(["fuse", "circuit-breaker"]);
+        if (sourceNode && FUSE_TYPES.has(sourceNode.data.componentType) && estimateConnectedAmps(sourceNode.id, state.nodes, nextEdges) !== null) {
+          pendingSizingTarget = { kind: "fuse", nodeId: sourceNode.id };
+        } else if (targetNode && FUSE_TYPES.has(targetNode.data.componentType) && estimateConnectedAmps(targetNode.id, state.nodes, nextEdges) !== null) {
+          pendingSizingTarget = { kind: "fuse", nodeId: targetNode.id };
+        }
+      }
 
       return {
         edges: [...state.edges, edge],
+        pendingSizingTarget,
         ...commit(state),
       };
     }),
@@ -222,6 +391,37 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         position,
         data: { componentType: type, label: def.label, ...def.defaultData, ...dataOverride },
       };
+      // Popup de choix de marque/modèle (V2, retour utilisateur) : seulement
+      // pour les types réellement catalogués (voir brand-models.ts) — pas de
+      // popup vide pour un fusible ou un interrupteur. Désactivée en mode
+      // guidé (retour utilisateur : "automatiser les choix... de la
+      // batterie") : le tutoriel porte sur le câblage, pas sur le choix
+      // d'une marque — reste générique, modifiable ensuite normalement.
+      const hasBrandModels = !state.guidedMode && getBrandModelsForType(type).length > 0;
+      return {
+        nodes: [...state.nodes, node],
+        selectedNodeId: node.id,
+        selectedEdgeId: null,
+        pendingModelPickerNodeId: hasBrandModels ? node.id : null,
+        ...commit(state),
+      };
+    }),
+
+  addZone: (position) =>
+    set((state) => {
+      const node: SchemaNode = {
+        id: nextId("zone"),
+        type: "zone",
+        position,
+        // Toujours en arrière-plan (retour utilisateur implicite : une zone
+        // sert à regrouper visuellement des composants qu'on glisse
+        // "dedans", elle ne doit jamais passer par-dessus eux ni intercepter
+        // leurs clics).
+        zIndex: -1,
+        width: 380,
+        height: 260,
+        data: { componentType: "zone", label: "Zone", color: ZONE_COLORS[state.nodes.filter((n) => n.type === "zone").length % ZONE_COLORS.length] },
+      };
       return {
         nodes: [...state.nodes, node],
         selectedNodeId: node.id,
@@ -230,14 +430,19 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       };
     }),
 
-  updateNodeData: (id, patch) =>
+  dismissModelPicker: () => set({ pendingModelPickerNodeId: null }),
+  dismissSizingPopup: () => set({ pendingSizingTarget: null }),
+
+  updateNodeData: (id, patch, options) =>
     set((state) => ({
       nodes: state.nodes.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...patch } } : n)),
+      ...(options?.trackHistory === false ? null : commit(state)),
     })),
 
-  updateEdgeData: (id, patch) =>
+  updateEdgeData: (id, patch, options) =>
     set((state) => ({
       edges: state.edges.map((e) => (e.id === id ? { ...e, data: { ...e.data, ...patch } } : e)),
+      ...(options?.trackHistory === false ? null : commit(state)),
     })),
 
   // Nombre de sorties d'un busbar/tableau de distribution/platine de
@@ -329,6 +534,28 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       if (state.nodes.length === 0) return {};
       return { nodes: autoLayoutNodes(state.nodes, state.edges), ...commit(state) };
     }),
+
+  recalculateAllCableSections: () => {
+    let updatedCount = 0;
+    set((state) => {
+      const result = recalculateCableSections(state.nodes, state.edges);
+      updatedCount = result.updatedCount;
+      if (updatedCount === 0) return {};
+      return { edges: result.edges, ...commit(state) };
+    });
+    return updatedCount;
+  },
+
+  recalculateAllFuseRatings: () => {
+    let updatedCount = 0;
+    set((state) => {
+      const result = recalculateFuseRatings(state.nodes, state.edges);
+      updatedCount = result.updatedCount;
+      if (updatedCount === 0) return {};
+      return { nodes: result.nodes, ...commit(state) };
+    });
+    return updatedCount;
+  },
 
   rotateNode: (id) =>
     set((state) => {
@@ -423,10 +650,18 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       // Repartir de zéro délie le projet client — sinon la prochaine
       // sauvegarde automatique écraserait son schéma avec une page vierge.
       projectId: null,
+      saveStatus: "saved",
+      saveScope: "local",
+      saveMessage: "Brouillon local prêt",
+      saveAssistant: null,
+      guidedMode: false,
+      guidedStepIndex: 0,
     }),
 
-  loadExample: () => {
-    const { projectName, nodes, edges } = buildExampleSchema();
+  loadTemplate: (id) => {
+    const template = getSchemaTemplate(id);
+    if (!template) return;
+    const { projectName, nodes, edges } = template.build();
     set({
       projectName,
       nodes,
@@ -439,10 +674,26 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       // Même raison que newProject : ne jamais laisser l'exemple écraser
       // le schéma sauvegardé d'un projet client.
       projectId: null,
+      saveStatus: "saved",
+      saveScope: "local",
+      saveMessage: "Brouillon local prêt",
+      saveAssistant: null,
+      guidedMode: false,
+      guidedStepIndex: 0,
     });
   },
 
-  setSaveStatus: (status) => set({ saveStatus: status }),
+  setSaveStatus: (status, options) =>
+    set((state) => {
+      const scope = options?.scope ?? state.saveScope;
+      return {
+        saveStatus: status,
+        saveScope: scope,
+        saveMessage: options?.message ?? defaultSaveMessage(status, scope),
+      };
+    }),
+
+  setSaveAssistant: (assistant) => set({ saveAssistant: assistant }),
 
   hydrate: (snapshot) =>
     set({
@@ -451,9 +702,50 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       edges: snapshot.edges,
       past: [],
       future: [],
+      saveStatus: "saved",
+      saveScope: "local",
+      saveMessage: "Brouillon local prêt",
+      saveAssistant: null,
       hydrated: true,
       hiddenCategories: [],
+      guidedMode: false,
+      guidedStepIndex: 0,
     }),
+
+  // Mode guidé pas à pas (retour utilisateur) — repart toujours d'un canvas
+  // vierge : les étapes de lib/schema-editor/guided-tutorial.ts supposent un
+  // schéma vide au démarrage (elles cherchent "la" batterie, "le" busbar…).
+  startGuidedMode: () =>
+    set({
+      projectName: "Mode guidé — appareils de base",
+      nodes: [],
+      edges: [],
+      selectedNodeId: null,
+      selectedEdgeId: null,
+      past: [],
+      future: [],
+      hydrated: true,
+      hiddenCategories: [],
+      projectId: null,
+      saveStatus: "saved",
+      saveScope: "local",
+      saveMessage: "Brouillon local prêt",
+      saveAssistant: null,
+      guidedMode: true,
+      guidedStepIndex: 0,
+    }),
+
+  // Quitter n'efface rien : le schéma construit pendant le mode guidé reste
+  // utilisable normalement ensuite (pas une session jetable).
+  exitGuidedMode: () => set({ guidedMode: false }),
+
+  advanceGuidedStep: () => set((state) => ({ guidedStepIndex: state.guidedStepIndex + 1 })),
+
+  // Retour utilisateur : "un retour aux étapes précédentes" — pour relire
+  // une explication ou refaire une connexion sans tout recommencer. Ne
+  // supprime rien du schéma déjà construit, se contente de rouvrir
+  // l'instruction précédente.
+  retreatGuidedStep: () => set((state) => ({ guidedStepIndex: Math.max(0, state.guidedStepIndex - 1) })),
 }));
 
 export function selectComponentDefinition(node: SchemaNode) {

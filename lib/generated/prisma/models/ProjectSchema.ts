@@ -28,6 +28,7 @@ export type ProjectSchemaMinAggregateOutputType = {
   id: string | null
   projectId: string | null
   projectName: string | null
+  thumbnail: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -36,6 +37,7 @@ export type ProjectSchemaMaxAggregateOutputType = {
   id: string | null
   projectId: string | null
   projectName: string | null
+  thumbnail: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -46,6 +48,7 @@ export type ProjectSchemaCountAggregateOutputType = {
   projectName: number
   nodes: number
   edges: number
+  thumbnail: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -56,6 +59,7 @@ export type ProjectSchemaMinAggregateInputType = {
   id?: true
   projectId?: true
   projectName?: true
+  thumbnail?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -64,6 +68,7 @@ export type ProjectSchemaMaxAggregateInputType = {
   id?: true
   projectId?: true
   projectName?: true
+  thumbnail?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -74,6 +79,7 @@ export type ProjectSchemaCountAggregateInputType = {
   projectName?: true
   nodes?: true
   edges?: true
+  thumbnail?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -157,6 +163,7 @@ export type ProjectSchemaGroupByOutputType = {
   projectName: string
   nodes: runtime.JsonValue
   edges: runtime.JsonValue
+  thumbnail: string | null
   createdAt: Date
   updatedAt: Date
   _count: ProjectSchemaCountAggregateOutputType | null
@@ -188,6 +195,7 @@ export type ProjectSchemaWhereInput = {
   projectName?: Prisma.StringFilter<"ProjectSchema"> | string
   nodes?: Prisma.JsonFilter<"ProjectSchema">
   edges?: Prisma.JsonFilter<"ProjectSchema">
+  thumbnail?: Prisma.StringNullableFilter<"ProjectSchema"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProjectSchema"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectSchema"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -199,6 +207,7 @@ export type ProjectSchemaOrderByWithRelationInput = {
   projectName?: Prisma.SortOrder
   nodes?: Prisma.SortOrder
   edges?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
@@ -213,6 +222,7 @@ export type ProjectSchemaWhereUniqueInput = Prisma.AtLeast<{
   projectName?: Prisma.StringFilter<"ProjectSchema"> | string
   nodes?: Prisma.JsonFilter<"ProjectSchema">
   edges?: Prisma.JsonFilter<"ProjectSchema">
+  thumbnail?: Prisma.StringNullableFilter<"ProjectSchema"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ProjectSchema"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectSchema"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
@@ -224,6 +234,7 @@ export type ProjectSchemaOrderByWithAggregationInput = {
   projectName?: Prisma.SortOrder
   nodes?: Prisma.SortOrder
   edges?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ProjectSchemaCountOrderByAggregateInput
@@ -240,6 +251,7 @@ export type ProjectSchemaScalarWhereWithAggregatesInput = {
   projectName?: Prisma.StringWithAggregatesFilter<"ProjectSchema"> | string
   nodes?: Prisma.JsonWithAggregatesFilter<"ProjectSchema">
   edges?: Prisma.JsonWithAggregatesFilter<"ProjectSchema">
+  thumbnail?: Prisma.StringNullableWithAggregatesFilter<"ProjectSchema"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectSchema"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectSchema"> | Date | string
 }
@@ -249,6 +261,7 @@ export type ProjectSchemaCreateInput = {
   projectName: string
   nodes: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutSchemaInput
@@ -260,6 +273,7 @@ export type ProjectSchemaUncheckedCreateInput = {
   projectName: string
   nodes: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -269,6 +283,7 @@ export type ProjectSchemaUpdateInput = {
   projectName?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutSchemaNestedInput
@@ -280,6 +295,7 @@ export type ProjectSchemaUncheckedUpdateInput = {
   projectName?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -290,6 +306,7 @@ export type ProjectSchemaCreateManyInput = {
   projectName: string
   nodes: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -299,6 +316,7 @@ export type ProjectSchemaUpdateManyMutationInput = {
   projectName?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -309,6 +327,7 @@ export type ProjectSchemaUncheckedUpdateManyInput = {
   projectName?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -324,6 +343,7 @@ export type ProjectSchemaCountOrderByAggregateInput = {
   projectName?: Prisma.SortOrder
   nodes?: Prisma.SortOrder
   edges?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -332,6 +352,7 @@ export type ProjectSchemaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   projectName?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -340,6 +361,7 @@ export type ProjectSchemaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   projectName?: Prisma.SortOrder
+  thumbnail?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -381,6 +403,7 @@ export type ProjectSchemaCreateWithoutProjectInput = {
   projectName: string
   nodes: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -390,6 +413,7 @@ export type ProjectSchemaUncheckedCreateWithoutProjectInput = {
   projectName: string
   nodes: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -415,6 +439,7 @@ export type ProjectSchemaUpdateWithoutProjectInput = {
   projectName?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -424,6 +449,7 @@ export type ProjectSchemaUncheckedUpdateWithoutProjectInput = {
   projectName?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   edges?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  thumbnail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -436,6 +462,7 @@ export type ProjectSchemaSelect<ExtArgs extends runtime.Types.Extensions.Interna
   projectName?: boolean
   nodes?: boolean
   edges?: boolean
+  thumbnail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -447,6 +474,7 @@ export type ProjectSchemaSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   projectName?: boolean
   nodes?: boolean
   edges?: boolean
+  thumbnail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -458,6 +486,7 @@ export type ProjectSchemaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   projectName?: boolean
   nodes?: boolean
   edges?: boolean
+  thumbnail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -469,11 +498,12 @@ export type ProjectSchemaSelectScalar = {
   projectName?: boolean
   nodes?: boolean
   edges?: boolean
+  thumbnail?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectSchemaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "projectName" | "nodes" | "edges" | "createdAt" | "updatedAt", ExtArgs["result"]["projectSchema"]>
+export type ProjectSchemaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "projectName" | "nodes" | "edges" | "thumbnail" | "createdAt" | "updatedAt", ExtArgs["result"]["projectSchema"]>
 export type ProjectSchemaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
 }
@@ -495,6 +525,7 @@ export type $ProjectSchemaPayload<ExtArgs extends runtime.Types.Extensions.Inter
     projectName: string
     nodes: runtime.JsonValue
     edges: runtime.JsonValue
+    thumbnail: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["projectSchema"]>
@@ -926,6 +957,7 @@ export interface ProjectSchemaFieldRefs {
   readonly projectName: Prisma.FieldRef<"ProjectSchema", 'String'>
   readonly nodes: Prisma.FieldRef<"ProjectSchema", 'Json'>
   readonly edges: Prisma.FieldRef<"ProjectSchema", 'Json'>
+  readonly thumbnail: Prisma.FieldRef<"ProjectSchema", 'String'>
   readonly createdAt: Prisma.FieldRef<"ProjectSchema", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ProjectSchema", 'DateTime'>
 }

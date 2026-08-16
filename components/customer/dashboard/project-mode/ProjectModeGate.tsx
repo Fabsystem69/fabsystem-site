@@ -21,6 +21,8 @@ export type ProjectModeGateProps = {
   obsoleteCount: number;
   uncompletedCount: number;
   nextAction: string;
+  schemaThumbnail: string | null;
+  hasSchema: boolean;
 };
 
 // UI-13 §2-3 — bascule entre Mode Guidé (recommandé par défaut) et Mode

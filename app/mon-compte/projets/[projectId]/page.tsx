@@ -4,6 +4,7 @@ import { isHttpError } from "@/lib/http-errors";
 import { getProject } from "@/lib/services/project";
 import { getProjectValues } from "@/lib/services/project-values";
 import { listDependencies } from "@/lib/services/project-dependencies";
+import { getProjectSchema } from "@/lib/services/project-schema";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { listRegisteredEngineIds } from "@/lib/engines/index";
 import { ENGINE_LABELS } from "@/lib/engine-payload";
@@ -53,9 +54,10 @@ export default async function ProjectPage({ params }: PageProps) {
 
   // Ownership déjà vérifié par getProject ci-dessus : project.id est donc
   // sûr à utiliser pour lire les valeurs retenues et leurs dépendances.
-  const [retainedValues, dependencies] = await Promise.all([
+  const [retainedValues, dependencies, schema] = await Promise.all([
     getProjectValues(project.id),
     listDependencies(project.id),
+    getProjectSchema(actor, project.id),
   ]);
 
   const engineIds = listRegisteredEngineIds() as RegisteredEngineId[];
@@ -111,6 +113,8 @@ export default async function ProjectPage({ params }: PageProps) {
       obsoleteCount={obsoleteCount}
       uncompletedCount={uncompletedCount}
       nextAction={nextAction}
+      schemaThumbnail={schema?.thumbnail ?? null}
+      hasSchema={Boolean(schema)}
     />
   );
 }

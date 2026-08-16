@@ -40,10 +40,10 @@ export function FeedbackMenu({ darkMode }: { darkMode: boolean }) {
         onClick={() => setOpen((v) => !v)}
         title="Signaler un composant manquant ou proposer une amélioration"
         className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-base ${
-          darkMode ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-neutral-300 text-neutral-700 hover:bg-neutral-100"
+          darkMode ? "border-violet-500/50 text-violet-300 hover:bg-violet-500/10" : "border-violet-200 text-violet-700 hover:bg-violet-50"
         }`}
       >
-        Suggérer
+        📧 Une idée ou un problème ?
       </button>
       {open ? (
         <div

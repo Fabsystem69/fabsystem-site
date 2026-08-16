@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/format";
 import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/project";
 import { getProjectValues } from "@/lib/services/project-values";
+import { listProjectSchemaSummaries } from "@/lib/services/project-schema";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { listRegisteredEngineIds } from "@/lib/engines/index";
 import type { RegisteredEngineId } from "@/lib/engine-payload";
@@ -61,6 +62,11 @@ export default async function MesProjetsPage() {
     )
   );
 
+  // Miniature + statut du schéma sur chaque carte (retour utilisateur : "je
+  // n'arrive même pas à retrouver mon schéma directement dans dashboard") —
+  // une seule requête groupée, pas de N+1.
+  const schemaSummaries = await listProjectSchemaSummaries(active.map((p) => p.id));
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -107,45 +113,63 @@ export default async function MesProjetsPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {active.map((project) => (
-            <Link
-              key={project.id}
-              href={`/mon-compte/projets/${project.id}`}
-              className="block rounded-card border border-neutral-200 bg-white p-5 shadow-card transition-colors hover:border-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base font-semibold text-neutral-950">{project.name}</h2>
-                    <Badge tone={statusBadgeTone(project.status)}>
-                      {getProjectStatusLabel(project.status)}
-                    </Badge>
+          {active.map((project) => {
+            const schema = schemaSummaries.get(project.id);
+            return (
+              <Link
+                key={project.id}
+                href={`/mon-compte/projets/${project.id}`}
+                className="flex flex-wrap items-start gap-4 rounded-card border border-neutral-200 bg-white p-5 shadow-card transition-colors hover:border-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+              >
+                {schema?.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={schema.thumbnail}
+                    alt=""
+                    className="h-20 w-28 shrink-0 rounded-lg border border-neutral-200 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-lg border border-dashed border-neutral-300 bg-neutral-50 text-center text-[11px] leading-tight text-neutral-400">
+                    Pas encore de schéma
                   </div>
-                  <p className="mt-1 text-sm text-neutral-600">
-                    {getProjectAssetTypeLabel(project.assetType)} ·{" "}
-                    {getProjectVoltageLabel(project.voltage)}
-                  </p>
-                  <p className="mt-1 text-xs text-neutral-500">
-                    Modifié le {formatDate(project.updatedAt)}
-                  </p>
-                  {project.status === "DELETE_SCHEDULED" && project.deleteScheduledAt ? (
-                    <p className="mt-2 text-xs font-semibold text-red-700">
-                      Suppression programmée le {formatDate(project.deleteScheduledAt)}
-                    </p>
-                  ) : null}
-                  {progressByProjectId.has(project.id) ? (
-                    <p className="mt-2 text-xs font-medium text-neutral-500">
-                      {progressByProjectId.get(project.id)!.retainedCount}/
-                      {progressByProjectId.get(project.id)!.total} modules retenus
-                    </p>
-                  ) : null}
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base font-semibold text-neutral-950">{project.name}</h2>
+                        <Badge tone={statusBadgeTone(project.status)}>
+                          {getProjectStatusLabel(project.status)}
+                        </Badge>
+                        {schema ? <Badge tone="success">Schéma</Badge> : null}
+                      </div>
+                      <p className="mt-1 text-sm text-neutral-600">
+                        {getProjectAssetTypeLabel(project.assetType)} ·{" "}
+                        {getProjectVoltageLabel(project.voltage)}
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Modifié le {formatDate(project.updatedAt)}
+                      </p>
+                      {project.status === "DELETE_SCHEDULED" && project.deleteScheduledAt ? (
+                        <p className="mt-2 text-xs font-semibold text-red-700">
+                          Suppression programmée le {formatDate(project.deleteScheduledAt)}
+                        </p>
+                      ) : null}
+                      {progressByProjectId.has(project.id) ? (
+                        <p className="mt-2 text-xs font-medium text-neutral-500">
+                          {progressByProjectId.get(project.id)!.retainedCount}/
+                          {progressByProjectId.get(project.id)!.total} modules retenus
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold text-neutral-600">
+                      Ouvrir →
+                    </span>
+                  </div>
                 </div>
-                <span className="shrink-0 text-sm font-semibold text-neutral-600">
-                  Ouvrir →
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
 

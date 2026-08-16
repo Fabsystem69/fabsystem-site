@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { useSchemaStore, ZONE_COLORS } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition, getConsumerPreset } from "@/lib/electrical-components/definitions";
+import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
 import { calcSection, fusibleRecommande } from "@/lib/calc/section-cable";
-import { computeSchemaIssues } from "@/lib/electrical-components/checks";
+import { computeSchemaIssues, type SchemaIssueAction } from "@/lib/electrical-components/checks";
+import { estimateConnectedAmps, estimateEdgeAmps, evaluateEdgeSection, findBatteryVoltage } from "@/lib/electrical-components/auto-size";
 import { CABLE_SECTIONS } from "@/types/schema";
-import { getAverageCableLength } from "@/lib/electrical-components/cable-lengths";
+import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaStore";
 
 // Colonne droite desktop (CDC §24-25) : propriétés de l'élément sélectionné,
@@ -27,9 +29,36 @@ export function PropertiesPanel() {
   const projectName = useSchemaStore((s) => s.projectName);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
+  const collapsed = useSchemaStore((s) => s.rightPanelCollapsed);
+  const toggleRightPanel = useSchemaStore((s) => s.toggleRightPanel);
 
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : undefined;
   const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) : undefined;
+
+  if (collapsed) {
+    return (
+      <aside
+        className={`flex h-full w-9 shrink-0 flex-col items-center border-l pt-3 ${
+          darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={toggleRightPanel}
+          title="Afficher les propriétés"
+          className={`rounded-md border p-1.5 text-xs transition-base ${
+            darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
+          }`}
+        >
+          ‹
+        </button>
+      </aside>
+    );
+  }
+
+  if (selectedNode && selectedNode.data.componentType === "zone") {
+    return <ZonePropertiesPanel node={selectedNode} darkMode={darkMode} onCollapse={toggleRightPanel} />;
+  }
 
   if (selectedNode) {
     const def = getComponentDefinition(selectedNode.data.componentType);
@@ -60,6 +89,36 @@ export function PropertiesPanel() {
       updateNodeData(selectedNode.id, { [key]: value });
     }
 
+    // Marque/modèle (V2) : le composant reste générique dans la
+    // bibliothèque — choisir un modèle ici ne fait que pré-remplir les
+    // champs déjà existants avec les valeurs réelles du datasheet. Reste
+    // modifiable ensuite comme n'importe quel champ (retour utilisateur
+    // implicite du CDC : jamais un second moteur de données qui prendrait
+    // le pas sur les champs).
+    function handleBrandModelChange(value: string) {
+      if (!selectedNode) return;
+      if (!value) {
+        updateNodeData(selectedNode.id, { brandModelId: "", brand: "", model: "" });
+        return;
+      }
+      const brandModel = getBrandModel(value);
+      if (!brandModel) return;
+      updateNodeData(selectedNode.id, {
+        brandModelId: brandModel.id,
+        brand: brandModel.brand,
+        model: brandModel.model,
+        ...brandModel.defaults,
+      });
+    }
+
+    const brandModels = getBrandModelsForType(selectedNode.data.componentType);
+    const brandModelsByBrand = new Map<string, typeof brandModels>();
+    for (const m of brandModels) {
+      const list = brandModelsByBrand.get(m.brand) ?? [];
+      list.push(m);
+      brandModelsByBrand.set(m.brand, list);
+    }
+
     const inputClass = `w-full rounded-md border px-2.5 py-1.5 text-sm focus:outline-none ${
       darkMode
         ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400"
@@ -71,12 +130,37 @@ export function PropertiesPanel() {
 
     return (
       <aside className={`flex h-full w-72 shrink-0 flex-col border-l ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
-        <div className={`border-b px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
-          <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{def.label}</h2>
-          <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Propriétés du composant</p>
+        <div className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+          <div>
+            <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{def.label}</h2>
+            <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Propriétés du composant</p>
+          </div>
+          <PanelCollapseButton darkMode={darkMode} onClick={toggleRightPanel} />
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {brandModels.length > 0 ? (
+            <label className="block">
+              <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Marque / modèle</span>
+              <select
+                value={String(selectedNode.data.brandModelId ?? "")}
+                onChange={(e) => handleBrandModelChange(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Générique</option>
+                {Array.from(brandModelsByBrand.entries()).map(([brand, models]) => (
+                  <optgroup key={brand} label={brand}>
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>{m.model}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <span className={`mt-1 block text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
+                Pré-remplit les champs ci-dessous avec les valeurs du modèle — reste modifiable ensuite.
+              </span>
+            </label>
+          ) : null}
           {def.fields.map((field) => (
             <label key={field.key} className="block">
               <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>{field.label}</span>
@@ -160,7 +244,9 @@ export function PropertiesPanel() {
       if (!selectedEdge) return;
       const patch: Record<string, unknown> = { section };
       if (selectedEdge.data?.length === undefined) {
-        const avg = getAverageCableLength(section);
+        const sourceType = nodes.find((n) => n.id === selectedEdge.source)?.data.componentType;
+        const targetType = nodes.find((n) => n.id === selectedEdge.target)?.data.componentType;
+        const avg = getEdgeDefaultLength(sourceType, targetType, section, selectedEdge.data?.cableType);
         if (avg !== undefined) patch.length = avg;
       }
       updateEdgeData(selectedEdge.id, patch);
@@ -168,9 +254,12 @@ export function PropertiesPanel() {
 
     return (
       <aside className={`flex h-full w-72 shrink-0 flex-col border-l ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
-        <div className={`border-b px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
-          <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Câble</h2>
-          <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Propriétés de la connexion</p>
+        <div className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+          <div>
+            <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Câble</h2>
+            <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Propriétés de la connexion</p>
+          </div>
+          <PanelCollapseButton darkMode={darkMode} onClick={toggleRightPanel} />
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
@@ -222,7 +311,7 @@ export function PropertiesPanel() {
             </select>
           </label>
 
-          <SectionSuggestion edge={selectedEdge} nodes={nodes} onApply={applySection} darkMode={darkMode} />
+          <SectionSuggestion edge={selectedEdge} nodes={nodes} edges={edges} onApply={applySection} darkMode={darkMode} />
 
           <label className="block">
             <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Longueur (facultatif)</span>
@@ -278,9 +367,12 @@ export function PropertiesPanel() {
   // (w-72) puisqu'ils contiennent des formulaires à remplir.
   return (
     <aside className={`flex h-full w-52 shrink-0 flex-col border-l ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
-      <div className={`border-b px-3 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
-        <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Projet</h2>
-        <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Aucun élément sélectionné</p>
+      <div className={`flex items-start justify-between gap-2 border-b px-3 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+        <div>
+          <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Projet</h2>
+          <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Aucun élément sélectionné</p>
+        </div>
+        <PanelCollapseButton darkMode={darkMode} onClick={toggleRightPanel} />
       </div>
       <div className={`space-y-2 px-3 py-4 text-sm ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>
         <p>
@@ -326,15 +418,25 @@ export function PropertiesPanel() {
   );
 }
 
-// Panneau "À vérifier" (CDC §31) : contrôles structurels uniquement, jamais
-// une validation électrique — chaque entrée mène au composant concerné.
-// Rien à afficher tant qu'aucun problème structurel n'est détecté (pas de
-// message de succès/score, retour utilisateur implicite via CDC : pas de
-// gamification).
+// Panneau "À vérifier" (CDC §31) : rappels structurels et électriques
+// ciblés, jamais une validation réglementaire complète — chaque entrée mène
+// au nœud ou au câble concerné. Rien à afficher tant qu'aucun problème n'est
+// détecté (pas de message de succès/score, retour utilisateur implicite via
+// CDC : pas de gamification).
 function SchemaIssuesPanel({ nodes, edges, darkMode }: { nodes: SchemaNode[]; edges: SchemaEdge[]; darkMode: boolean }) {
   const select = useSchemaStore((s) => s.select);
+  const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
   const issues = computeSchemaIssues(nodes, edges);
   if (issues.length === 0) return null;
+
+  function handleIssueAction(action: SchemaIssueAction) {
+    if (action === "recalculate-all-cable-sections") recalculateAllCableSections();
+  }
+
+  function getIssueActionLabel(action: SchemaIssueAction): string {
+    if (action === "recalculate-all-cable-sections") return "Recalculer les sections";
+    return "Appliquer";
+  }
 
   return (
     <div className={`border-t px-3 py-4 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
@@ -343,37 +445,41 @@ function SchemaIssuesPanel({ nodes, edges, darkMode }: { nodes: SchemaNode[]; ed
       </h3>
       <div className="space-y-1.5">
         {issues.map((issue) => (
-          <button
+          <div
             key={issue.id}
-            type="button"
-            onClick={() => select("node", issue.nodeId)}
             className={`block w-full rounded-md border px-2.5 py-1.5 text-left text-xs transition-base ${
               darkMode
-                ? "border-amber-900 bg-amber-950 text-amber-400 hover:border-amber-700 hover:bg-amber-900"
-                : "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 hover:bg-amber-100"
+                ? "border-amber-900 bg-amber-950 text-amber-400"
+                : "border-amber-200 bg-amber-50 text-amber-800"
             }`}
           >
-            {issue.message}
-          </button>
+            <button
+              type="button"
+              onClick={() => select(issue.targetKind, issue.targetId)}
+              className={`block w-full text-left ${
+                darkMode ? "hover:text-amber-300" : "hover:text-amber-900"
+              }`}
+            >
+              {issue.message}
+            </button>
+            {issue.action ? (
+              <button
+                type="button"
+                onClick={() => handleIssueAction(issue.action!)}
+                className={`mt-2 rounded-md border px-2 py-1 text-[11px] font-semibold transition-base ${
+                  darkMode
+                    ? "border-amber-700 text-amber-200 hover:bg-amber-900"
+                    : "border-amber-300 text-amber-900 hover:bg-amber-100"
+                }`}
+              >
+                {getIssueActionLabel(issue.action)}
+              </button>
+            ) : null}
+          </div>
         ))}
       </div>
     </div>
   );
-}
-
-// Estime le courant du circuit protégé par ce composant à partir de ses
-// voisins directs sur le canvas (un consommateur avec une puissance connue
-// + la tension de la batterie du schéma). Purement indicatif, aucune
-// garantie que ce soit le bon circuit si le schéma est complexe.
-function estimateConnectedAmps(nodeId: string, nodes: SchemaNode[], edges: SchemaEdge[]): number | null {
-  const connectedIds = new Set(edges.filter((e) => e.source === nodeId || e.target === nodeId).flatMap((e) => [e.source, e.target]));
-  connectedIds.delete(nodeId);
-  const consumerNode = nodes.find((n) => connectedIds.has(n.id) && n.data.componentType === "consumer");
-  const powerW = Number(consumerNode?.data.powerW) || 0;
-  if (!consumerNode || powerW <= 0) return null;
-  const batteryNode = nodes.find((n) => n.data.componentType === "battery");
-  const voltage = Number(batteryNode?.data.voltage) || 12;
-  return powerW / voltage;
 }
 
 // Un champ de calibre par sortie (retour utilisateur : "possibilité de
@@ -449,11 +555,13 @@ function FuseSuggestion({ nodeId, nodes, edges, darkMode }: { nodeId: string; no
 function SectionSuggestion({
   edge,
   nodes,
+  edges,
   onApply,
   darkMode,
 }: {
-  edge: { id: string; source: string; target: string };
+  edge: SchemaEdge;
   nodes: SchemaNode[];
+  edges: SchemaEdge[];
   onApply: (section: string) => void;
   darkMode: boolean;
 }) {
@@ -463,15 +571,19 @@ function SectionSuggestion({
   const [result, setResult] = useState<{ sMin: string; section: number; fusible: string } | null>(null);
 
   useEffect(() => {
-    const source = nodes.find((n) => n.id === edge.source);
-    const target = nodes.find((n) => n.id === edge.target);
-    const batteryNode = [source, target].find((n) => n?.data.componentType === "battery");
-    const consumerNode = [source, target].find((n) => n?.data.componentType === "consumer");
-    const v = Number(batteryNode?.data.voltage) || 12;
+    const v = findBatteryVoltage(nodes);
     setTension(String(v));
-    const powerW = Number(consumerNode?.data.powerW) || 0;
-    setAmps(powerW > 0 ? String(Math.round((powerW / v) * 10) / 10) : "");
-    setLength("4");
+    // Somme des consommateurs en aval (retour utilisateur : "il ne calcule
+    // pas la section des câbles les plus importants, ceux de la batterie
+    // au coupe-circuit ou à la platine de distribution") — pas seulement un
+    // consommateur directement raccordé aux deux bouts. Si un fusible
+    // principal est plus dimensionnant, on l'utilise comme référence.
+    const diagnostic = evaluateEdgeSection(edge, nodes, edges);
+    const estimated = diagnostic?.amps ?? estimateEdgeAmps(edge, nodes, edges);
+    setAmps(estimated !== null ? String(Math.round(estimated * 10) / 10) : "");
+    const sourceType = nodes.find((n) => n.id === edge.source)?.data.componentType;
+    const targetType = nodes.find((n) => n.id === edge.target)?.data.componentType;
+    setLength(String(edge.data?.length ?? getEdgeDefaultLength(sourceType, targetType, edge.data?.section ?? "", edge.data?.cableType) ?? 4));
     setResult(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edge.id]);
@@ -544,5 +656,92 @@ function SectionSuggestion({
         </div>
       ) : null}
     </div>
+  );
+}
+
+// Panneau dédié à une zone colorée (retour utilisateur : "créer des carrés
+// de couleur pour créer des zones de schéma") — pas de `ComponentDefinition`
+// pour ce type, donc un panneau à part plutôt que de forcer l'écran
+// générique des composants électriques (champs/marque-modèle n'ont aucun
+// sens ici).
+function ZonePropertiesPanel({ node, darkMode, onCollapse }: { node: SchemaNode; darkMode: boolean; onCollapse: () => void }) {
+  const updateNodeData = useSchemaStore((s) => s.updateNodeData);
+  const deleteSelected = useSchemaStore((s) => s.deleteSelected);
+  const color = String(node.data.color ?? ZONE_COLORS[0]);
+
+  const inputClass = `w-full rounded-md border px-2.5 py-1.5 text-sm focus:outline-none ${
+    darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 focus:border-neutral-900"
+  }`;
+
+  return (
+    <aside className={`flex h-full w-72 shrink-0 flex-col border-l ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
+      <div className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+        <div>
+          <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Zone</h2>
+          <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Regroupement visuel</p>
+        </div>
+        <PanelCollapseButton darkMode={darkMode} onClick={onCollapse} />
+      </div>
+
+      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+        <label className="block">
+          <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Nom</span>
+          <input
+            type="text"
+            value={String(node.data.label ?? "")}
+            onChange={(e) => updateNodeData(node.id, { label: e.target.value })}
+            className={inputClass}
+          />
+        </label>
+
+        <div>
+          <span className={`mb-1.5 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Couleur</span>
+          <div className="flex flex-wrap gap-2">
+            {ZONE_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => updateNodeData(node.id, { color: c })}
+                title={c}
+                className="h-7 w-7 rounded-full border-2 transition-base"
+                style={{ backgroundColor: c, borderColor: c === color ? (darkMode ? "#fff" : "#111827") : "transparent" }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <p className={`text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
+          Glisse des composants à l&apos;intérieur pour les regrouper visuellement — aucun lien n&apos;est créé automatiquement, la zone sert
+          uniquement de repère. Redimensionnable par les poignées quand elle est sélectionnée.
+        </p>
+      </div>
+
+      <div className={`border-t px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+        <button
+          type="button"
+          onClick={deleteSelected}
+          className={`w-full rounded-md border px-2.5 py-1.5 text-sm font-medium transition-base ${
+            darkMode ? "border-red-900 text-red-400 hover:bg-red-950" : "border-red-200 text-red-600 hover:bg-red-50"
+          }`}
+        >
+          Supprimer la zone
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function PanelCollapseButton({ darkMode, onClick }: { darkMode: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Réduire le panneau propriétés"
+      className={`shrink-0 rounded-md border p-1.5 text-xs transition-base ${
+        darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
+      }`}
+    >
+      ›
+    </button>
   );
 }

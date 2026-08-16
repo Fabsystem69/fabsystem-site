@@ -59,8 +59,8 @@ export function CategoryFilterMenu({ darkMode }: { darkMode: boolean }) {
               ? "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
               : "border-amber-400 bg-amber-50 text-amber-700 hover:bg-amber-100"
             : darkMode
-              ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800"
-              : "border-neutral-300 text-neutral-700 hover:bg-neutral-100"
+              ? "border-amber-500/25 text-amber-200/80 hover:bg-amber-500/10"
+              : "border-amber-200 text-amber-800/80 hover:bg-amber-50"
         }`}
       >
         Filtrer{isFiltered ? ` (${categoryCounts.length - hiddenCategories.length}/${categoryCounts.length})` : ""}
