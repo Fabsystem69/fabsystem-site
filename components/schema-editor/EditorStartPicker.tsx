@@ -3,6 +3,7 @@
 import { SCHEMA_TEMPLATES } from "@/features/schemas/templates";
 import type { DraftEnvelope } from "@/features/schemas/storage/localDraftStorage";
 import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
+import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 
 // Écran de démarrage guidé (V2, retour utilisateur : "le choix des
 // gabarits n'est pas ergonomique, il faut être guidé à l'ouverture") —
@@ -27,6 +28,14 @@ export function EditorStartPicker({
   onChooseBlank: () => void;
   onChooseGuided: () => void;
 }) {
+  // Retour utilisateur : "le premier popup d'ouverture toujours pas
+  // fermable avec échap" — pas de croix ni de clic sur le fond ici
+  // (contrairement aux autres popups) car il n'y a rien "derrière" à
+  // reprendre sans choix explicite : Échap revient donc au choix le moins
+  // destructif — reprendre le brouillon existant s'il y en a un, sinon
+  // partir d'une page blanche.
+  useEscapeToClose(draft ? onChooseContinue : onChooseBlank);
+
   // Pas de h-full ici : les cartes de gabarits (dans une grille) s'étirent
   // déjà à hauteur égale via le comportement par défaut de CSS Grid — un
   // h-full aurait aussi affecté la carte « Reprendre », hors grille, qui se
