@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { LoginRequestForm } from "@/components/customer/LoginRequestForm";
+import { ConnexionClientForms } from "@/app/connexion-client/ConnexionClientForms";
 
 export const metadata: Metadata = {
   title: "Connexion client",
-  description: "Demandez un lien magique pour accéder à votre espace client FabSystem.",
+  description: "Connectez-vous à votre espace client FabSystem.",
   alternates: {
     canonical: "/connexion-client",
   },
@@ -23,15 +23,14 @@ export default function ConnexionClientPage() {
               Connexion client
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-neutral-700 sm:text-base">
-              Accédez à votre espace client FabSystem grâce à un lien magique envoyé à votre
-              adresse email.
+              Accédez à votre espace client FabSystem avec votre email et votre mot de passe.
             </p>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-3xl px-6 py-10 sm:py-12">
-        <LoginRequestForm />
+        <ConnexionClientForms />
       </section>
     </main>
   );

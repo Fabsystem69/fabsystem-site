@@ -44,6 +44,13 @@ export type StringNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringNullableFilter<$PrismaModel> | string | null
 }
 
+export type EnumElectricalSkillLevelNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ElectricalSkillLevel | Prisma.EnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumElectricalSkillLevelNullableFilter<$PrismaModel> | $Enums.ElectricalSkillLevel | null
+}
+
 export type EnumAssetTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.AssetType | Prisma.EnumAssetTypeFieldRefInput<$PrismaModel>
   in?: $Enums.AssetType[] | Prisma.ListEnumAssetTypeFieldRefInput<$PrismaModel>
@@ -137,6 +144,16 @@ export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type EnumElectricalSkillLevelNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ElectricalSkillLevel | Prisma.EnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumElectricalSkillLevelNullableWithAggregatesFilter<$PrismaModel> | $Enums.ElectricalSkillLevel | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumElectricalSkillLevelNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumElectricalSkillLevelNullableFilter<$PrismaModel>
 }
 
 export type EnumAssetTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -876,6 +893,13 @@ export type NestedStringNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedStringNullableFilter<$PrismaModel> | string | null
 }
 
+export type NestedEnumElectricalSkillLevelNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.ElectricalSkillLevel | Prisma.EnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumElectricalSkillLevelNullableFilter<$PrismaModel> | $Enums.ElectricalSkillLevel | null
+}
+
 export type NestedEnumAssetTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.AssetType | Prisma.EnumAssetTypeFieldRefInput<$PrismaModel>
   in?: $Enums.AssetType[] | Prisma.ListEnumAssetTypeFieldRefInput<$PrismaModel>
@@ -973,6 +997,16 @@ export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedStringNullableFilter<$PrismaModel>
   _max?: Prisma.NestedStringNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumElectricalSkillLevelNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ElectricalSkillLevel | Prisma.EnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  in?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.ElectricalSkillLevel[] | Prisma.ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumElectricalSkillLevelNullableWithAggregatesFilter<$PrismaModel> | $Enums.ElectricalSkillLevel | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumElectricalSkillLevelNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumElectricalSkillLevelNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumAssetTypeWithAggregatesFilter<$PrismaModel = never> = {

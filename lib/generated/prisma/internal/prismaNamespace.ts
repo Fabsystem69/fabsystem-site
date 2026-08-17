@@ -2776,9 +2776,13 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const CustomerScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  firstName: 'firstName',
+  lastName: 'lastName',
   email: 'email',
+  passwordHash: 'passwordHash',
   phone: 'phone',
   address: 'address',
+  electricalSkillLevel: 'electricalSkillLevel',
   assetType: 'assetType',
   assetBrand: 'assetBrand',
   assetModel: 'assetModel',
@@ -3348,6 +3352,20 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
  * Reference to a field of type 'String[]'
  */
 export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ElectricalSkillLevel'
+ */
+export type EnumElectricalSkillLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ElectricalSkillLevel'>
+    
+
+
+/**
+ * Reference to a field of type 'ElectricalSkillLevel[]'
+ */
+export type ListEnumElectricalSkillLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ElectricalSkillLevel[]'>
     
 
 

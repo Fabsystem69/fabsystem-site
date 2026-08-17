@@ -9,7 +9,11 @@ import { consumeMagicLoginToken } from "@/lib/services/customer-auth";
 export const dynamic = "force-dynamic";
 
 const INVALID_TOKEN_REDIRECT_PATH = "/connexion-client?error=invalid_token";
-const SUCCESS_REDIRECT_PATH = "/mon-compte";
+// v2.1 : le lien magique ne sert plus qu'a definir/reinitialiser le mot de
+// passe (retour utilisateur : email+mdp remplace le lien magique comme mode
+// de connexion habituel) — atterrit donc toujours ici, jamais directement
+// sur /mon-compte.
+const SUCCESS_REDIRECT_PATH = "/mon-compte/definir-mot-de-passe";
 
 function buildRedirect(request: Request, path: string) {
   return new URL(path, request.url);

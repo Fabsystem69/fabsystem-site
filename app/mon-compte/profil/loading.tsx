@@ -1,7 +1,7 @@
 // UI-12 — MonProfilPage (app/mon-compte/profil/page.tsx) attend
-// getCustomerAccountOverview (Prisma) avant de rendre. Squelette limité à la
+// getOwnCustomerProfile (Prisma) avant de rendre. Squelette limité à la
 // zone `children` du layout (sidebar/header ne re-rendent pas) : titre, puis
-// les deux cartes réelles (identité + accès sécurisé).
+// les cartes réelles (email, formulaire, accès sécurisé).
 import { SkeletonCard, SkeletonLine } from "@/components/ui/Skeleton";
 
 export default function MonProfilLoading() {

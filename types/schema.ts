@@ -36,6 +36,12 @@ export interface ComponentDefinition {
    * Batterie) — purement d'affichage, pas de logique dessus. */
   subcategory?: string;
   subtitle?: string;
+  /** Micro-description en langage courant (une phrase, jamais du jargon
+   * non explique) affichee en info-bulle dans la bibliotheque de composants
+   * — retour utilisateur : "des etiquettes ou micro-descriptions simples
+   * expliquant la fonction des composants" pour un debutant qui ne sait pas
+   * ce qu'est un MPPT ou un shunt. */
+  description?: string;
   handles: ComponentHandleDef[];
   /**
    * Pour les composants à nombre de sorties variable (busbar, tableau de

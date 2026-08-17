@@ -136,6 +136,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "battery",
     label: "Batterie",
+    description: "Stocke l'énergie électrique du système.",
     category: "battery",
     subcategory: "batteries",
     subtitle: "Source d'énergie",
@@ -177,6 +178,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "solar-panel",
     label: "Panneau solaire",
+    description: "Capte l'énergie du soleil pour recharger les batteries.",
     category: "solar",
     subcategory: "panneaux",
     subtitle: "Production",
@@ -201,6 +203,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "mppt",
     label: "Régulateur MPPT",
+    description: "Régulateur solaire qui optimise le transfert d'énergie des panneaux vers la batterie.",
     category: "solar",
     subcategory: "regulateurs",
     subtitle: "Charge",
@@ -228,6 +231,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "pwm",
     label: "Régulateur PWM",
+    description: "Régulateur solaire simple, moins efficace qu'un MPPT mais moins cher.",
     category: "solar",
     subcategory: "regulateurs",
     subtitle: "Charge",
@@ -251,6 +255,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "dcdc",
     label: "Chargeur DC/DC",
+    description: "Charge la batterie auxiliaire depuis l'alternateur du véhicule en roulant.",
     category: "charger",
     subcategory: "dcdc",
     subtitle: "Charge",
@@ -275,6 +280,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ac-charger",
     label: "Chargeur secteur",
+    description: "Recharge les batteries sur secteur 230V (quai, groupe électrogène).",
     category: "charger",
     subcategory: "secteur",
     subtitle: "Charge",
@@ -298,6 +304,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "alternator",
     label: "Alternateur",
+    description: "Produit du courant pendant que le moteur tourne, source du chargeur DC/DC.",
     category: "charger",
     subcategory: "alternateur",
     subtitle: "Charge",
@@ -323,6 +330,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // commutée par ce composant.
     type: "battery-isolator",
     label: "Répartiteur de charge",
+    description: "Sépare deux batteries pour charger l'auxiliaire sans décharger celle du moteur.",
     category: "battery",
     subcategory: "repartiteurs",
     subtitle: "Isolateur multi-batteries",
@@ -357,6 +365,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // fixe, les deux bornes sont équivalentes.
     type: "battery-combiner",
     label: "Combineur de batteries",
+    description: "Relie plusieurs batteries en un seul banc pour cumuler leur capacité.",
     category: "battery",
     subcategory: "repartiteurs",
     subtitle: "Relais de couplage",
@@ -375,6 +384,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "shore-power",
     label: "Prise de quai",
+    description: "Point de branchement au secteur 230V (quai, prise camping).",
     category: "charger",
     subcategory: "secteur",
     subtitle: "Source secteur",
@@ -387,6 +397,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "fuse",
     label: "Fusible",
+    description: "Protège un circuit en coupant le courant en cas de surintensité.",
     category: "wiring",
     subcategory: "protection",
     subtitle: "Protection",
@@ -419,6 +430,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "circuit-breaker",
     label: "Disjoncteur DC",
+    description: "Coupe-circuit réarmable, protège comme un fusible sans devoir le remplacer.",
     category: "wiring",
     subcategory: "protection",
     subtitle: "Protection",
@@ -438,6 +450,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "battery-switch",
     label: "Coupe-batterie",
+    description: "Coupe manuellement l'alimentation de la batterie.",
     category: "wiring",
     subcategory: "protection",
     subtitle: "Protection",
@@ -456,6 +469,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "switch",
     label: "Interrupteur",
+    description: "Interrupteur pour allumer ou éteindre un appareil.",
     category: "wiring",
     subcategory: "distribution",
     subtitle: "Commande",
@@ -474,6 +488,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "busbar",
     label: "Busbar",
+    description: "Barre de connexion qui répartit le courant vers plusieurs circuits.",
     category: "wiring",
     subcategory: "distribution",
     subtitle: "Distribution",
@@ -516,6 +531,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "distribution-panel",
     label: "Tableau de distribution",
+    description: "Tableau qui répartit et protège plusieurs circuits consommateurs.",
     category: "wiring",
     subcategory: "distribution",
     subtitle: "Distribution",
@@ -555,6 +571,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ac-panel",
     label: "Tableau 220V",
+    description: "Tableau électrique 230V (disjoncteurs, différentiel).",
     category: "wiring",
     subcategory: "distribution",
     subtitle: "Distribution AC",
@@ -571,6 +588,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "fuse-block",
     label: "Platine de fusibles",
+    description: "Platine qui regroupe plusieurs fusibles pour les circuits basse tension.",
     category: "wiring",
     subcategory: "protection",
     subtitle: "Protection",
@@ -602,6 +620,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ground",
     label: "Point de masse",
+    description: "Point de masse commun, référence électrique du système.",
     category: "wiring",
     subcategory: "masse",
     subtitle: "Châssis",
@@ -618,6 +637,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // et n'apparaît donc pas comme borne.
     type: "bilge-pump",
     label: "Pompe de cale",
+    description: "Pompe qui évacue l'eau accumulée dans la coque.",
     category: "consumers",
     icon: "/schema-icons/consumer.svg",
     iconPro: "/schema-icons/pro/pompe-cale.webp",
@@ -635,6 +655,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "socket-220v",
     label: "Prise 220V",
+    description: "Prise secteur 230V pour brancher un appareil classique.",
     category: "consumers",
     subtitle: "Prise secteur",
     icon: "/schema-icons/consumer.svg",
@@ -652,6 +673,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "shunt",
     label: "Shunt",
+    description: "Mesure le courant qui entre et sort de la batterie, utilisé par un écran de contrôle.",
     category: "measurement",
     subtitle: "Mesure",
     icon: "/schema-icons/shunt.svg",
@@ -670,6 +692,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "system-monitor",
     label: "Écran de contrôle",
+    description: "Affiche l'état de charge et les mesures du système (ex. BMV).",
     category: "measurement",
     subtitle: "Mesure",
     icon: "/schema-icons/shunt.svg",
@@ -685,6 +708,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "inverter",
     label: "Convertisseur 12/230V",
+    description: "Transforme le courant continu (12V/24V) en 230V pour les appareils secteur.",
     category: "converter",
     subtitle: "Conversion",
     icon: "/schema-icons/inverter.svg",
@@ -716,6 +740,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // ont un port 12V/10A en façade en plus des prises 230V.
     type: "power-station",
     label: "Station électrique tout-en-1",
+    description: "Batterie portable tout-en-un avec ses propres sorties intégrées.",
     category: "battery",
     subcategory: "stations",
     subtitle: "Batterie + MPPT + onduleur intégrés",
@@ -766,6 +791,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "inverter-charger",
     label: "Chargeur-convertisseur tout-en-1",
+    description: "Combine onduleur et chargeur secteur en un seul appareil (ex. Multiplus).",
     category: "charger",
     subcategory: "tout-en-1",
     subtitle: "Type Multiplus",
@@ -799,6 +825,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "consumer",
     label: "Consommateur",
+    description: "Appareil qui consomme de l'énergie (éclairage, frigo, pompe...).",
     category: "consumers",
     subtitle: "Générique",
     icon: "/schema-icons/consumer.svg",

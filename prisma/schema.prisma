@@ -17,6 +17,14 @@ enum AssetType {
   OTHER
 }
 
+// v2.1 : renseigne par le client dans sa fiche profil — permet de cibler le
+// mailing par niveau (ex. contenus debutant vs guides avances).
+enum ElectricalSkillLevel {
+  DEBUTANT
+  INTERMEDIAIRE
+  AVANCE
+}
+
 enum QuoteStatus {
   DRAFT
   SENT
@@ -170,10 +178,23 @@ enum CustomerSessionStatus {
 
 model Customer {
   id               String            @id @default(cuid())
+  // `name` reste la source lue par tout le code existant (commandes, emails,
+  // dashboard admin) — jamais retire pour ne pas casser ces usages. Les
+  // nouveaux champs firstName/lastName sont la vraie fiche client editable
+  // par le client lui-meme (lib/services/customer-profile.ts) ; chaque
+  // mise a jour y resynchronise `name` = "firstName lastName".
   name             String?
+  firstName        String?
+  lastName         String?
   email            String            @unique
+  // v2.1 : bascule email+mot de passe (retour utilisateur : le lien magique
+  // seul n'est pas assez conventionnel). Nullable — les comptes existants
+  // n'en ont pas tant qu'ils ne l'ont pas defini via le lien magique reconverti
+  // en flux "definir mon mot de passe" (voir app/api/client-auth/verify).
+  passwordHash     String?
   phone            String?
   address          String?
+  electricalSkillLevel ElectricalSkillLevel?
   assetType        AssetType         @default(OTHER)
   assetBrand       String?
   assetModel       String?

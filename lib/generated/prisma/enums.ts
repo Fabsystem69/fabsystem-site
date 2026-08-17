@@ -18,6 +18,15 @@ export const AssetType = {
 export type AssetType = (typeof AssetType)[keyof typeof AssetType]
 
 
+export const ElectricalSkillLevel = {
+  DEBUTANT: 'DEBUTANT',
+  INTERMEDIAIRE: 'INTERMEDIAIRE',
+  AVANCE: 'AVANCE'
+} as const
+
+export type ElectricalSkillLevel = (typeof ElectricalSkillLevel)[keyof typeof ElectricalSkillLevel]
+
+
 export const QuoteStatus = {
   DRAFT: 'DRAFT',
   SENT: 'SENT',

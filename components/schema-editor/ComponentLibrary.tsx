@@ -56,7 +56,7 @@ export function ComponentLibrary() {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const collapsed = useSchemaStore((s) => s.leftPanelCollapsed);
   const toggleLeftPanel = useSchemaStore((s) => s.toggleLeftPanel);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getZoom } = useReactFlow();
 
   // Famille à faire défiler en vue une fois le panneau rouvert (V2, retour
   // utilisateur : "quand il est rabattu, des boutons de famille pour le
@@ -184,10 +184,18 @@ export function ComponentLibrary() {
     // sans d'abord les déplacer à la main. Espacement large (220/160px) :
     // les boîtiers "gros" (batterie, MPPT…) font jusqu'à 84px de vignette
     // plus le libellé, un pas plus petit les fait quand même se chevaucher.
+    // Retour utilisateur : "certains composants s'ajoutent hors de la zone
+    // visible" — l'espacement de la cascade était fixe en unites flow, donc
+    // au-dela d'un certain zoom (canvas zoome), le meme decalage couvre une
+    // portion beaucoup plus grande de la zone visible et finit par pousser
+    // les nouveaux composants hors champ. On divise par le zoom courant pour
+    // que la cascade reste toujours dans la meme portion de l'ecran, quel
+    // que soit le niveau de zoom.
+    const zoom = getZoom() || 1;
     const electricalCount = nodes.filter((n) => n.type === "electrical").length;
     const col = electricalCount % 5;
     const row = Math.floor(electricalCount / 5) % 4;
-    const position = { x: center.x + col * 220, y: center.y + row * 160 };
+    const position = { x: center.x + (col * 220) / zoom, y: center.y + (row * 160) / zoom };
     const preset = presetValue ? CONSUMER_PRESETS.find((p) => p.value === presetValue) : undefined;
     const dataOverride = preset ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW } : undefined;
     addComponent(type, position, dataOverride);

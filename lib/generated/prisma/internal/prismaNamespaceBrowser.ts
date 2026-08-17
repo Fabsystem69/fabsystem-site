@@ -101,9 +101,13 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const CustomerScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  firstName: 'firstName',
+  lastName: 'lastName',
   email: 'email',
+  passwordHash: 'passwordHash',
   phone: 'phone',
   address: 'address',
+  electricalSkillLevel: 'electricalSkillLevel',
   assetType: 'assetType',
   assetBrand: 'assetBrand',
   assetModel: 'assetModel',

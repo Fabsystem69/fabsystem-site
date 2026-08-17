@@ -39,9 +39,13 @@ export type CustomerSumAggregateOutputType = {
 export type CustomerMinAggregateOutputType = {
   id: string | null
   name: string | null
+  firstName: string | null
+  lastName: string | null
   email: string | null
+  passwordHash: string | null
   phone: string | null
   address: string | null
+  electricalSkillLevel: $Enums.ElectricalSkillLevel | null
   assetType: $Enums.AssetType | null
   assetBrand: string | null
   assetModel: string | null
@@ -58,9 +62,13 @@ export type CustomerMinAggregateOutputType = {
 export type CustomerMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  firstName: string | null
+  lastName: string | null
   email: string | null
+  passwordHash: string | null
   phone: string | null
   address: string | null
+  electricalSkillLevel: $Enums.ElectricalSkillLevel | null
   assetType: $Enums.AssetType | null
   assetBrand: string | null
   assetModel: string | null
@@ -77,9 +85,13 @@ export type CustomerMaxAggregateOutputType = {
 export type CustomerCountAggregateOutputType = {
   id: number
   name: number
+  firstName: number
+  lastName: number
   email: number
+  passwordHash: number
   phone: number
   address: number
+  electricalSkillLevel: number
   assetType: number
   assetBrand: number
   assetModel: number
@@ -108,9 +120,13 @@ export type CustomerSumAggregateInputType = {
 export type CustomerMinAggregateInputType = {
   id?: true
   name?: true
+  firstName?: true
+  lastName?: true
   email?: true
+  passwordHash?: true
   phone?: true
   address?: true
+  electricalSkillLevel?: true
   assetType?: true
   assetBrand?: true
   assetModel?: true
@@ -127,9 +143,13 @@ export type CustomerMinAggregateInputType = {
 export type CustomerMaxAggregateInputType = {
   id?: true
   name?: true
+  firstName?: true
+  lastName?: true
   email?: true
+  passwordHash?: true
   phone?: true
   address?: true
+  electricalSkillLevel?: true
   assetType?: true
   assetBrand?: true
   assetModel?: true
@@ -146,9 +166,13 @@ export type CustomerMaxAggregateInputType = {
 export type CustomerCountAggregateInputType = {
   id?: true
   name?: true
+  firstName?: true
+  lastName?: true
   email?: true
+  passwordHash?: true
   phone?: true
   address?: true
+  electricalSkillLevel?: true
   assetType?: true
   assetBrand?: true
   assetModel?: true
@@ -252,9 +276,13 @@ export type CustomerGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 export type CustomerGroupByOutputType = {
   id: string
   name: string | null
+  firstName: string | null
+  lastName: string | null
   email: string
+  passwordHash: string | null
   phone: string | null
   address: string | null
+  electricalSkillLevel: $Enums.ElectricalSkillLevel | null
   assetType: $Enums.AssetType
   assetBrand: string | null
   assetModel: string | null
@@ -294,9 +322,13 @@ export type CustomerWhereInput = {
   NOT?: Prisma.CustomerWhereInput | Prisma.CustomerWhereInput[]
   id?: Prisma.StringFilter<"Customer"> | string
   name?: Prisma.StringNullableFilter<"Customer"> | string | null
+  firstName?: Prisma.StringNullableFilter<"Customer"> | string | null
+  lastName?: Prisma.StringNullableFilter<"Customer"> | string | null
   email?: Prisma.StringFilter<"Customer"> | string
+  passwordHash?: Prisma.StringNullableFilter<"Customer"> | string | null
   phone?: Prisma.StringNullableFilter<"Customer"> | string | null
   address?: Prisma.StringNullableFilter<"Customer"> | string | null
+  electricalSkillLevel?: Prisma.EnumElectricalSkillLevelNullableFilter<"Customer"> | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFilter<"Customer"> | $Enums.AssetType
   assetBrand?: Prisma.StringNullableFilter<"Customer"> | string | null
   assetModel?: Prisma.StringNullableFilter<"Customer"> | string | null
@@ -322,9 +354,13 @@ export type CustomerWhereInput = {
 export type CustomerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
+  firstName?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastName?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
+  electricalSkillLevel?: Prisma.SortOrderInput | Prisma.SortOrder
   assetType?: Prisma.SortOrder
   assetBrand?: Prisma.SortOrderInput | Prisma.SortOrder
   assetModel?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -354,8 +390,12 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.CustomerWhereInput[]
   NOT?: Prisma.CustomerWhereInput | Prisma.CustomerWhereInput[]
   name?: Prisma.StringNullableFilter<"Customer"> | string | null
+  firstName?: Prisma.StringNullableFilter<"Customer"> | string | null
+  lastName?: Prisma.StringNullableFilter<"Customer"> | string | null
+  passwordHash?: Prisma.StringNullableFilter<"Customer"> | string | null
   phone?: Prisma.StringNullableFilter<"Customer"> | string | null
   address?: Prisma.StringNullableFilter<"Customer"> | string | null
+  electricalSkillLevel?: Prisma.EnumElectricalSkillLevelNullableFilter<"Customer"> | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFilter<"Customer"> | $Enums.AssetType
   assetBrand?: Prisma.StringNullableFilter<"Customer"> | string | null
   assetModel?: Prisma.StringNullableFilter<"Customer"> | string | null
@@ -381,9 +421,13 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
 export type CustomerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrderInput | Prisma.SortOrder
+  firstName?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastName?: Prisma.SortOrderInput | Prisma.SortOrder
   email?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
+  electricalSkillLevel?: Prisma.SortOrderInput | Prisma.SortOrder
   assetType?: Prisma.SortOrder
   assetBrand?: Prisma.SortOrderInput | Prisma.SortOrder
   assetModel?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -408,9 +452,13 @@ export type CustomerScalarWhereWithAggregatesInput = {
   NOT?: Prisma.CustomerScalarWhereWithAggregatesInput | Prisma.CustomerScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Customer"> | string
   name?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  firstName?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  lastName?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   email?: Prisma.StringWithAggregatesFilter<"Customer"> | string
+  passwordHash?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   phone?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
+  electricalSkillLevel?: Prisma.EnumElectricalSkillLevelNullableWithAggregatesFilter<"Customer"> | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeWithAggregatesFilter<"Customer"> | $Enums.AssetType
   assetBrand?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
   assetModel?: Prisma.StringNullableWithAggregatesFilter<"Customer"> | string | null
@@ -427,9 +475,13 @@ export type CustomerScalarWhereWithAggregatesInput = {
 export type CustomerCreateInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -455,9 +507,13 @@ export type CustomerCreateInput = {
 export type CustomerUncheckedCreateInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -483,9 +539,13 @@ export type CustomerUncheckedCreateInput = {
 export type CustomerUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -511,9 +571,13 @@ export type CustomerUpdateInput = {
 export type CustomerUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -539,9 +603,13 @@ export type CustomerUncheckedUpdateInput = {
 export type CustomerCreateManyInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -558,9 +626,13 @@ export type CustomerCreateManyInput = {
 export type CustomerUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -577,9 +649,13 @@ export type CustomerUpdateManyMutationInput = {
 export type CustomerUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -596,9 +672,13 @@ export type CustomerUncheckedUpdateManyInput = {
 export type CustomerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  firstName?: Prisma.SortOrder
+  lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  electricalSkillLevel?: Prisma.SortOrder
   assetType?: Prisma.SortOrder
   assetBrand?: Prisma.SortOrder
   assetModel?: Prisma.SortOrder
@@ -620,9 +700,13 @@ export type CustomerAvgOrderByAggregateInput = {
 export type CustomerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  firstName?: Prisma.SortOrder
+  lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  electricalSkillLevel?: Prisma.SortOrder
   assetType?: Prisma.SortOrder
   assetBrand?: Prisma.SortOrder
   assetModel?: Prisma.SortOrder
@@ -639,9 +723,13 @@ export type CustomerMaxOrderByAggregateInput = {
 export type CustomerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  firstName?: Prisma.SortOrder
+  lastName?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
   phone?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  electricalSkillLevel?: Prisma.SortOrder
   assetType?: Prisma.SortOrder
   assetBrand?: Prisma.SortOrder
   assetModel?: Prisma.SortOrder
@@ -676,6 +764,10 @@ export type StringFieldUpdateOperationsInput = {
 
 export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
+}
+
+export type NullableEnumElectricalSkillLevelFieldUpdateOperationsInput = {
+  set?: $Enums.ElectricalSkillLevel | null
 }
 
 export type EnumAssetTypeFieldUpdateOperationsInput = {
@@ -837,9 +929,13 @@ export type CustomerUpdateOneRequiredWithoutTrialAccessCodeRedemptionsNestedInpu
 export type CustomerCreateWithoutCapabilitiesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -864,9 +960,13 @@ export type CustomerCreateWithoutCapabilitiesInput = {
 export type CustomerUncheckedCreateWithoutCapabilitiesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -907,9 +1007,13 @@ export type CustomerUpdateToOneWithWhereWithoutCapabilitiesInput = {
 export type CustomerUpdateWithoutCapabilitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -934,9 +1038,13 @@ export type CustomerUpdateWithoutCapabilitiesInput = {
 export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -961,9 +1069,13 @@ export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
 export type CustomerCreateWithoutProjectsInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -988,9 +1100,13 @@ export type CustomerCreateWithoutProjectsInput = {
 export type CustomerUncheckedCreateWithoutProjectsInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1031,9 +1147,13 @@ export type CustomerUpdateToOneWithWhereWithoutProjectsInput = {
 export type CustomerUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1058,9 +1178,13 @@ export type CustomerUpdateWithoutProjectsInput = {
 export type CustomerUncheckedUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1085,9 +1209,13 @@ export type CustomerUncheckedUpdateWithoutProjectsInput = {
 export type CustomerCreateWithoutQuotesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1112,9 +1240,13 @@ export type CustomerCreateWithoutQuotesInput = {
 export type CustomerUncheckedCreateWithoutQuotesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1155,9 +1287,13 @@ export type CustomerUpdateToOneWithWhereWithoutQuotesInput = {
 export type CustomerUpdateWithoutQuotesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1182,9 +1318,13 @@ export type CustomerUpdateWithoutQuotesInput = {
 export type CustomerUncheckedUpdateWithoutQuotesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1209,9 +1349,13 @@ export type CustomerUncheckedUpdateWithoutQuotesInput = {
 export type CustomerCreateWithoutInvoicesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1236,9 +1380,13 @@ export type CustomerCreateWithoutInvoicesInput = {
 export type CustomerUncheckedCreateWithoutInvoicesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1279,9 +1427,13 @@ export type CustomerUpdateToOneWithWhereWithoutInvoicesInput = {
 export type CustomerUpdateWithoutInvoicesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1306,9 +1458,13 @@ export type CustomerUpdateWithoutInvoicesInput = {
 export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1333,9 +1489,13 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
 export type CustomerCreateWithoutRemisesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1360,9 +1520,13 @@ export type CustomerCreateWithoutRemisesInput = {
 export type CustomerUncheckedCreateWithoutRemisesInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1403,9 +1567,13 @@ export type CustomerUpdateToOneWithWhereWithoutRemisesInput = {
 export type CustomerUpdateWithoutRemisesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1430,9 +1598,13 @@ export type CustomerUpdateWithoutRemisesInput = {
 export type CustomerUncheckedUpdateWithoutRemisesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1457,9 +1629,13 @@ export type CustomerUncheckedUpdateWithoutRemisesInput = {
 export type CustomerCreateWithoutOrdersInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1484,9 +1660,13 @@ export type CustomerCreateWithoutOrdersInput = {
 export type CustomerUncheckedCreateWithoutOrdersInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1527,9 +1707,13 @@ export type CustomerUpdateToOneWithWhereWithoutOrdersInput = {
 export type CustomerUpdateWithoutOrdersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1554,9 +1738,13 @@ export type CustomerUpdateWithoutOrdersInput = {
 export type CustomerUncheckedUpdateWithoutOrdersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1581,9 +1769,13 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
 export type CustomerCreateWithoutMagicLoginTokensInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1608,9 +1800,13 @@ export type CustomerCreateWithoutMagicLoginTokensInput = {
 export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1651,9 +1847,13 @@ export type CustomerUpdateToOneWithWhereWithoutMagicLoginTokensInput = {
 export type CustomerUpdateWithoutMagicLoginTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1678,9 +1878,13 @@ export type CustomerUpdateWithoutMagicLoginTokensInput = {
 export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1705,9 +1909,13 @@ export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
 export type CustomerCreateWithoutSessionsInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1732,9 +1940,13 @@ export type CustomerCreateWithoutSessionsInput = {
 export type CustomerUncheckedCreateWithoutSessionsInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1775,9 +1987,13 @@ export type CustomerUpdateToOneWithWhereWithoutSessionsInput = {
 export type CustomerUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1802,9 +2018,13 @@ export type CustomerUpdateWithoutSessionsInput = {
 export type CustomerUncheckedUpdateWithoutSessionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1829,9 +2049,13 @@ export type CustomerUncheckedUpdateWithoutSessionsInput = {
 export type CustomerCreateWithoutTrialAccessCodeRedemptionsInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1856,9 +2080,13 @@ export type CustomerCreateWithoutTrialAccessCodeRedemptionsInput = {
 export type CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput = {
   id?: string
   name?: string | null
+  firstName?: string | null
+  lastName?: string | null
   email: string
+  passwordHash?: string | null
   phone?: string | null
   address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
   assetType?: $Enums.AssetType
   assetBrand?: string | null
   assetModel?: string | null
@@ -1899,9 +2127,13 @@ export type CustomerUpdateToOneWithWhereWithoutTrialAccessCodeRedemptionsInput =
 export type CustomerUpdateWithoutTrialAccessCodeRedemptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1926,9 +2158,13 @@ export type CustomerUpdateWithoutTrialAccessCodeRedemptionsInput = {
 export type CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
   assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
   assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2056,9 +2292,13 @@ export type CustomerCountOutputTypeCountTrialAccessCodeRedemptionsArgs<ExtArgs e
 export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  firstName?: boolean
+  lastName?: boolean
   email?: boolean
+  passwordHash?: boolean
   phone?: boolean
   address?: boolean
+  electricalSkillLevel?: boolean
   assetType?: boolean
   assetBrand?: boolean
   assetModel?: boolean
@@ -2085,9 +2325,13 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  firstName?: boolean
+  lastName?: boolean
   email?: boolean
+  passwordHash?: boolean
   phone?: boolean
   address?: boolean
+  electricalSkillLevel?: boolean
   assetType?: boolean
   assetBrand?: boolean
   assetModel?: boolean
@@ -2104,9 +2348,13 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  firstName?: boolean
+  lastName?: boolean
   email?: boolean
+  passwordHash?: boolean
   phone?: boolean
   address?: boolean
+  electricalSkillLevel?: boolean
   assetType?: boolean
   assetBrand?: boolean
   assetModel?: boolean
@@ -2123,9 +2371,13 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type CustomerSelectScalar = {
   id?: boolean
   name?: boolean
+  firstName?: boolean
+  lastName?: boolean
   email?: boolean
+  passwordHash?: boolean
   phone?: boolean
   address?: boolean
+  electricalSkillLevel?: boolean
   assetType?: boolean
   assetBrand?: boolean
   assetModel?: boolean
@@ -2139,7 +2391,7 @@ export type CustomerSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "address" | "assetType" | "assetBrand" | "assetModel" | "registration" | "odometerKm" | "engineHours" | "status" | "origin" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "firstName" | "lastName" | "email" | "passwordHash" | "phone" | "address" | "electricalSkillLevel" | "assetType" | "assetBrand" | "assetModel" | "registration" | "odometerKm" | "engineHours" | "status" | "origin" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   quotes?: boolean | Prisma.Customer$quotesArgs<ExtArgs>
   invoices?: boolean | Prisma.Customer$invoicesArgs<ExtArgs>
@@ -2171,9 +2423,13 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string | null
+    firstName: string | null
+    lastName: string | null
     email: string
+    passwordHash: string | null
     phone: string | null
     address: string | null
+    electricalSkillLevel: $Enums.ElectricalSkillLevel | null
     assetType: $Enums.AssetType
     assetBrand: string | null
     assetModel: string | null
@@ -2619,9 +2875,13 @@ export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends runtime
 export interface CustomerFieldRefs {
   readonly id: Prisma.FieldRef<"Customer", 'String'>
   readonly name: Prisma.FieldRef<"Customer", 'String'>
+  readonly firstName: Prisma.FieldRef<"Customer", 'String'>
+  readonly lastName: Prisma.FieldRef<"Customer", 'String'>
   readonly email: Prisma.FieldRef<"Customer", 'String'>
+  readonly passwordHash: Prisma.FieldRef<"Customer", 'String'>
   readonly phone: Prisma.FieldRef<"Customer", 'String'>
   readonly address: Prisma.FieldRef<"Customer", 'String'>
+  readonly electricalSkillLevel: Prisma.FieldRef<"Customer", 'ElectricalSkillLevel'>
   readonly assetType: Prisma.FieldRef<"Customer", 'AssetType'>
   readonly assetBrand: Prisma.FieldRef<"Customer", 'String'>
   readonly assetModel: Prisma.FieldRef<"Customer", 'String'>
