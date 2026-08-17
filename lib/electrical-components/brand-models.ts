@@ -40,6 +40,18 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-core-mini-200ah", brand: "Renogy", model: "Core Mini 12,8V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/renogy-core-mini-200ah.webp" },
   { id: "renogy-smart-lithium-200ah", brand: "Renogy", model: "Smart Lithium 12V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
 
+  // Panneaux solaires (retour utilisateur : "l'item doit être trouvable
+  // facilement, choisir le modèle/puissance de la même gamme" — jusqu'ici 0
+  // modèle alors que ce sont des produits de marque bien réels, avec des
+  // puissances standard du marché).
+  { id: "renogy-100w-rigid", brand: "Renogy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 } },
+  { id: "renogy-200w-rigid", brand: "Renogy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } },
+  { id: "renogy-175w-flexible", brand: "Renogy", model: "175W flexible", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } },
+  { id: "victron-175w-rigid", brand: "Victron", model: "BlueSolar 175W rigide", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } },
+  { id: "victron-115w-rigid", brand: "Victron", model: "BlueSolar 115W rigide", componentType: "solar-panel", defaults: { powerW: 115, voltage: 0 } },
+  { id: "bougerv-200w-flexible", brand: "BougeRV", model: "200W flexible", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } },
+  { id: "bougerv-400w-rigid", brand: "BougeRV", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 } },
+
   // MPPT
   // Pas d'iconPro ici : le visuel fourni pour ce modèle était corrompu
   // (retour utilisateur) — retombe sur l'icône générique MPPT en attendant
@@ -54,6 +66,14 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-rover-40a", brand: "Renogy", model: "Rover 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
   { id: "renogy-rover-60a", brand: "Renogy", model: "Rover 60A", componentType: "mppt", defaults: { amperage: 60, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-60a.webp" },
   { id: "renogy-rover-elite-40a", brand: "Renogy", model: "Rover Elite 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
+
+  // PWM (retour utilisateur : "chaque item détaillé pareil" — 0 modèle
+  // jusqu'ici alors que le MPPT, son jumeau, en a 10).
+  { id: "victron-bluesolar-pwm-12-20", brand: "Victron", model: "BlueSolar PWM-Pro 12/24V-20A", componentType: "pwm", defaults: { amperage: 20, systemVoltage: 12 } },
+  { id: "victron-bluesolar-pwm-12-30", brand: "Victron", model: "BlueSolar PWM-Pro 12/24V-30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } },
+  { id: "renogy-wanderer-10a", brand: "Renogy", model: "Wanderer 10A", componentType: "pwm", defaults: { amperage: 10, systemVoltage: 12 } },
+  { id: "renogy-wanderer-30a", brand: "Renogy", model: "Wanderer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } },
+  { id: "renogy-adventurer-30a", brand: "Renogy", model: "Adventurer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } },
 
   // DC-DC
   { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png" },
