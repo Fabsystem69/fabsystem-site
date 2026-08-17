@@ -3,6 +3,7 @@
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
+import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 
 // Popup de choix de marque/modèle à l'ajout (V2, retour utilisateur : "à
 // chaque ajout d'élément comme batterie, MPPT, DC-DC, Multiplus... ouvrir un
@@ -18,6 +19,7 @@ export function ModelPickerModal() {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const dismissModelPicker = useSchemaStore((s) => s.dismissModelPicker);
+  useEscapeToClose(dismissModelPicker);
 
   const node = nodeId ? nodes.find((n) => n.id === nodeId) : undefined;
   if (!node) return null;

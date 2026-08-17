@@ -6,6 +6,7 @@ import { getComponentDefinition } from "@/lib/electrical-components/definitions"
 import { calcSection, fusibleRecommande, AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
 import { estimateEdgeAmps, estimateConnectedAmps, evaluateEdgeSection, findBatteryVoltage } from "@/lib/electrical-components/auto-size";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
+import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 
 // Popup de dimensionnement à la connexion (V2, retour utilisateur : "pour
 // l'ajout de fusible ou câble, je veux la section et ampérage... automatique
@@ -34,6 +35,7 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const dismissSizingPopup = useSchemaStore((s) => s.dismissSizingPopup);
+  useEscapeToClose(dismissSizingPopup);
   const edge = edges.find((e) => e.id === edgeId);
 
   const [amps, setAmps] = useState("");
@@ -115,6 +117,7 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const dismissSizingPopup = useSchemaStore((s) => s.dismissSizingPopup);
+  useEscapeToClose(dismissSizingPopup);
   const node = nodes.find((n) => n.id === nodeId);
 
   const [amps, setAmps] = useState("");

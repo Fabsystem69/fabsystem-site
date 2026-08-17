@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSchemaStore, FREE_CONSUMER_LIMIT } from "@/features/schemas/store/useSchemaStore";
+import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 
 // v2.1 : popup de limite gratuite — se déclenche quand addComponent /
 // duplicateNode / spliceNodeOnEdge refusent un ajout de consommateur
@@ -14,6 +15,7 @@ export function FreemiumLimitModal() {
   const dismiss = useSchemaStore((s) => s.dismissFreemiumLimitPopup);
   const projectId = useSchemaStore((s) => s.projectId);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  useEscapeToClose(dismiss);
 
   const [tab, setTab] = useState<"unlock" | "code">("unlock");
   const [code, setCode] = useState("");
