@@ -22,10 +22,14 @@ const DARK_MODE_STORAGE_KEY = "fabsystem-schema:dark-mode";
 const LEFT_PANEL_COLLAPSED_KEY = "fabsystem-schema:left-panel-collapsed";
 const RIGHT_PANEL_COLLAPSED_KEY = "fabsystem-schema:right-panel-collapsed";
 
+// Retour v2.1 : le mode illustration ("pro") est plus vendeur/lisible pour
+// un nouvel utilisateur que les symboles électriques. Devient le défaut pour
+// qui n'a jamais choisi — un utilisateur qui a déjà explicitement basculé en
+// "simple" garde son choix (stocké dans localStorage).
 function loadIconStyle(): IconStyle {
-  if (typeof window === "undefined") return "simple";
+  if (typeof window === "undefined") return "pro";
   const stored = window.localStorage.getItem(ICON_STYLE_STORAGE_KEY);
-  return stored === "pro" ? "pro" : "simple";
+  return stored === "simple" ? "simple" : "pro";
 }
 
 // Retour utilisateur : "possibilité de passer en vue nuit car le blanc
