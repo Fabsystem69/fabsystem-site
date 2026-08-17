@@ -3,7 +3,12 @@
 import { useCallback, useRef, useState } from "react";
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useReactFlow, Position, type EdgeProps, type Edge } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { resolveHandleKindForNode } from "@/lib/electrical-components/checks";
 import type { CableEdgeData } from "@/types/schema";
+
+// Rouge d'avertissement franc, choisi pour ne jamais pouvoir être confondu
+// avec une couleur de câble normale (positif/négatif/neutre/terre).
+const POLARITY_MISMATCH_COLOR = "#dc2626";
 
 // Arrondi de coin identique à celui que `getSmoothStepPath` utilise en
 // interne pour le tracé automatique (fonction `getBend` de @xyflow/system,
@@ -145,6 +150,15 @@ export function CableEdge({
   const darkMode = useSchemaStore((s) => s.darkMode);
   const reconnectEdgeAction = useSchemaStore((s) => s.reconnectEdge);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
+  // Selecteurs cibles (pas `s.nodes` en entier) : le retour est une simple
+  // chaine ("positive"/"negative"/...), Zustand ne redeclenche donc un
+  // rendu que si la polarite resolue change reellement, pas a chaque
+  // deplacement de n'importe quel noeud du schema.
+  const sourceKind = useSchemaStore((s) => resolveHandleKindForNode(s.nodes.find((n) => n.id === source), sourceHandleId));
+  const targetKind = useSchemaStore((s) => resolveHandleKindForNode(s.nodes.find((n) => n.id === target), targetHandleId));
+  const isPolarityMismatch =
+    (sourceKind === "positive" && targetKind === "negative") ||
+    (sourceKind === "negative" && targetKind === "positive");
   const { screenToFlowPosition } = useReactFlow();
   const draggingEnd = useRef<"source" | "target" | null>(null);
   const draggingLabel = useRef(false);
@@ -188,8 +202,15 @@ export function CableEdge({
   }
 
   const rawColor = data?.color ?? "#6b7280";
-  const color = darkMode ? (DARK_MODE_COLOR_OVERRIDE[rawColor.toLowerCase()] ?? rawColor) : rawColor;
-  const strokeWidth = strokeWidthForSection(parseSectionMm2(data?.section)) + (selected ? 1 : 0);
+  // Retour utilisateur : "avertissement clair si l'utilisateur tente un
+  // branchement incohérent, par exemple un + sur un -" — prime sur la
+  // couleur de polarité normale, jamais discret.
+  const color = isPolarityMismatch
+    ? POLARITY_MISMATCH_COLOR
+    : darkMode
+      ? (DARK_MODE_COLOR_OVERRIDE[rawColor.toLowerCase()] ?? rawColor)
+      : rawColor;
+  const strokeWidth = strokeWidthForSection(parseSectionMm2(data?.section)) + (selected ? 1 : 0) + (isPolarityMismatch ? 1 : 0);
   // Bus de données (VE.Direct, NMEA2000, CAN…) en pointillé (retour
   // utilisateur) — les distingue au premier coup d'œil des câbles de
   // puissance, même quand la couleur seule seule ne suffit pas (impression
@@ -198,7 +219,13 @@ export function CableEdge({
   // premier coup d'œil même sans la couleur (impression N&B, daltonisme) :
   // pointillé fin pour les bus de données, tirets longs pour le secteur
   // 230V (rythme différent du bus de données pour ne pas les confondre).
-  const strokeDasharray = data?.cableType === "data-bus" ? "6,4" : data?.cableType === "ac-230v" ? "12,5" : undefined;
+  const strokeDasharray = isPolarityMismatch
+    ? "3,3"
+    : data?.cableType === "data-bus"
+      ? "6,4"
+      : data?.cableType === "ac-230v"
+        ? "12,5"
+        : undefined;
 
   // La longueur affichée sur le câble lui-même (retour utilisateur : sans
   // elle, un schéma partagé "n'a aucun sens" pour qui n'a pas accès au

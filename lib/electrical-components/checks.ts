@@ -1,6 +1,6 @@
 import { getComponentDefinition, getEffectiveHandles } from "./definitions";
 import { evaluateEdgeSection } from "./auto-size";
-import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
+import type { ElectricalNodeData, CableEdgeData, HandleKind } from "@/types/schema";
 import type { Node, Edge } from "@xyflow/react";
 
 export type SchemaIssueAction = "recalculate-all-cable-sections";
@@ -41,6 +41,54 @@ const CHARGE_SOURCE_OUTPUT_HANDLE: Record<string, string> = {
 };
 
 const AC_COMPONENT_TYPES = new Set(["ac-panel", "socket-220v", "ac-charger", "inverter", "inverter-charger", "shore-power", "power-station"]);
+
+// Resout la polarite reelle d'une borne (via resolveHandleKind si le
+// composant en a un, ex. busbar +/− configurable) — reutilise par
+// computePolarityIssues ici et par CableEdge.tsx pour l'avertissement
+// visuel direct sur le cable, une seule logique pour les deux.
+export function resolveHandleKindForNode(
+  node: SchemaNodeInternal | undefined,
+  handleId: string | null | undefined,
+): HandleKind | undefined {
+  if (!node || !handleId) return undefined;
+  const def = getComponentDefinition(node.data.componentType);
+  if (!def) return undefined;
+  const handleDef = getEffectiveHandles(def, node.data).find((h) => h.id === handleId);
+  if (!handleDef) return undefined;
+  return def.resolveHandleKind ? def.resolveHandleKind(node.data, handleDef) : handleDef.kind;
+}
+
+// Retour utilisateur : "avertissement clair si l'utilisateur tente un
+// branchement incoherent, par exemple un + sur un -". Ne signale que le cas
+// sans ambiguite (positive <-> negative directement relies) : neutre/terre
+// ne sont volontairement pas inclus ici, trop de faux positifs plausibles
+// en cablage 230V/bus de communication pour un controle "indicatif" (CDC
+// §31, §37 — jamais un blocage, jamais une certification).
+function computePolarityIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const edge of edges) {
+    const sourceNode = nodes.find((n) => n.id === edge.source);
+    const targetNode = nodes.find((n) => n.id === edge.target);
+    const sourceKind = resolveHandleKindForNode(sourceNode, edge.sourceHandle);
+    const targetKind = resolveHandleKindForNode(targetNode, edge.targetHandle);
+
+    const isPolarityMismatch =
+      (sourceKind === "positive" && targetKind === "negative") ||
+      (sourceKind === "negative" && targetKind === "positive");
+
+    if (isPolarityMismatch) {
+      issues.push({
+        id: `${edge.id}-polarity-mismatch`,
+        targetKind: "edge",
+        targetId: edge.id,
+        message: "Ce câble relie directement un + à un − : c'est probablement un court-circuit, vérifiez le branchement.",
+      });
+    }
+  }
+
+  return issues;
+}
 
 function neighborsViaHandle(nodeId: string, handleId: string, edges: SchemaEdgeInternal[]): string[] {
   return edges
@@ -222,6 +270,7 @@ export function computeSchemaIssues(
     if (!edge) return false;
     return !structurallyBlockedNodeIds.has(edge.source) && !structurallyBlockedNodeIds.has(edge.target);
   });
+  const polarityIssues = computePolarityIssues(nodes, edges);
 
-  return [...issues, ...electricalIssues, ...cableSizingIssues];
+  return [...issues, ...electricalIssues, ...cableSizingIssues, ...polarityIssues];
 }

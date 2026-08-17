@@ -139,6 +139,11 @@ export function PropertiesPanel() {
         </div>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {def.description ? (
+            <p className={`rounded-md px-2.5 py-2 text-xs leading-snug ${darkMode ? "bg-neutral-800 text-neutral-300" : "bg-neutral-100 text-neutral-600"}`}>
+              {def.description}
+            </p>
+          ) : null}
           {brandModels.length > 0 ? (
             <label className="block">
               <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Marque / modèle</span>

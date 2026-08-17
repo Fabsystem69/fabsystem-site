@@ -196,7 +196,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     defaultData: { powerW: 100, voltage: 0 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
-      { key: "powerW", label: "Puissance", type: "number", unit: "W" },
+      { key: "powerW", label: "Puissance", type: "number", unit: "W", help: "Puissance crête indiquée sur l'étiquette du panneau — détermine la vitesse de charge et le calibre du régulateur (MPPT/PWM) à choisir." },
       { key: "voltage", label: "Tension", type: "number", unit: "V", help: "Facultatif : 0 si non connue." },
     ],
   },
@@ -224,8 +224,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     defaultData: { amperage: 20, systemVoltage: 12 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
-      { key: "amperage", label: "Courant nominal", type: "number", unit: "A" },
-      { key: "systemVoltage", label: "Tension système", type: "number", unit: "V" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Choisi selon la puissance des panneaux branchés (W ÷ tension système ≈ ampérage requis), pas selon les besoins de consommation." },
+      { key: "systemVoltage", label: "Tension système", type: "number", unit: "V", help: "La tension de votre batterie (12V le plus souvent) — pas celle des panneaux." },
     ],
   },
   {
@@ -248,8 +248,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     defaultData: { amperage: 10, systemVoltage: 12 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
-      { key: "amperage", label: "Courant nominal", type: "number", unit: "A" },
-      { key: "systemVoltage", label: "Tension système", type: "number", unit: "V" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Choisi selon la puissance des panneaux branchés (W ÷ tension système ≈ ampérage requis), pas selon les besoins de consommation." },
+      { key: "systemVoltage", label: "Tension système", type: "number", unit: "V", help: "La tension de votre batterie (12V le plus souvent) — pas celle des panneaux." },
     ],
   },
   {
@@ -444,7 +444,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     defaultData: { amperage: 16 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
-      { key: "amperage", label: "Calibre", type: "number", unit: "A" },
+      { key: "amperage", label: "Calibre", type: "number", unit: "A", help: "Doit être choisi selon la section du câble à protéger, pas selon l'appareil branché." },
     ],
   },
   {

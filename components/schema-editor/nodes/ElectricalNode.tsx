@@ -57,6 +57,12 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const def = getComponentDefinition(data.componentType);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  // Retour utilisateur : seules les bornes réellement polarisées (+/−)
+  // gardent une couleur fixe (rouge/noir) — une borne non polarisée
+  // (communication, terre, bus de données…) reste noire tant que rien n'est
+  // branché, puis reprend la couleur réelle du câble connecté, plutôt
+  // qu'une couleur générique par "kind" qui peut induire en erreur.
+  const edges = useSchemaStore((s) => s.edges);
   const updateNodeInternals = useUpdateNodeInternals();
   const rotation = Number(data.rotation) || 0;
   const outputCount = Number(data.outputCount) || 0;
@@ -244,6 +250,17 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
           const percent = ((indexInGroup + 0.5) / group.length) * 100;
           const isVertical = side === "left" || side === "right";
           const kind = def.resolveHandleKind ? def.resolveHandleKind(data, handle) : handle.kind;
+          const isPolarized = kind === "positive" || kind === "negative";
+          const connectedEdge = isPolarized
+            ? undefined
+            : edges.find(
+                (e) =>
+                  (e.source === id && e.sourceHandle === handle.id) ||
+                  (e.target === id && e.targetHandle === handle.id)
+              );
+          const dotColor = isPolarized
+            ? HANDLE_DOT_COLOR[kind]
+            : (connectedEdge?.data?.color ?? "#111827");
 
           return (
             <Handle
@@ -253,7 +270,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
               position={SIDE_TO_POSITION[side]}
               style={{
                 [isVertical ? "top" : "left"]: `${percent}%`,
-                background: HANDLE_DOT_COLOR[kind],
+                background: dotColor,
                 width: 9,
                 height: 9,
                 border: "2px solid white",

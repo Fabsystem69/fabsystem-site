@@ -108,7 +108,9 @@ export const BRAND_MODELS: BrandModel[] = [
   // Coupure basse tension (BatteryProtect : déconnecte automatiquement une
   // charge sous un seuil de tension réglable — rattaché à "battery-switch",
   // même rôle de coupure en ligne, mêmes bornes IN/OUT).
+  { id: "victron-smart-batteryprotect-65a", brand: "Victron", model: "Smart BatteryProtect 12/24V-65A", componentType: "battery-switch", defaults: { amperage: 65 } },
   { id: "victron-smart-batteryprotect-100a", brand: "Victron", model: "Smart BatteryProtect 12/24V-100A", componentType: "battery-switch", defaults: { amperage: 100 }, iconPro: "/schema-icons/pro/brand/victron-smart-batteryprotect-100a.png" },
+  { id: "victron-smart-batteryprotect-220a", brand: "Victron", model: "Smart BatteryProtect 12/24V-220A", componentType: "battery-switch", defaults: { amperage: 220 } },
 
   // Écran/hub de contrôle (GX) — rattaché à "system-monitor" (même rôle :
   // agréger les liaisons VE.Direct/VE.Bus et donner une vue d'ensemble du

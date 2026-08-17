@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { COMPONENT_DEFINITIONS, CATEGORY_LABELS, SUBCATEGORY_LABELS, CONSUMER_PRESETS, getComponentIcon, getNodeIcon } from "@/lib/electrical-components/definitions";
+import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { useGuidedStep } from "@/lib/schema-editor/useGuidedStep";
 import { CategoryIcon } from "./icons/CategoryIcons";
@@ -46,6 +47,38 @@ const CONSUMER_LIBRARY_PRESETS = [
 // à expliquer le geste, sans bouton mystère en plus dans une barre déjà
 // chargée).
 const ZONE_LIBRARY_ITEM: LibraryItem = { key: "zone", type: "zone", label: "Zone", category: "layout", subtitle: "Regroupement visuel" };
+
+// Retour utilisateur : "améliorer la recherche avec des synonymes ou noms
+// d'usage — ex: BMV doit ressortir même si la catégorie technique est
+// shunt". Deux sources combinées pour chaque type de composant :
+// 1. Les modèles de marque catalogués (getBrandModelsForType) — couvre déjà
+//    "BMV" (shunt), "Multiplus" (inverter-charger), "Orion" (dcdc),
+//    "Battery Protect" (battery-switch)... sans dupliquer de données.
+// 2. Un petit lexique de termes courants qui ne sont ni le libellé generique
+//    ni un nom de marque (ex. "onduleur", terme grand public pour
+//    "Convertisseur 12/230V").
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  inverter: ["onduleur"],
+  "ac-charger": ["chargeur de batterie", "chargeur secteur"],
+  "circuit-breaker": ["coupe-circuit", "coupe circuit"],
+  "battery-switch": ["coupure basse tension", "protection batterie"],
+  ground: ["masse", "terre"],
+};
+
+// Retire espaces/tirets avant comparaison : les noms de produit reels
+// ("BatteryProtect", "Smart-Shunt") ne s'ecrivent pas toujours comme les
+// gens les tapent ("battery protect", "smart shunt").
+function normalizeForSearch(value: string) {
+  return value.toLowerCase().replace(/[\s-]+/g, "");
+}
+
+function buildSearchHaystack(type: string, label: string, subtitle?: string, description?: string) {
+  const brandTerms = getBrandModelsForType(type).flatMap((m) => [m.brand, m.model]);
+  const synonyms = SEARCH_SYNONYMS[type] ?? [];
+  return normalizeForSearch(
+    [label, subtitle, description, ...brandTerms, ...synonyms].filter(Boolean).join(" ")
+  );
+}
 
 export function ComponentLibrary() {
   const [query, setQuery] = useState("");
@@ -104,11 +137,18 @@ export function ComponentLibrary() {
 
   const grouped = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const normalizedQuery = normalizeForSearch(query.trim());
     const items: LibraryItem[] = [];
     for (const def of COMPONENT_DEFINITIONS) {
+      const haystack = buildSearchHaystack(def.type, def.label, def.subtitle, def.description);
       if (def.type === "consumer") {
         for (const preset of CONSUMER_LIBRARY_PRESETS) {
-          if (q && !preset.label.toLowerCase().includes(q) && !def.label.toLowerCase().includes(q)) continue;
+          if (
+            q &&
+            !preset.label.toLowerCase().includes(q) &&
+            !haystack.includes(normalizedQuery)
+          )
+            continue;
           items.push({
             key: `consumer-${preset.value}`,
             type: "consumer",
@@ -122,7 +162,7 @@ export function ComponentLibrary() {
         }
         continue;
       }
-      if (q && !def.label.toLowerCase().includes(q)) continue;
+      if (q && !haystack.includes(normalizedQuery)) continue;
       items.push({
         key: def.type,
         type: def.type,
