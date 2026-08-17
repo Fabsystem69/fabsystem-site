@@ -108,6 +108,12 @@ function assertProductIsPurchasable(product: Product | null) {
     throw badRequest("Product is not available for cart");
   }
 
+  // v2.1 : SCHEMA_UNLOCK exige un Project cible et ne passe jamais par le
+  // panier generique — voir la meme garde dans lib/services/order.ts.
+  if (product.productType === "SCHEMA_UNLOCK") {
+    throw badRequest("Product requires the dedicated schema unlock checkout");
+  }
+
   return product;
 }
 

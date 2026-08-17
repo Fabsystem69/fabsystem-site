@@ -186,3 +186,13 @@ export type CustomerSession = Prisma.CustomerSessionModel
  * 
  */
 export type Testimonial = Prisma.TestimonialModel
+/**
+ * Model TrialAccessCode
+ * 
+ */
+export type TrialAccessCode = Prisma.TrialAccessCodeModel
+/**
+ * Model TrialAccessCodeRedemption
+ * 
+ */
+export type TrialAccessCodeRedemption = Prisma.TrialAccessCodeRedemptionModel

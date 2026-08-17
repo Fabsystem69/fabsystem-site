@@ -52,6 +52,12 @@ export const UNLIMITED_DISCOUNT_REDEMPTIONS = 2147483647;
 // a l'achat d'un ebook, utile pour les distinguer des codes crees a la main.
 export const AUTOMATIC_EBOOK_DISCOUNT_REASON = "Achat ebook — à déduire d'un accompagnement";
 
+// v2.1 : meme mecanique pour le deblocage payant de l'editeur de schema —
+// credite le montant (9,90€) sur un ebook ou un accompagnement, exactement
+// comme AUTOMATIC_EBOOK_DISCOUNT_REASON.
+export const AUTOMATIC_SCHEMA_UNLOCK_DISCOUNT_REASON =
+  "Achat déblocage éditeur — à déduire d'un ebook ou d'un accompagnement";
+
 export function addMonths(date: Date, months: number) {
   const next = new Date(date);
   next.setMonth(next.getMonth() + months);
@@ -64,6 +70,11 @@ export function addMonths(date: Date, months: number) {
 // Stripe ou un retry ne genere donc jamais de doublon pour le meme achat.
 export function buildAutomaticEbookDiscountCode(orderItemId: string) {
   return normalizeDiscountCode(`COACH-${orderItemId}`);
+}
+
+// v2.1 : meme principe pour l'achat d'un deblocage editeur de schema.
+export function buildAutomaticSchemaUnlockDiscountCode(orderItemId: string) {
+  return normalizeDiscountCode(`SCHEMA-${orderItemId}`);
 }
 
 type DiscountProduct = Pick<Product, "id" | "name" | "slug" | "productType" | "status" | "purchaseMode">;
@@ -604,6 +615,53 @@ export function createDiscountService(db: DiscountsDb, deps?: DiscountServiceDep
       return created;
     },
 
+    // v2.1 : jumeau de createAutomaticEbookDiscountCodesForOrder pour l'achat
+    // d'un deblocage editeur de schema — meme montant, meme duree, meme
+    // idempotence, seul le filtre de productType et la raison changent.
+    async createAutomaticSchemaUnlockDiscountCodesForOrder(orderId: string) {
+      const normalizedOrderId = orderId.trim();
+
+      if (!normalizedOrderId) {
+        throw badRequest("Order id is required");
+      }
+
+      const order = await db.findOrderItemsForAutoDiscount(normalizedOrderId);
+
+      if (!order) {
+        throw notFound("Order not found");
+      }
+
+      const createdAt = now();
+      const customerEmail = normalizeCustomerEmail(order.customerEmail);
+      const created: DiscountCode[] = [];
+
+      for (const item of order.items) {
+        if (item.productType !== "SCHEMA_UNLOCK") {
+          continue;
+        }
+
+        created.push(
+          await db.createDiscountCodeIfAbsent({
+            code: buildAutomaticSchemaUnlockDiscountCode(item.id),
+            status: "ACTIVE",
+            type: "FIXED_AMOUNT",
+            amountOffCents: item.unitAmountCents,
+            percentOff: null,
+            currency: normalizeCurrency(item.currency),
+            maxRedemptions: 1,
+            redeemedCount: 0,
+            startsAt: createdAt,
+            expiresAt: addMonths(createdAt, 2),
+            productId: null,
+            customerEmail,
+            reason: AUTOMATIC_SCHEMA_UNLOCK_DISCOUNT_REASON,
+          })
+        );
+      }
+
+      return created;
+    },
+
     async createDiscountCode(input: z.infer<typeof createDiscountCodeInputSchema>) {
       const parsed = createDiscountCodeInputSchema.parse(input);
 
@@ -794,6 +852,11 @@ export async function createDiscountCode(
 export async function createAutomaticEbookDiscountCodesForOrder(orderId: string) {
   const service = await getDefaultDiscountService();
   return service.createAutomaticEbookDiscountCodesForOrder(orderId);
+}
+
+export async function createAutomaticSchemaUnlockDiscountCodesForOrder(orderId: string) {
+  const service = await getDefaultDiscountService();
+  return service.createAutomaticSchemaUnlockDiscountCodesForOrder(orderId);
 }
 
 export async function validateDiscountCodeForCart(

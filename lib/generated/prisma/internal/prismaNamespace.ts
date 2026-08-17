@@ -418,7 +418,9 @@ export const ModelName = {
   DiscountRedemption: 'DiscountRedemption',
   MagicLoginToken: 'MagicLoginToken',
   CustomerSession: 'CustomerSession',
-  Testimonial: 'Testimonial'
+  Testimonial: 'Testimonial',
+  TrialAccessCode: 'TrialAccessCode',
+  TrialAccessCodeRedemption: 'TrialAccessCodeRedemption'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -434,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "customerCapability" | "project" | "projectRetainedValue" | "projectValueDependency" | "projectSchema" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial"
+    modelProps: "customer" | "customerCapability" | "project" | "projectRetainedValue" | "projectValueDependency" | "projectSchema" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial" | "trialAccessCode" | "trialAccessCodeRedemption"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2584,6 +2586,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TrialAccessCode: {
+      payload: Prisma.$TrialAccessCodePayload<ExtArgs>
+      fields: Prisma.TrialAccessCodeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrialAccessCodeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrialAccessCodeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>
+        }
+        findFirst: {
+          args: Prisma.TrialAccessCodeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrialAccessCodeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>
+        }
+        findMany: {
+          args: Prisma.TrialAccessCodeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>[]
+        }
+        create: {
+          args: Prisma.TrialAccessCodeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>
+        }
+        createMany: {
+          args: Prisma.TrialAccessCodeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TrialAccessCodeCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>[]
+        }
+        delete: {
+          args: Prisma.TrialAccessCodeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>
+        }
+        update: {
+          args: Prisma.TrialAccessCodeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>
+        }
+        deleteMany: {
+          args: Prisma.TrialAccessCodeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrialAccessCodeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TrialAccessCodeUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>[]
+        }
+        upsert: {
+          args: Prisma.TrialAccessCodeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodePayload>
+        }
+        aggregate: {
+          args: Prisma.TrialAccessCodeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrialAccessCode>
+        }
+        groupBy: {
+          args: Prisma.TrialAccessCodeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrialAccessCodeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrialAccessCodeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrialAccessCodeCountAggregateOutputType> | number
+        }
+      }
+    }
+    TrialAccessCodeRedemption: {
+      payload: Prisma.$TrialAccessCodeRedemptionPayload<ExtArgs>
+      fields: Prisma.TrialAccessCodeRedemptionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TrialAccessCodeRedemptionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TrialAccessCodeRedemptionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>
+        }
+        findFirst: {
+          args: Prisma.TrialAccessCodeRedemptionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TrialAccessCodeRedemptionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>
+        }
+        findMany: {
+          args: Prisma.TrialAccessCodeRedemptionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>[]
+        }
+        create: {
+          args: Prisma.TrialAccessCodeRedemptionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>
+        }
+        createMany: {
+          args: Prisma.TrialAccessCodeRedemptionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TrialAccessCodeRedemptionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>[]
+        }
+        delete: {
+          args: Prisma.TrialAccessCodeRedemptionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>
+        }
+        update: {
+          args: Prisma.TrialAccessCodeRedemptionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>
+        }
+        deleteMany: {
+          args: Prisma.TrialAccessCodeRedemptionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TrialAccessCodeRedemptionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TrialAccessCodeRedemptionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>[]
+        }
+        upsert: {
+          args: Prisma.TrialAccessCodeRedemptionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TrialAccessCodeRedemptionPayload>
+        }
+        aggregate: {
+          args: Prisma.TrialAccessCodeRedemptionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTrialAccessCodeRedemption>
+        }
+        groupBy: {
+          args: Prisma.TrialAccessCodeRedemptionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrialAccessCodeRedemptionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TrialAccessCodeRedemptionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TrialAccessCodeRedemptionCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2953,6 +3103,7 @@ export const OrderScalarFieldEnum = {
   discountTotalCents: 'discountTotalCents',
   totalCents: 'totalCents',
   cartId: 'cartId',
+  projectId: 'projectId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   paidAt: 'paidAt',
@@ -3102,6 +3253,34 @@ export const TestimonialScalarFieldEnum = {
 } as const
 
 export type TestimonialScalarFieldEnum = (typeof TestimonialScalarFieldEnum)[keyof typeof TestimonialScalarFieldEnum]
+
+
+export const TrialAccessCodeScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  capability: 'capability',
+  durationDays: 'durationDays',
+  status: 'status',
+  maxRedemptions: 'maxRedemptions',
+  redeemedCount: 'redeemedCount',
+  startsAt: 'startsAt',
+  expiresAt: 'expiresAt',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrialAccessCodeScalarFieldEnum = (typeof TrialAccessCodeScalarFieldEnum)[keyof typeof TrialAccessCodeScalarFieldEnum]
+
+
+export const TrialAccessCodeRedemptionScalarFieldEnum = {
+  id: 'id',
+  codeId: 'codeId',
+  customerId: 'customerId',
+  redeemedAt: 'redeemedAt'
+} as const
+
+export type TrialAccessCodeRedemptionScalarFieldEnum = (typeof TrialAccessCodeRedemptionScalarFieldEnum)[keyof typeof TrialAccessCodeRedemptionScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -3642,6 +3821,20 @@ export type ListEnumTestimonialCustomerTypeFieldRefInput<$PrismaModel> = FieldRe
 
 
 /**
+ * Reference to a field of type 'TrialAccessCodeStatus'
+ */
+export type EnumTrialAccessCodeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TrialAccessCodeStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'TrialAccessCodeStatus[]'
+ */
+export type ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TrialAccessCodeStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -3770,6 +3963,8 @@ export type GlobalOmitConfig = {
   magicLoginToken?: Prisma.MagicLoginTokenOmit
   customerSession?: Prisma.CustomerSessionOmit
   testimonial?: Prisma.TestimonialOmit
+  trialAccessCode?: Prisma.TrialAccessCodeOmit
+  trialAccessCodeRedemption?: Prisma.TrialAccessCodeRedemptionOmit
 }
 
 /* Types for Logging */

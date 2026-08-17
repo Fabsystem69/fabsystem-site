@@ -48,6 +48,23 @@ function loadPanelCollapsed(key: string): boolean {
   return window.localStorage.getItem(key) === "1";
 }
 
+// v2.1 : palier gratuit — 3 composants "consommateurs" (category === "consumers"
+// dans lib/electrical-components/definitions.ts, pas seulement type ===
+// "consumer" : couvre aussi bilge-pump, socket-220v) au-delà de ce qui est
+// déjà présent au chargement (voir consumerBaseline). Contournable seulement
+// par hasUnlimitedConsumers (achat unitaire ou code promo, statut serveur
+// injecté via setHasUnlimitedConsumers).
+export const FREE_CONSUMER_LIMIT = 3;
+
+function countConsumerNodes(nodes: SchemaNode[]) {
+  return nodes.filter((n) => getComponentDefinition(n.data.componentType)?.category === "consumers")
+    .length;
+}
+
+function isConsumerType(type: string) {
+  return getComponentDefinition(type)?.category === "consumers";
+}
+
 const DEFAULT_CABLE_TYPE_BY_KIND: Record<HandleKind, string> = {
   positive: "power-positive",
   negative: "power-negative",
@@ -170,6 +187,20 @@ interface SchemaState {
   // GuidedTutorial.tsx. Les étapes "task" avancent automatiquement (voir
   // l'effet qui appelle `advanceGuidedStep` dans ce composant).
   guidedStepIndex: number;
+  // v2.1 : nombre de composants "consommateurs" déjà présents au moment du
+  // dernier chargement (newProject/loadTemplate/hydrate/startGuidedMode) —
+  // un starter de guide (P280, Victron) en a souvent plus de 3 à l'ouverture,
+  // ils sont exemptés ; seuls les ajouts au-delà comptent contre la limite
+  // gratuite (FREE_CONSUMER_LIMIT).
+  consumerBaseline: number;
+  // Statut serveur (achat 60 jours ou code promo 7 jours) injecté depuis
+  // l'extérieur du store — le store lui-même ne connaît ni Stripe ni les
+  // capacités client, voir lib/services/schema-unlock.ts.
+  hasUnlimitedConsumers: boolean;
+  // Popup de limite gratuite (achat / code promo / coaching) — posée par
+  // addComponent/duplicateNode/spliceNodeOnEdge quand un ajout de
+  // consommateur est refusé, jamais silencieusement ignorée.
+  freemiumLimitPopupOpen: boolean;
 
   setProjectName: (name: string) => void;
   setProjectId: (id: string | null) => void;
@@ -221,6 +252,8 @@ interface SchemaState {
   exitGuidedMode: () => void;
   advanceGuidedStep: () => void;
   retreatGuidedStep: () => void;
+  setHasUnlimitedConsumers: (value: boolean) => void;
+  dismissFreemiumLimitPopup: () => void;
 }
 
 // Historique undo/redo par snapshots (docs/schema/CDC_FabSystem_Schema_V1.md
@@ -270,8 +303,13 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   pendingSizingTarget: null,
   guidedMode: false,
   guidedStepIndex: 0,
+  consumerBaseline: 0,
+  hasUnlimitedConsumers: false,
+  freemiumLimitPopupOpen: false,
 
   setProjectName: (name) => set({ projectName: name }),
+  setHasUnlimitedConsumers: (value) => set({ hasUnlimitedConsumers: value }),
+  dismissFreemiumLimitPopup: () => set({ freemiumLimitPopupOpen: false }),
   setProjectId: (id) => set({ projectId: id }),
 
   toggleCategoryVisibility: (category) =>
@@ -390,6 +428,13 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     set((state) => {
       const def = getComponentDefinition(type);
       if (!def) return {};
+      if (
+        !state.hasUnlimitedConsumers &&
+        isConsumerType(type) &&
+        countConsumerNodes(state.nodes) - state.consumerBaseline >= FREE_CONSUMER_LIMIT
+      ) {
+        return { freemiumLimitPopupOpen: true };
+      }
       const node: SchemaNode = {
         id: nextId(type),
         type: "electrical",
@@ -490,6 +535,13 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       const edge = state.edges.find((e) => e.id === edgeId);
       const def = getComponentDefinition(type);
       if (!edge || !def) return {};
+      if (
+        !state.hasUnlimitedConsumers &&
+        isConsumerType(type) &&
+        countConsumerNodes(state.nodes) - state.consumerBaseline >= FREE_CONSUMER_LIMIT
+      ) {
+        return { freemiumLimitPopupOpen: true };
+      }
       const handles = getEffectiveHandles(def, def.defaultData);
       const inputHandle = handles.find((h) => h.id === "input") ?? handles[0];
       const outputHandle =
@@ -576,6 +628,13 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     set((state) => {
       const original = state.nodes.find((n) => n.id === id);
       if (!original) return {};
+      if (
+        !state.hasUnlimitedConsumers &&
+        isConsumerType(original.data.componentType) &&
+        countConsumerNodes(state.nodes) - state.consumerBaseline >= FREE_CONSUMER_LIMIT
+      ) {
+        return { freemiumLimitPopupOpen: true };
+      }
       const node: SchemaNode = {
         ...original,
         id: nextId(original.data.componentType),
@@ -661,6 +720,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       saveAssistant: null,
       guidedMode: false,
       guidedStepIndex: 0,
+      consumerBaseline: 0,
     }),
 
   loadTemplate: (id) => {
@@ -685,6 +745,10 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       saveAssistant: null,
       guidedMode: false,
       guidedStepIndex: 0,
+      // v2.1 : les starters de guides (P280, Victron...) partent souvent
+      // avec plus de 3 consommateurs — exemptés à l'ouverture, seuls les
+      // ajouts au-delà comptent contre la limite gratuite.
+      consumerBaseline: countConsumerNodes(nodes),
     });
   },
 
@@ -715,6 +779,10 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       hiddenCategories: [],
       guidedMode: false,
       guidedStepIndex: 0,
+      // v2.1 : reprise d'un projet déjà sauvegardé (cloud ou brouillon local)
+      // — ce qui est déjà là ne redevient jamais bloquant rétroactivement,
+      // seuls les ajouts au-delà comptent contre la limite gratuite.
+      consumerBaseline: countConsumerNodes(snapshot.nodes),
     }),
 
   // Mode guidé pas à pas (retour utilisateur) — repart toujours d'un canvas
@@ -738,6 +806,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       saveAssistant: null,
       guidedMode: true,
       guidedStepIndex: 0,
+      consumerBaseline: 0,
     }),
 
   // Quitter n'efface rien : le schéma construit pendant le mode guidé reste

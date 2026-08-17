@@ -77,7 +77,9 @@ export const ModelName = {
   DiscountRedemption: 'DiscountRedemption',
   MagicLoginToken: 'MagicLoginToken',
   CustomerSession: 'CustomerSession',
-  Testimonial: 'Testimonial'
+  Testimonial: 'Testimonial',
+  TrialAccessCode: 'TrialAccessCode',
+  TrialAccessCodeRedemption: 'TrialAccessCodeRedemption'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -426,6 +428,7 @@ export const OrderScalarFieldEnum = {
   discountTotalCents: 'discountTotalCents',
   totalCents: 'totalCents',
   cartId: 'cartId',
+  projectId: 'projectId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   paidAt: 'paidAt',
@@ -575,6 +578,34 @@ export const TestimonialScalarFieldEnum = {
 } as const
 
 export type TestimonialScalarFieldEnum = (typeof TestimonialScalarFieldEnum)[keyof typeof TestimonialScalarFieldEnum]
+
+
+export const TrialAccessCodeScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  capability: 'capability',
+  durationDays: 'durationDays',
+  status: 'status',
+  maxRedemptions: 'maxRedemptions',
+  redeemedCount: 'redeemedCount',
+  startsAt: 'startsAt',
+  expiresAt: 'expiresAt',
+  reason: 'reason',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TrialAccessCodeScalarFieldEnum = (typeof TrialAccessCodeScalarFieldEnum)[keyof typeof TrialAccessCodeScalarFieldEnum]
+
+
+export const TrialAccessCodeRedemptionScalarFieldEnum = {
+  id: 'id',
+  codeId: 'codeId',
+  customerId: 'customerId',
+  redeemedAt: 'redeemedAt'
+} as const
+
+export type TrialAccessCodeRedemptionScalarFieldEnum = (typeof TrialAccessCodeRedemptionScalarFieldEnum)[keyof typeof TrialAccessCodeRedemptionScalarFieldEnum]
 
 
 export const SortOrder = {

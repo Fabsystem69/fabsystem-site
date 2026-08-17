@@ -9,7 +9,7 @@ type ProductFormProps = {
     slug?: string;
     shortDescription?: string | null;
     description?: string | null;
-    productType?: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE";
+    productType?: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE" | "SCHEMA_UNLOCK";
     purchaseMode?: "BUY_NOW" | "REQUEST_ONLY";
     status?: "DRAFT" | "ACTIVE" | "ARCHIVED";
     activePriceEuros?: string;
@@ -79,6 +79,7 @@ export function ProductForm({
             <option value="EBOOK">EBOOK</option>
             <option value="DIGITAL_DOWNLOAD">DIGITAL_DOWNLOAD</option>
             <option value="BUNDLE">BUNDLE</option>
+            <option value="SCHEMA_UNLOCK">SCHEMA_UNLOCK</option>
           </select>
         </label>
 

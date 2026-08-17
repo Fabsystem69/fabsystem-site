@@ -124,6 +124,7 @@ test("saveProjectSchema throws a 503 when ProjectSchema storage is missing", asy
     reportSchemaStorageMissing(operation) {
       reports.push(operation);
     },
+    checkProjectReadOnly: async () => false,
   });
 
   await assert.rejects(

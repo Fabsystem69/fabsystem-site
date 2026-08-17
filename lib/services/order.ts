@@ -265,6 +265,13 @@ function assertProductIsOrderable(product: ProductWithAssets | null) {
     throw badRequest("Product is not available for order");
   }
 
+  // v2.1 : SCHEMA_UNLOCK ne se vend jamais via le panier generique — il
+  // exige un Project cible (Order.projectId), que ce chemin ne fournit pas.
+  // Voir le checkout express dedie dans l'editeur.
+  if (product.productType === "SCHEMA_UNLOCK") {
+    throw badRequest("Product requires the dedicated schema unlock checkout");
+  }
+
   return product;
 }
 

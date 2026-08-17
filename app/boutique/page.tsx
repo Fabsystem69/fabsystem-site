@@ -38,9 +38,19 @@ async function buildGuideEntries(): Promise<BoutiqueGuideEntry[]> {
   // réutiliser le panier existant, mais se vendent depuis /prestations —
   // exclus ici pour ne pas dupliquer/brouiller la grille boutique
   // (MASTER-03 §29).
-  const products = (await listActiveBuyNowProducts()).filter(
-    (product) => !isPrestationsPackSlug(product.slug)
-  );
+  // v2.1 : listActiveBuyNowProducts() exclut deja SCHEMA_UNLOCK cote requete
+  // (voir lib/services/catalog.ts) — ce filtre par type re-affirme la
+  // garantie au niveau TypeScript, en profondeur, plutot que de faire
+  // confiance implicitement a la requete.
+  const products = (await listActiveBuyNowProducts())
+    .filter((product) => !isPrestationsPackSlug(product.slug))
+    .filter(
+      (
+        product
+      ): product is typeof product & {
+        productType: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE";
+      } => product.productType !== "SCHEMA_UNLOCK"
+    );
 
   const session = await getCustomerSessionFromCookieOrAnonymous();
 

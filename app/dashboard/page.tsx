@@ -384,6 +384,12 @@ export default async function DashboardPage() {
                 href: "/dashboard/discounts",
                 icon: <DiscountIcon className="h-4 w-4" />,
               },
+              {
+                label: "Codes promo éditeur",
+                description: "Accès gratuit 7 jours à distribuer",
+                href: "/dashboard/schema-unlock-codes",
+                icon: <DiscountIcon className="h-4 w-4" />,
+              },
             ]}
           />
         </div>

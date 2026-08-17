@@ -1,8 +1,9 @@
 import type { PrismaClient, ProjectSchema, Prisma } from "@/lib/generated/prisma/client";
-import { serviceUnavailable } from "@/lib/http-errors";
+import { forbidden, serviceUnavailable } from "@/lib/http-errors";
 import type { OwnershipActor } from "@/lib/ownership";
 import { logServerEvent } from "@/lib/server-log";
 import { getProject } from "@/lib/services/project";
+import { isProjectReadOnly } from "@/lib/services/schema-unlock";
 
 type PrismaClientLike = PrismaClient;
 
@@ -29,6 +30,7 @@ export type ProjectSchemaDb = {
 type ProjectSchemaServiceDeps = {
   assertOwnedProject?: typeof getProject;
   reportSchemaStorageMissing?: (operation: string, error: unknown) => void;
+  checkProjectReadOnly?: typeof isProjectReadOnly;
 };
 
 function isProjectSchemaTableMissingError(error: unknown) {
@@ -94,6 +96,7 @@ export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSch
   const assertOwnedProject = deps.assertOwnedProject ?? getProject;
   const reportSchemaStorageMissing =
     deps.reportSchemaStorageMissing ?? defaultReportSchemaStorageMissing;
+  const checkProjectReadOnly = deps.checkProjectReadOnly ?? isProjectReadOnly;
 
   return {
     async getProjectSchema(actor: OwnershipActor, projectId: string): Promise<ProjectSchema | null> {
@@ -111,6 +114,13 @@ export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSch
 
     async saveProjectSchema(actor: OwnershipActor, projectId: string, input: SaveProjectSchemaInput): Promise<ProjectSchema> {
       const project = await assertOwnedProject(actor, projectId);
+      // v2.1 : un projet ayant deja beneficie d'un deverrouillage payant qui
+      // n'est plus actif repasse en lecture seule complete — jamais de perte
+      // silencieuse de travail (le schema reste consultable via
+      // getProjectSchema), juste plus de sauvegarde possible sans renouveler.
+      if (await checkProjectReadOnly(project.customerId, project.id)) {
+        throw forbidden("Project schema is read-only: unlock has expired");
+      }
       try {
         return await db.upsert(project.id, input);
       } catch (error) {

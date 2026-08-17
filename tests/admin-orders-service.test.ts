@@ -39,6 +39,7 @@ function createOrderRecord(overrides: Partial<Order> = {}): Order {
     discountTotalCents: overrides.discountTotalCents ?? 0,
     totalCents: overrides.totalCents ?? 2900,
     cartId: overrides.cartId ?? "cart_1",
+    projectId: overrides.projectId ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
     paidAt: overrides.paidAt ?? now,

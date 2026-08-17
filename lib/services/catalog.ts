@@ -15,7 +15,7 @@ import type {
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
 
 const productStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
-const productTypeSchema = z.enum(["EBOOK", "DIGITAL_DOWNLOAD", "BUNDLE"]);
+const productTypeSchema = z.enum(["EBOOK", "DIGITAL_DOWNLOAD", "BUNDLE", "SCHEMA_UNLOCK"]);
 const purchaseModeSchema = z.enum(["BUY_NOW", "REQUEST_ONLY"]);
 const digitalAssetStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
 const digitalAssetProviderSchema = z.enum(["SUPABASE"]);
@@ -178,6 +178,7 @@ type ProductLookup = {
 type ProductListFilters = {
   status?: ProductStatus;
   purchaseMode?: PurchaseMode;
+  excludeProductTypes?: ProductType[];
 };
 
 type CatalogQueryOptions = {
@@ -341,6 +342,9 @@ function createPrismaCatalogDb(client: PrismaClientLike): CatalogDb {
         where: {
           status: filters.status,
           purchaseMode: filters.purchaseMode,
+          productType: filters.excludeProductTypes
+            ? { notIn: filters.excludeProductTypes }
+            : undefined,
         },
         include: buildProductInclude(options),
         orderBy: { createdAt: "desc" },
@@ -574,10 +578,14 @@ export function createCatalogService(db: CatalogDb) {
     },
 
     async listActiveBuyNowProducts() {
+      // v2.1 : SCHEMA_UNLOCK n'est jamais parcouru/achete via la boutique
+      // generique — il se vend uniquement depuis l'editeur, dans le contexte
+      // d'un Project precis (voir Order.projectId).
       return db.listProducts(
         {
           status: "ACTIVE",
           purchaseMode: "BUY_NOW",
+          excludeProductTypes: ["SCHEMA_UNLOCK"],
         },
         {
           activePricesOnly: true,

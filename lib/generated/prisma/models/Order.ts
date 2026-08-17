@@ -51,6 +51,7 @@ export type OrderMinAggregateOutputType = {
   discountTotalCents: number | null
   totalCents: number | null
   cartId: string | null
+  projectId: string | null
   createdAt: Date | null
   updatedAt: Date | null
   paidAt: Date | null
@@ -71,6 +72,7 @@ export type OrderMaxAggregateOutputType = {
   discountTotalCents: number | null
   totalCents: number | null
   cartId: string | null
+  projectId: string | null
   createdAt: Date | null
   updatedAt: Date | null
   paidAt: Date | null
@@ -91,6 +93,7 @@ export type OrderCountAggregateOutputType = {
   discountTotalCents: number
   totalCents: number
   cartId: number
+  projectId: number
   createdAt: number
   updatedAt: number
   paidAt: number
@@ -125,6 +128,7 @@ export type OrderMinAggregateInputType = {
   discountTotalCents?: true
   totalCents?: true
   cartId?: true
+  projectId?: true
   createdAt?: true
   updatedAt?: true
   paidAt?: true
@@ -145,6 +149,7 @@ export type OrderMaxAggregateInputType = {
   discountTotalCents?: true
   totalCents?: true
   cartId?: true
+  projectId?: true
   createdAt?: true
   updatedAt?: true
   paidAt?: true
@@ -165,6 +170,7 @@ export type OrderCountAggregateInputType = {
   discountTotalCents?: true
   totalCents?: true
   cartId?: true
+  projectId?: true
   createdAt?: true
   updatedAt?: true
   paidAt?: true
@@ -272,6 +278,7 @@ export type OrderGroupByOutputType = {
   discountTotalCents: number
   totalCents: number
   cartId: string | null
+  projectId: string | null
   createdAt: Date
   updatedAt: Date
   paidAt: Date | null
@@ -315,11 +322,13 @@ export type OrderWhereInput = {
   discountTotalCents?: Prisma.IntFilter<"Order"> | number
   totalCents?: Prisma.IntFilter<"Order"> | number
   cartId?: Prisma.StringNullableFilter<"Order"> | string | null
+  projectId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   paidAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   refundedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   cart?: Prisma.XOR<Prisma.CartNullableScalarRelationFilter, Prisma.CartWhereInput> | null
   customer?: Prisma.XOR<Prisma.CustomerNullableScalarRelationFilter, Prisma.CustomerWhereInput> | null
   discountCode?: Prisma.XOR<Prisma.DiscountCodeNullableScalarRelationFilter, Prisma.DiscountCodeWhereInput> | null
@@ -342,11 +351,13 @@ export type OrderOrderByWithRelationInput = {
   discountTotalCents?: Prisma.SortOrder
   totalCents?: Prisma.SortOrder
   cartId?: Prisma.SortOrderInput | Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
   cancelledAt?: Prisma.SortOrderInput | Prisma.SortOrder
   refundedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  project?: Prisma.ProjectOrderByWithRelationInput
   cart?: Prisma.CartOrderByWithRelationInput
   customer?: Prisma.CustomerOrderByWithRelationInput
   discountCode?: Prisma.DiscountCodeOrderByWithRelationInput
@@ -372,11 +383,13 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   subtotalCents?: Prisma.IntFilter<"Order"> | number
   discountTotalCents?: Prisma.IntFilter<"Order"> | number
   totalCents?: Prisma.IntFilter<"Order"> | number
+  projectId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   paidAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   refundedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+  project?: Prisma.XOR<Prisma.ProjectNullableScalarRelationFilter, Prisma.ProjectWhereInput> | null
   cart?: Prisma.XOR<Prisma.CartNullableScalarRelationFilter, Prisma.CartWhereInput> | null
   customer?: Prisma.XOR<Prisma.CustomerNullableScalarRelationFilter, Prisma.CustomerWhereInput> | null
   discountCode?: Prisma.XOR<Prisma.DiscountCodeNullableScalarRelationFilter, Prisma.DiscountCodeWhereInput> | null
@@ -399,6 +412,7 @@ export type OrderOrderByWithAggregationInput = {
   discountTotalCents?: Prisma.SortOrder
   totalCents?: Prisma.SortOrder
   cartId?: Prisma.SortOrderInput | Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   paidAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -427,6 +441,7 @@ export type OrderScalarWhereWithAggregatesInput = {
   discountTotalCents?: Prisma.IntWithAggregatesFilter<"Order"> | number
   totalCents?: Prisma.IntWithAggregatesFilter<"Order"> | number
   cartId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
+  projectId?: Prisma.StringNullableWithAggregatesFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Order"> | Date | string
   paidAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
@@ -449,6 +464,7 @@ export type OrderCreateInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   cart?: Prisma.CartCreateNestedOneWithoutOrderInput
   customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
   discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
@@ -471,6 +487,7 @@ export type OrderUncheckedCreateInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -497,6 +514,7 @@ export type OrderUpdateInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
   customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
   discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
@@ -519,6 +537,7 @@ export type OrderUncheckedUpdateInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -543,6 +562,7 @@ export type OrderCreateManyInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -580,6 +600,7 @@ export type OrderUncheckedUpdateManyInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -615,6 +636,7 @@ export type OrderCountOrderByAggregateInput = {
   discountTotalCents?: Prisma.SortOrder
   totalCents?: Prisma.SortOrder
   cartId?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
@@ -641,6 +663,7 @@ export type OrderMaxOrderByAggregateInput = {
   discountTotalCents?: Prisma.SortOrder
   totalCents?: Prisma.SortOrder
   cartId?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
@@ -661,6 +684,7 @@ export type OrderMinOrderByAggregateInput = {
   discountTotalCents?: Prisma.SortOrder
   totalCents?: Prisma.SortOrder
   cartId?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   paidAt?: Prisma.SortOrder
@@ -718,6 +742,48 @@ export type OrderUncheckedUpdateManyWithoutCustomerNestedInput = {
   connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
   update?: Prisma.OrderUpdateWithWhereUniqueWithoutCustomerInput | Prisma.OrderUpdateWithWhereUniqueWithoutCustomerInput[]
   updateMany?: Prisma.OrderUpdateManyWithWhereWithoutCustomerInput | Prisma.OrderUpdateManyWithWhereWithoutCustomerInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type OrderCreateNestedManyWithoutProjectInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutProjectInput, Prisma.OrderUncheckedCreateWithoutProjectInput> | Prisma.OrderCreateWithoutProjectInput[] | Prisma.OrderUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutProjectInput | Prisma.OrderCreateOrConnectWithoutProjectInput[]
+  createMany?: Prisma.OrderCreateManyProjectInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUncheckedCreateNestedManyWithoutProjectInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutProjectInput, Prisma.OrderUncheckedCreateWithoutProjectInput> | Prisma.OrderCreateWithoutProjectInput[] | Prisma.OrderUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutProjectInput | Prisma.OrderCreateOrConnectWithoutProjectInput[]
+  createMany?: Prisma.OrderCreateManyProjectInputEnvelope
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+}
+
+export type OrderUpdateManyWithoutProjectNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutProjectInput, Prisma.OrderUncheckedCreateWithoutProjectInput> | Prisma.OrderCreateWithoutProjectInput[] | Prisma.OrderUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutProjectInput | Prisma.OrderCreateOrConnectWithoutProjectInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutProjectInput | Prisma.OrderUpsertWithWhereUniqueWithoutProjectInput[]
+  createMany?: Prisma.OrderCreateManyProjectInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutProjectInput | Prisma.OrderUpdateWithWhereUniqueWithoutProjectInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutProjectInput | Prisma.OrderUpdateManyWithWhereWithoutProjectInput[]
+  deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
+}
+
+export type OrderUncheckedUpdateManyWithoutProjectNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutProjectInput, Prisma.OrderUncheckedCreateWithoutProjectInput> | Prisma.OrderCreateWithoutProjectInput[] | Prisma.OrderUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutProjectInput | Prisma.OrderCreateOrConnectWithoutProjectInput[]
+  upsert?: Prisma.OrderUpsertWithWhereUniqueWithoutProjectInput | Prisma.OrderUpsertWithWhereUniqueWithoutProjectInput[]
+  createMany?: Prisma.OrderCreateManyProjectInputEnvelope
+  set?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  disconnect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  delete?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  connect?: Prisma.OrderWhereUniqueInput | Prisma.OrderWhereUniqueInput[]
+  update?: Prisma.OrderUpdateWithWhereUniqueWithoutProjectInput | Prisma.OrderUpdateWithWhereUniqueWithoutProjectInput[]
+  updateMany?: Prisma.OrderUpdateManyWithWhereWithoutProjectInput | Prisma.OrderUpdateManyWithWhereWithoutProjectInput[]
   deleteMany?: Prisma.OrderScalarWhereInput | Prisma.OrderScalarWhereInput[]
 }
 
@@ -870,6 +936,7 @@ export type OrderCreateWithoutCustomerInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   cart?: Prisma.CartCreateNestedOneWithoutOrderInput
   discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
@@ -890,6 +957,7 @@ export type OrderUncheckedCreateWithoutCustomerInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -943,11 +1011,86 @@ export type OrderScalarWhereInput = {
   discountTotalCents?: Prisma.IntFilter<"Order"> | number
   totalCents?: Prisma.IntFilter<"Order"> | number
   cartId?: Prisma.StringNullableFilter<"Order"> | string | null
+  projectId?: Prisma.StringNullableFilter<"Order"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Order"> | Date | string
   paidAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   cancelledAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
   refundedAt?: Prisma.DateTimeNullableFilter<"Order"> | Date | string | null
+}
+
+export type OrderCreateWithoutProjectInput = {
+  id?: string
+  orderNumber: string
+  status?: $Enums.OrderStatus
+  customerEmail: string
+  customerName?: string | null
+  currency?: string
+  subtotalCents: number
+  discountTotalCents?: number
+  totalCents: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  refundedAt?: Date | string | null
+  cart?: Prisma.CartCreateNestedOneWithoutOrderInput
+  customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
+  discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
+  items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutOrderInput
+  downloadGrants?: Prisma.DownloadGrantCreateNestedManyWithoutOrderInput
+  discountRedemptions?: Prisma.DiscountRedemptionCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutProjectInput = {
+  id?: string
+  orderNumber: string
+  status?: $Enums.OrderStatus
+  customerId?: string | null
+  discountCodeId?: string | null
+  customerEmail: string
+  customerName?: string | null
+  currency?: string
+  subtotalCents: number
+  discountTotalCents?: number
+  totalCents: number
+  cartId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  refundedAt?: Date | string | null
+  items?: Prisma.OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutOrderInput
+  downloadGrants?: Prisma.DownloadGrantUncheckedCreateNestedManyWithoutOrderInput
+  discountRedemptions?: Prisma.DiscountRedemptionUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutProjectInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutProjectInput, Prisma.OrderUncheckedCreateWithoutProjectInput>
+}
+
+export type OrderCreateManyProjectInputEnvelope = {
+  data: Prisma.OrderCreateManyProjectInput | Prisma.OrderCreateManyProjectInput[]
+  skipDuplicates?: boolean
+}
+
+export type OrderUpsertWithWhereUniqueWithoutProjectInput = {
+  where: Prisma.OrderWhereUniqueInput
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutProjectInput, Prisma.OrderUncheckedUpdateWithoutProjectInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutProjectInput, Prisma.OrderUncheckedCreateWithoutProjectInput>
+}
+
+export type OrderUpdateWithWhereUniqueWithoutProjectInput = {
+  where: Prisma.OrderWhereUniqueInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutProjectInput, Prisma.OrderUncheckedUpdateWithoutProjectInput>
+}
+
+export type OrderUpdateManyWithWhereWithoutProjectInput = {
+  where: Prisma.OrderScalarWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateManyMutationInput, Prisma.OrderUncheckedUpdateManyWithoutProjectInput>
 }
 
 export type OrderCreateWithoutCartInput = {
@@ -965,6 +1108,7 @@ export type OrderCreateWithoutCartInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
   discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
@@ -985,6 +1129,7 @@ export type OrderUncheckedCreateWithoutCartInput = {
   subtotalCents: number
   discountTotalCents?: number
   totalCents: number
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1027,6 +1172,7 @@ export type OrderUpdateWithoutCartInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
   discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
@@ -1047,6 +1193,7 @@ export type OrderUncheckedUpdateWithoutCartInput = {
   subtotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1073,6 +1220,7 @@ export type OrderCreateWithoutItemsInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   cart?: Prisma.CartCreateNestedOneWithoutOrderInput
   customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
   discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
@@ -1094,6 +1242,7 @@ export type OrderUncheckedCreateWithoutItemsInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1135,6 +1284,7 @@ export type OrderUpdateWithoutItemsInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
   customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
   discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
@@ -1156,6 +1306,7 @@ export type OrderUncheckedUpdateWithoutItemsInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1181,6 +1332,7 @@ export type OrderCreateWithoutPaymentsInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   cart?: Prisma.CartCreateNestedOneWithoutOrderInput
   customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
   discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
@@ -1202,6 +1354,7 @@ export type OrderUncheckedCreateWithoutPaymentsInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1243,6 +1396,7 @@ export type OrderUpdateWithoutPaymentsInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
   customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
   discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
@@ -1264,6 +1418,7 @@ export type OrderUncheckedUpdateWithoutPaymentsInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1289,6 +1444,7 @@ export type OrderCreateWithoutDownloadGrantsInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   cart?: Prisma.CartCreateNestedOneWithoutOrderInput
   customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
   discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
@@ -1310,6 +1466,7 @@ export type OrderUncheckedCreateWithoutDownloadGrantsInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1351,6 +1508,7 @@ export type OrderUpdateWithoutDownloadGrantsInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
   customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
   discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
@@ -1372,6 +1530,7 @@ export type OrderUncheckedUpdateWithoutDownloadGrantsInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1397,6 +1556,7 @@ export type OrderCreateWithoutDiscountCodeInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   cart?: Prisma.CartCreateNestedOneWithoutOrderInput
   customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
   items?: Prisma.OrderItemCreateNestedManyWithoutOrderInput
@@ -1417,6 +1577,7 @@ export type OrderUncheckedCreateWithoutDiscountCodeInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1469,6 +1630,7 @@ export type OrderCreateWithoutDiscountRedemptionsInput = {
   paidAt?: Date | string | null
   cancelledAt?: Date | string | null
   refundedAt?: Date | string | null
+  project?: Prisma.ProjectCreateNestedOneWithoutOrdersInput
   cart?: Prisma.CartCreateNestedOneWithoutOrderInput
   customer?: Prisma.CustomerCreateNestedOneWithoutOrdersInput
   discountCode?: Prisma.DiscountCodeCreateNestedOneWithoutOrdersInput
@@ -1490,6 +1652,7 @@ export type OrderUncheckedCreateWithoutDiscountRedemptionsInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1531,6 +1694,7 @@ export type OrderUpdateWithoutDiscountRedemptionsInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
   customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
   discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
@@ -1552,6 +1716,7 @@ export type OrderUncheckedUpdateWithoutDiscountRedemptionsInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1574,6 +1739,7 @@ export type OrderCreateManyCustomerInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1596,6 +1762,7 @@ export type OrderUpdateWithoutCustomerInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
   discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
@@ -1616,6 +1783,7 @@ export type OrderUncheckedUpdateWithoutCustomerInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1631,6 +1799,95 @@ export type OrderUncheckedUpdateManyWithoutCustomerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   orderNumber?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  discountCodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  customerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  subtotalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type OrderCreateManyProjectInput = {
+  id?: string
+  orderNumber: string
+  status?: $Enums.OrderStatus
+  customerId?: string | null
+  discountCodeId?: string | null
+  customerEmail: string
+  customerName?: string | null
+  currency?: string
+  subtotalCents: number
+  discountTotalCents?: number
+  totalCents: number
+  cartId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  paidAt?: Date | string | null
+  cancelledAt?: Date | string | null
+  refundedAt?: Date | string | null
+}
+
+export type OrderUpdateWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  customerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  customerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  subtotalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
+  customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
+  discountCode?: Prisma.DiscountCodeUpdateOneWithoutOrdersNestedInput
+  items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutOrderNestedInput
+  downloadGrants?: Prisma.DownloadGrantUpdateManyWithoutOrderNestedInput
+  discountRedemptions?: Prisma.DiscountRedemptionUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  discountCodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  customerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  subtotalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  totalCents?: Prisma.IntFieldUpdateOperationsInput | number
+  cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  items?: Prisma.OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutOrderNestedInput
+  downloadGrants?: Prisma.DownloadGrantUncheckedUpdateManyWithoutOrderNestedInput
+  discountRedemptions?: Prisma.DiscountRedemptionUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateManyWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  orderNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   discountCodeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   customerEmail?: Prisma.StringFieldUpdateOperationsInput | string
   customerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1658,6 +1915,7 @@ export type OrderCreateManyDiscountCodeInput = {
   discountTotalCents?: number
   totalCents: number
   cartId?: string | null
+  projectId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   paidAt?: Date | string | null
@@ -1680,6 +1938,7 @@ export type OrderUpdateWithoutDiscountCodeInput = {
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   cancelledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refundedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  project?: Prisma.ProjectUpdateOneWithoutOrdersNestedInput
   cart?: Prisma.CartUpdateOneWithoutOrderNestedInput
   customer?: Prisma.CustomerUpdateOneWithoutOrdersNestedInput
   items?: Prisma.OrderItemUpdateManyWithoutOrderNestedInput
@@ -1700,6 +1959,7 @@ export type OrderUncheckedUpdateWithoutDiscountCodeInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1723,6 +1983,7 @@ export type OrderUncheckedUpdateManyWithoutDiscountCodeInput = {
   discountTotalCents?: Prisma.IntFieldUpdateOperationsInput | number
   totalCents?: Prisma.IntFieldUpdateOperationsInput | number
   cartId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1801,11 +2062,13 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   discountTotalCents?: boolean
   totalCents?: boolean
   cartId?: boolean
+  projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   paidAt?: boolean
   cancelledAt?: boolean
   refundedAt?: boolean
+  project?: boolean | Prisma.Order$projectArgs<ExtArgs>
   cart?: boolean | Prisma.Order$cartArgs<ExtArgs>
   customer?: boolean | Prisma.Order$customerArgs<ExtArgs>
   discountCode?: boolean | Prisma.Order$discountCodeArgs<ExtArgs>
@@ -1829,11 +2092,13 @@ export type OrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   discountTotalCents?: boolean
   totalCents?: boolean
   cartId?: boolean
+  projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   paidAt?: boolean
   cancelledAt?: boolean
   refundedAt?: boolean
+  project?: boolean | Prisma.Order$projectArgs<ExtArgs>
   cart?: boolean | Prisma.Order$cartArgs<ExtArgs>
   customer?: boolean | Prisma.Order$customerArgs<ExtArgs>
   discountCode?: boolean | Prisma.Order$discountCodeArgs<ExtArgs>
@@ -1852,11 +2117,13 @@ export type OrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   discountTotalCents?: boolean
   totalCents?: boolean
   cartId?: boolean
+  projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   paidAt?: boolean
   cancelledAt?: boolean
   refundedAt?: boolean
+  project?: boolean | Prisma.Order$projectArgs<ExtArgs>
   cart?: boolean | Prisma.Order$cartArgs<ExtArgs>
   customer?: boolean | Prisma.Order$customerArgs<ExtArgs>
   discountCode?: boolean | Prisma.Order$discountCodeArgs<ExtArgs>
@@ -1875,6 +2142,7 @@ export type OrderSelectScalar = {
   discountTotalCents?: boolean
   totalCents?: boolean
   cartId?: boolean
+  projectId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   paidAt?: boolean
@@ -1882,8 +2150,9 @@ export type OrderSelectScalar = {
   refundedAt?: boolean
 }
 
-export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderNumber" | "status" | "customerId" | "discountCodeId" | "customerEmail" | "customerName" | "currency" | "subtotalCents" | "discountTotalCents" | "totalCents" | "cartId" | "createdAt" | "updatedAt" | "paidAt" | "cancelledAt" | "refundedAt", ExtArgs["result"]["order"]>
+export type OrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "orderNumber" | "status" | "customerId" | "discountCodeId" | "customerEmail" | "customerName" | "currency" | "subtotalCents" | "discountTotalCents" | "totalCents" | "cartId" | "projectId" | "createdAt" | "updatedAt" | "paidAt" | "cancelledAt" | "refundedAt", ExtArgs["result"]["order"]>
 export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  project?: boolean | Prisma.Order$projectArgs<ExtArgs>
   cart?: boolean | Prisma.Order$cartArgs<ExtArgs>
   customer?: boolean | Prisma.Order$customerArgs<ExtArgs>
   discountCode?: boolean | Prisma.Order$discountCodeArgs<ExtArgs>
@@ -1894,11 +2163,13 @@ export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  project?: boolean | Prisma.Order$projectArgs<ExtArgs>
   cart?: boolean | Prisma.Order$cartArgs<ExtArgs>
   customer?: boolean | Prisma.Order$customerArgs<ExtArgs>
   discountCode?: boolean | Prisma.Order$discountCodeArgs<ExtArgs>
 }
 export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  project?: boolean | Prisma.Order$projectArgs<ExtArgs>
   cart?: boolean | Prisma.Order$cartArgs<ExtArgs>
   customer?: boolean | Prisma.Order$customerArgs<ExtArgs>
   discountCode?: boolean | Prisma.Order$discountCodeArgs<ExtArgs>
@@ -1907,6 +2178,7 @@ export type OrderIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Order"
   objects: {
+    project: Prisma.$ProjectPayload<ExtArgs> | null
     cart: Prisma.$CartPayload<ExtArgs> | null
     customer: Prisma.$CustomerPayload<ExtArgs> | null
     discountCode: Prisma.$DiscountCodePayload<ExtArgs> | null
@@ -1928,6 +2200,7 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     discountTotalCents: number
     totalCents: number
     cartId: string | null
+    projectId: string | null
     createdAt: Date
     updatedAt: Date
     paidAt: Date | null
@@ -2327,6 +2600,7 @@ readonly fields: OrderFieldRefs;
  */
 export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  project<T extends Prisma.Order$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$projectArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   cart<T extends Prisma.Order$cartArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$cartArgs<ExtArgs>>): Prisma.Prisma__CartClient<runtime.Types.Result.GetResult<Prisma.$CartPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   customer<T extends Prisma.Order$customerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$customerArgs<ExtArgs>>): Prisma.Prisma__CustomerClient<runtime.Types.Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   discountCode<T extends Prisma.Order$discountCodeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$discountCodeArgs<ExtArgs>>): Prisma.Prisma__DiscountCodeClient<runtime.Types.Result.GetResult<Prisma.$DiscountCodePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -2375,6 +2649,7 @@ export interface OrderFieldRefs {
   readonly discountTotalCents: Prisma.FieldRef<"Order", 'Int'>
   readonly totalCents: Prisma.FieldRef<"Order", 'Int'>
   readonly cartId: Prisma.FieldRef<"Order", 'String'>
+  readonly projectId: Prisma.FieldRef<"Order", 'String'>
   readonly createdAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Order", 'DateTime'>
   readonly paidAt: Prisma.FieldRef<"Order", 'DateTime'>
@@ -2773,6 +3048,25 @@ export type OrderDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Limit how many Orders to delete.
    */
   limit?: number
+}
+
+/**
+ * Order.project
+ */
+export type Order$projectArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Project
+   */
+  select?: Prisma.ProjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Project
+   */
+  omit?: Prisma.ProjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectInclude<ExtArgs> | null
+  where?: Prisma.ProjectWhereInput
 }
 
 /**

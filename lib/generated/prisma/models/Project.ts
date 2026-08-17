@@ -234,6 +234,7 @@ export type ProjectWhereInput = {
   retainedValues?: Prisma.ProjectRetainedValueListRelationFilter
   valueDependencies?: Prisma.ProjectValueDependencyListRelationFilter
   schema?: Prisma.XOR<Prisma.ProjectSchemaNullableScalarRelationFilter, Prisma.ProjectSchemaWhereInput> | null
+  orders?: Prisma.OrderListRelationFilter
 }
 
 export type ProjectOrderByWithRelationInput = {
@@ -252,6 +253,7 @@ export type ProjectOrderByWithRelationInput = {
   retainedValues?: Prisma.ProjectRetainedValueOrderByRelationAggregateInput
   valueDependencies?: Prisma.ProjectValueDependencyOrderByRelationAggregateInput
   schema?: Prisma.ProjectSchemaOrderByWithRelationInput
+  orders?: Prisma.OrderOrderByRelationAggregateInput
 }
 
 export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -273,6 +275,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   retainedValues?: Prisma.ProjectRetainedValueListRelationFilter
   valueDependencies?: Prisma.ProjectValueDependencyListRelationFilter
   schema?: Prisma.XOR<Prisma.ProjectSchemaNullableScalarRelationFilter, Prisma.ProjectSchemaWhereInput> | null
+  orders?: Prisma.OrderListRelationFilter
 }, "id">
 
 export type ProjectOrderByWithAggregationInput = {
@@ -324,6 +327,7 @@ export type ProjectCreateInput = {
   retainedValues?: Prisma.ProjectRetainedValueCreateNestedManyWithoutProjectInput
   valueDependencies?: Prisma.ProjectValueDependencyCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateInput = {
@@ -341,6 +345,7 @@ export type ProjectUncheckedCreateInput = {
   retainedValues?: Prisma.ProjectRetainedValueUncheckedCreateNestedManyWithoutProjectInput
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaUncheckedCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUpdateInput = {
@@ -358,6 +363,7 @@ export type ProjectUpdateInput = {
   retainedValues?: Prisma.ProjectRetainedValueUpdateManyWithoutProjectNestedInput
   valueDependencies?: Prisma.ProjectValueDependencyUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateInput = {
@@ -375,6 +381,7 @@ export type ProjectUncheckedUpdateInput = {
   retainedValues?: Prisma.ProjectRetainedValueUncheckedUpdateManyWithoutProjectNestedInput
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUncheckedUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyInput = {
@@ -473,6 +480,11 @@ export type ProjectMinOrderByAggregateInput = {
 export type ProjectScalarRelationFilter = {
   is?: Prisma.ProjectWhereInput
   isNot?: Prisma.ProjectWhereInput
+}
+
+export type ProjectNullableScalarRelationFilter = {
+  is?: Prisma.ProjectWhereInput | null
+  isNot?: Prisma.ProjectWhereInput | null
 }
 
 export type ProjectCreateNestedManyWithoutCustomerInput = {
@@ -575,6 +587,22 @@ export type ProjectUpdateOneRequiredWithoutSchemaNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutSchemaInput, Prisma.ProjectUpdateWithoutSchemaInput>, Prisma.ProjectUncheckedUpdateWithoutSchemaInput>
 }
 
+export type ProjectCreateNestedOneWithoutOrdersInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutOrdersInput, Prisma.ProjectUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutOrdersInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneWithoutOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutOrdersInput, Prisma.ProjectUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutOrdersInput
+  upsert?: Prisma.ProjectUpsertWithoutOrdersInput
+  disconnect?: Prisma.ProjectWhereInput | boolean
+  delete?: Prisma.ProjectWhereInput | boolean
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutOrdersInput, Prisma.ProjectUpdateWithoutOrdersInput>, Prisma.ProjectUncheckedUpdateWithoutOrdersInput>
+}
+
 export type ProjectCreateWithoutCustomerInput = {
   id?: string
   name: string
@@ -589,6 +617,7 @@ export type ProjectCreateWithoutCustomerInput = {
   retainedValues?: Prisma.ProjectRetainedValueCreateNestedManyWithoutProjectInput
   valueDependencies?: Prisma.ProjectValueDependencyCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutCustomerInput = {
@@ -605,6 +634,7 @@ export type ProjectUncheckedCreateWithoutCustomerInput = {
   retainedValues?: Prisma.ProjectRetainedValueUncheckedCreateNestedManyWithoutProjectInput
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaUncheckedCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutCustomerInput = {
@@ -664,6 +694,7 @@ export type ProjectCreateWithoutRetainedValuesInput = {
   customer: Prisma.CustomerCreateNestedOneWithoutProjectsInput
   valueDependencies?: Prisma.ProjectValueDependencyCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutRetainedValuesInput = {
@@ -680,6 +711,7 @@ export type ProjectUncheckedCreateWithoutRetainedValuesInput = {
   updatedAt?: Date | string
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaUncheckedCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutRetainedValuesInput = {
@@ -712,6 +744,7 @@ export type ProjectUpdateWithoutRetainedValuesInput = {
   customer?: Prisma.CustomerUpdateOneRequiredWithoutProjectsNestedInput
   valueDependencies?: Prisma.ProjectValueDependencyUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutRetainedValuesInput = {
@@ -728,6 +761,7 @@ export type ProjectUncheckedUpdateWithoutRetainedValuesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUncheckedUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutValueDependenciesInput = {
@@ -744,6 +778,7 @@ export type ProjectCreateWithoutValueDependenciesInput = {
   customer: Prisma.CustomerCreateNestedOneWithoutProjectsInput
   retainedValues?: Prisma.ProjectRetainedValueCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutValueDependenciesInput = {
@@ -760,6 +795,7 @@ export type ProjectUncheckedCreateWithoutValueDependenciesInput = {
   updatedAt?: Date | string
   retainedValues?: Prisma.ProjectRetainedValueUncheckedCreateNestedManyWithoutProjectInput
   schema?: Prisma.ProjectSchemaUncheckedCreateNestedOneWithoutProjectInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutValueDependenciesInput = {
@@ -792,6 +828,7 @@ export type ProjectUpdateWithoutValueDependenciesInput = {
   customer?: Prisma.CustomerUpdateOneRequiredWithoutProjectsNestedInput
   retainedValues?: Prisma.ProjectRetainedValueUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutValueDependenciesInput = {
@@ -808,6 +845,7 @@ export type ProjectUncheckedUpdateWithoutValueDependenciesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   retainedValues?: Prisma.ProjectRetainedValueUncheckedUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUncheckedUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutSchemaInput = {
@@ -824,6 +862,7 @@ export type ProjectCreateWithoutSchemaInput = {
   customer: Prisma.CustomerCreateNestedOneWithoutProjectsInput
   retainedValues?: Prisma.ProjectRetainedValueCreateNestedManyWithoutProjectInput
   valueDependencies?: Prisma.ProjectValueDependencyCreateNestedManyWithoutProjectInput
+  orders?: Prisma.OrderCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutSchemaInput = {
@@ -840,6 +879,7 @@ export type ProjectUncheckedCreateWithoutSchemaInput = {
   updatedAt?: Date | string
   retainedValues?: Prisma.ProjectRetainedValueUncheckedCreateNestedManyWithoutProjectInput
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedCreateNestedManyWithoutProjectInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutSchemaInput = {
@@ -872,6 +912,7 @@ export type ProjectUpdateWithoutSchemaInput = {
   customer?: Prisma.CustomerUpdateOneRequiredWithoutProjectsNestedInput
   retainedValues?: Prisma.ProjectRetainedValueUpdateManyWithoutProjectNestedInput
   valueDependencies?: Prisma.ProjectValueDependencyUpdateManyWithoutProjectNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutSchemaInput = {
@@ -888,6 +929,91 @@ export type ProjectUncheckedUpdateWithoutSchemaInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   retainedValues?: Prisma.ProjectRetainedValueUncheckedUpdateManyWithoutProjectNestedInput
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedUpdateManyWithoutProjectNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectCreateWithoutOrdersInput = {
+  id?: string
+  name: string
+  assetType: $Enums.ProjectAssetType
+  voltage?: $Enums.ProjectVoltage
+  status?: $Enums.ProjectStatus
+  archivedAt?: Date | string | null
+  deleteScheduledAt?: Date | string | null
+  preScheduleStatus?: $Enums.ProjectStatus | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  customer: Prisma.CustomerCreateNestedOneWithoutProjectsInput
+  retainedValues?: Prisma.ProjectRetainedValueCreateNestedManyWithoutProjectInput
+  valueDependencies?: Prisma.ProjectValueDependencyCreateNestedManyWithoutProjectInput
+  schema?: Prisma.ProjectSchemaCreateNestedOneWithoutProjectInput
+}
+
+export type ProjectUncheckedCreateWithoutOrdersInput = {
+  id?: string
+  customerId: string
+  name: string
+  assetType: $Enums.ProjectAssetType
+  voltage?: $Enums.ProjectVoltage
+  status?: $Enums.ProjectStatus
+  archivedAt?: Date | string | null
+  deleteScheduledAt?: Date | string | null
+  preScheduleStatus?: $Enums.ProjectStatus | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  retainedValues?: Prisma.ProjectRetainedValueUncheckedCreateNestedManyWithoutProjectInput
+  valueDependencies?: Prisma.ProjectValueDependencyUncheckedCreateNestedManyWithoutProjectInput
+  schema?: Prisma.ProjectSchemaUncheckedCreateNestedOneWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutOrdersInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutOrdersInput, Prisma.ProjectUncheckedCreateWithoutOrdersInput>
+}
+
+export type ProjectUpsertWithoutOrdersInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutOrdersInput, Prisma.ProjectUncheckedUpdateWithoutOrdersInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutOrdersInput, Prisma.ProjectUncheckedCreateWithoutOrdersInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutOrdersInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutOrdersInput, Prisma.ProjectUncheckedUpdateWithoutOrdersInput>
+}
+
+export type ProjectUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  assetType?: Prisma.EnumProjectAssetTypeFieldUpdateOperationsInput | $Enums.ProjectAssetType
+  voltage?: Prisma.EnumProjectVoltageFieldUpdateOperationsInput | $Enums.ProjectVoltage
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleteScheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preScheduleStatus?: Prisma.NullableEnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.CustomerUpdateOneRequiredWithoutProjectsNestedInput
+  retainedValues?: Prisma.ProjectRetainedValueUpdateManyWithoutProjectNestedInput
+  valueDependencies?: Prisma.ProjectValueDependencyUpdateManyWithoutProjectNestedInput
+  schema?: Prisma.ProjectSchemaUpdateOneWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutOrdersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  assetType?: Prisma.EnumProjectAssetTypeFieldUpdateOperationsInput | $Enums.ProjectAssetType
+  voltage?: Prisma.EnumProjectVoltageFieldUpdateOperationsInput | $Enums.ProjectVoltage
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deleteScheduledAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  preScheduleStatus?: Prisma.NullableEnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retainedValues?: Prisma.ProjectRetainedValueUncheckedUpdateManyWithoutProjectNestedInput
+  valueDependencies?: Prisma.ProjectValueDependencyUncheckedUpdateManyWithoutProjectNestedInput
+  schema?: Prisma.ProjectSchemaUncheckedUpdateOneWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyCustomerInput = {
@@ -917,6 +1043,7 @@ export type ProjectUpdateWithoutCustomerInput = {
   retainedValues?: Prisma.ProjectRetainedValueUpdateManyWithoutProjectNestedInput
   valueDependencies?: Prisma.ProjectValueDependencyUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutCustomerInput = {
@@ -933,6 +1060,7 @@ export type ProjectUncheckedUpdateWithoutCustomerInput = {
   retainedValues?: Prisma.ProjectRetainedValueUncheckedUpdateManyWithoutProjectNestedInput
   valueDependencies?: Prisma.ProjectValueDependencyUncheckedUpdateManyWithoutProjectNestedInput
   schema?: Prisma.ProjectSchemaUncheckedUpdateOneWithoutProjectNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateManyWithoutCustomerInput = {
@@ -956,11 +1084,13 @@ export type ProjectUncheckedUpdateManyWithoutCustomerInput = {
 export type ProjectCountOutputType = {
   retainedValues: number
   valueDependencies: number
+  orders: number
 }
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   retainedValues?: boolean | ProjectCountOutputTypeCountRetainedValuesArgs
   valueDependencies?: boolean | ProjectCountOutputTypeCountValueDependenciesArgs
+  orders?: boolean | ProjectCountOutputTypeCountOrdersArgs
 }
 
 /**
@@ -987,6 +1117,13 @@ export type ProjectCountOutputTypeCountValueDependenciesArgs<ExtArgs extends run
   where?: Prisma.ProjectValueDependencyWhereInput
 }
 
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderWhereInput
+}
+
 
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1004,6 +1141,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   retainedValues?: boolean | Prisma.Project$retainedValuesArgs<ExtArgs>
   valueDependencies?: boolean | Prisma.Project$valueDependenciesArgs<ExtArgs>
   schema?: boolean | Prisma.Project$schemaArgs<ExtArgs>
+  orders?: boolean | Prisma.Project$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
@@ -1057,6 +1195,7 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   retainedValues?: boolean | Prisma.Project$retainedValuesArgs<ExtArgs>
   valueDependencies?: boolean | Prisma.Project$valueDependenciesArgs<ExtArgs>
   schema?: boolean | Prisma.Project$schemaArgs<ExtArgs>
+  orders?: boolean | Prisma.Project$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1073,6 +1212,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     retainedValues: Prisma.$ProjectRetainedValuePayload<ExtArgs>[]
     valueDependencies: Prisma.$ProjectValueDependencyPayload<ExtArgs>[]
     schema: Prisma.$ProjectSchemaPayload<ExtArgs> | null
+    orders: Prisma.$OrderPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1484,6 +1624,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   retainedValues<T extends Prisma.Project$retainedValuesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$retainedValuesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectRetainedValuePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   valueDependencies<T extends Prisma.Project$valueDependenciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$valueDependenciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectValueDependencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   schema<T extends Prisma.Project$schemaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$schemaArgs<ExtArgs>>): Prisma.Prisma__ProjectSchemaClient<runtime.Types.Result.GetResult<Prisma.$ProjectSchemaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  orders<T extends Prisma.Project$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1984,6 +2125,30 @@ export type Project$schemaArgs<ExtArgs extends runtime.Types.Extensions.Internal
    */
   include?: Prisma.ProjectSchemaInclude<ExtArgs> | null
   where?: Prisma.ProjectSchemaWhereInput
+}
+
+/**
+ * Project.orders
+ */
+export type Project$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null
+  where?: Prisma.OrderWhereInput
+  orderBy?: Prisma.OrderOrderByWithRelationInput | Prisma.OrderOrderByWithRelationInput[]
+  cursor?: Prisma.OrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
 }
 
 /**

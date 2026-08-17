@@ -29,7 +29,7 @@ type BoutiqueProductPageProps = {
   }>;
 };
 
-function getProductTypeLabel(value: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE") {
+function getProductTypeLabel(value: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE" | "SCHEMA_UNLOCK") {
   switch (value) {
     case "EBOOK":
       return "Guide pratique";
@@ -37,6 +37,10 @@ function getProductTypeLabel(value: "EBOOK" | "DIGITAL_DOWNLOAD" | "BUNDLE") {
       return "Téléchargement numérique";
     case "BUNDLE":
       return "Bundle numérique";
+    case "SCHEMA_UNLOCK":
+      // Ne devrait jamais s'afficher : getPublicProduct() renvoie notFound()
+      // pour ce type avant d'atteindre le rendu (voir plus haut).
+      return "Déblocage éditeur";
   }
 }
 
@@ -50,7 +54,15 @@ const getPublicProduct = cache(async (slug: string) => {
   try {
     const product = await getProductBySlug(slug);
 
-    if (product.status !== "ACTIVE" || product.purchaseMode !== "BUY_NOW") {
+    // v2.1 : SCHEMA_UNLOCK ne se vend jamais via la boutique generique (voir
+    // listActiveBuyNowProducts et assertProductIsOrderable/Purchasable) —
+    // traite comme un produit introuvable ici plutot que d'exposer une fiche
+    // achetable hors contexte.
+    if (
+      product.status !== "ACTIVE" ||
+      product.purchaseMode !== "BUY_NOW" ||
+      product.productType === "SCHEMA_UNLOCK"
+    ) {
       notFound();
     }
 

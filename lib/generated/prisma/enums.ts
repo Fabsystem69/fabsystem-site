@@ -77,7 +77,8 @@ export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus]
 export const ProductType = {
   EBOOK: 'EBOOK',
   DIGITAL_DOWNLOAD: 'DIGITAL_DOWNLOAD',
-  BUNDLE: 'BUNDLE'
+  BUNDLE: 'BUNDLE',
+  SCHEMA_UNLOCK: 'SCHEMA_UNLOCK'
 } as const
 
 export type ProductType = (typeof ProductType)[keyof typeof ProductType]
@@ -274,3 +275,11 @@ export const TestimonialCustomerType = {
 } as const
 
 export type TestimonialCustomerType = (typeof TestimonialCustomerType)[keyof typeof TestimonialCustomerType]
+
+
+export const TrialAccessCodeStatus = {
+  ACTIVE: 'ACTIVE',
+  REVOKED: 'REVOKED'
+} as const
+
+export type TrialAccessCodeStatus = (typeof TrialAccessCodeStatus)[keyof typeof TrialAccessCodeStatus]

@@ -79,6 +79,8 @@ type CommerceWebhookDeps = {
     sessionMetadata: Stripe.Metadata | null | undefined
   ) => Promise<unknown>;
   sendPurchaseNotification?: (orderId: string) => Promise<unknown>;
+  grantProjectUnlockForOrder?: (orderId: string) => Promise<unknown>;
+  createAutomaticSchemaUnlockDiscountCodesForOrder?: (orderId: string) => Promise<unknown>;
 };
 
 function getRequiredMetadataValue(
@@ -249,22 +251,26 @@ async function getDefaultCommerceWebhookService() {
   const [
     { prisma },
     { createDownloadGrantsForOrder },
-    { createAutomaticEbookDiscountCodesForOrder },
+    { createAutomaticEbookDiscountCodesForOrder, createAutomaticSchemaUnlockDiscountCodesForOrder },
     { sendPrestationsPackNotification },
     { sendPurchaseNotification },
+    { grantProjectUnlockForOrder },
   ] = await Promise.all([
     import("@/lib/prisma"),
     import("@/lib/services/download-grant"),
     import("@/lib/services/discounts"),
     import("@/lib/services/prestations-notify"),
     import("@/lib/services/purchase-notify"),
+    import("@/lib/services/schema-unlock"),
   ]);
 
   return createStripeWebhookCommerceService(createPrismaCommerceWebhookDb(prisma), {
     createDownloadGrantsForOrder,
     createAutomaticEbookDiscountCodesForOrder,
+    createAutomaticSchemaUnlockDiscountCodesForOrder,
     sendPrestationsPackNotification,
     sendPurchaseNotification,
+    grantProjectUnlockForOrder: (orderId) => grantProjectUnlockForOrder({ orderId }),
   });
 }
 
@@ -279,6 +285,9 @@ export function createStripeWebhookCommerceService(
   const sendPrestationsPackNotification =
     deps?.sendPrestationsPackNotification ?? (async () => {});
   const sendPurchaseNotification = deps?.sendPurchaseNotification ?? (async () => {});
+  const grantProjectUnlockForOrder = deps?.grantProjectUnlockForOrder ?? (async () => {});
+  const createAutomaticSchemaUnlockDiscountCodesForOrder =
+    deps?.createAutomaticSchemaUnlockDiscountCodesForOrder ?? (async () => {});
 
   return {
     async handleCommerceCheckoutCompleted(
@@ -385,6 +394,13 @@ export function createStripeWebhookCommerceService(
         // double vers Fabien, jamais zero email pour un pack paye.
         await sendPrestationsPackNotification(result.orderId, session.metadata);
         await sendPurchaseNotification(result.orderId);
+        // v2.1 : sans effet sur les commandes normales (grantProjectUnlockForOrder
+        // et createAutomaticSchemaUnlockDiscountCodesForOrder ignorent toute
+        // commande sans item SCHEMA_UNLOCK). Appeles aussi sur
+        // already_processed (redelivery Stripe) — grantProjectUnlockForOrder
+        // se protège lui-même via source=order:<orderId> deja existant.
+        await grantProjectUnlockForOrder(result.orderId);
+        await createAutomaticSchemaUnlockDiscountCodesForOrder(result.orderId);
       }
 
       return result;

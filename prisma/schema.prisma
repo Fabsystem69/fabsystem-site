@@ -59,6 +59,12 @@ enum ProductType {
   EBOOK
   DIGITAL_DOWNLOAD
   BUNDLE
+  // v2.1 : deverrouillage payant d'un Project (editeur de schema), lie a un
+  // Order via Order.projectId plutot qu'a un ProductAsset — ne doit jamais
+  // declencher la generation de DownloadGrant (createDownloadGrantsForOrder
+  // se base sur les assets du Product, absents ici, donc aucun cas special
+  // requis).
+  SCHEMA_UNLOCK
 }
 
 enum PurchaseMode {
@@ -185,6 +191,7 @@ model Customer {
   sessions         CustomerSession[]
   capabilities     CustomerCapability[]
   projects         Project[]
+  trialAccessCodeRedemptions TrialAccessCodeRedemption[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
@@ -272,6 +279,10 @@ model Project {
   retainedValues    ProjectRetainedValue[]
   valueDependencies ProjectValueDependency[]
   schema            ProjectSchema?
+  // v2.1 : commandes de deverrouillage (SCHEMA_UNLOCK) liees a ce Project.
+  // Optionnel cote Order (un Order "normal" n'a pas de Project) — voir
+  // Order.projectId.
+  orders            Order[]
 
   @@index([customerId])
   @@index([status])
@@ -604,6 +615,12 @@ model Order {
   discountTotalCents Int         @default(0)
   totalCents     Int
   cartId         String?         @unique
+  // v2.1 : renseigne uniquement pour un Order dont l'item est un produit
+  // SCHEMA_UNLOCK — permet au webhook Stripe de savoir quel Project
+  // deverrouiller a la confirmation du paiement (les metadata Stripe ne sont
+  // jamais persistees, voir stripe-webhook-commerce.ts).
+  projectId      String?
+  project        Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
   cart           Cart?           @relation(fields: [cartId], references: [id], onDelete: SetNull)
   customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
   discountCode   DiscountCode?   @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
@@ -621,6 +638,7 @@ model Order {
   @@index([customerId])
   @@index([customerEmail])
   @@index([discountCodeId])
+  @@index([projectId])
   @@index([createdAt])
 }
 
@@ -803,4 +821,48 @@ model Testimonial {
   @@index([isPublished])
   @@index([isFeatured])
   @@index([displayOrder])
+}
+
+enum TrialAccessCodeStatus {
+  ACTIVE
+  REVOKED
+}
+
+// v2.1 : code promo distribue (communaute, groupes) donnant un acces
+// illimite temporaire a l'editeur de schema, sans paiement — distinct de
+// DiscountCode qui reduit un prix a l'achat. Un code cree une
+// CustomerCapability (scope=CUSTOMER, expiresAt=maintenant+durationDays) sur
+// tous les projets du compte qui le saisit, jamais l'inverse.
+model TrialAccessCode {
+  id             String                      @id @default(cuid())
+  code           String                      @unique
+  capability     String
+  durationDays   Int                         @default(7)
+  status         TrialAccessCodeStatus       @default(ACTIVE)
+  maxRedemptions Int                         @default(1)
+  redeemedCount  Int                         @default(0)
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  reason         String?
+  redemptions    TrialAccessCodeRedemption[]
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+
+  @@index([status])
+}
+
+// Un compte ne peut consommer un meme code qu'une fois (@@unique) — un
+// visiteur qui recree un compte avec un autre email peut en theorie
+// reutiliser le meme code : accepte pour un code promo communautaire (pas de
+// verification d'identite), a surveiller cote volumetrie si abus.
+model TrialAccessCodeRedemption {
+  id         String          @id @default(cuid())
+  codeId     String
+  code       TrialAccessCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  redeemedAt DateTime        @default(now())
+
+  @@unique([codeId, customerId])
+  @@index([customerId])
 }

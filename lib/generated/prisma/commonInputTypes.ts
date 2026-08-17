@@ -831,6 +831,23 @@ export type EnumTestimonialCustomerTypeWithAggregatesFilter<$PrismaModel = never
   _max?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel>
 }
 
+export type EnumTrialAccessCodeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrialAccessCodeStatus | Prisma.EnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrialAccessCodeStatusFilter<$PrismaModel> | $Enums.TrialAccessCodeStatus
+}
+
+export type EnumTrialAccessCodeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrialAccessCodeStatus | Prisma.EnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrialAccessCodeStatusWithAggregatesFilter<$PrismaModel> | $Enums.TrialAccessCodeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTrialAccessCodeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTrialAccessCodeStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1605,6 +1622,23 @@ export type NestedEnumTestimonialCustomerTypeWithAggregatesFilter<$PrismaModel =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumTestimonialCustomerTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumTrialAccessCodeStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrialAccessCodeStatus | Prisma.EnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrialAccessCodeStatusFilter<$PrismaModel> | $Enums.TrialAccessCodeStatus
+}
+
+export type NestedEnumTrialAccessCodeStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TrialAccessCodeStatus | Prisma.EnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TrialAccessCodeStatus[] | Prisma.ListEnumTrialAccessCodeStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTrialAccessCodeStatusWithAggregatesFilter<$PrismaModel> | $Enums.TrialAccessCodeStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTrialAccessCodeStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTrialAccessCodeStatusFilter<$PrismaModel>
 }
 
 

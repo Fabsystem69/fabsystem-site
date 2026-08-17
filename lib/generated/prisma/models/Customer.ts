@@ -316,6 +316,7 @@ export type CustomerWhereInput = {
   sessions?: Prisma.CustomerSessionListRelationFilter
   capabilities?: Prisma.CustomerCapabilityListRelationFilter
   projects?: Prisma.ProjectListRelationFilter
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionListRelationFilter
 }
 
 export type CustomerOrderByWithRelationInput = {
@@ -343,6 +344,7 @@ export type CustomerOrderByWithRelationInput = {
   sessions?: Prisma.CustomerSessionOrderByRelationAggregateInput
   capabilities?: Prisma.CustomerCapabilityOrderByRelationAggregateInput
   projects?: Prisma.ProjectOrderByRelationAggregateInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionOrderByRelationAggregateInput
 }
 
 export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -373,6 +375,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   sessions?: Prisma.CustomerSessionListRelationFilter
   capabilities?: Prisma.CustomerCapabilityListRelationFilter
   projects?: Prisma.ProjectListRelationFilter
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionListRelationFilter
 }, "id" | "email">
 
 export type CustomerOrderByWithAggregationInput = {
@@ -446,6 +449,7 @@ export type CustomerCreateInput = {
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateInput = {
@@ -473,6 +477,7 @@ export type CustomerUncheckedCreateInput = {
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUpdateInput = {
@@ -500,6 +505,7 @@ export type CustomerUpdateInput = {
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateInput = {
@@ -527,6 +533,7 @@ export type CustomerUncheckedUpdateInput = {
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateManyInput = {
@@ -813,6 +820,20 @@ export type CustomerUpdateOneRequiredWithoutSessionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutSessionsInput, Prisma.CustomerUpdateWithoutSessionsInput>, Prisma.CustomerUncheckedUpdateWithoutSessionsInput>
 }
 
+export type CustomerCreateNestedOneWithoutTrialAccessCodeRedemptionsInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutTrialAccessCodeRedemptionsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+}
+
+export type CustomerUpdateOneRequiredWithoutTrialAccessCodeRedemptionsNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutTrialAccessCodeRedemptionsInput
+  upsert?: Prisma.CustomerUpsertWithoutTrialAccessCodeRedemptionsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUpdateWithoutTrialAccessCodeRedemptionsInput>, Prisma.CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput>
+}
+
 export type CustomerCreateWithoutCapabilitiesInput = {
   id?: string
   name?: string | null
@@ -837,6 +858,7 @@ export type CustomerCreateWithoutCapabilitiesInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutCapabilitiesInput = {
@@ -863,6 +885,7 @@ export type CustomerUncheckedCreateWithoutCapabilitiesInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutCapabilitiesInput = {
@@ -905,6 +928,7 @@ export type CustomerUpdateWithoutCapabilitiesInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
@@ -931,6 +955,7 @@ export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutProjectsInput = {
@@ -957,6 +982,7 @@ export type CustomerCreateWithoutProjectsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutProjectsInput = {
@@ -983,6 +1009,7 @@ export type CustomerUncheckedCreateWithoutProjectsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutProjectsInput = {
@@ -1025,6 +1052,7 @@ export type CustomerUpdateWithoutProjectsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutProjectsInput = {
@@ -1051,6 +1079,7 @@ export type CustomerUncheckedUpdateWithoutProjectsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutQuotesInput = {
@@ -1077,6 +1106,7 @@ export type CustomerCreateWithoutQuotesInput = {
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutQuotesInput = {
@@ -1103,6 +1133,7 @@ export type CustomerUncheckedCreateWithoutQuotesInput = {
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutQuotesInput = {
@@ -1145,6 +1176,7 @@ export type CustomerUpdateWithoutQuotesInput = {
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutQuotesInput = {
@@ -1171,6 +1203,7 @@ export type CustomerUncheckedUpdateWithoutQuotesInput = {
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutInvoicesInput = {
@@ -1197,6 +1230,7 @@ export type CustomerCreateWithoutInvoicesInput = {
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutInvoicesInput = {
@@ -1223,6 +1257,7 @@ export type CustomerUncheckedCreateWithoutInvoicesInput = {
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutInvoicesInput = {
@@ -1265,6 +1300,7 @@ export type CustomerUpdateWithoutInvoicesInput = {
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutInvoicesInput = {
@@ -1291,6 +1327,7 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutRemisesInput = {
@@ -1317,6 +1354,7 @@ export type CustomerCreateWithoutRemisesInput = {
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutRemisesInput = {
@@ -1343,6 +1381,7 @@ export type CustomerUncheckedCreateWithoutRemisesInput = {
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutRemisesInput = {
@@ -1385,6 +1424,7 @@ export type CustomerUpdateWithoutRemisesInput = {
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutRemisesInput = {
@@ -1411,6 +1451,7 @@ export type CustomerUncheckedUpdateWithoutRemisesInput = {
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutOrdersInput = {
@@ -1437,6 +1478,7 @@ export type CustomerCreateWithoutOrdersInput = {
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutOrdersInput = {
@@ -1463,6 +1505,7 @@ export type CustomerUncheckedCreateWithoutOrdersInput = {
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutOrdersInput = {
@@ -1505,6 +1548,7 @@ export type CustomerUpdateWithoutOrdersInput = {
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutOrdersInput = {
@@ -1531,6 +1575,7 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutMagicLoginTokensInput = {
@@ -1557,6 +1602,7 @@ export type CustomerCreateWithoutMagicLoginTokensInput = {
   sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
@@ -1583,6 +1629,7 @@ export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
   sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutMagicLoginTokensInput = {
@@ -1625,6 +1672,7 @@ export type CustomerUpdateWithoutMagicLoginTokensInput = {
   sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
@@ -1651,6 +1699,7 @@ export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
   sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutSessionsInput = {
@@ -1677,6 +1726,7 @@ export type CustomerCreateWithoutSessionsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutSessionsInput = {
@@ -1703,6 +1753,7 @@ export type CustomerUncheckedCreateWithoutSessionsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutSessionsInput = {
@@ -1745,6 +1796,7 @@ export type CustomerUpdateWithoutSessionsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutSessionsInput = {
@@ -1771,6 +1823,131 @@ export type CustomerUncheckedUpdateWithoutSessionsInput = {
   magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerCreateWithoutTrialAccessCodeRedemptionsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  phone?: string | null
+  address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput = {
+  id?: string
+  name?: string | null
+  email: string
+  phone?: string | null
+  address?: string | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseUncheckedCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerCreateOrConnectWithoutTrialAccessCodeRedemptionsInput = {
+  where: Prisma.CustomerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput>
+}
+
+export type CustomerUpsertWithoutTrialAccessCodeRedemptionsInput = {
+  update: Prisma.XOR<Prisma.CustomerUpdateWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput>
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput>
+  where?: Prisma.CustomerWhereInput
+}
+
+export type CustomerUpdateToOneWithWhereWithoutTrialAccessCodeRedemptionsInput = {
+  where?: Prisma.CustomerWhereInput
+  data: Prisma.XOR<Prisma.CustomerUpdateWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput>
+}
+
+export type CustomerUpdateWithoutTrialAccessCodeRedemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUncheckedUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUncheckedUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 
@@ -1787,6 +1964,7 @@ export type CustomerCountOutputType = {
   sessions: number
   capabilities: number
   projects: number
+  trialAccessCodeRedemptions: number
 }
 
 export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1798,6 +1976,7 @@ export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   sessions?: boolean | CustomerCountOutputTypeCountSessionsArgs
   capabilities?: boolean | CustomerCountOutputTypeCountCapabilitiesArgs
   projects?: boolean | CustomerCountOutputTypeCountProjectsArgs
+  trialAccessCodeRedemptions?: boolean | CustomerCountOutputTypeCountTrialAccessCodeRedemptionsArgs
 }
 
 /**
@@ -1866,6 +2045,13 @@ export type CustomerCountOutputTypeCountProjectsArgs<ExtArgs extends runtime.Typ
   where?: Prisma.ProjectWhereInput
 }
 
+/**
+ * CustomerCountOutputType without action
+ */
+export type CustomerCountOutputTypeCountTrialAccessCodeRedemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TrialAccessCodeRedemptionWhereInput
+}
+
 
 export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1892,6 +2078,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   sessions?: boolean | Prisma.Customer$sessionsArgs<ExtArgs>
   capabilities?: boolean | Prisma.Customer$capabilitiesArgs<ExtArgs>
   projects?: boolean | Prisma.Customer$projectsArgs<ExtArgs>
+  trialAccessCodeRedemptions?: boolean | Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
 
@@ -1962,6 +2149,7 @@ export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   sessions?: boolean | Prisma.Customer$sessionsArgs<ExtArgs>
   capabilities?: boolean | Prisma.Customer$capabilitiesArgs<ExtArgs>
   projects?: boolean | Prisma.Customer$projectsArgs<ExtArgs>
+  trialAccessCodeRedemptions?: boolean | Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CustomerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1978,6 +2166,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     sessions: Prisma.$CustomerSessionPayload<ExtArgs>[]
     capabilities: Prisma.$CustomerCapabilityPayload<ExtArgs>[]
     projects: Prisma.$ProjectPayload<ExtArgs>[]
+    trialAccessCodeRedemptions: Prisma.$TrialAccessCodeRedemptionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2398,6 +2587,7 @@ export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends runtime
   sessions<T extends Prisma.Customer$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   capabilities<T extends Prisma.Customer$capabilitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$capabilitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerCapabilityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Customer$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  trialAccessCodeRedemptions<T extends Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrialAccessCodeRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3020,6 +3210,30 @@ export type Customer$projectsArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.ProjectScalarFieldEnum | Prisma.ProjectScalarFieldEnum[]
+}
+
+/**
+ * Customer.trialAccessCodeRedemptions
+ */
+export type Customer$trialAccessCodeRedemptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TrialAccessCodeRedemption
+   */
+  select?: Prisma.TrialAccessCodeRedemptionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TrialAccessCodeRedemption
+   */
+  omit?: Prisma.TrialAccessCodeRedemptionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TrialAccessCodeRedemptionInclude<ExtArgs> | null
+  where?: Prisma.TrialAccessCodeRedemptionWhereInput
+  orderBy?: Prisma.TrialAccessCodeRedemptionOrderByWithRelationInput | Prisma.TrialAccessCodeRedemptionOrderByWithRelationInput[]
+  cursor?: Prisma.TrialAccessCodeRedemptionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TrialAccessCodeRedemptionScalarFieldEnum | Prisma.TrialAccessCodeRedemptionScalarFieldEnum[]
 }
 
 /**
