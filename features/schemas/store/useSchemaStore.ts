@@ -13,14 +13,13 @@ import { getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS }
 import { autoLayoutNodes } from "@/lib/electrical-components/auto-layout";
 import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps } from "@/lib/electrical-components/auto-size";
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
-import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
+import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { getSchemaTemplate } from "@/features/schemas/templates";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
 
 const ICON_STYLE_STORAGE_KEY = "fabsystem-schema:icon-style";
 const DARK_MODE_STORAGE_KEY = "fabsystem-schema:dark-mode";
 const LEFT_PANEL_COLLAPSED_KEY = "fabsystem-schema:left-panel-collapsed";
-const RIGHT_PANEL_COLLAPSED_KEY = "fabsystem-schema:right-panel-collapsed";
 
 // Retour v2.1 : le mode illustration ("pro") est plus vendeur/lisible pour
 // un nouvel utilisateur que les symboles électriques. Devient le défaut pour
@@ -141,7 +140,13 @@ interface SchemaState {
   iconStyle: IconStyle;
   darkMode: boolean;
   leftPanelCollapsed: boolean;
-  rightPanelCollapsed: boolean;
+  // v2.1, retour utilisateur : "le bandeau de droite... si celui est réduit
+  // on ne sait même pas qu'on peut modifier, on refait un montage avec un
+  // nouvel item" — remplace le bandeau permanent (et son état
+  // réduit/déployé, désormais supprimé) par un popup ouvert explicitement au
+  // double-clic sur un composant/câble (voir ItemPropertiesPopup.tsx,
+  // Canvas.tsx onNodeDoubleClick/onEdgeDoubleClick).
+  itemPropertiesPopupOpen: boolean;
   // Filtre d'affichage (retour utilisateur : "isoler le circuit MPPT ou
   // consommateur pour éviter d'avoir toujours tout le schéma") — catégories
   // volontairement masquées du canvas ; vide = tout affiché. Vue seulement,
@@ -169,6 +174,15 @@ interface SchemaState {
   // lib/electrical-components/brand-models.ts), consommé par
   // ModelPickerModal. `null` = aucune popup à afficher.
   pendingModelPickerNodeId: string | null;
+  // v2.1, retour utilisateur : "l'ajout se fasse par glisser-déposer ou
+  // double-clic... pour item avec choix uniquement quand c'est choisi" — un
+  // item de la bibliothèque qui a des modèles de marque catalogués ne place
+  // plus de nœud générique immédiatement au double-clic : rien n'existe
+  // encore dans `nodes` tant qu'un modèle (ou "Générique" explicitement)
+  // n'a pas été choisi. Distinct de `pendingModelPickerNodeId`, qui reste
+  // pour le glisser-déposer (comportement inchangé : place au point de
+  // dépose, popup ensuite pour affiner un nœud déjà réel).
+  pendingLibraryPick: { type: string; position: { x: number; y: number }; dataOverride?: Record<string, unknown> } | null;
   // V2, retour utilisateur : "pour l'ajout de fusible ou câble, je veux la
   // section et ampérage... automatique quand celui est connecté et ouvre le
   // pop up pour modifier". Posé par `onConnect` quand la nouvelle connexion
@@ -207,7 +221,8 @@ interface SchemaState {
   setIconStyle: (style: IconStyle) => void;
   setDarkMode: (value: boolean) => void;
   toggleLeftPanel: () => void;
-  toggleRightPanel: () => void;
+  openItemPropertiesPopup: () => void;
+  closeItemPropertiesPopup: () => void;
   toggleCategoryVisibility: (category: string) => void;
   showAllCategories: () => void;
   setExportIsolatedZoneId: (id: string | null) => void;
@@ -247,6 +262,14 @@ interface SchemaState {
   setSaveAssistant: (assistant: SchemaSaveAssistant | null) => void;
   hydrate: (snapshot: { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] }) => void;
   dismissModelPicker: () => void;
+  openLibraryPick: (type: string, position: { x: number; y: number }, dataOverride?: Record<string, unknown>) => void;
+  cancelLibraryPick: () => void;
+  addComponentWithModel: (
+    type: string,
+    position: { x: number; y: number },
+    brandModelId: string | null,
+    dataOverride?: Record<string, unknown>
+  ) => void;
   dismissSizingPopup: () => void;
   startGuidedMode: () => void;
   exitGuidedMode: () => void;
@@ -295,11 +318,12 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   iconStyle: loadIconStyle(),
   darkMode: loadDarkMode(),
   leftPanelCollapsed: loadPanelCollapsed(LEFT_PANEL_COLLAPSED_KEY),
-  rightPanelCollapsed: loadPanelCollapsed(RIGHT_PANEL_COLLAPSED_KEY),
+  itemPropertiesPopupOpen: false,
   hiddenCategories: [],
   exportIsolatedZoneId: null,
   projectId: null,
   pendingModelPickerNodeId: null,
+  pendingLibraryPick: null,
   pendingSizingTarget: null,
   guidedMode: false,
   guidedStepIndex: 0,
@@ -343,12 +367,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       return { leftPanelCollapsed: next };
     }),
 
-  toggleRightPanel: () =>
-    set((state) => {
-      const next = !state.rightPanelCollapsed;
-      if (typeof window !== "undefined") window.localStorage.setItem(RIGHT_PANEL_COLLAPSED_KEY, next ? "1" : "0");
-      return { rightPanelCollapsed: next };
-    }),
+  openItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: true }),
+  closeItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: false }),
 
   onNodesChange: (changes) =>
     set((state) => {
@@ -481,6 +501,50 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     }),
 
   dismissModelPicker: () => set({ pendingModelPickerNodeId: null }),
+
+  // v2.1, retour utilisateur : double-clic sur un item avec modèles de
+  // marque catalogués — ouvre le choix sans encore rien placer sur le
+  // canvas (voir `pendingLibraryPick`). `addComponent` reste inchangé pour
+  // le glisser-déposer (place immédiatement, popup ensuite pour affiner).
+  openLibraryPick: (type, position, dataOverride) =>
+    set({ pendingLibraryPick: { type, position, dataOverride } }),
+  cancelLibraryPick: () => set({ pendingLibraryPick: null }),
+
+  addComponentWithModel: (type, position, brandModelId, dataOverride) =>
+    set((state) => {
+      const def = getComponentDefinition(type);
+      if (!def) return { pendingLibraryPick: null };
+      if (
+        !state.hasUnlimitedConsumers &&
+        isConsumerType(type) &&
+        countConsumerNodes(state.nodes) - state.consumerBaseline >= FREE_CONSUMER_LIMIT
+      ) {
+        return { pendingLibraryPick: null, freemiumLimitPopupOpen: true };
+      }
+      const brandModel = brandModelId ? getBrandModel(brandModelId) : undefined;
+      const node: SchemaNode = {
+        id: nextId(type),
+        type: "electrical",
+        position,
+        data: {
+          componentType: type,
+          label: def.label,
+          ...def.defaultData,
+          ...dataOverride,
+          ...(brandModel
+            ? { brandModelId: brandModel.id, brand: brandModel.brand, model: brandModel.model, ...brandModel.defaults }
+            : {}),
+        },
+      };
+      return {
+        nodes: [...state.nodes, node],
+        selectedNodeId: node.id,
+        selectedEdgeId: null,
+        pendingLibraryPick: null,
+        ...commit(state),
+      };
+    }),
+
   dismissSizingPopup: () => set({ pendingSizingTarget: null }),
 
   updateNodeData: (id, patch, options) =>

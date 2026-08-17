@@ -604,7 +604,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     getHandles: fuseBlockHandles,
     // Retour utilisateur : "possibilité de modifier l'intensité de chaque
     // sortie" — chaque fusible de la platine a son propre calibre, stocké
-    // sous `outAmp{N}` (voir PropertiesPanel.FuseBlockOutputs, qui génère un
+    // sous `outAmp{N}` (voir ItemPropertiesPopup.FuseBlockOutputs, qui génère un
     // champ par sortie selon `outputCount`, plutôt qu'une liste statique).
     getHandleLabel: (data, handle) => {
       if (!handle.id.startsWith("out-")) return handle.label;
@@ -679,9 +679,14 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subtitle: "Mesure",
     icon: "/schema-icons/shunt.svg",
     iconPro: "/schema-icons/pro/shunt.webp",
+    // Bug corrigé (retour utilisateur : "les points de connexion sont
+    // rouges donc le câble devient automatiquement rouge") : un shunt se
+    // câble en série sur le retour négatif (convention BMV/SmartShunt), pas
+    // sur le +. Les deux bornes passantes sont donc "negative" (noir), pas
+    // "positive" (rouge).
     handles: [
-      { id: "battery", label: "Battery", kind: "positive", side: "left" },
-      { id: "system", label: "System", kind: "positive", side: "right" },
+      { id: "battery", label: "Battery", kind: "negative", side: "left" },
+      { id: "system", label: "System", kind: "negative", side: "right" },
       { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
     defaultData: { amperage: 0 },

@@ -84,6 +84,8 @@ export function ComponentLibrary() {
   const [query, setQuery] = useState("");
   const nodes = useSchemaStore((s) => s.nodes);
   const addComponent = useSchemaStore((s) => s.addComponent);
+  const openLibraryPick = useSchemaStore((s) => s.openLibraryPick);
+  const guidedMode = useSchemaStore((s) => s.guidedMode);
   const addZone = useSchemaStore((s) => s.addZone);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
@@ -238,6 +240,18 @@ export function ComponentLibrary() {
     const position = { x: center.x + (col * 220) / zoom, y: center.y + (row * 160) / zoom };
     const preset = presetValue ? CONSUMER_PRESETS.find((p) => p.value === presetValue) : undefined;
     const dataOverride = preset ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW } : undefined;
+
+    // v2.1, retour utilisateur : "pour item avec choix uniquement quand
+    // c'est choisi" — un type catalogué (voir brand-models.ts) ne se place
+    // plus directement au double-clic, le choix de modèle s'ouvre d'abord,
+    // rien n'existe sur le canvas tant que rien n'est choisi (voir
+    // ModelPickerModal, mode pendingLibraryPick). Même exception mode
+    // guidé que addComponent (pas de popup pendant le tutoriel pas à pas).
+    const hasBrandModels = !guidedMode && getBrandModelsForType(type).length > 0;
+    if (hasBrandModels) {
+      openLibraryPick(type, position, dataOverride);
+      return;
+    }
     addComponent(type, position, dataOverride);
   }
 
@@ -372,7 +386,7 @@ export function ComponentLibrary() {
                                 if (item.presetValue) e.dataTransfer.setData("application/fabsystem-preset", item.presetValue);
                                 e.dataTransfer.effectAllowed = "move";
                               }}
-                              onClick={() => handleClickAdd(item.type, item.presetValue)}
+                              onDoubleClick={() => handleClickAdd(item.type, item.presetValue)}
                               className={`flex w-full cursor-grab items-center justify-between rounded-md border px-2.5 py-2 text-left text-sm shadow-sm transition-base active:cursor-grabbing ${
                                 item.key === guidedHighlightKey
                                   ? darkMode
@@ -382,7 +396,7 @@ export function ComponentLibrary() {
                                     ? "border-neutral-700 bg-neutral-800 text-neutral-100 hover:border-neutral-500 hover:bg-neutral-700"
                                     : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-100"
                               }`}
-                              title={`Ajouter : ${item.label}`}
+                              title={`Glisser-déposer sur le canvas, ou double-clic pour ajouter : ${item.label}`}
                             >
                               <span className="flex items-center gap-2">
                                 {item.icon ? (

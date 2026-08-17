@@ -20,13 +20,14 @@ import {
 import { Toolbar } from "./Toolbar";
 import { ComponentLibrary } from "./ComponentLibrary";
 import { Canvas } from "./Canvas";
-import { PropertiesPanel } from "./PropertiesPanel";
+import { ItemPropertiesPopup } from "./ItemPropertiesPopup";
 import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
+import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 
 const AUTOSAVE_DELAY_MS = 700;
 
@@ -290,7 +291,6 @@ export function Editor() {
         <div className="flex min-h-0 flex-1">
           <ComponentLibrary />
           <Canvas />
-          <PropertiesPanel />
         </div>
       </div>
       <EditorShortcuts />
@@ -308,6 +308,8 @@ export function Editor() {
       <FreemiumLimitModal />
       <SizingPopup />
       <GuidedTutorial />
+      <SchemaIssuesWidget />
+      <ItemPropertiesPopup />
     </ReactFlowProvider>
   );
 }

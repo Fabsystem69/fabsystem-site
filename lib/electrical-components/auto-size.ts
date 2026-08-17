@@ -6,7 +6,7 @@ import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths"
 // Moteur de recalcul en masse (V2 — inspiré de "Recalculate All Wire
 // Sizes"/"Recalculate All Fuse Ratings" chez Wireframe, un concurrent
 // SaaS). Réutilise volontairement le même moteur que la suggestion par
-// câble (PropertiesPanel `SectionSuggestion`/`FuseSuggestion`, lib/calc/
+// câble (ItemPropertiesPopup `SectionSuggestion`/`FuseSuggestion`, lib/calc/
 // section-cable.ts) plutôt que d'en écrire un second — juste appliqué à
 // tout le schéma en une fois. Reste une suggestion : n'écrase que les
 // valeurs qu'on sait recalculer (câble relié à un consommateur de

@@ -94,6 +94,7 @@ export function Canvas() {
   const reconnectEdgeAction = useSchemaStore((s) => s.reconnectEdge);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const select = useSchemaStore((s) => s.select);
+  const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -267,6 +268,18 @@ export function Canvas() {
         }}
         onEdgeClick={(_, edge) => select("edge", edge.id)}
         onPaneClick={() => select(null, null)}
+        // v2.1, retour utilisateur : "supprimer le bandeau de droite... le
+        // double-clic ouvre les informations item en popup" — remplace
+        // l'ancien bandeau permanent (voir ItemPropertiesPopup.tsx).
+        onNodeDoubleClick={(_, node) => {
+          if (node.id.startsWith(WAYPOINT_ID_PREFIX)) return;
+          select("node", node.id);
+          openItemPropertiesPopup();
+        }}
+        onEdgeDoubleClick={(_, edge) => {
+          select("edge", edge.id);
+          openItemPropertiesPopup();
+        }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} />
         <Controls showInteractive={false} position="bottom-left" className={darkMode ? "!fill-white [&_button]:!border-neutral-700 [&_button]:!bg-neutral-800 [&_button]:!text-white [&_path]:!fill-white" : undefined} />
