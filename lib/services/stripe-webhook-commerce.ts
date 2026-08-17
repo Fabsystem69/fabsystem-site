@@ -78,6 +78,7 @@ type CommerceWebhookDeps = {
     orderId: string,
     sessionMetadata: Stripe.Metadata | null | undefined
   ) => Promise<unknown>;
+  sendPurchaseNotification?: (orderId: string) => Promise<unknown>;
 };
 
 function getRequiredMetadataValue(
@@ -250,17 +251,20 @@ async function getDefaultCommerceWebhookService() {
     { createDownloadGrantsForOrder },
     { createAutomaticEbookDiscountCodesForOrder },
     { sendPrestationsPackNotification },
+    { sendPurchaseNotification },
   ] = await Promise.all([
     import("@/lib/prisma"),
     import("@/lib/services/download-grant"),
     import("@/lib/services/discounts"),
     import("@/lib/services/prestations-notify"),
+    import("@/lib/services/purchase-notify"),
   ]);
 
   return createStripeWebhookCommerceService(createPrismaCommerceWebhookDb(prisma), {
     createDownloadGrantsForOrder,
     createAutomaticEbookDiscountCodesForOrder,
     sendPrestationsPackNotification,
+    sendPurchaseNotification,
   });
 }
 
@@ -274,6 +278,7 @@ export function createStripeWebhookCommerceService(
     deps?.createAutomaticEbookDiscountCodesForOrder ?? (async () => {});
   const sendPrestationsPackNotification =
     deps?.sendPrestationsPackNotification ?? (async () => {});
+  const sendPurchaseNotification = deps?.sendPurchaseNotification ?? (async () => {});
 
   return {
     async handleCommerceCheckoutCompleted(
@@ -379,6 +384,7 @@ export function createStripeWebhookCommerceService(
         // echoue lors d'une tentative precedente — au pire un email en
         // double vers Fabien, jamais zero email pour un pack paye.
         await sendPrestationsPackNotification(result.orderId, session.metadata);
+        await sendPurchaseNotification(result.orderId);
       }
 
       return result;

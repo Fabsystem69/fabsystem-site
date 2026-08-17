@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   try {
     const json = await request.json().catch(() => null);
     const input = parseCustomerAuthRequestLink(json);
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "client-auth-request-link",
       limit: 5,
       windowMs: 15 * 60 * 1000,

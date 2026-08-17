@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const ip = getClientIp(req);
 
   try {
-    enforceRateLimit(req, {
+    await enforceRateLimit(req, {
       name: "contact",
       limit: 8,
       windowMs: 10 * 60 * 1000,

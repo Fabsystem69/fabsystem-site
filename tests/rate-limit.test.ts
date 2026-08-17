@@ -33,33 +33,33 @@ test("createRateLimitKeyPart normalizes values without exposing the raw input", 
   assert.notEqual(first, "buyer@example.com");
 });
 
-test("enforceRateLimit allows requests under the limit", () => {
+test("enforceRateLimit allows requests under the limit", async () => {
   const request = createRequest("198.51.100.1");
 
-  enforceRateLimit(request, {
+  await enforceRateLimit(request, {
     name: "test-rate-limit-allow",
     limit: 2,
     windowMs: 10_000,
   });
 
-  enforceRateLimit(request, {
+  await enforceRateLimit(request, {
     name: "test-rate-limit-allow",
     limit: 2,
     windowMs: 10_000,
   });
 });
 
-test("enforceRateLimit rejects requests above the limit", () => {
+test("enforceRateLimit rejects requests above the limit", async () => {
   const request = createRequest("198.51.100.2");
 
-  enforceRateLimit(request, {
+  await enforceRateLimit(request, {
     name: "test-rate-limit-reject",
     limit: 1,
     windowMs: 10_000,
     blockDurationMs: 10_000,
   });
 
-  assert.throws(
+  await assert.rejects(
     () =>
       enforceRateLimit(request, {
         name: "test-rate-limit-reject",
@@ -74,17 +74,17 @@ test("enforceRateLimit rejects requests above the limit", () => {
   );
 });
 
-test("enforceRateLimit keeps separate buckets for distinct key parts", () => {
+test("enforceRateLimit keeps separate buckets for distinct key parts", async () => {
   const request = createRequest("198.51.100.3");
 
-  enforceRateLimit(request, {
+  await enforceRateLimit(request, {
     name: "test-rate-limit-key-part",
     limit: 1,
     windowMs: 10_000,
     keyParts: [createRateLimitKeyPart("first@example.com")],
   });
 
-  enforceRateLimit(request, {
+  await enforceRateLimit(request, {
     name: "test-rate-limit-key-part",
     limit: 1,
     windowMs: 10_000,

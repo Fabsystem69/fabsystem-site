@@ -19,7 +19,7 @@ type Params = {
 
 export async function GET(request: Request, { params }: Params) {
   try {
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "signature-read",
       limit: 30,
       windowMs: 10 * 60 * 1000,
@@ -67,7 +67,7 @@ export async function POST(request: Request, { params }: Params) {
   const ip = getClientIp(request);
 
   try {
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "signature-write",
       limit: 10,
       windowMs: 10 * 60 * 1000,

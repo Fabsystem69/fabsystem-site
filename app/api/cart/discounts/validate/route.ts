@@ -3,6 +3,7 @@ import { z } from "zod";
 import { toErrorResponse } from "@/lib/http-errors";
 import { applyDiscountToCartSummary } from "@/lib/services/discounts";
 import { getCurrentCartFromRequest } from "@/lib/server/cart-session";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const validateDiscountPayloadSchema = z.object({
   customerEmail: z.string().trim().email().optional(),
@@ -13,6 +14,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
+    await enforceRateLimit(request, {
+      name: "cart-discount-validate",
+      limit: 5,
+      windowMs: 10 * 60 * 1000,
+      blockDurationMs: 30 * 60 * 1000,
+    });
     const json = await request.json().catch(() => null);
     const parsed = validateDiscountPayloadSchema.parse(json);
     const cart = await getCurrentCartFromRequest();

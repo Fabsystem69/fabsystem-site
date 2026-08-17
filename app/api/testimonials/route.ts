@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const ip = getClientIp(request);
 
   try {
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "public-testimonial",
       limit: 4,
       windowMs: 30 * 60 * 1000,

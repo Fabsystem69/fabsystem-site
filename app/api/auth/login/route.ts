@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const isDevelopment = process.env.NODE_ENV !== "production";
 
   try {
-    enforceRateLimit(req, {
+    await enforceRateLimit(req, {
       name: "login",
       limit: 5,
       windowMs: 15 * 60 * 1000,

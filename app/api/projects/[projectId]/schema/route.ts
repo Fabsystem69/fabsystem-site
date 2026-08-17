@@ -59,7 +59,7 @@ export async function PUT(request: Request, { params }: Params) {
   try {
     // Autosave potentiellement fréquent depuis l'éditeur — même principe
     // que projects-create, fenêtre plus large adaptée à un débounce court.
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "project-schema-save",
       limit: 60,
       windowMs: 5 * 60 * 1000,

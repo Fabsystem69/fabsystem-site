@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   try {
     const json = await request.json().catch(() => null);
     const parsed = parseCreateCheckoutRequest(json);
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "commerce-checkout",
       limit: 8,
       windowMs: 15 * 60 * 1000,

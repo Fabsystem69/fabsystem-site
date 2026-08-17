@@ -41,7 +41,7 @@ export async function GET(request: Request, { params }: Params) {
   const { grantId } = await params;
 
   try {
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "commerce-downloads",
       limit: 20,
       windowMs: 15 * 60 * 1000,

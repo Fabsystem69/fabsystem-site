@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    enforceRateLimit(request, {
+    await enforceRateLimit(request, {
       name: "projects-create",
       limit: 20,
       windowMs: 15 * 60 * 1000,

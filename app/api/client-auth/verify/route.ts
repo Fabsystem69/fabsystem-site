@@ -16,7 +16,7 @@ function buildRedirect(request: Request, path: string) {
 }
 
 export async function GET(request: Request) {
-  enforceRateLimit(request, {
+  await enforceRateLimit(request, {
     name: "client-auth-verify",
     limit: 10,
     windowMs: 15 * 60 * 1000,
