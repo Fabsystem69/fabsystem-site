@@ -101,17 +101,24 @@ function buildSolarBasicTemplate(): { projectName: string; nodes: SchemaNode[]; 
 // le 230V du ponton), distinct du gabarit van (mobile, alternateur/solaire).
 // Complété (retour utilisateur) d'un appoint solaire pour les jours sans
 // prise, et d'une pompe de cale — présence quasi systématique sur un bateau,
-// même en restant au port.
+// même en restant au port. Enrichi (catalogue marin ajouté début 2026) d'un
+// isolateur galvanique sur la terre de quai (protection coque, quasi
+// systématique dès qu'on reste branché au ponton) et d'un circuit de feux
+// réglementaires + klaxon.
 function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
   const nodes: SchemaNode[] = [
     buildNode("qt-shore", "shore-power", 40, 40, { label: "Prise de quai" }),
+    // Isolateur galvanique : en série sur la terre de quai, avant qu'elle ne
+    // rejoigne le point de masse commun du bord — protège la coque contre
+    // la corrosion sans court-circuiter la protection terre normale.
+    buildNode("qt-galvanic-isolator", "galvanic-isolator", 40, 220, { label: "Isolateur galvanique", brandModelId: "sterling-zincsaver-ii", brand: "Sterling", model: "Zinc Saver II" }),
     buildNode("qt-ac-panel", "ac-panel", 320, 40, { label: "Tableau 220V" }),
     buildNode("qt-socket", "socket-220v", 600, 40, { label: "Prise 220V", powerW: 500 }),
     buildNode("qt-ground", "ground", 460, 220, { label: "Point de masse" }),
     buildNode("qt-charger", "ac-charger", 320, 380, { label: "Chargeur secteur", chargeAmperage: 20 }),
     buildNode("qt-fuse-main", "fuse", 600, 380, { label: "Fusible principal", fuseType: "midi", amperage: 30 }),
     buildNode("qt-battery", "battery", 840, 380, { label: "Batterie 12V", voltage: 12, capacityAh: 150, technology: "agm" }),
-    buildNode("qt-busbar", "busbar", 1080, 380, { label: "Busbar +", polarity: "positive", outputCount: 3 }),
+    buildNode("qt-busbar", "busbar", 1080, 380, { label: "Busbar +", polarity: "positive", outputCount: 6 }),
     buildNode("qt-switch-frigo", "switch", 1320, 280, { label: "Interrupteur", amperage: 0 }),
     buildNode("qt-frigo", "consumer", 1540, 280, { label: "Réfrigérateur à compression", presetType: "refrigerateur", powerW: 45 }),
     buildNode("qt-switch-eclairage", "switch", 1320, 480, { label: "Interrupteur", amperage: 0 }),
@@ -127,6 +134,18 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildNode("qt-fuse-pompe-auto", "fuse", 840, 620, { label: "Fusible pompe (auto)", fuseType: "lame", amperage: 15 }),
     buildNode("qt-switch-pompe", "switch", 1320, 650, { label: "Interrupteur", amperage: 0 }),
     buildNode("qt-pompe", "bilge-pump", 1540, 650, { label: "Pompe de cale", powerW: 40 }),
+
+    // Feux réglementaires : bâbord/tribord/tête de mât commandés ensemble
+    // (obligatoire en navigation de nuit), feu de mouillage sur son propre
+    // interrupteur (usage seulement à l'ancre, jamais en même temps).
+    buildNode("qt-switch-nav", "switch", 1320, 800, { label: "Interrupteur feux de navigation", amperage: 0 }),
+    buildNode("qt-feu-babord", "consumer", 1560, 740, { label: "Feu de navigation bâbord", presetType: "feu-babord", powerW: 3 }),
+    buildNode("qt-feu-tribord", "consumer", 1560, 800, { label: "Feu de navigation tribord", presetType: "feu-tribord", powerW: 3 }),
+    buildNode("qt-feu-mat", "consumer", 1560, 860, { label: "Feu de tête de mât", presetType: "feu-tete-de-mat", powerW: 5 }),
+    buildNode("qt-switch-mouillage", "switch", 1320, 920, { label: "Interrupteur feu de mouillage", amperage: 0 }),
+    buildNode("qt-feu-mouillage", "consumer", 1560, 920, { label: "Feu de mouillage", presetType: "feu-mouillage", powerW: 5 }),
+    buildNode("qt-switch-klaxon", "switch", 1320, 980, { label: "Interrupteur klaxon", amperage: 0 }),
+    buildNode("qt-klaxon", "consumer", 1560, 980, { label: "Klaxon", presetType: "klaxon", powerW: 15 }),
   ];
 
   const edges: SchemaEdge[] = [
@@ -135,9 +154,13 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildEdge("qt-e2", "qt-shore", "ac", "qt-ac-panel", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 4),
     buildEdge("qt-e3", "qt-ac-panel", "ac-out", "qt-socket", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
 
-    // Terres → point de masse
+    // Terres → point de masse — la terre de quai passe par l'isolateur
+    // galvanique avant de rejoindre le point de masse commun, les terres
+    // internes (tableau, prise) le rejoignent directement (bonding normal).
     buildEdge("qt-e4", "qt-ac-panel", "earth", "qt-ground", "ground", LIME, "earth", "1,5 mm²", 1),
     buildEdge("qt-e5", "qt-socket", "earth", "qt-ground", "ground", LIME, "earth", "1,5 mm²", 1),
+    buildEdge("qt-e26", "qt-shore", "earth", "qt-galvanic-isolator", "earth-in", LIME, "earth", "2,5 mm²", 2),
+    buildEdge("qt-e27", "qt-galvanic-isolator", "earth-out", "qt-ground", "ground", LIME, "earth", "2,5 mm²", 1),
 
     // Chargeur → fusible → batterie
     buildEdge("qt-e6", "qt-charger", "bat-positive", "qt-fuse-main", "input", RED, "power-positive", "10 mm²", 1.5),
@@ -173,6 +196,27 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildEdge("qt-e23", "qt-busbar", "out-3", "qt-switch-pompe", "input", RED, "power-positive", "2,5 mm²", 3),
     buildEdge("qt-e24", "qt-switch-pompe", "output", "qt-pompe", "positive-manual", RED, "power-positive", "2,5 mm²", 1),
     buildEdge("qt-e25", "qt-battery", "negative", "qt-pompe", "negative", BLACK, "power-negative", "2,5 mm²", 4),
+
+    // Feux de navigation : un seul interrupteur alimente les 3 en parallèle
+    // (bâbord + tribord + tête de mât toujours ensemble en navigation).
+    buildEdge("qt-e28", "qt-busbar", "out-4", "qt-switch-nav", "input", RED, "power-positive", "1,5 mm²", 4),
+    buildEdge("qt-e29", "qt-switch-nav", "output", "qt-feu-babord", "positive", RED, "power-positive", "1 mm²", 3),
+    buildEdge("qt-e30", "qt-switch-nav", "output", "qt-feu-tribord", "positive", RED, "power-positive", "1 mm²", 3),
+    buildEdge("qt-e31", "qt-switch-nav", "output", "qt-feu-mat", "positive", RED, "power-positive", "1 mm²", 4),
+    buildEdge("qt-e32", "qt-battery", "negative", "qt-feu-babord", "negative", BLACK, "power-negative", "1 mm²", 5),
+    buildEdge("qt-e33", "qt-battery", "negative", "qt-feu-tribord", "negative", BLACK, "power-negative", "1 mm²", 5),
+    buildEdge("qt-e34", "qt-battery", "negative", "qt-feu-mat", "negative", BLACK, "power-negative", "1 mm²", 6),
+
+    // Feu de mouillage : interrupteur séparé (usage seulement à l'ancre,
+    // jamais avec les feux de navigation ci-dessus).
+    buildEdge("qt-e35", "qt-busbar", "out-5", "qt-switch-mouillage", "input", RED, "power-positive", "1 mm²", 4),
+    buildEdge("qt-e36", "qt-switch-mouillage", "output", "qt-feu-mouillage", "positive", RED, "power-positive", "1 mm²", 4),
+    buildEdge("qt-e37", "qt-battery", "negative", "qt-feu-mouillage", "negative", BLACK, "power-negative", "1 mm²", 6),
+
+    // Klaxon
+    buildEdge("qt-e38", "qt-busbar", "out-6", "qt-switch-klaxon", "input", RED, "power-positive", "1,5 mm²", 4),
+    buildEdge("qt-e39", "qt-switch-klaxon", "output", "qt-klaxon", "positive", RED, "power-positive", "1,5 mm²", 4),
+    buildEdge("qt-e40", "qt-battery", "negative", "qt-klaxon", "negative", BLACK, "power-negative", "1,5 mm²", 6),
   ];
 
   return { projectName: "Gabarit : quai tranquille (bateau)", nodes, edges };
