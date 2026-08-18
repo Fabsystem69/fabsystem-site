@@ -10,7 +10,7 @@ import type {
 
 export const PROJECT_ASSET_TYPE_LABELS: Record<ProjectAssetType, string> = {
   BOAT: "Bateau",
-  VAN: "Van",
+  VAN: "Van & Fourgon",
   MOTORHOME: "Camping-car",
   OTHER: "Autre",
 };

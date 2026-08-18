@@ -13,7 +13,7 @@ import type { PrestationsCategorie } from "@/lib/prestations-packs";
 // mélangé deux responsabilités différentes.
 const CATEGORIES: { id: PrestationsCategorie; label: string }[] = [
   { id: "bateau", label: "Bateau" },
-  { id: "van", label: "Van aménagé" },
+  { id: "van", label: "Van & Fourgon aménagés" },
   { id: "camping-car", label: "Camping-car" },
 ];
 

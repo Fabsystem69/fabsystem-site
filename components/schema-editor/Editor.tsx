@@ -25,7 +25,6 @@ import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
 import { CoachingOfferWidget } from "./CoachingOfferWidget";
-import { SignupPromptWidget } from "./SignupPromptWidget";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
@@ -98,6 +97,7 @@ export function Editor() {
   const setProjectId = useSchemaStore((s) => s.setProjectId);
   const startGuidedMode = useSchemaStore((s) => s.startGuidedMode);
   const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
+  const isLoggedIn = useSchemaStore((s) => s.isLoggedIn);
   const setIsLoggedIn = useSchemaStore((s) => s.setIsLoggedIn);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParams = useSearchParams();
@@ -329,6 +329,7 @@ export function Editor() {
           onChooseTemplate={handleChooseTemplate}
           onChooseBlank={handleChooseBlank}
           onChooseGuided={handleChooseGuided}
+          isLoggedIn={isLoggedIn}
         />
       ) : null}
       <ModelPickerModal />
@@ -338,7 +339,6 @@ export function Editor() {
       <SchemaIssuesWidget />
       <ItemPropertiesPopup />
       <CoachingOfferWidget />
-      <SignupPromptWidget />
     </ReactFlowProvider>
   );
 }

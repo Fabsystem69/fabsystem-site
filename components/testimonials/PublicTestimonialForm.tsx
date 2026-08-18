@@ -5,7 +5,7 @@ import { track } from "@/lib/client/track";
 
 const CUSTOMER_TYPE_OPTIONS = [
   { value: "", label: "Choisir…" },
-  { value: "VAN", label: "Van aménagé" },
+  { value: "VAN", label: "Van & Fourgon aménagés" },
   { value: "CAMPING_CAR", label: "Camping-car" },
   { value: "BOAT", label: "Bateau" },
   { value: "OTHER", label: "Autre" },

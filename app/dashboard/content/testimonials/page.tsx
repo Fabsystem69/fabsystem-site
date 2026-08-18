@@ -24,7 +24,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const customerTypeLabels: Record<string, string> = {
-  VAN: "Van",
+  VAN: "Van & Fourgon",
   CAMPING_CAR: "Camping-car",
   BOAT: "Bateau",
   OTHER: "Autre",

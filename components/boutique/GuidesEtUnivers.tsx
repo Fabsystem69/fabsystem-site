@@ -39,7 +39,7 @@ type UniversOption = "tous" | PrestationsCategorie;
 const UNIVERS_OPTIONS: { id: UniversOption; label: string }[] = [
   { id: "tous", label: "Tous" },
   { id: "bateau", label: "Bateau" },
-  { id: "van", label: "Van" },
+  { id: "van", label: "Van & Fourgon" },
   { id: "camping-car", label: "Camping-car" },
 ];
 
@@ -59,7 +59,7 @@ const UNIVERS_CONTENT: Record<
     reperes: ["Diagnostic", "Refit", "Lithium", "Solaire"],
   },
   van: {
-    title: "Van",
+    title: "Van & Fourgon",
     accroche: "Concevoir sur de bonnes bases",
     texte:
       "Vous partez souvent d'une page blanche. Architecture, dimensionnement, protections et câblage : construisez une installation cohérente dès le départ.",

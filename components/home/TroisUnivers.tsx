@@ -19,7 +19,7 @@ const UNIVERS: {
   },
   {
     id: "van",
-    name: "Van",
+    name: "Van & Fourgon",
     text: "Autonomie, 12V, solaire et implantation compacte.",
     photo: { src: "/univers/van.png", alt: "Installation solaire organisee dans un van amenage" },
   },

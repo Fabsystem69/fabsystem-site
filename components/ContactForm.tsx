@@ -31,7 +31,7 @@ export default function ContactForm({
     () => [
       { value: "", label: "Choisir…" },
       { value: "Bateau", label: "Bateau" },
-      { value: "Van", label: "Van" },
+      { value: "Van", label: "Van & Fourgon" },
       { value: "Camping-car", label: "Camping-car" },
       { value: "Autre", label: "Autre" },
     ],

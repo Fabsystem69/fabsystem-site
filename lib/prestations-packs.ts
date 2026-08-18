@@ -52,7 +52,9 @@ const PALIER_LABELS_BY_CATEGORIE: Record<PrestationsCategorie, Record<Prestation
 };
 
 const CATEGORIE_LABELS: Record<PrestationsCategorie, string> = {
-  van: "Van aménagé",
+  // Retour utilisateur : "Van" seul exclut les fourgons aménagés (gabarit
+  // différent, même communauté) — libellé élargi pour ne pas les exclure.
+  van: "Van & Fourgon aménagés",
   "camping-car": "Camping-car",
   bateau: "Bateau",
 };

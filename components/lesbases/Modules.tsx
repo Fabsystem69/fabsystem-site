@@ -75,7 +75,7 @@ const GUIDES = [
   {
     href: "/installation-electrique-van",
     badge: "Guide pratique",
-    meta: "Van aménagé",
+    meta: "Van & Fourgon aménagés",
     imageSrc: "/articles/installation-electrique-van-guide.webp",
     imageAlt: "Illustration de planification d'une installation electrique de van",
     title: "Bien dimensionner une installation van avant d'acheter",

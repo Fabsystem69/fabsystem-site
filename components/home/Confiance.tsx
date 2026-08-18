@@ -7,7 +7,7 @@ import {
 } from "@/components/home/ConfianceCarousel";
 
 const CUSTOMER_TYPE_LABELS: Record<string, string> = {
-  VAN: "Van aménagé",
+  VAN: "Van & Fourgon aménagés",
   CAMPING_CAR: "Camping-car",
   BOAT: "Bateau",
   OTHER: "",

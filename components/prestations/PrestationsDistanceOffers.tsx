@@ -15,7 +15,7 @@ import {
 } from "@/lib/prestations-packs";
 
 const EBOOK_BADGE_CATEGORY_LABEL: Record<PrestationsCategorie, string> = {
-  van: "Van",
+  van: "Van & Fourgon",
   "camping-car": "Camping-car",
   bateau: "Bateau",
 };
@@ -34,7 +34,7 @@ type PrestationsDistanceOffersProps = {
 };
 
 const categories: { id: PrestationsCategorie; label: string }[] = [
-  { id: "van", label: "Van aménagé" },
+  { id: "van", label: "Van & Fourgon aménagés" },
   { id: "camping-car", label: "Camping-car" },
   { id: "bateau", label: "Bateau" },
 ];

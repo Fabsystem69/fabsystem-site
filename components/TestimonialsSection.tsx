@@ -1,7 +1,7 @@
 import { listPublishedTestimonials } from "@/lib/services/testimonials";
 
 const customerTypeLabels: Record<string, string> = {
-  VAN: "Van aménagé",
+  VAN: "Van & Fourgon aménagés",
   CAMPING_CAR: "Camping-car",
   BOAT: "Bateau",
   OTHER: "",
