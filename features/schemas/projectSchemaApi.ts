@@ -173,6 +173,39 @@ export async function createProjectApi(input: CreateProjectInput): Promise<Creat
   }
 }
 
+// Retour utilisateur : "à la création du compte" et "au moment de l'achat
+// ou code promo, le schéma est tout de suite intégré à un projet" — un
+// schéma travaillé en local (sans compte, ou avec compte mais jamais
+// encore enregistré côté cloud) ne doit plus jamais rester orphelin après
+// une inscription, un déblocage payant ou une redemption de code : ce
+// helper compose createProjectApi + saveProjectSchemaApi en un seul appel,
+// réutilisé par SignupPromptWidget, FreemiumLimitModal et
+// CoachingOfferWidget plutôt que dupliqué trois fois. Valeurs par défaut
+// neutres (assetType/voltage) : l'utilisateur les précisera plus tard dans
+// la fiche projet s'il le souhaite, jamais bloquant ici.
+export async function saveDraftAsNewProjectApi(input: {
+  projectName: string;
+  nodes: SchemaNode[];
+  edges: SchemaEdge[];
+}): Promise<CreateProjectResult> {
+  const created = await createProjectApi({
+    name: input.projectName?.trim() || "Nouveau schéma",
+    assetType: "OTHER",
+    voltage: "UNKNOWN",
+  });
+  if (!created.ok) return created;
+
+  const saved = await saveProjectSchemaApi(created.project.id, {
+    projectName: input.projectName,
+    nodes: input.nodes,
+    edges: input.edges,
+    thumbnail: null,
+  });
+  if (!saved.ok) return { ok: false, problem: saved.problem };
+
+  return created;
+}
+
 export async function deleteProjectApi(projectId: string): Promise<DeleteProjectResult> {
   try {
     const res = await fetch(`/api/projects/${projectId}`, {

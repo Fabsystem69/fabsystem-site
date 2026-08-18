@@ -25,6 +25,7 @@ import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
 import { CoachingOfferWidget } from "./CoachingOfferWidget";
+import { SignupPromptWidget } from "./SignupPromptWidget";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
@@ -96,6 +97,8 @@ export function Editor() {
   const projectId = useSchemaStore((s) => s.projectId);
   const setProjectId = useSchemaStore((s) => s.setProjectId);
   const startGuidedMode = useSchemaStore((s) => s.startGuidedMode);
+  const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
+  const setIsLoggedIn = useSchemaStore((s) => s.setIsLoggedIn);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParams = useSearchParams();
   const urlProjectId = searchParams.get("projectId");
@@ -168,6 +171,29 @@ export function Editor() {
       cancelled = true;
     };
   }, [hydrate, setProjectId, setSaveAssistant, setSaveStatus, urlProjectId, urlTemplate]);
+
+  // Bug corrigé (retour utilisateur : "après utilisation du code le popup
+  // revient quand même après 3 consommateurs") : rien ne rafraîchissait
+  // jamais `hasUnlimitedConsumers` depuis le serveur — le déblocage payant
+  // ou par code promo ne levait donc jamais réellement la limite gratuite.
+  // Relancé à chaque changement de `projectId` (couvre aussi le retour de
+  // Stripe après achat, qui recharge la page avec le même projectId).
+  useEffect(() => {
+    let cancelled = false;
+    const url = projectId ? `/api/schema-unlock/status?projectId=${encodeURIComponent(projectId)}` : "/api/schema-unlock/status";
+    fetch(url)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) {
+          setHasUnlimitedConsumers(Boolean(data.unlimited));
+          setIsLoggedIn(Boolean(data.loggedIn));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, setHasUnlimitedConsumers, setIsLoggedIn]);
 
   function handleChooseContinue() {
     if (!pendingDraft) return;
@@ -312,6 +338,7 @@ export function Editor() {
       <SchemaIssuesWidget />
       <ItemPropertiesPopup />
       <CoachingOfferWidget />
+      <SignupPromptWidget />
     </ReactFlowProvider>
   );
 }

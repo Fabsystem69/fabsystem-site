@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/Card";
 import { LogoutButton } from "@/components/customer/LogoutButton";
+import { PasswordFieldWithToggle } from "@/components/customer/PasswordFieldWithToggle";
 import { updateOwnPasswordAction, updateOwnProfileAction } from "@/app/mon-compte/profil/actions";
 import { getOwnCustomerProfile } from "@/lib/services/customer-profile";
 import { requireCustomerActor } from "@/lib/server/project-actor";
@@ -185,29 +186,19 @@ export default async function MonProfilPage({
       <Card className="p-6">
         <p className="text-sm font-semibold text-neutral-950">Changer mon mot de passe</p>
         <form action={updateOwnPasswordAction} className="mt-4 space-y-4">
-          <label className={labelClass}>
-            <span className={labelTextClass}>Nouveau mot de passe</span>
-            <input
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              className={inputClass}
-            />
-            <span className="block text-xs text-neutral-500">8 caractères minimum.</span>
-          </label>
-          <label className={labelClass}>
-            <span className={labelTextClass}>Confirmer le mot de passe</span>
-            <input
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              className={inputClass}
-            />
-          </label>
+          <PasswordFieldWithToggle
+            name="password"
+            label="Nouveau mot de passe"
+            autoComplete="new-password"
+            helpText="8 caractères minimum."
+            inputClassName={inputClass}
+          />
+          <PasswordFieldWithToggle
+            name="confirmPassword"
+            label="Confirmer le mot de passe"
+            autoComplete="new-password"
+            inputClassName={inputClass}
+          />
           <button
             type="submit"
             className="h-11 w-full rounded-lg border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-900 transition-colors duration-150 hover:bg-neutral-100"

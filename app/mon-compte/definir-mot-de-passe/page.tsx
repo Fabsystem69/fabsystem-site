@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Card } from "@/components/ui/Card";
+import { PasswordFieldWithToggle } from "@/components/customer/PasswordFieldWithToggle";
 import { setPasswordAction } from "@/app/mon-compte/definir-mot-de-passe/actions";
 
 export const metadata: Metadata = {
@@ -43,30 +44,20 @@ export default async function DefinirMotDePassePage({
 
       <Card className="p-6">
         <form action={setPasswordAction} className="space-y-5">
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-neutral-800">Nouveau mot de passe</span>
-            <input
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              className={inputClass}
-            />
-            <span className="block text-xs text-neutral-500">8 caractères minimum.</span>
-          </label>
+          <PasswordFieldWithToggle
+            name="password"
+            label="Nouveau mot de passe"
+            autoComplete="new-password"
+            helpText="8 caractères minimum."
+            inputClassName={inputClass}
+          />
 
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-neutral-800">Confirmer le mot de passe</span>
-            <input
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              className={inputClass}
-            />
-          </label>
+          <PasswordFieldWithToggle
+            name="confirmPassword"
+            label="Confirmer le mot de passe"
+            autoComplete="new-password"
+            inputClassName={inputClass}
+          />
 
           <button
             type="submit"

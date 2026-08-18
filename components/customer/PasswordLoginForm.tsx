@@ -12,6 +12,7 @@ export function PasswordLoginForm({ onSwitchToMagicLink }: { onSwitchToMagicLink
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,17 +71,27 @@ export function PasswordLoginForm({ onSwitchToMagicLink }: { onSwitchToMagicLink
           <label htmlFor="login-password" className="block text-sm font-medium text-neutral-900">
             Mot de passe
           </label>
-          <input
-            id="login-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            className="mt-2 block min-h-11 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-950 shadow-sm outline-none ring-0 placeholder:text-neutral-400 focus:border-neutral-900"
-            placeholder="••••••••"
-          />
+          <div className="relative mt-2">
+            <input
+              id="login-password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="block min-h-11 w-full rounded-md border border-neutral-300 px-3 py-2 pr-16 text-sm text-neutral-950 shadow-sm outline-none ring-0 placeholder:text-neutral-400 focus:border-neutral-900"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              tabIndex={-1}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+            >
+              {showPassword ? "Masquer" : "Afficher"}
+            </button>
+          </div>
         </div>
 
         <button

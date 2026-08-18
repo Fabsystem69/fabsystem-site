@@ -156,6 +156,14 @@ enum CustomerStatus {
 enum CustomerOrigin {
   PURCHASE
   ADMIN
+  // v2.1 : inscription libre (email + mot de passe choisi), proposée dans
+  // l'éditeur de schéma dès l'ouverture — voir SignupPromptWidget.tsx et
+  // lib/services/customer-signup.ts. Choix produit assumé, différent de la
+  // décision anti-énumération sur le formulaire de connexion (MASTER-00
+  // §6) : ici l'utilisateur affirme explicitement vouloir créer un compte,
+  // ce n'est jamais une conséquence silencieuse d'une simple tentative de
+  // connexion.
+  SIGNUP
 }
 
 // Portée d'une capacité : globale au compte, ou scopée à une ressource
@@ -210,6 +218,13 @@ model Customer {
   engineHours      Int?
   status           CustomerStatus    @default(ACTIVE)
   origin           CustomerOrigin    @default(PURCHASE)
+  // RGPD : consentement explicite et horodaté, jamais présumé — la case à
+  // cocher (voir InlineSignupForm.tsx) part toujours décochée, cocher est
+  // un geste actif de l'utilisateur. `marketingConsentAt` sert de preuve de
+  // consentement (date + le fait qu'il ait été donné, pas juste un booléen
+  // muet) et se réinitialise à `null` si jamais retiré plus tard.
+  marketingConsent   Boolean         @default(false)
+  marketingConsentAt DateTime?
   lastLoginAt      DateTime?
   quotes           Quote[]
   invoices         Invoice[]

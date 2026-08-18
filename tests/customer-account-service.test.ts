@@ -31,6 +31,8 @@ function createCustomerRecord(overrides: Partial<Customer> = {}): Customer {
     lastName: overrides.lastName ?? null,
     passwordHash: overrides.passwordHash ?? null,
     electricalSkillLevel: overrides.electricalSkillLevel ?? null,
+    marketingConsent: overrides.marketingConsent ?? false,
+    marketingConsentAt: overrides.marketingConsentAt ?? null,
     phone: overrides.phone ?? null,
     address: overrides.address ?? null,
     assetType: overrides.assetType ?? "OTHER",

@@ -240,6 +240,12 @@ interface SchemaState {
   // l'extérieur du store — le store lui-même ne connaît ni Stripe ni les
   // capacités client, voir lib/services/schema-unlock.ts.
   hasUnlimitedConsumers: boolean;
+  // Session client active ou non — même origine que hasUnlimitedConsumers
+  // (statut serveur injecté depuis l'extérieur, voir Editor.tsx). Sert à
+  // proposer la création de compte (SignupPromptWidget) et à savoir si un
+  // formulaire de connexion ou d'inscription doit s'afficher dans les
+  // popups d'achat/redemption.
+  isLoggedIn: boolean;
   // Popup de limite gratuite (achat / code promo / coaching) — posée par
   // addComponent/duplicateNode/spliceNodeOnEdge quand un ajout de
   // consommateur est refusé, jamais silencieusement ignorée.
@@ -315,6 +321,7 @@ interface SchemaState {
   advanceGuidedStep: () => void;
   retreatGuidedStep: () => void;
   setHasUnlimitedConsumers: (value: boolean) => void;
+  setIsLoggedIn: (value: boolean) => void;
   dismissFreemiumLimitPopup: () => void;
 }
 
@@ -372,10 +379,12 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   guidedStepIndex: 0,
   consumerBaseline: 0,
   hasUnlimitedConsumers: false,
+  isLoggedIn: false,
   freemiumLimitPopupOpen: false,
 
   setProjectName: (name) => set({ projectName: name }),
   setHasUnlimitedConsumers: (value) => set({ hasUnlimitedConsumers: value }),
+  setIsLoggedIn: (value) => set({ isLoggedIn: value }),
   dismissFreemiumLimitPopup: () => set({ freemiumLimitPopupOpen: false }),
   setProjectId: (id) => set({ projectId: id }),
 

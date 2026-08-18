@@ -116,6 +116,8 @@ export const CustomerScalarFieldEnum = {
   engineHours: 'engineHours',
   status: 'status',
   origin: 'origin',
+  marketingConsent: 'marketingConsent',
+  marketingConsentAt: 'marketingConsentAt',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

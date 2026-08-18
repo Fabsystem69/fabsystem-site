@@ -3,13 +3,32 @@
 import { useState } from "react";
 import { LoginRequestForm } from "@/components/customer/LoginRequestForm";
 import { PasswordLoginForm } from "@/components/customer/PasswordLoginForm";
+import { SignupForm } from "@/components/customer/SignupForm";
 
+// v2.1 : bascule à trois états — retour utilisateur : "la possibilité d'en
+// créer un [compte], genre un popup de connexion et si pas inscrit bascule
+// sur une inscription" ("c'est un montage basique de beaucoup de site").
 export function ConnexionClientForms() {
-  const [mode, setMode] = useState<"password" | "magic-link">("password");
+  const [mode, setMode] = useState<"password" | "magic-link" | "signup">("password");
 
   if (mode === "magic-link") {
     return <LoginRequestForm onBack={() => setMode("password")} />;
   }
 
-  return <PasswordLoginForm onSwitchToMagicLink={() => setMode("magic-link")} />;
+  if (mode === "signup") {
+    return <SignupForm onSwitchToLogin={() => setMode("password")} />;
+  }
+
+  return (
+    <div className="space-y-3">
+      <PasswordLoginForm onSwitchToMagicLink={() => setMode("magic-link")} />
+      <button
+        type="button"
+        onClick={() => setMode("signup")}
+        className="block w-full text-center text-sm font-medium text-neutral-600 underline underline-offset-4 hover:text-neutral-900"
+      >
+        Pas encore de compte ? Créer un compte
+      </button>
+    </div>
+  );
 }

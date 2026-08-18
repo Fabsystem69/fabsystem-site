@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { saveDraftAsNewProjectApi } from "@/features/schemas/projectSchemaApi";
 import { computeSchemaIssues } from "@/lib/electrical-components/checks";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
+import { InlineSignupForm } from "./InlineSignupForm";
 
 // v2.1 : proposition du pack "Coaching 30 min" (59€, visio ou téléphone)
 // quand l'utilisateur semble bloqué — retour utilisateur : "analyser les
@@ -48,9 +49,13 @@ export function CoachingOfferWidget() {
   const lastMeaningfulActionAt = useSchemaStore((s) => s.lastMeaningfulActionAt);
   const pickerCancelStreak = useSchemaStore((s) => s.pickerCancelStreak);
   const touchMeaningfulAction = useSchemaStore((s) => s.touchMeaningfulAction);
+  const isLoggedIn = useSchemaStore((s) => s.isLoggedIn);
+  const projectId = useSchemaStore((s) => s.projectId);
+  const setProjectId = useSchemaStore((s) => s.setProjectId);
+  const projectName = useSchemaStore((s) => s.projectName);
 
   const [open, setOpen] = useState(false);
-  const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "loading" | "error" | "unauthenticated">("idle");
+  const [checkoutStatus, setCheckoutStatus] = useState<"idle" | "loading" | "error">("idle");
   const shownThisSessionRef = useRef(false);
 
   useEscapeToClose(() => setOpen(false));
@@ -78,14 +83,22 @@ export function CoachingOfferWidget() {
     setOpen(false);
   }
 
+  // Retour utilisateur : "au moment de l'achat ou code promo le schéma est
+  // tout de suite intégré à un projet" — jamais laissé orphelin.
+  async function ensureProjectId(): Promise<string | null> {
+    if (projectId) return projectId;
+    if (nodes.length === 0) return null;
+    const result = await saveDraftAsNewProjectApi({ projectName, nodes, edges });
+    if (!result.ok) return null;
+    setProjectId(result.project.id);
+    return result.project.id;
+  }
+
   async function handleBook() {
     setCheckoutStatus("loading");
     try {
+      void ensureProjectId();
       const response = await fetch("/api/coaching/checkout", { method: "POST" });
-      if (response.status === 401) {
-        setCheckoutStatus("unauthenticated");
-        return;
-      }
       const data = await response.json();
       if (!response.ok || !data.url) {
         setCheckoutStatus("error");
@@ -119,16 +132,8 @@ export function CoachingOfferWidget() {
         </p>
 
         <div className="mt-4">
-          {checkoutStatus === "unauthenticated" ? (
-            <div className={`rounded-lg border p-3 text-sm ${darkMode ? "border-neutral-700 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>
-              Connectez-vous (ou créez un compte) pour réserver ce créneau.
-              <Link
-                href="/connexion-client"
-                className={`mt-1.5 block text-xs font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-700"} hover:underline`}
-              >
-                Se connecter / créer un compte
-              </Link>
-            </div>
+          {!isLoggedIn ? (
+            <InlineSignupForm darkMode={darkMode} onSuccess={() => void ensureProjectId()} />
           ) : (
             <button
               type="button"

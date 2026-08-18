@@ -200,7 +200,8 @@ export type CustomerStatus = (typeof CustomerStatus)[keyof typeof CustomerStatus
 
 export const CustomerOrigin = {
   PURCHASE: 'PURCHASE',
-  ADMIN: 'ADMIN'
+  ADMIN: 'ADMIN',
+  SIGNUP: 'SIGNUP'
 } as const
 
 export type CustomerOrigin = (typeof CustomerOrigin)[keyof typeof CustomerOrigin]

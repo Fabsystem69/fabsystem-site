@@ -54,6 +54,8 @@ export type CustomerMinAggregateOutputType = {
   engineHours: number | null
   status: $Enums.CustomerStatus | null
   origin: $Enums.CustomerOrigin | null
+  marketingConsent: boolean | null
+  marketingConsentAt: Date | null
   lastLoginAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -77,6 +79,8 @@ export type CustomerMaxAggregateOutputType = {
   engineHours: number | null
   status: $Enums.CustomerStatus | null
   origin: $Enums.CustomerOrigin | null
+  marketingConsent: boolean | null
+  marketingConsentAt: Date | null
   lastLoginAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -100,6 +104,8 @@ export type CustomerCountAggregateOutputType = {
   engineHours: number
   status: number
   origin: number
+  marketingConsent: number
+  marketingConsentAt: number
   lastLoginAt: number
   createdAt: number
   updatedAt: number
@@ -135,6 +141,8 @@ export type CustomerMinAggregateInputType = {
   engineHours?: true
   status?: true
   origin?: true
+  marketingConsent?: true
+  marketingConsentAt?: true
   lastLoginAt?: true
   createdAt?: true
   updatedAt?: true
@@ -158,6 +166,8 @@ export type CustomerMaxAggregateInputType = {
   engineHours?: true
   status?: true
   origin?: true
+  marketingConsent?: true
+  marketingConsentAt?: true
   lastLoginAt?: true
   createdAt?: true
   updatedAt?: true
@@ -181,6 +191,8 @@ export type CustomerCountAggregateInputType = {
   engineHours?: true
   status?: true
   origin?: true
+  marketingConsent?: true
+  marketingConsentAt?: true
   lastLoginAt?: true
   createdAt?: true
   updatedAt?: true
@@ -291,6 +303,8 @@ export type CustomerGroupByOutputType = {
   engineHours: number | null
   status: $Enums.CustomerStatus
   origin: $Enums.CustomerOrigin
+  marketingConsent: boolean
+  marketingConsentAt: Date | null
   lastLoginAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -337,6 +351,8 @@ export type CustomerWhereInput = {
   engineHours?: Prisma.IntNullableFilter<"Customer"> | number | null
   status?: Prisma.EnumCustomerStatusFilter<"Customer"> | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFilter<"Customer"> | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFilter<"Customer"> | boolean
+  marketingConsentAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -369,6 +385,8 @@ export type CustomerOrderByWithRelationInput = {
   engineHours?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   origin?: Prisma.SortOrder
+  marketingConsent?: Prisma.SortOrder
+  marketingConsentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -404,6 +422,8 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   engineHours?: Prisma.IntNullableFilter<"Customer"> | number | null
   status?: Prisma.EnumCustomerStatusFilter<"Customer"> | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFilter<"Customer"> | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFilter<"Customer"> | boolean
+  marketingConsentAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"Customer"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Customer"> | Date | string
@@ -436,6 +456,8 @@ export type CustomerOrderByWithAggregationInput = {
   engineHours?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   origin?: Prisma.SortOrder
+  marketingConsent?: Prisma.SortOrder
+  marketingConsentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -467,6 +489,8 @@ export type CustomerScalarWhereWithAggregatesInput = {
   engineHours?: Prisma.IntNullableWithAggregatesFilter<"Customer"> | number | null
   status?: Prisma.EnumCustomerStatusWithAggregatesFilter<"Customer"> | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginWithAggregatesFilter<"Customer"> | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolWithAggregatesFilter<"Customer"> | boolean
+  marketingConsentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Customer"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Customer"> | Date | string
@@ -490,6 +514,8 @@ export type CustomerCreateInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -522,6 +548,8 @@ export type CustomerUncheckedCreateInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -554,6 +582,8 @@ export type CustomerUpdateInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -586,6 +616,8 @@ export type CustomerUncheckedUpdateInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -618,6 +650,8 @@ export type CustomerCreateManyInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -641,6 +675,8 @@ export type CustomerUpdateManyMutationInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -664,6 +700,8 @@ export type CustomerUncheckedUpdateManyInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -687,6 +725,8 @@ export type CustomerCountOrderByAggregateInput = {
   engineHours?: Prisma.SortOrder
   status?: Prisma.SortOrder
   origin?: Prisma.SortOrder
+  marketingConsent?: Prisma.SortOrder
+  marketingConsentAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -715,6 +755,8 @@ export type CustomerMaxOrderByAggregateInput = {
   engineHours?: Prisma.SortOrder
   status?: Prisma.SortOrder
   origin?: Prisma.SortOrder
+  marketingConsent?: Prisma.SortOrder
+  marketingConsentAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -738,6 +780,8 @@ export type CustomerMinOrderByAggregateInput = {
   engineHours?: Prisma.SortOrder
   status?: Prisma.SortOrder
   origin?: Prisma.SortOrder
+  marketingConsent?: Prisma.SortOrder
+  marketingConsentAt?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -788,6 +832,10 @@ export type EnumCustomerStatusFieldUpdateOperationsInput = {
 
 export type EnumCustomerOriginFieldUpdateOperationsInput = {
   set?: $Enums.CustomerOrigin
+}
+
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -944,6 +992,8 @@ export type CustomerCreateWithoutCapabilitiesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -975,6 +1025,8 @@ export type CustomerUncheckedCreateWithoutCapabilitiesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1022,6 +1074,8 @@ export type CustomerUpdateWithoutCapabilitiesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1053,6 +1107,8 @@ export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1084,6 +1140,8 @@ export type CustomerCreateWithoutProjectsInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1115,6 +1173,8 @@ export type CustomerUncheckedCreateWithoutProjectsInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1162,6 +1222,8 @@ export type CustomerUpdateWithoutProjectsInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1193,6 +1255,8 @@ export type CustomerUncheckedUpdateWithoutProjectsInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1224,6 +1288,8 @@ export type CustomerCreateWithoutQuotesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1255,6 +1321,8 @@ export type CustomerUncheckedCreateWithoutQuotesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1302,6 +1370,8 @@ export type CustomerUpdateWithoutQuotesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1333,6 +1403,8 @@ export type CustomerUncheckedUpdateWithoutQuotesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1364,6 +1436,8 @@ export type CustomerCreateWithoutInvoicesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1395,6 +1469,8 @@ export type CustomerUncheckedCreateWithoutInvoicesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1442,6 +1518,8 @@ export type CustomerUpdateWithoutInvoicesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1473,6 +1551,8 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1504,6 +1584,8 @@ export type CustomerCreateWithoutRemisesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1535,6 +1617,8 @@ export type CustomerUncheckedCreateWithoutRemisesInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1582,6 +1666,8 @@ export type CustomerUpdateWithoutRemisesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1613,6 +1699,8 @@ export type CustomerUncheckedUpdateWithoutRemisesInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1644,6 +1732,8 @@ export type CustomerCreateWithoutOrdersInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1675,6 +1765,8 @@ export type CustomerUncheckedCreateWithoutOrdersInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1722,6 +1814,8 @@ export type CustomerUpdateWithoutOrdersInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1753,6 +1847,8 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1784,6 +1880,8 @@ export type CustomerCreateWithoutMagicLoginTokensInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1815,6 +1913,8 @@ export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1862,6 +1962,8 @@ export type CustomerUpdateWithoutMagicLoginTokensInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1893,6 +1995,8 @@ export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1924,6 +2028,8 @@ export type CustomerCreateWithoutSessionsInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1955,6 +2061,8 @@ export type CustomerUncheckedCreateWithoutSessionsInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2002,6 +2110,8 @@ export type CustomerUpdateWithoutSessionsInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2033,6 +2143,8 @@ export type CustomerUncheckedUpdateWithoutSessionsInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2064,6 +2176,8 @@ export type CustomerCreateWithoutTrialAccessCodeRedemptionsInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2095,6 +2209,8 @@ export type CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput = {
   engineHours?: number | null
   status?: $Enums.CustomerStatus
   origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
   lastLoginAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2142,6 +2258,8 @@ export type CustomerUpdateWithoutTrialAccessCodeRedemptionsInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2173,6 +2291,8 @@ export type CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput = {
   engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
   origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2307,6 +2427,8 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   engineHours?: boolean
   status?: boolean
   origin?: boolean
+  marketingConsent?: boolean
+  marketingConsentAt?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2340,6 +2462,8 @@ export type CustomerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   engineHours?: boolean
   status?: boolean
   origin?: boolean
+  marketingConsent?: boolean
+  marketingConsentAt?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2363,6 +2487,8 @@ export type CustomerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   engineHours?: boolean
   status?: boolean
   origin?: boolean
+  marketingConsent?: boolean
+  marketingConsentAt?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2386,12 +2512,14 @@ export type CustomerSelectScalar = {
   engineHours?: boolean
   status?: boolean
   origin?: boolean
+  marketingConsent?: boolean
+  marketingConsentAt?: boolean
   lastLoginAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "firstName" | "lastName" | "email" | "passwordHash" | "phone" | "address" | "electricalSkillLevel" | "assetType" | "assetBrand" | "assetModel" | "registration" | "odometerKm" | "engineHours" | "status" | "origin" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
+export type CustomerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "firstName" | "lastName" | "email" | "passwordHash" | "phone" | "address" | "electricalSkillLevel" | "assetType" | "assetBrand" | "assetModel" | "registration" | "odometerKm" | "engineHours" | "status" | "origin" | "marketingConsent" | "marketingConsentAt" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["customer"]>
 export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   quotes?: boolean | Prisma.Customer$quotesArgs<ExtArgs>
   invoices?: boolean | Prisma.Customer$invoicesArgs<ExtArgs>
@@ -2438,6 +2566,8 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     engineHours: number | null
     status: $Enums.CustomerStatus
     origin: $Enums.CustomerOrigin
+    marketingConsent: boolean
+    marketingConsentAt: Date | null
     lastLoginAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -2890,6 +3020,8 @@ export interface CustomerFieldRefs {
   readonly engineHours: Prisma.FieldRef<"Customer", 'Int'>
   readonly status: Prisma.FieldRef<"Customer", 'CustomerStatus'>
   readonly origin: Prisma.FieldRef<"Customer", 'CustomerOrigin'>
+  readonly marketingConsent: Prisma.FieldRef<"Customer", 'Boolean'>
+  readonly marketingConsentAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly lastLoginAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Customer", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Customer", 'DateTime'>

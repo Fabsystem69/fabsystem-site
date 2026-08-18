@@ -3,17 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSchemaStore, FREE_CONSUMER_LIMIT } from "@/features/schemas/store/useSchemaStore";
+import { saveDraftAsNewProjectApi } from "@/features/schemas/projectSchemaApi";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
+import { InlineSignupForm } from "./InlineSignupForm";
 
 // v2.1 : popup de limite gratuite — se déclenche quand addComponent /
 // duplicateNode / spliceNodeOnEdge refusent un ajout de consommateur
 // au-delà de FREE_CONSUMER_LIMIT (voir useSchemaStore). Trois issues, jamais
 // bloquantes silencieusement : débloquer ce projet (achat unitaire), saisir
 // un code promo, ou passer par l'accompagnement.
+//
+// Retour utilisateur : "ça évite les retours de gens qui ont un code promo
+// mais ça ne marche pas car ils n'ont pas de compte" (une dizaine de
+// signalements) — les deux issues (achat, code) exigent un compte ; on
+// propose maintenant l'inscription directement ici plutôt qu'un simple
+// lien vers la page de connexion.
 export function FreemiumLimitModal() {
   const open = useSchemaStore((s) => s.freemiumLimitPopupOpen);
   const dismiss = useSchemaStore((s) => s.dismissFreemiumLimitPopup);
   const projectId = useSchemaStore((s) => s.projectId);
+  const setProjectId = useSchemaStore((s) => s.setProjectId);
+  const projectName = useSchemaStore((s) => s.projectName);
+  const nodes = useSchemaStore((s) => s.nodes);
+  const edges = useSchemaStore((s) => s.edges);
+  const isLoggedIn = useSchemaStore((s) => s.isLoggedIn);
+  const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
   const darkMode = useSchemaStore((s) => s.darkMode);
   useEscapeToClose(dismiss);
 
@@ -25,14 +39,30 @@ export function FreemiumLimitModal() {
 
   if (!open) return null;
 
+  // Retour utilisateur : "au moment de l'achat ou code promo le schéma est
+  // tout de suite intégré à un projet" — jamais laissé orphelin une fois
+  // qu'un compte existe et qu'une action payante/de redemption a lieu.
+  async function ensureProjectId(): Promise<string | null> {
+    if (projectId) return projectId;
+    if (nodes.length === 0) return null;
+    const result = await saveDraftAsNewProjectApi({ projectName, nodes, edges });
+    if (!result.ok) return null;
+    setProjectId(result.project.id);
+    return result.project.id;
+  }
+
   async function handleUnlock() {
-    if (!projectId) return;
     setCheckoutStatus("loading");
     try {
+      const ensuredProjectId = await ensureProjectId();
+      if (!ensuredProjectId) {
+        setCheckoutStatus("error");
+        return;
+      }
       const response = await fetch("/api/schema-unlock/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId }),
+        body: JSON.stringify({ projectId: ensuredProjectId }),
       });
       const data = await response.json();
       if (!response.ok || !data.url) {
@@ -63,6 +93,14 @@ export function FreemiumLimitModal() {
         return;
       }
       setRedeemStatus("success");
+      // Bug corrigé (retour utilisateur : "après utilisation du code le
+      // popup revient quand même après 3 consommateurs") : lève la limite
+      // tout de suite, sans attendre un rechargement de page — le fetch de
+      // statut au montage de l'éditeur (voir Editor.tsx) confirmera au
+      // prochain chargement, mais l'utilisateur ne doit pas être bloqué
+      // entre-temps dans la même session.
+      setHasUnlimitedConsumers(true);
+      void ensureProjectId();
     } catch {
       setRedeemStatus("error");
       setRedeemError("Une erreur est survenue.");
@@ -99,29 +137,27 @@ export function FreemiumLimitModal() {
           d&apos;installation basique gratuite.
         </p>
 
-        <div className="mt-4 flex gap-1.5">
-          <button type="button" className={tabClass(tab === "unlock")} onClick={() => setTab("unlock")}>
-            Débloquer (9,90€)
-          </button>
-          <button type="button" className={tabClass(tab === "code")} onClick={() => setTab("code")}>
-            J&apos;ai un code
-          </button>
-        </div>
-
-        {tab === "unlock" ? (
+        {!isLoggedIn ? (
           <div className="mt-4">
-            {!projectId ? (
-              <div className={`rounded-lg border p-3 text-sm ${darkMode ? "border-neutral-700 text-neutral-300" : "border-neutral-200 text-neutral-600"}`}>
-                Enregistrez d&apos;abord ce schéma dans un projet (compte requis) pour pouvoir le débloquer.
-                <Link
-                  href="/connexion-client"
-                  className={`mt-1.5 block text-xs font-semibold ${darkMode ? "text-emerald-400" : "text-emerald-700"} hover:underline`}
-                >
-                  Se connecter / créer un compte
-                </Link>
-              </div>
-            ) : (
-              <>
+            <p className={`mb-2 text-sm ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>
+              Un compte est nécessaire pour débloquer ou saisir un code promo — votre schéma en cours y sera
+              automatiquement enregistré.
+            </p>
+            <InlineSignupForm darkMode={darkMode} onSuccess={() => void ensureProjectId()} />
+          </div>
+        ) : (
+          <>
+            <div className="mt-4 flex gap-1.5">
+              <button type="button" className={tabClass(tab === "unlock")} onClick={() => setTab("unlock")}>
+                Débloquer (9,90€)
+              </button>
+              <button type="button" className={tabClass(tab === "code")} onClick={() => setTab("code")}>
+                J&apos;ai un code
+              </button>
+            </div>
+
+            {tab === "unlock" ? (
+              <div className="mt-4">
                 <p className={`text-sm ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>
                   Consommateurs illimités sur ce projet pendant 60 jours. Un code de réduction de 9,90€ vous est
                   aussi offert sur un ebook ou un accompagnement.
@@ -139,48 +175,39 @@ export function FreemiumLimitModal() {
                 {checkoutStatus === "error" ? (
                   <p className="mt-2 text-xs text-red-500">Impossible de démarrer le paiement, réessayez.</p>
                 ) : null}
-              </>
-            )}
-          </div>
-        ) : (
-          <form className="mt-4" onSubmit={handleRedeemCode}>
-            {redeemStatus === "success" ? (
-              <p className={`text-sm font-medium ${darkMode ? "text-emerald-400" : "text-emerald-700"}`}>
-                Code appliqué — accès illimité activé sur vos projets.
-              </p>
+              </div>
             ) : (
-              <>
-                <input
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Votre code promo"
-                  className={`w-full rounded-lg border px-3 py-2 text-sm ${
-                    darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-neutral-300 bg-white text-neutral-900"
-                  }`}
-                />
-                <button
-                  type="submit"
-                  disabled={redeemStatus === "loading"}
-                  className={`mt-3 w-full rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-base ${
-                    darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"
-                  } disabled:opacity-60`}
-                >
-                  {redeemStatus === "loading" ? "Vérification…" : "Appliquer le code"}
-                </button>
-                {redeemStatus === "error" ? <p className="mt-2 text-xs text-red-500">{redeemError}</p> : null}
-                {!projectId ? (
-                  <p className={`mt-2 text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-                    Un compte est nécessaire pour saisir un code —{" "}
-                    <Link href="/connexion-client" className={darkMode ? "text-emerald-400 hover:underline" : "text-emerald-700 hover:underline"}>
-                      se connecter
-                    </Link>
-                    .
+              <form className="mt-4" onSubmit={handleRedeemCode}>
+                {redeemStatus === "success" ? (
+                  <p className={`text-sm font-medium ${darkMode ? "text-emerald-400" : "text-emerald-700"}`}>
+                    Code appliqué — accès illimité activé sur vos projets.
                   </p>
-                ) : null}
-              </>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      placeholder="Votre code promo"
+                      className={`w-full rounded-lg border px-3 py-2 text-sm ${
+                        darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-neutral-300 bg-white text-neutral-900"
+                      }`}
+                    />
+                    <button
+                      type="submit"
+                      disabled={redeemStatus === "loading"}
+                      className={`mt-3 w-full rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-base ${
+                        darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"
+                      } disabled:opacity-60`}
+                    >
+                      {redeemStatus === "loading" ? "Vérification…" : "Appliquer le code"}
+                    </button>
+                    {redeemStatus === "error" ? <p className="mt-2 text-xs text-red-500">{redeemError}</p> : null}
+                  </>
+                )}
+              </form>
             )}
-          </form>
+          </>
         )}
 
         <div className={`mt-5 border-t pt-4 text-center ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>

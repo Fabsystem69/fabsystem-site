@@ -2791,6 +2791,8 @@ export const CustomerScalarFieldEnum = {
   engineHours: 'engineHours',
   status: 'status',
   origin: 'origin',
+  marketingConsent: 'marketingConsent',
+  marketingConsentAt: 'marketingConsentAt',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3426,6 +3428,13 @@ export type ListEnumCustomerOriginFieldRefInput<$PrismaModel> = FieldRefInputTyp
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -3576,13 +3585,6 @@ export type EnumDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'DeliveryMode[]'
  */
 export type ListEnumDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryMode[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
