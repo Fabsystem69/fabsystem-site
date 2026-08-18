@@ -24,8 +24,18 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // conservé comme choix générique pour qui ne veut pas se soucier du détail.
   { value: "eclairage-led", label: "Éclairage LED (générique)", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp" },
   { value: "spot-led", label: "Spot LED encastré", typicalPowerW: 3 },
-  { value: "ruban-led", label: "Ruban LED", typicalPowerW: 10 },
+  { value: "ruban-led", label: "Ruban LED", typicalPowerW: 10, iconPro: "/schema-icons/pro/ruban-led.jpg" },
   { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3 },
+  { value: "plafonnier-led", label: "Plafonnier LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/plafonnier-led.jpg" },
+  { value: "eclairage-marche", label: "Éclairage de marche/passerelle", typicalPowerW: 2, iconPro: "/schema-icons/pro/eclairage-marche.jpg" },
+  { value: "projecteur-pont", label: "Projecteur de pont", typicalPowerW: 20, iconPro: "/schema-icons/pro/projecteur-pont.jpg" },
+  // Feux réglementaires bateau — chacun sur son propre circuit en usage réel
+  // (pas un seul préréglage générique "feux de navigation").
+  { value: "feu-mouillage", label: "Feu de mouillage (ancre)", typicalPowerW: 5, iconPro: "/schema-icons/pro/feu-mouillage.jpg" },
+  { value: "feu-tete-de-mat", label: "Feu de tête de mât (tricolore)", typicalPowerW: 5, iconPro: "/schema-icons/pro/feu-tete-de-mat.jpg" },
+  { value: "feu-babord", label: "Feu de navigation bâbord (rouge)", typicalPowerW: 3, iconPro: "/schema-icons/pro/feu-babord.jpg" },
+  { value: "feu-tribord", label: "Feu de navigation tribord (vert)", typicalPowerW: 3, iconPro: "/schema-icons/pro/feu-tribord.jpg" },
+  { value: "klaxon", label: "Klaxon / avertisseur sonore", typicalPowerW: 15, iconPro: "/schema-icons/pro/klaxon.webp" },
   { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp" },
   { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp" },
   { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp" },
@@ -216,6 +226,9 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     iconVariants: {
       agm: { iconPro: "/schema-icons/pro/battery-agm.webp" },
       lifepo4: { iconPro: "/schema-icons/pro/battery-lifepo.webp" },
+      plomb: { iconPro: "/schema-icons/pro/battery-plomb.jpg" },
+      gel: { iconPro: "/schema-icons/pro/battery-gel.jpg" },
+      "lead-carbon": { iconPro: "/schema-icons/pro/battery-lead-carbon.webp" },
     },
     badge: { field: "capacityAh", unit: "Ah" },
     // Retour utilisateur : "possible d'augmenter la taille de la vignette
@@ -315,6 +328,10 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
       { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
       { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
+      // Audit : les modèles Victron BlueSolar PWM-Pro déjà au catalogue
+      // (brand-models.ts) ont un port VE.Direct — absent à tort ici alors
+      // que le MPPT jumeau l'a.
+      { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
     defaultData: { amperage: 10, systemVoltage: 12 },
     fields: [
@@ -336,11 +353,16 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "regulateurs",
     subtitle: "Dérivation",
     icon: "/schema-icons/mppt.svg",
+    // Icône réelle (Victron Smart BuckBoost, le "vrai routeur dédié" de ce
+    // rôle) : sérigraphie du boîtier IN+ / GND / OUT+ — non isolé, une
+    // seule masse commune entre entrée et sortie, comme l'Orion XS (voir
+    // "dcdc" topology: non-isolated). Corrigé après avoir dessiné à tort
+    // 4 bornes séparées (BAT+/−, CHARGE+/−) comme si isolé.
+    iconPro: "/schema-icons/pro/brand/victron-smart-buckboost.jpg",
     handles: [
-      { id: "bat-negative", label: "BAT−", kind: "negative", side: "left" },
-      { id: "bat-positive", label: "BAT+", kind: "positive", side: "left" },
-      { id: "load-negative", label: "CHARGE−", kind: "negative", side: "right" },
-      { id: "load-positive", label: "CHARGE+", kind: "positive", side: "right" },
+      { id: "bat-positive", label: "IN+", kind: "positive", side: "left" },
+      { id: "ground", label: "GND", kind: "negative", side: "bottom" },
+      { id: "load-positive", label: "OUT+", kind: "positive", side: "right" },
     ],
     defaultData: { amperage: 20, systemVoltage: 12 },
     fields: [
@@ -450,6 +472,30 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     ],
   },
   {
+    // Éolienne (icône fournie, Silent Wind Pro) — source de charge continue
+    // comme un panneau solaire (mêmes champs puissance/tension), mais passe
+    // par son propre régulateur dédié, pas un MPPT solaire.
+    type: "wind-turbine",
+    label: "Éolienne",
+    description: "Produit du courant continu à partir du vent, via son propre régulateur de charge dédié.",
+    category: "charger",
+    subcategory: "eolien",
+    subtitle: "Production",
+    icon: "/schema-icons/alternator.svg",
+    iconPro: "/schema-icons/pro/brand/silentwind-pro-420w.jpg",
+    badge: { field: "powerW", unit: "W" },
+    handles: [
+      { id: "negative", label: "−", kind: "negative", side: "left" },
+      { id: "positive", label: "+", kind: "positive", side: "right" },
+    ],
+    defaultData: { powerW: 400, voltage: 12 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "powerW", label: "Puissance nominale", type: "number", unit: "W" },
+      { key: "voltage", label: "Tension système", type: "number", unit: "V" },
+    ],
+  },
+  {
     // Répartiteur de charge à diodes/FET (ex. Argo FET) : une seule entrée
     // depuis la source de charge alimente 2 ou 3 batteries isolées entre
     // elles, sans qu'un courant de l'une ne reflue vers l'autre. Seul le +
@@ -517,7 +563,14 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subtitle: "Source secteur",
     icon: "/schema-icons/ac-charger.svg",
     iconPro: "/schema-icons/pro/shore-power.webp",
-    handles: [{ id: "ac", label: "230V", kind: "neutral", side: "right" }],
+    // Audit : la prise P17 (2P+T) a une terre comme n'importe quelle prise
+    // 230V — absente à tort jusqu'ici, contrairement au tableau 220V et à
+    // la prise 220V qui l'ont déjà. Facultative pour ne pas signaler les
+    // schémas déjà existants qui ne la câblent pas.
+    handles: [
+      { id: "ac", label: "230V", kind: "neutral", side: "right" },
+      { id: "earth", label: "Terre", kind: "earth", side: "bottom", optional: true },
+    ],
     defaultData: {},
     fields: [{ key: "label", label: "Nom", type: "text", help: "Réseau, borne de quai, groupe électrogène…" }],
   },
@@ -658,16 +711,24 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     ],
   },
   {
-    // Victron Smart BMS NG (retour bêta : icône fournie, "j'ai une batterie
-    // avec BMS séparé") — même rôle que le Lynx Smart BMS (coupe batterie
-    // et système en cas de défaut) mais boîtier autonome à visser, pas un
-    // module du bus Lynx : composant distinct plutôt qu'un modèle de marque
-    // du type "lynx-smart-bms", pour ne pas le ranger dans la famille Lynx.
-    // Mêmes bornes externes réelles : batterie (+/−), système (+/−), et
-    // port de communication.
+    // smallBMS NG (retour bêta : icône fournie sous le nom "SmallBMS NG" —
+    // corrigé après audit : ce N'EST PAS l'équivalent autonome du Lynx
+    // Smart BMS comme d'abord supposé par analogie. Vérifié sur la fiche
+    // produit officielle Victron (Datasheet smallBMS NG, rev en cours) :
+    // "The smallBMS NG is a simple and cost-effective alternative to the
+    // VE.Bus BMS NG" — même famille fonctionnelle que le VE.Bus BMS NG
+    // ci-dessus (pilotage à distance par sorties signal Load/Charge
+    // disconnect), PAS celle du Lynx Smart BMS (coupure directe +/−). Seule
+    // différence avec le VE.Bus BMS NG : autonome, pas besoin d'un
+    // onduleur-chargeur Victron — d'où ses propres bornes Bat+/Bat− (photo
+    // produit officielle) au lieu d'un lien VE.Bus. Fusible d'alimentation
+    // très fin recommandé par le constructeur (0,3 à 2,5A), donc PAS une
+    // liaison de puissance — volontairement absent des vérifications
+    // "protection batterie" et du câblage "cœur batterie" (mêmes raisons
+    // que le VE.Bus BMS NG).
     type: "smart-bms-ng",
-    label: "Smart BMS NG",
-    description: "Coupe automatiquement la batterie du système en cas de défaut (surcharge, décharge profonde, température) — boîtier autonome, indépendant du bus Lynx.",
+    label: "smallBMS NG",
+    description: "Surveille une batterie Lithium NG et pilote à distance la coupure des charges/chargeurs (BatteryProtect, chargeurs compatibles) — alternative autonome au VE.Bus BMS NG, ne coupe rien directement lui-même.",
     category: "wiring",
     subcategory: "coupure",
     subtitle: "Protection",
@@ -675,17 +736,16 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     iconPro: "/schema-icons/pro/brand/victron-smart-bms-ng.png",
     minIconBoxSize: 64,
     handles: [
-      { id: "batt-negative", label: "BATT−", kind: "negative", side: "left" },
-      { id: "batt-positive", label: "BATT+", kind: "positive", side: "left" },
-      { id: "sys-negative", label: "SYS−", kind: "negative", side: "right" },
-      { id: "sys-positive", label: "SYS+", kind: "positive", side: "right" },
-      { id: "ve-can", label: "Communication", kind: "neutral", side: "bottom", optional: true },
+      { id: "battery-positive", label: "Bat+", kind: "positive", side: "left" },
+      { id: "battery-negative", label: "Bat−", kind: "negative", side: "left" },
+      { id: "load-disconnect", label: "Load → charge(s)", kind: "neutral", side: "right", optional: true },
+      { id: "charge-disconnect", label: "Charge → chargeur(s)", kind: "neutral", side: "right", optional: true },
+      { id: "remote-h", label: "Remote H", kind: "neutral", side: "bottom", optional: true },
+      { id: "remote-l", label: "Remote L", kind: "neutral", side: "bottom", optional: true },
+      { id: "pre-alarm", label: "Pre-alarm", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { amperage: 100 },
-    fields: [
-      { key: "label", label: "Nom", type: "text" },
-      { key: "amperage", label: "Courant nominal", type: "number", unit: "A" },
-    ],
+    defaultData: {},
+    fields: [{ key: "label", label: "Nom", type: "text" }],
   },
   {
     // VE.Bus BMS NG (retour bêta : icône fournie, à vérifier avant de
@@ -954,6 +1014,27 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "ac-in", label: "230V IN", kind: "neutral", side: "left" },
       { id: "ac-out", label: "230V OUT", kind: "neutral", side: "right" },
       { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
+    ],
+    defaultData: {},
+    fields: [{ key: "label", label: "Nom", type: "text" }],
+  },
+  {
+    // Isolateur galvanique (icône fournie, Sterling Zinc Saver II) — se
+    // câble en série sur le fil de terre entre la prise de quai et le
+    // tableau 220V, filtre les courants continus parasites responsables de
+    // la corrosion galvanique de la coque sans couper la protection
+    // normale (2 bornes, toutes deux "Terre").
+    type: "galvanic-isolator",
+    label: "Isolateur galvanique",
+    description: "Protège la coque contre la corrosion galvanique en filtrant les courants continus parasites sur le fil de terre de la prise de quai.",
+    category: "wiring",
+    subcategory: "protection",
+    subtitle: "Protection terre",
+    icon: "/schema-icons/ground.svg",
+    iconPro: "/schema-icons/pro/brand/sterling-zincsaver-ii.jpg",
+    handles: [
+      { id: "earth-in", label: "Terre IN", kind: "earth", side: "left" },
+      { id: "earth-out", label: "Terre OUT", kind: "earth", side: "right" },
     ],
     defaultData: {},
     fields: [{ key: "label", label: "Nom", type: "text" }],
@@ -1534,6 +1615,7 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   secteur: "Secteur",
   alternateur: "Alternateur",
   "tout-en-1": "Tout-en-1",
+  eolien: "Éolien",
   protection: "Protection",
   distribution: "Distribution",
   lynx: "Lynx",

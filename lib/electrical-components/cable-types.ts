@@ -22,6 +22,13 @@ export const CABLE_TYPES: CableType[] = [
   // qu'orange (retour utilisateur : "l'orange porte à confusion" — trop
   // proche du jaune/orange déjà utilisé ailleurs comme couleur d'alerte).
   { value: "ac-230v", label: "Câblage 230V (secteur / quai)", color: "#7c3aed" },
+  // Retour utilisateur : "Neutre et Phase unitairement comme la Terre" — même
+  // logique que "earth" ci-dessus (couleur normalisée NF C 15-100), pour
+  // câbler un conducteur unique à part d'un toron 3G. Réutilisées aussi par
+  // CableEdge.tsx pour dessiner les 3 conducteurs d'un câble 3G2,5/3G1,5
+  // (voir THREE_CONDUCTOR_SECTIONS).
+  { value: "phase", label: "Phase — marron", color: "#8b4513" },
+  { value: "neutral", label: "Neutre — bleu", color: "#0ea5e9" },
   { value: "other", label: "Autre", color: "#6b7280" },
 ];
 

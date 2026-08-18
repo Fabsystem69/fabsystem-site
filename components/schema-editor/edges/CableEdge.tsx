@@ -5,7 +5,19 @@ import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useReactFlow, Position,
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { resolveHandleKindForNode } from "@/lib/electrical-components/checks";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
+import { getCableType } from "@/lib/electrical-components/cable-types";
 import type { CableEdgeData } from "@/types/schema";
+
+// Retour utilisateur : "pour le 3G2,5 je veux que le modélise en 3
+// conducteur et non un seul, couleur bleu marron vert" — un câble secteur
+// "3G" est réellement composé de 3 fils (phase/neutre/terre), pas d'un seul
+// conducteur. Dessiné comme 3 traits parallèles légèrement décalés plutôt
+// qu'un vrai offset géométrique perpendiculaire au tracé (qui demanderait de
+// recalculer la géométrie des coudes) : un décalage diagonal constant reste
+// lisible sur les portions horizontales ET verticales du tracé, sans
+// dupliquer toute la logique d'arrondi des coudes.
+const THREE_CONDUCTOR_SECTIONS = new Set(["3G2,5 mm²", "3G1,5 mm²"]);
+const THREE_CONDUCTOR_OFFSET = 2.5;
 
 // Rouge d'avertissement franc, choisi pour ne jamais pouvoir être confondu
 // avec une couleur de câble normale (positif/négatif/neutre/terre).
@@ -259,6 +271,21 @@ export function CableEdge({
         ? "12,5"
         : undefined;
 
+  // Câble 3G (secteur, 3 conducteurs réels) : le tracé "officiel" (BaseEdge
+  // ci-dessous) reste inchangé pour l'interaction (reconnexion, détection de
+  // croisement dans CableCrossingOverlay, qui lit `path.react-flow__edge-path`
+  // dans le DOM) mais devient invisible — remplacé visuellement par 3 traits
+  // décoratifs colorés phase/neutre/terre, non interactifs.
+  const isThreeConductor = !isPolarityMismatch && Boolean(data?.section && THREE_CONDUCTOR_SECTIONS.has(data.section));
+  const conductorStrokeWidth = Math.max(1, strokeWidth - 1);
+  const conductors = isThreeConductor
+    ? [
+        { offset: -THREE_CONDUCTOR_OFFSET, color: getCableType("phase")?.color ?? "#8b4513" },
+        { offset: 0, color: getCableType("neutral")?.color ?? "#0ea5e9" },
+        { offset: THREE_CONDUCTOR_OFFSET, color: getCableType("earth")?.color ?? "#84cc16" },
+      ]
+    : [];
+
   // La longueur affichée sur le câble lui-même (retour utilisateur : sans
   // elle, un schéma partagé "n'a aucun sens" pour qui n'a pas accès au
   // panneau de propriétés) — pas seulement dans le récapitulatif matériel.
@@ -344,8 +371,28 @@ export function CableEdge({
         id={id}
         path={edgePath}
         interactionWidth={24}
-        style={{ stroke: color, strokeWidth, strokeDasharray, strokeLinejoin: "round", strokeLinecap: "round" }}
+        style={{
+          stroke: isThreeConductor ? "transparent" : color,
+          strokeWidth,
+          strokeDasharray,
+          strokeLinejoin: "round",
+          strokeLinecap: "round",
+        }}
       />
+      {conductors.map((conductor) => (
+        <path
+          key={conductor.color}
+          d={edgePath}
+          fill="none"
+          stroke={conductor.color}
+          strokeWidth={conductorStrokeWidth}
+          strokeDasharray={strokeDasharray}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          pointerEvents="none"
+          transform={`translate(${conductor.offset}, ${conductor.offset})`}
+        />
+      ))}
       <EdgeLabelRenderer>
         {/* Une fois `data.bendPoints[0]` posé, c'est CableWaypointNode (un
             vrai nœud React Flow ajouté par Canvas.tsx, un par point) qui

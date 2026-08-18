@@ -104,6 +104,9 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "epever-tracer-20a", brand: "EPEVER", model: "Tracer 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
   { id: "epever-tracer-30a", brand: "EPEVER", model: "Tracer 30A", componentType: "mppt", defaults: { amperage: 30, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
   { id: "epever-tracer-40a", brand: "EPEVER", model: "Tracer 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  // Marque néerlandaise, référence historique en électronique de bord
+  // marine (comme Cristec côté français).
+  { id: "mastervolt-mppt-scm25", brand: "Mastervolt", model: "SCM25 MPPT", componentType: "mppt", defaults: { amperage: 25, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-mppt-scm25.jpg" },
 
   // PWM (retour utilisateur : "chaque item détaillé pareil" — 0 modèle
   // jusqu'ici alors que le MPPT, son jumeau, en a 10).
@@ -112,6 +115,7 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-wanderer-10a", brand: "Renogy", model: "Wanderer 10A", componentType: "pwm", defaults: { amperage: 10, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/renogy-wanderer-10a.webp" },
   { id: "renogy-wanderer-30a", brand: "Renogy", model: "Wanderer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } },
   { id: "renogy-adventurer-30a", brand: "Renogy", model: "Adventurer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/renogy-adventurer-30a.webp" },
+  { id: "mastervolt-pwm-scm20", brand: "Mastervolt", model: "SCM20 PWM 20A", componentType: "pwm", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-pwm-scm20.jpg" },
 
   // DC-DC
   { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png" },
@@ -130,6 +134,7 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "ecoworthy-dcdc-20a", brand: "EcoWorthy", model: "Chargeur DC-DC MPPT 20A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 20 } , iconPro: "/schema-icons/pro/brand/ecoworthy-dcdc-20a.webp" },
   { id: "ecoworthy-dcdc-40a", brand: "EcoWorthy", model: "Chargeur DC-DC MPPT 40A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 40 } , iconPro: "/schema-icons/pro/brand/ecoworthy-dcdc-40a.webp" },
   { id: "cristec-dcdc-12-12-30", brand: "Cristec", model: "Convertisseur DC-DC 12/12V-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 } },
+  { id: "mastervolt-macplus-50a", brand: "Mastervolt", model: "MAC Plus 12/12-50 CZone", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50 }, iconPro: "/schema-icons/pro/brand/mastervolt-macplus-50a.jpg" },
 
   // Chargeurs secteur
   { id: "victron-blue-smart-ip22-20a", brand: "Victron", model: "Blue Smart IP22 12/20", componentType: "ac-charger", defaults: { chargeAmperage: 20 } , iconPro: "/schema-icons/pro/brand/victron-blue-smart-ip22-20a.webp" },
@@ -144,13 +149,25 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "cristec-ypower-12-20", brand: "Cristec", model: "YPOWER 12V/20A", componentType: "ac-charger", defaults: { chargeAmperage: 20 } , iconPro: "/schema-icons/pro/brand/cristec-ypower-12-20.webp" },
   { id: "cristec-ypower-12-30", brand: "Cristec", model: "YPOWER 12V/30A", componentType: "ac-charger", defaults: { chargeAmperage: 30 } , iconPro: "/schema-icons/pro/brand/cristec-ypower-12-30.webp" },
   { id: "cristec-ypower-24-15", brand: "Cristec", model: "YPOWER 24V/15A", componentType: "ac-charger", defaults: { chargeAmperage: 15 }, iconPro: "/schema-icons/pro/brand/cristec-ypower-24-15.webp" },
+  { id: "dolphin-premium-60a", brand: "Dolphin", model: "Premium 12V/60A", componentType: "ac-charger", defaults: { chargeAmperage: 60 }, iconPro: "/schema-icons/pro/brand/dolphin-premium-60a.jpg" },
+  { id: "dolphin-prolite-25a", brand: "Dolphin", model: "ProLite 12V/25A (3 sorties)", componentType: "ac-charger", defaults: { chargeAmperage: 25 }, iconPro: "/schema-icons/pro/brand/dolphin-prolite-25a.jpg" },
+  { id: "mastervolt-chargemaster-25a", brand: "Mastervolt", model: "ChargeMaster 12V/25A (3 sorties)", componentType: "ac-charger", defaults: { chargeAmperage: 25 }, iconPro: "/schema-icons/pro/brand/mastervolt-chargemaster-25a.jpg" },
+  { id: "mastervolt-easycharge-10a", brand: "Mastervolt", model: "EasyCharge 12V/10A (2 sorties)", componentType: "ac-charger", defaults: { chargeAmperage: 10 }, iconPro: "/schema-icons/pro/brand/mastervolt-easycharge-10a.jpg" },
+  { id: "mastervolt-easycharge-6a", brand: "Mastervolt", model: "EasyCharge 12V/6A", componentType: "ac-charger", defaults: { chargeAmperage: 6 }, iconPro: "/schema-icons/pro/brand/mastervolt-easycharge-6a.jpg" },
 
   // Prise de quai (retour bêta, 3e testeur : "impossible d'ajouter une
   // prise P17" — connecteur caravane/camping bleu 16A/230V normalisé).
   { id: "p17-16a", brand: "Générique", model: "Prise P17 16A/230V", componentType: "shore-power", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-p17-shore-power.webp" },
+  // Le champ "Nom" de "Prise de quai" invite déjà explicitement le groupe
+  // électrogène ("Réseau, borne de quai, groupe électrogène…") — un
+  // générateur portable est électriquement une source secteur au même
+  // titre qu'une vraie prise de quai.
+  { id: "honda-eu32i-generator", brand: "Honda", model: "EU32i 3200W", componentType: "shore-power", defaults: {}, iconPro: "/schema-icons/pro/brand/honda-eu32i-generator.jpg" },
+  { id: "philippi-lae-shore-power", brand: "Philippi", model: "Coffret de quai LAE 100/110", componentType: "shore-power", defaults: {}, iconPro: "/schema-icons/pro/brand/philippi-lae-shore-power.jpg" },
   // Interrupteur dédié WC (retour bêta : icône fournie) — même forme que
   // l'interrupteur générique, juste un visuel reconnaissable.
   { id: "interrupteur-toilette", brand: "Générique", model: "Interrupteur toilette", componentType: "switch", defaults: {}, iconPro: "/schema-icons/pro/brand/interrupteur-toilette.webp" },
+  { id: "sterling-3way-switch-16a", brand: "Sterling", model: "Inverseur manuel 3 positions 16A", componentType: "switch", defaults: { poles: "3-positions", amperage: 16 }, iconPro: "/schema-icons/pro/brand/sterling-3way-switch-16a.jpg" },
 
   // Onduleurs purs
   { id: "victron-phoenix-500", brand: "Victron", model: "Phoenix Inverter 12/500", componentType: "inverter", defaults: { powerW: 500, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/victron-phoenix-500.webp" },
@@ -161,6 +178,9 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-inverter-2000w", brand: "Renogy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/renogy-inverter-2000w.webp" },
   { id: "ecoworthy-inverter-1000w", brand: "EcoWorthy", model: "1000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 1000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-inverter-1000w.webp" },
   { id: "ecoworthy-inverter-2000w", brand: "EcoWorthy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-inverter-2000w.webp" },
+  { id: "mastervolt-ac-master-300w", brand: "Mastervolt", model: "AC Master 12V/300W", componentType: "inverter", defaults: { powerW: 300, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-ac-master-300w.jpg" },
+  { id: "mastervolt-ac-master-700w", brand: "Mastervolt", model: "AC Master 12V/700W", componentType: "inverter", defaults: { powerW: 700, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-ac-master-700w.jpg" },
+  { id: "mastervolt-ac-master-1500w", brand: "Mastervolt", model: "AC Master 12V/1500W", componentType: "inverter", defaults: { powerW: 1500, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-ac-master-1500w.jpg" },
 
   // Convertisseurs-chargeurs
   { id: "victron-multiplus-500-20", brand: "Victron", model: "MultiPlus 12/500/20", componentType: "inverter-charger", defaults: { powerW: 500, voltageDC: 12, chargeAmperage: 20 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-500-20.webp" },
@@ -173,6 +193,8 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-multiplus-ii-12-3000-120", brand: "Victron", model: "MultiPlus-II 12/3000/120-32", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 12, chargeAmperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-ii-12-3000-120.webp" },
   { id: "victron-multiplus-3000-120", brand: "Victron", model: "MultiPlus 12/3000/120", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 12, chargeAmperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-3000-120.png" },
   { id: "creabest-inverter-charger-2000w", brand: "Creabest", model: "Inverter Charger 2000W 12V-230V/80A", componentType: "inverter-charger", defaults: { powerW: 2000, voltageDC: 12, chargeAmperage: 80 }, iconPro: "/schema-icons/pro/brand/creabest-inverter-charger-2000w.webp" },
+  { id: "mastervolt-combimaster-2000va", brand: "Mastervolt", model: "CombiMaster 12V/2000VA/60A", componentType: "inverter-charger", defaults: { powerW: 2000, voltageDC: 12, chargeAmperage: 60 }, iconPro: "/schema-icons/pro/brand/mastervolt-combimaster-2000va.jpg" },
+  { id: "mastervolt-masscombi-3000w", brand: "Mastervolt", model: "Mass Combi Ultra 12V/3000W/150A", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 12, chargeAmperage: 150 }, iconPro: "/schema-icons/pro/brand/mastervolt-masscombi-3000w.jpg" },
 
   // Stations "tout-en-1" — plusieurs marques concurrentes sur le même
   // segment produit, pas seulement Fossibot.
@@ -205,6 +227,7 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-argofet-100-3bat", brand: "Victron", model: "Argofet 100A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 100 }, iconPro: "/schema-icons/pro/brand/victron-argofet-100-3bat.png" },
   { id: "cristec-diodis-160-2bat", brand: "Cristec", model: "Diodis 160A 2 batteries", componentType: "battery-isolator", defaults: { outputCount: 2, amperage: 160 } , iconPro: "/schema-icons/pro/brand/cristec-diodis-160-2bat.webp" },
   { id: "cristec-diodis-160-3bat", brand: "Cristec", model: "Diodis 160A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 160 } , iconPro: "/schema-icons/pro/brand/cristec-diodis-160-3bat.webp" },
+  { id: "mastervolt-batterymate-1602", brand: "Mastervolt", model: "BatteryMate 1602-IG 160A 2 batteries", componentType: "battery-isolator", defaults: { outputCount: 2, amperage: 160 }, iconPro: "/schema-icons/pro/brand/mastervolt-batterymate-1602.jpg" },
 
   // Boîtes à fusibles génériques (retour bêta : photos fournies) — chaque
   // sortie positive protégée par son propre fusible, plus un bus négatif
@@ -232,6 +255,19 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-cerbo-gx", brand: "Victron", model: "Cerbo GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-cerbo-gx.webp" },
   { id: "victron-ccgx", brand: "Victron", model: "Color Control GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-ccgx.webp" },
   { id: "victron-gx-touch-70", brand: "Victron", model: "GX Touch 70", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp" },
+
+  // Connecteur Y MC4 (2 vers 1) : jonction de deux chaînes de panneaux
+  // solaires en parallèle — même rôle qu'une "Épissure" générique, juste un
+  // visuel reconnaissable pour ce cas d'usage précis.
+  { id: "seatec-mc4-y-connector", brand: "Seatec", model: "Connecteur Y MC4 (2 vers 1)", componentType: "splice", defaults: {}, iconPro: "/schema-icons/pro/brand/seatec-mc4-y-connector.jpg" },
+
+  // Isolateur galvanique (protège la coque contre la corrosion galvanique
+  // via la terre du 230V de quai) — voir type "galvanic-isolator" dans
+  // definitions.ts.
+  { id: "sterling-zincsaver-ii", brand: "Sterling", model: "Zinc Saver II", componentType: "galvanic-isolator", defaults: {}, iconPro: "/schema-icons/pro/brand/sterling-zincsaver-ii.jpg" },
+
+  // Éolienne (voir type "wind-turbine" dans definitions.ts).
+  { id: "silentwind-pro-420w", brand: "Silent Wind", model: "Wind Generator Pro 12V/420W", componentType: "wind-turbine", defaults: { powerW: 420, voltage: 12 }, iconPro: "/schema-icons/pro/brand/silentwind-pro-420w.jpg" },
 ];
 
 export function getBrandModelsForType(componentType: string): BrandModel[] {

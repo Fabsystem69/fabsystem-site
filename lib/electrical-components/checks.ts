@@ -31,15 +31,20 @@ type SchemaEdgeInternal = Edge<CableEdgeData>;
 const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch"]);
 // Lynx Smart BMS coupe automatiquement la batterie en cas de défaut : même
 // rôle protecteur qu'un fusible/disjoncteur pour cette détection.
-const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms", "smart-bms-ng"]);
+const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms"]);
 
 // Bornes de sortie « charge » à protéger avant la batterie, par type de
 // composant source.
 const CHARGE_SOURCE_OUTPUT_HANDLE: Record<string, string> = {
   mppt: "bat-positive",
+  // Audit : oublié jusqu'ici alors qu'un régulateur PWM charge la batterie
+  // exactement comme un MPPT (même borne BAT+) — un PWM câblé sans
+  // protection avant la batterie n'était jamais signalé.
+  pwm: "bat-positive",
   dcdc: "out-positive",
   "ac-charger": "bat-positive",
   alternator: "positive",
+  "wind-turbine": "positive",
 };
 
 const AC_COMPONENT_TYPES = new Set(["ac-panel", "socket-220v", "ac-charger", "inverter", "inverter-charger", "shore-power", "power-station", "easysolar"]);
@@ -120,7 +125,13 @@ function reachesProtection(
       const node = nodes.find((n) => n.id === id);
       if (!node) continue;
       const type = node.data.componentType;
-      if (PROTECTION_TYPES.has(type)) return true;
+      // Audit : un "Tableau de distribution" en apparence "Interrupteurs
+      // seuls" (par défaut) n'a pas d'entrée commune fusible — ce n'est une
+      // vraie protection que dans sa variante "Interrupteurs + fusibles"
+      // (voir distributionPanelHandles). Sans cette exception, une batterie
+      // câblée directement sur un tableau à interrupteurs était
+      // silencieusement considérée comme protégée.
+      if (type === "distribution-panel" ? node.data.layout === "with-fuses" : PROTECTION_TYPES.has(type)) return true;
       if (PASSTHROUGH_TYPES.has(type)) {
         // On continue à travers toutes les bornes de ce nœud, pas seulement
         // celle par laquelle on est arrivé (un busbar redistribue).

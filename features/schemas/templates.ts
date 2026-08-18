@@ -330,8 +330,15 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
       outputCount: 3,
     }),
     buildNode("vl-shunt", "shunt", 1200, 540, {
-      label: "SmartShunt 300A",
-      amperage: 300,
+      // Audit gabarits : "300A" ne correspond à aucune référence Victron
+      // réellement vendue (gamme SmartShunt : 500A/1000A/2000A) — corrigé en
+      // 500A, la plus proche, et rattachée à son modèle de marque pour la
+      // vraie photo au lieu de l'icône générique.
+      label: "SmartShunt 500A",
+      amperage: 500,
+      brandModelId: "victron-smartshunt-500a",
+      brand: "Victron",
+      model: "SmartShunt 500A",
     }),
     buildNode("vl-busbar-neg", "busbar", 1480, 430, {
       label: "Busbar −",
@@ -391,6 +398,11 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
       powerW: 800,
       voltageDC: 12,
       chargeAmperage: 35,
+      // Audit gabarits : pas de photo dédiée au châssis "Compact" au
+      // catalogue, mais mêmes caractéristiques (12/800/35) que le "Multi
+      // 12/800/35" déjà présent — réutilise sa photo plutôt que l'icône
+      // générique.
+      brandModelId: "victron-multiplus-800-35",
       brand: "Victron",
       model: "MultiPlus Compact 12/800/35-16",
     }),
