@@ -206,6 +206,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
           { value: "plomb", label: "Plomb" },
           { value: "agm", label: "AGM" },
           { value: "gel", label: "GEL" },
+          { value: "lead-carbon", label: "Plomb-carbone" },
           { value: "lifepo4", label: "LiFePO4" },
         ],
       },
@@ -310,9 +311,39 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "out-negative", label: "OUT−", kind: "negative", side: "right" },
       { id: "out-positive", label: "OUT+", kind: "positive", side: "right" },
     ],
-    defaultData: { voltageIn: 12, voltageOut: 12, amperage: 20 },
+    // Retour utilisateur : "je crois que les [Orion] XS ont une masse
+    // commune donc uniquement 3 voies" — confirmé par la sérigraphie du
+    // boîtier (IN / GND / OUT) : un convertisseur non isolé partage sa
+    // masse entre l'entrée et la sortie (une seule borne −), contrairement
+    // à un modèle isolé (type Orion-Tr Smart) qui a un − séparé de chaque
+    // côté. Bascule les bornes selon `topology`, réglé par défaut sur les
+    // modèles concernés via `BrandModel.defaults` (voir brand-models.ts).
+    getHandles: (data) =>
+      data.topology === "non-isolated"
+        ? [
+            { id: "in-positive", label: "IN+", kind: "positive", side: "left" as const },
+            { id: "ground", label: "GND", kind: "negative", side: "bottom" as const },
+            { id: "out-positive", label: "OUT+", kind: "positive", side: "right" as const },
+          ]
+        : [
+            { id: "in-negative", label: "IN−", kind: "negative", side: "left" as const },
+            { id: "in-positive", label: "IN+", kind: "positive", side: "left" as const },
+            { id: "out-negative", label: "OUT−", kind: "negative", side: "right" as const },
+            { id: "out-positive", label: "OUT+", kind: "positive", side: "right" as const },
+          ],
+    defaultData: { voltageIn: 12, voltageOut: 12, amperage: 20, topology: "isolated" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
+      {
+        key: "topology",
+        label: "Isolation",
+        type: "select",
+        help: "Non isolé (masse commune) : une seule borne −, partagée entre l'entrée et la sortie — c'est le cas du Victron Orion XS par exemple. Isolé : entrée et sortie électriquement séparées, chacune avec son propre −.",
+        options: [
+          { value: "isolated", label: "Isolé" },
+          { value: "non-isolated", label: "Non isolé (masse commune)" },
+        ],
+      },
       { key: "voltageIn", label: "Tension entrée", type: "number", unit: "V" },
       { key: "voltageOut", label: "Tension sortie", type: "number", unit: "V" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A" },

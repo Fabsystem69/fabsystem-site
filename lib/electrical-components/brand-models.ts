@@ -35,6 +35,17 @@ export const BRAND_MODELS: BrandModel[] = [
   // Batteries
   { id: "victron-lithium-smart-100ah", brand: "Victron", model: "Lithium Smart 12,8V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/victron-lithium-smart-100ah.png" },
   { id: "victron-lithium-smart-200ah", brand: "Victron", model: "Lithium Smart 12,8V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/victron-lithium-smart-200ah.png" },
+  { id: "victron-lithium-superpack-100ah", brand: "Victron", model: "Lithium SuperPack 12,8V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/victron-lithium-superpack-100ah.webp" },
+  { id: "victron-lithium-superpack-ng-200ah", brand: "Victron", model: "Lithium SuperPack NG 12,8V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/victron-lithium-superpack-ng-200ah.webp" },
+  { id: "victron-lithium-ng-300ah", brand: "Victron", model: "Lithium NG 12,8V/300Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 300 }, iconPro: "/schema-icons/pro/brand/victron-lithium-ng-300ah.webp" },
+  { id: "victron-lithium-ng-24v-100ah", brand: "Victron", model: "Lithium NG 25,6V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 24, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/victron-lithium-ng-24v-100ah.webp" },
+  { id: "victron-agm-100ah", brand: "Victron", model: "AGM Super Cycle 12V/100Ah", componentType: "battery", defaults: { technology: "agm", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/victron-agm-100ah.webp" },
+  { id: "victron-gel-110ah", brand: "Victron", model: "GEL Deep Cycle 12V/110Ah", componentType: "battery", defaults: { technology: "gel", voltage: 12, capacityAh: 110 }, iconPro: "/schema-icons/pro/brand/victron-gel-110ah.webp" },
+  { id: "victron-gel-220ah", brand: "Victron", model: "GEL Deep Cycle 12V/220Ah", componentType: "battery", defaults: { technology: "gel", voltage: 12, capacityAh: 220 }, iconPro: "/schema-icons/pro/brand/victron-gel-220ah.webp" },
+  { id: "victron-lead-carbon-106ah", brand: "Victron", model: "Lead Carbon 12V/106Ah", componentType: "battery", defaults: { technology: "lead-carbon", voltage: 12, capacityAh: 106 }, iconPro: "/schema-icons/pro/brand/victron-lead-carbon-106ah.webp" },
+  // Marque française (batteries LiFePO4 grand public).
+  { id: "energie-mobile-lt12-100hd", brand: "Énergie Mobile", model: "LT12-100HD-BT 12V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/energie-mobile-lt12-100hd.webp" },
+  { id: "energie-mobile-lt12-200hd", brand: "Énergie Mobile", model: "LT12-200HD-BT 12V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/energie-mobile-lt12-200hd.webp" },
   { id: "renogy-agm-100ah", brand: "Renogy", model: "Deep Cycle AGM 12V/100Ah", componentType: "battery", defaults: { technology: "agm", voltage: 12, capacityAh: 100 } },
   { id: "renogy-lifepo4-100ah", brand: "Renogy", model: "Core Mini 12,8V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/renogy-lifepo4-100ah.webp" },
   { id: "renogy-core-mini-200ah", brand: "Renogy", model: "Core Mini 12,8V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/renogy-core-mini-200ah.webp" },
@@ -42,8 +53,8 @@ export const BRAND_MODELS: BrandModel[] = [
   // Marques grand public (Amazon), très vendues sur le segment van/bateau
   // débutant malgré une notoriété technique moindre que Victron/Renogy —
   // règle des 80/20 : ce sont elles que beaucoup d'utilisateurs ont déjà.
-  { id: "ecoworthy-lifepo4-100ah", brand: "EcoWorthy", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 } },
-  { id: "ecoworthy-lifepo4-200ah", brand: "EcoWorthy", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
+  { id: "ecoworthy-lifepo4-100ah", brand: "EcoWorthy", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/ecoworthy-lifepo4-200ah.webp" },
+  { id: "ecoworthy-lifepo4-200ah", brand: "EcoWorthy", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/ecoworthy-lifepo4-200ah.webp" },
   { id: "creabest-lifepo4-100ah", brand: "Creabest", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 } , iconPro: "/schema-icons/pro/brand/creabest-lifepo4-100ah.webp" },
   { id: "creabest-lifepo4-200ah", brand: "Creabest", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } , iconPro: "/schema-icons/pro/brand/creabest-lifepo4-200ah.webp" },
 
@@ -77,7 +88,7 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-smartsolar-100-50", brand: "Victron", model: "SmartSolar MPPT 100/50", componentType: "mppt", defaults: { amperage: 50, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-50.png" },
   { id: "victron-smartsolar-150-35", brand: "Victron", model: "SmartSolar MPPT 150/35", componentType: "mppt", defaults: { amperage: 35, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-150-35.png" },
   { id: "renogy-rover-20a", brand: "Renogy", model: "Rover 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-20a.webp" },
-  { id: "renogy-rover-40a", brand: "Renogy", model: "Rover 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
+  { id: "renogy-rover-40a", brand: "Renogy", model: "Rover 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-40a.webp" },
   { id: "renogy-rover-60a", brand: "Renogy", model: "Rover 60A", componentType: "mppt", defaults: { amperage: 60, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-60a.webp" },
   { id: "renogy-rover-elite-40a", brand: "Renogy", model: "Rover Elite 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
   { id: "ecoworthy-mppt-20a", brand: "EcoWorthy", model: "MPPT 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-mppt-20a.webp" },
@@ -101,9 +112,12 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png" },
   { id: "victron-orion-tr-18a", brand: "Victron", model: "Orion-Tr Smart 12/12-18A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 18 } , iconPro: "/schema-icons/pro/brand/victron-orion-tr-18a.webp" },
   { id: "victron-orion-tr-30a", brand: "Victron", model: "Orion-Tr Smart 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-30a.png" },
-  { id: "victron-orion-xs-12-12-30", brand: "Victron", model: "Orion XS 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 } },
-  { id: "victron-orion-xs-12-12-50", brand: "Victron", model: "Orion XS 12/12-50A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50 } , iconPro: "/schema-icons/pro/brand/victron-orion-xs-12-12-50.webp" },
-  { id: "victron-orion-xs-12-24-17", brand: "Victron", model: "Orion XS 12/24-17A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 24, amperage: 17 } },
+  // Non isolé (masse commune, une seule borne −) — sérigraphie du boîtier
+  // "IN / GND / OUT", à la différence de l'Orion-Tr Smart (isolé, IN/OUT
+  // chacun avec son propre −).
+  { id: "victron-orion-xs-12-12-30", brand: "Victron", model: "Orion XS 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30, topology: "non-isolated" }, iconPro: "/schema-icons/pro/brand/victron-orion-xs-12-12-30.webp" },
+  { id: "victron-orion-xs-12-12-50", brand: "Victron", model: "Orion XS 12/12-50A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50, topology: "non-isolated" } , iconPro: "/schema-icons/pro/brand/victron-orion-xs-12-12-50.webp" },
+  { id: "victron-orion-xs-12-24-17", brand: "Victron", model: "Orion XS 12/24-17A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 24, amperage: 17, topology: "non-isolated" } },
   { id: "renogy-dcc20s", brand: "Renogy", model: "DCC20S 20A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 20 }, iconPro: "/schema-icons/pro/brand/renogy-dcc20s.webp" },
   { id: "renogy-dcc30s", brand: "Renogy", model: "DCC30S 30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/renogy-dcc30s.webp" },
   { id: "renogy-dcc50s", brand: "Renogy", model: "DCC50S 50A (MPPT intégré)", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50 } , iconPro: "/schema-icons/pro/brand/renogy-dcc50s.webp" },
@@ -115,25 +129,35 @@ export const BRAND_MODELS: BrandModel[] = [
   // Chargeurs secteur
   { id: "victron-blue-smart-ip22-20a", brand: "Victron", model: "Blue Smart IP22 12/20", componentType: "ac-charger", defaults: { chargeAmperage: 20 } , iconPro: "/schema-icons/pro/brand/victron-blue-smart-ip22-20a.webp" },
   { id: "victron-blue-smart-ip22-30a", brand: "Victron", model: "Blue Smart IP22 12/30", componentType: "ac-charger", defaults: { chargeAmperage: 30 } , iconPro: "/schema-icons/pro/brand/victron-blue-smart-ip22-30a.webp" },
+  // IP67 : version totalement étanche (vs IP22, résistant aux éclaboussures
+  // seulement) — même gamme Blue Smart, boîtier différent.
+  { id: "victron-blue-smart-ip67-12-7", brand: "Victron", model: "Blue Smart IP67 12/7", componentType: "ac-charger", defaults: { chargeAmperage: 7 }, iconPro: "/schema-icons/pro/brand/victron-blue-smart-ip67-12-7.webp" },
+  { id: "victron-blue-smart-ip67-12-25", brand: "Victron", model: "Blue Smart IP67 12/25", componentType: "ac-charger", defaults: { chargeAmperage: 25 }, iconPro: "/schema-icons/pro/brand/victron-blue-smart-ip67-12-25.webp" },
   { id: "renogy-onboard-charger-20a", brand: "Renogy", model: "12V 20A On-Board Charger", componentType: "ac-charger", defaults: { chargeAmperage: 20 } },
   // Marque française (La Rochelle), référence historique en électronique
   // de bord marine — gamme de chargeurs YPOWER.
   { id: "cristec-ypower-12-20", brand: "Cristec", model: "YPOWER 12V/20A", componentType: "ac-charger", defaults: { chargeAmperage: 20 } , iconPro: "/schema-icons/pro/brand/cristec-ypower-12-20.webp" },
   { id: "cristec-ypower-12-30", brand: "Cristec", model: "YPOWER 12V/30A", componentType: "ac-charger", defaults: { chargeAmperage: 30 } , iconPro: "/schema-icons/pro/brand/cristec-ypower-12-30.webp" },
-  { id: "cristec-ypower-24-15", brand: "Cristec", model: "YPOWER 24V/15A", componentType: "ac-charger", defaults: { chargeAmperage: 15 } },
+  { id: "cristec-ypower-24-15", brand: "Cristec", model: "YPOWER 24V/15A", componentType: "ac-charger", defaults: { chargeAmperage: 15 }, iconPro: "/schema-icons/pro/brand/cristec-ypower-24-15.webp" },
 
   // Onduleurs purs
   { id: "victron-phoenix-500", brand: "Victron", model: "Phoenix Inverter 12/500", componentType: "inverter", defaults: { powerW: 500, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/victron-phoenix-500.webp" },
   { id: "victron-phoenix-800", brand: "Victron", model: "Phoenix Inverter 12/800", componentType: "inverter", defaults: { powerW: 800, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/victron-phoenix-800.png" },
   { id: "victron-phoenix-1200", brand: "Victron", model: "Phoenix Inverter 12/1200", componentType: "inverter", defaults: { powerW: 1200, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/victron-phoenix-1200.webp" },
+  { id: "victron-phoenix-1600", brand: "Victron", model: "Phoenix Inverter Smart 12/1600", componentType: "inverter", defaults: { powerW: 1600, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/victron-phoenix-1600.webp" },
   { id: "renogy-inverter-1000w", brand: "Renogy", model: "1000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 1000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/renogy-inverter-1000w.webp" },
   { id: "renogy-inverter-2000w", brand: "Renogy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/renogy-inverter-2000w.webp" },
   { id: "ecoworthy-inverter-1000w", brand: "EcoWorthy", model: "1000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 1000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-inverter-1000w.webp" },
   { id: "ecoworthy-inverter-2000w", brand: "EcoWorthy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-inverter-2000w.webp" },
 
   // Convertisseurs-chargeurs
+  { id: "victron-multiplus-500-20", brand: "Victron", model: "MultiPlus 12/500/20", componentType: "inverter-charger", defaults: { powerW: 500, voltageDC: 12, chargeAmperage: 20 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-500-20.webp" },
+  { id: "victron-multiplus-800-35", brand: "Victron", model: "Multi 12/800/35", componentType: "inverter-charger", defaults: { powerW: 800, voltageDC: 12, chargeAmperage: 35 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-800-35.webp" },
+  { id: "victron-multiplus-1200-50", brand: "Victron", model: "MultiPlus 12/1200/50", componentType: "inverter-charger", defaults: { powerW: 1200, voltageDC: 12, chargeAmperage: 50 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1200-50.webp" },
   { id: "victron-multiplus-1600-70", brand: "Victron", model: "MultiPlus 12/1600/70", componentType: "inverter-charger", defaults: { powerW: 1600, voltageDC: 12, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1600-70.png" },
+  { id: "victron-multiplus-ii-24-3000-70", brand: "Victron", model: "MultiPlus-II GX 24/3000/70", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 24, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-ii-24-3000-70.webp" },
   { id: "victron-multiplus-3000-120", brand: "Victron", model: "MultiPlus 12/3000/120", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 12, chargeAmperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-3000-120.png" },
+  { id: "creabest-inverter-charger-2000w", brand: "Creabest", model: "Inverter Charger 2000W 12V-230V/80A", componentType: "inverter-charger", defaults: { powerW: 2000, voltageDC: 12, chargeAmperage: 80 }, iconPro: "/schema-icons/pro/brand/creabest-inverter-charger-2000w.webp" },
 
   // Stations "tout-en-1" — plusieurs marques concurrentes sur le même
   // segment produit, pas seulement Fossibot.
@@ -172,7 +196,9 @@ export const BRAND_MODELS: BrandModel[] = [
   // Écran/hub de contrôle (GX) — rattaché à "system-monitor" (même rôle :
   // agréger les liaisons VE.Direct/VE.Bus et donner une vue d'ensemble du
   // système).
-  { id: "victron-cerbo-gx", brand: "Victron", model: "Cerbo GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-cerbo-gx.png" },
+  { id: "victron-cerbo-gx", brand: "Victron", model: "Cerbo GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-cerbo-gx.webp" },
+  { id: "victron-ccgx", brand: "Victron", model: "Color Control GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-ccgx.webp" },
+  { id: "victron-gx-touch-70", brand: "Victron", model: "GX Touch 70", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp" },
 ];
 
 export function getBrandModelsForType(componentType: string): BrandModel[] {

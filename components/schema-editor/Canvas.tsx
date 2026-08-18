@@ -294,6 +294,10 @@ export function Canvas() {
       onDrop={handleDrop}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
+      // Retour utilisateur : "bloque le clic droit sur l'éditeur schéma" —
+      // le menu contextuel natif du navigateur (copier l'image, etc.) n'a
+      // aucune utilité ici et gêne plus qu'autre chose sur un canvas.
+      onContextMenu={(e) => e.preventDefault()}
     >
       <ReactFlow
         nodes={reactFlowNodes}
