@@ -20,6 +20,15 @@ const MASK_RADIUS = 8;
 const LEG = 11;
 const BUMP_HEIGHT = 6;
 const SAMPLE_STEP = 8;
+// Retour utilisateur : "empêche-les dans les courbes, le fil donne
+// l'impression d'être coupé" — le sursaut suppose une portion de câble
+// localement DROITE de chaque côté du croisement (une jambe rectiligne
+// puis une bosse) ; sur l'arrondi d'un coude (voir `getBend` dans
+// CableEdge.tsx), la vraie tangente tourne sur quelques échantillons, donc
+// la jambe redessinée en ligne droite décroche visiblement du tracé courbe
+// réel. Un croisement détecté trop près d'un virage est donc ignoré plutôt
+// qu'affiché de travers.
+const MAX_BEND_ANGLE_DEG = 10;
 
 interface Point {
   x: number;
@@ -61,6 +70,21 @@ function segmentIntersection(p1: Point, p2: Point, p3: Point, p4: Point): Point 
   const u = ((p3.x - p1.x) * d1y - (p3.y - p1.y) * d1x) / denom;
   if (t <= 0 || t >= 1 || u <= 0 || u >= 1) return null;
   return { x: p1.x + t * d1x, y: p1.y + t * d1y };
+}
+
+// Angle (degrés) entre la direction juste avant et juste après `index` —
+// proche de 0 sur une portion droite, nettement plus grand sur l'arrondi
+// d'un coude.
+function localTurnAngleDeg(pts: Point[], index: number): number {
+  const a = pts[Math.max(0, index - 1)];
+  const b = pts[index];
+  const c = pts[Math.min(pts.length - 1, index + 2)];
+  const v1 = { x: b.x - a.x, y: b.y - a.y };
+  const v2 = { x: c.x - b.x, y: c.y - b.y };
+  const len1 = Math.hypot(v1.x, v1.y) || 1;
+  const len2 = Math.hypot(v2.x, v2.y) || 1;
+  const cos = (v1.x * v2.x + v1.y * v2.y) / (len1 * len2);
+  return (Math.acos(Math.max(-1, Math.min(1, cos))) * 180) / Math.PI;
 }
 
 function normalize(v: Point): Point {
@@ -128,14 +152,19 @@ export function CableCrossingOverlay() {
           for (let ia = 0; ia < ptsA.length - 1 && !hit; ia++) {
             for (let ib = 0; ib < ptsB.length - 1; ib++) {
               const point = segmentIntersection(ptsA[ia], ptsA[ia + 1], ptsB[ib], ptsB[ib + 1]);
-              if (point) {
-                hit = {
-                  point,
-                  tangentA: { x: ptsA[ia + 1].x - ptsA[ia].x, y: ptsA[ia + 1].y - ptsA[ia].y },
-                  tangentB: { x: ptsB[ib + 1].x - ptsB[ib].x, y: ptsB[ib + 1].y - ptsB[ib].y },
-                };
-                break;
+              if (!point) continue;
+              if (localTurnAngleDeg(ptsA, ia) > MAX_BEND_ANGLE_DEG || localTurnAngleDeg(ptsB, ib) > MAX_BEND_ANGLE_DEG) {
+                // Croisement réel mais dans un virage — cherche un autre
+                // point de croisement plus loin plutôt que d'afficher un
+                // sursaut décroché du tracé.
+                continue;
               }
+              hit = {
+                point,
+                tangentA: { x: ptsA[ia + 1].x - ptsA[ia].x, y: ptsA[ia + 1].y - ptsA[ia].y },
+                tangentB: { x: ptsB[ib + 1].x - ptsB[ib].x, y: ptsB[ib + 1].y - ptsB[ib].y },
+              };
+              break;
             }
           }
           if (!hit) continue;

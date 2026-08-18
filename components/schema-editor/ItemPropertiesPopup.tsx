@@ -10,6 +10,7 @@ import { estimateConnectedAmps, estimateEdgeAmps, evaluateEdgeSection, findBatte
 import { CABLE_SECTIONS } from "@/types/schema";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
+import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
 import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaStore";
 
 // v2.1, retour utilisateur : "supprimer le bandeau de droite car si celui
@@ -467,21 +468,27 @@ function FuseSuggestion({ nodeId, nodes, edges, darkMode }: { nodeId: string; no
   if (amps === null) return null;
   return (
     <div
-      className={`rounded-md border p-2.5 text-[11px] leading-snug ${
-        darkMode ? "border-brand-800 bg-brand-950 text-neutral-300" : "border-brand-200 bg-brand-50 text-neutral-700"
+      className={`flex items-start gap-2 rounded-md border p-2.5 ${
+        darkMode ? "border-brand-800 bg-brand-950" : "border-brand-200 bg-brand-50"
       }`}
     >
-      Suggestion débutant : le consommateur relié appelle environ <strong>{amps.toFixed(1)} A</strong> → calibre
-      conseillé <strong>{fusibleRecommande(amps)}</strong> (marge de 25 %).
+      <VoltaAvatar pose="action" size={32} />
+      <p className={`text-[11px] leading-snug ${darkMode ? "text-neutral-300" : "text-neutral-700"}`}>
+        Le consommateur relié appelle environ <strong>{amps.toFixed(1)} A</strong> — je te conseille un calibre{" "}
+        <strong>{fusibleRecommande(amps)}</strong> (marge de 25 %).
+      </p>
     </div>
   );
 }
 
-// Assistant de section (retour utilisateur : "calcul de section moyen pour
-// des allers-retours de 6-8m, fourchette haute"). Réutilise le même moteur
-// que le calculateur public /outils/section-cable (lib/calc/section-cable.ts)
-// — juste une suggestion facultative, jamais imposée : l'utilisateur choisit
-// toujours la section manuellement dans le menu au-dessus.
+// Assistant de section, sous forme de conseil parlé par Volta plutôt qu'un
+// calculateur à remplir (retour utilisateur : "on peut faire parler Volta ?")
+// — dès qu'un courant est estimable (même moteur que le recalcul en masse,
+// voir evaluateEdgeSection), la section conseillée est calculée et affichée
+// directement, sans bouton "Calculer" à cliquer. Repli sur les champs
+// manuels seulement quand rien n'est estimable (aucun consommateur en aval
+// connu) — l'utilisateur reste toujours libre de choisir une autre section
+// dans le menu au-dessus, ceci n'est qu'une suggestion.
 function SectionSuggestion({
   edge,
   nodes,
@@ -498,7 +505,7 @@ function SectionSuggestion({
   const [amps, setAmps] = useState("");
   const [length, setLength] = useState("4");
   const [tension, setTension] = useState("12");
-  const [result, setResult] = useState<{ sMin: string; section: number; fusible: string } | null>(null);
+  const [autoEstimated, setAutoEstimated] = useState(false);
 
   useEffect(() => {
     const v = findBatteryVoltage(nodes);
@@ -511,21 +518,17 @@ function SectionSuggestion({
     const diagnostic = evaluateEdgeSection(edge, nodes, edges);
     const estimated = diagnostic?.amps ?? estimateEdgeAmps(edge, nodes, edges);
     setAmps(estimated !== null ? String(Math.round(estimated * 10) / 10) : "");
+    setAutoEstimated(estimated !== null);
     const sourceType = nodes.find((n) => n.id === edge.source)?.data.componentType;
     const targetType = nodes.find((n) => n.id === edge.target)?.data.componentType;
     setLength(String(edge.data?.length ?? getEdgeDefaultLength(sourceType, targetType, edge.data?.section ?? "", edge.data?.cableType) ?? 4));
-    setResult(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edge.id]);
 
-  function calculate() {
-    const i = parseFloat(amps);
-    const l = parseFloat(length);
-    const t = parseFloat(tension);
-    if (!i || !l || !t || i <= 0 || l <= 0) return;
-    const { sMin, section } = calcSection(i, l, 3, t);
-    setResult({ sMin, section, fusible: fusibleRecommande(i) });
-  }
+  const i = parseFloat(amps);
+  const l = parseFloat(length);
+  const t = parseFloat(tension);
+  const result = i > 0 && l > 0 && t > 0 ? calcSection(i, l, 3, t) : null;
 
   const inputClass = `w-full rounded-md border px-2 py-1 text-sm focus:outline-none ${
     darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 focus:border-neutral-900"
@@ -533,57 +536,65 @@ function SectionSuggestion({
 
   return (
     <div className={`rounded-md border p-3 ${darkMode ? "border-neutral-700 bg-neutral-800" : "border-neutral-200 bg-neutral-50"}`}>
-      <p className={`text-xs font-semibold ${darkMode ? "text-neutral-200" : "text-neutral-700"}`}>Suggérer une section</p>
-      <p className={`mt-0.5 text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-        Hypothèse par défaut : 4 m aller (8 m aller-retour), fourchette haute usuelle.
-      </p>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <label className="block">
-          <span className={`mb-1 block text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Courant (A)</span>
-          <input type="number" value={amps} onChange={(e) => setAmps(e.target.value)} placeholder="ex : 10" className={inputClass} />
-        </label>
-        <label className="block">
-          <span className={`mb-1 block text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Longueur aller (m)</span>
-          <input type="number" value={length} onChange={(e) => setLength(e.target.value)} className={inputClass} />
-        </label>
+      <div className="flex items-start gap-2">
+        <VoltaAvatar pose={result ? "action" : "perplexe"} size={32} />
+        <div className="flex-1">
+          {result ? (
+            <p className={`text-[11px] leading-snug ${darkMode ? "text-neutral-300" : "text-neutral-700"}`}>
+              {autoEstimated ? (
+                <>D&apos;après le consommateur relié (≈{amps} A), je te conseille</>
+              ) : (
+                <>Avec les valeurs ci-dessous, je te conseille</>
+              )}{" "}
+              une section de <strong>{result.section} mm²</strong> (mini {result.sMin} mm²) — fusible conseillé{" "}
+              <strong>{fusibleRecommande(i)}</strong>.
+            </p>
+          ) : (
+            <p className={`text-[11px] leading-snug ${darkMode ? "text-neutral-300" : "text-neutral-700"}`}>
+              Je n&apos;ai pas assez d&apos;infos pour te conseiller une section — indique le courant estimé si tu le
+              connais.
+            </p>
+          )}
+        </div>
       </div>
-      <label className="mt-2 block">
-        <span className={`mb-1 block text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Tension (V)</span>
-        <select value={tension} onChange={(e) => setTension(e.target.value)} className={inputClass}>
-          <option value="12">12 V</option>
-          <option value="24">24 V</option>
-          <option value="48">48 V</option>
-        </select>
-      </label>
 
-      <button
-        type="button"
-        onClick={calculate}
-        className={`mt-2 w-full rounded-md px-2.5 py-1.5 text-xs font-semibold transition-base ${
-          darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"
-        }`}
-      >
-        Calculer
-      </button>
+      <details className="mt-2">
+        <summary className={`cursor-pointer text-[11px] font-medium ${darkMode ? "text-neutral-400 hover:text-neutral-200" : "text-neutral-500 hover:text-neutral-700"}`}>
+          {autoEstimated ? "Ajuster les hypothèses" : "Renseigner le courant"}
+        </summary>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <label className="block">
+            <span className={`mb-1 block text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Courant (A)</span>
+            <input type="number" value={amps} onChange={(e) => setAmps(e.target.value)} placeholder="ex : 10" className={inputClass} />
+          </label>
+          <label className="block">
+            <span className={`mb-1 block text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Longueur aller (m)</span>
+            <input type="number" value={length} onChange={(e) => setLength(e.target.value)} className={inputClass} />
+          </label>
+        </div>
+        <label className="mt-2 block">
+          <span className={`mb-1 block text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-500"}`}>Tension (V)</span>
+          <select value={tension} onChange={(e) => setTension(e.target.value)} className={inputClass}>
+            <option value="12">12 V</option>
+            <option value="24">24 V</option>
+            <option value="48">48 V</option>
+          </select>
+        </label>
+        <p className={`mt-1.5 text-[10px] leading-snug ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>
+          Hypothèse par défaut : 4 m aller (8 m aller-retour), fourchette haute usuelle.
+        </p>
+      </details>
 
       {result ? (
-        <div className={`mt-2 rounded-md border p-2 ${darkMode ? "border-brand-800 bg-brand-950" : "border-brand-300 bg-brand-50"}`}>
-          <p className={`text-[11px] ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
-            Section mini : {result.sMin} mm² · Fusible conseillé : {result.fusible}
-          </p>
-          <p className={`mt-0.5 text-sm font-bold ${darkMode ? "text-neutral-100" : "text-neutral-900"}`}>{result.section} mm² recommandé</p>
-          <button
-            type="button"
-            onClick={() => onApply(`${String(result.section).replace(".", ",")} mm²`)}
-            className={`mt-1.5 w-full rounded-md border px-2 py-1 text-[11px] font-semibold transition-base ${
-              darkMode
-                ? "border-neutral-100 text-neutral-100 hover:bg-neutral-100 hover:text-neutral-900"
-                : "border-neutral-900 text-neutral-900 hover:bg-neutral-900 hover:text-white"
-            }`}
-          >
-            Appliquer cette section
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onApply(`${String(result.section).replace(".", ",")} mm²`)}
+          className={`mt-2 w-full rounded-md px-2.5 py-1.5 text-xs font-semibold transition-base ${
+            darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"
+          }`}
+        >
+          Appliquer cette section
+        </button>
       ) : null}
     </div>
   );

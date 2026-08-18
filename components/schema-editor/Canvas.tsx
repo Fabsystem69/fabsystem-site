@@ -318,6 +318,18 @@ export function Canvas() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         connectionMode={ConnectionMode.Loose}
+        // Retour utilisateur : "même verrouillée, si on clique sur la zone
+        // on ne peut pas déplacer un élément dedans, il faut cliquer à
+        // l'extérieur puis sur l'item" — comportement par défaut de React
+        // Flow (`elevateNodesOnSelect`) : sélectionner un nœud boost
+        // temporairement son z-index par-dessus tout le reste, même si sa
+        // zone est intentionnellement en arrière-plan (`zIndex: -1`, voir
+        // addZone dans le store). Une zone cliquée passait donc devant les
+        // composants qu'elle contient tant qu'elle restait sélectionnée,
+        // interceptant leurs clics. Désactivé globalement : les zones
+        // restent un vrai calque de fond, jamais devant un composant, que
+        // ce soit sélectionné ou non.
+        elevateNodesOnSelect={false}
         // V2, retour utilisateur : "pour relier chaque élément, cliquer sur
         // la sortie qu'on veut relier et cliquer sur l'entrée de l'autre
         // élément, ou inversement" — fonctionnalité native de React Flow
