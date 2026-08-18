@@ -39,6 +39,16 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-lifepo4-100ah", brand: "Renogy", model: "Core Mini 12,8V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/renogy-lifepo4-100ah.webp" },
   { id: "renogy-core-mini-200ah", brand: "Renogy", model: "Core Mini 12,8V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/renogy-core-mini-200ah.webp" },
   { id: "renogy-smart-lithium-200ah", brand: "Renogy", model: "Smart Lithium 12V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
+  // Marques grand public (Amazon), très vendues sur le segment van/bateau
+  // débutant malgré une notoriété technique moindre que Victron/Renogy —
+  // règle des 80/20 : ce sont elles que beaucoup d'utilisateurs ont déjà.
+  { id: "ecoworthy-lifepo4-100ah", brand: "EcoWorthy", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 } },
+  { id: "ecoworthy-lifepo4-200ah", brand: "EcoWorthy", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
+  { id: "creabest-lifepo4-100ah", brand: "Creabest", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 } },
+  { id: "creabest-lifepo4-200ah", brand: "Creabest", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
+  // Marque française, spécialiste batteries lithium pour camping-car/van.
+  { id: "voltinov-lifepo4-100ah", brand: "Voltinov", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 } },
+  { id: "voltinov-lifepo4-200ah", brand: "Voltinov", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
 
   // Panneaux solaires (retour utilisateur : "l'item doit être trouvable
   // facilement, choisir le modèle/puissance de la même gamme" — jusqu'ici 0
@@ -51,6 +61,13 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-115w-rigid", brand: "Victron", model: "BlueSolar 115W rigide", componentType: "solar-panel", defaults: { powerW: 115, voltage: 0 } },
   { id: "bougerv-200w-flexible", brand: "BougeRV", model: "200W flexible", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } },
   { id: "bougerv-400w-rigid", brand: "BougeRV", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 } },
+  { id: "ecoworthy-100w-rigid", brand: "EcoWorthy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 } },
+  { id: "ecoworthy-200w-rigid", brand: "EcoWorthy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } },
+  { id: "ecoworthy-400w-rigid", brand: "EcoWorthy", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 } },
+  // Marque française, panneaux solaires nomades/portables très répandus en
+  // camping-car.
+  { id: "sunology-100w-portable", brand: "Sunology", model: "Move 100W portable", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 } },
+  { id: "sunology-200w-portable", brand: "Sunology", model: "Move 200W portable", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } },
 
   // MPPT
   // Pas d'iconPro ici : le visuel fourni pour ce modèle était corrompu
@@ -66,6 +83,8 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-rover-40a", brand: "Renogy", model: "Rover 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
   { id: "renogy-rover-60a", brand: "Renogy", model: "Rover 60A", componentType: "mppt", defaults: { amperage: 60, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-60a.webp" },
   { id: "renogy-rover-elite-40a", brand: "Renogy", model: "Rover Elite 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
+  { id: "ecoworthy-mppt-20a", brand: "EcoWorthy", model: "MPPT 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 } },
+  { id: "ecoworthy-mppt-40a", brand: "EcoWorthy", model: "MPPT 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
 
   // PWM (retour utilisateur : "chaque item détaillé pareil" — 0 modèle
   // jusqu'ici alors que le MPPT, son jumeau, en a 10).
@@ -79,15 +98,26 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png" },
   { id: "victron-orion-tr-18a", brand: "Victron", model: "Orion-Tr Smart 12/12-18A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 18 } },
   { id: "victron-orion-tr-30a", brand: "Victron", model: "Orion-Tr Smart 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-30a.png" },
+  { id: "victron-orion-xs-12-12-30", brand: "Victron", model: "Orion XS 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 } },
+  { id: "victron-orion-xs-12-12-50", brand: "Victron", model: "Orion XS 12/12-50A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50 } },
+  { id: "victron-orion-xs-12-24-17", brand: "Victron", model: "Orion XS 12/24-17A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 24, amperage: 17 } },
   { id: "renogy-dcc20s", brand: "Renogy", model: "DCC20S 20A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 20 }, iconPro: "/schema-icons/pro/brand/renogy-dcc20s.webp" },
   { id: "renogy-dcc30s", brand: "Renogy", model: "DCC30S 30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/renogy-dcc30s.webp" },
   { id: "renogy-dcc50s", brand: "Renogy", model: "DCC50S 50A (MPPT intégré)", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50 } },
   { id: "fossibot-dcdc-50a", brand: "Fossibot", model: "Chargeur DC-DC 50A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50 }, iconPro: "/schema-icons/pro/brand/fossibot-dcdc-50a.webp" },
+  { id: "ecoworthy-dcdc-20a", brand: "EcoWorthy", model: "Chargeur DC-DC MPPT 20A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 20 } },
+  { id: "ecoworthy-dcdc-40a", brand: "EcoWorthy", model: "Chargeur DC-DC MPPT 40A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 40 } },
+  { id: "cristec-dcdc-12-12-30", brand: "Cristec", model: "Convertisseur DC-DC 12/12V-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 } },
 
   // Chargeurs secteur
   { id: "victron-blue-smart-ip22-20a", brand: "Victron", model: "Blue Smart IP22 12/20", componentType: "ac-charger", defaults: { chargeAmperage: 20 } },
   { id: "victron-blue-smart-ip22-30a", brand: "Victron", model: "Blue Smart IP22 12/30", componentType: "ac-charger", defaults: { chargeAmperage: 30 } },
   { id: "renogy-onboard-charger-20a", brand: "Renogy", model: "12V 20A On-Board Charger", componentType: "ac-charger", defaults: { chargeAmperage: 20 } },
+  // Marque française (La Rochelle), référence historique en électronique
+  // de bord marine — gamme de chargeurs YPOWER.
+  { id: "cristec-ypower-12-20", brand: "Cristec", model: "YPOWER 12V/20A", componentType: "ac-charger", defaults: { chargeAmperage: 20 } },
+  { id: "cristec-ypower-12-30", brand: "Cristec", model: "YPOWER 12V/30A", componentType: "ac-charger", defaults: { chargeAmperage: 30 } },
+  { id: "cristec-ypower-24-15", brand: "Cristec", model: "YPOWER 24V/15A", componentType: "ac-charger", defaults: { chargeAmperage: 15 } },
 
   // Onduleurs purs
   { id: "victron-phoenix-500", brand: "Victron", model: "Phoenix Inverter 12/500", componentType: "inverter", defaults: { powerW: 500, voltageDC: 12 } },
@@ -95,6 +125,8 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-phoenix-1200", brand: "Victron", model: "Phoenix Inverter 12/1200", componentType: "inverter", defaults: { powerW: 1200, voltageDC: 12 } },
   { id: "renogy-inverter-1000w", brand: "Renogy", model: "1000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 1000, voltageDC: 12 } },
   { id: "renogy-inverter-2000w", brand: "Renogy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } },
+  { id: "ecoworthy-inverter-1000w", brand: "EcoWorthy", model: "1000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 1000, voltageDC: 12 } },
+  { id: "ecoworthy-inverter-2000w", brand: "EcoWorthy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } },
 
   // Convertisseurs-chargeurs
   { id: "victron-multiplus-1600-70", brand: "Victron", model: "MultiPlus 12/1600/70", componentType: "inverter-charger", defaults: { powerW: 1600, voltageDC: 12, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1600-70.png" },
@@ -124,6 +156,8 @@ export const BRAND_MODELS: BrandModel[] = [
   // encore aucun modèle de marque).
   { id: "victron-argofet-100-2bat", brand: "Victron", model: "Argofet 100A 2 batteries", componentType: "battery-isolator", defaults: { outputCount: 2, amperage: 100 }, iconPro: "/schema-icons/pro/brand/victron-argofet-100-2bat.png" },
   { id: "victron-argofet-100-3bat", brand: "Victron", model: "Argofet 100A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 100 }, iconPro: "/schema-icons/pro/brand/victron-argofet-100-3bat.png" },
+  { id: "cristec-diodis-160-2bat", brand: "Cristec", model: "Diodis 160A 2 batteries", componentType: "battery-isolator", defaults: { outputCount: 2, amperage: 160 } },
+  { id: "cristec-diodis-160-3bat", brand: "Cristec", model: "Diodis 160A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 160 } },
 
   // Coupure basse tension (BatteryProtect : déconnecte automatiquement une
   // charge sous un seuil de tension réglable — rattaché à "battery-switch",

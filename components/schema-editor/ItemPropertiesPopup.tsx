@@ -200,6 +200,26 @@ function NodePropertiesCard({
           {def.description}
         </p>
       ) : null}
+      {def.allowDisplayScale ? (
+        <label className="block">
+          <span className={`mb-1 flex items-center justify-between text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>
+            <span>Taille d'affichage</span>
+            <span>×{Number(node.data.displayScale) || 1}</span>
+          </span>
+          <input
+            type="range"
+            min={1}
+            max={5}
+            step={1}
+            value={Number(node.data.displayScale) || 1}
+            onChange={(e) => updateNodeData(node.id, { displayScale: Number(e.target.value) })}
+            className="w-full"
+          />
+          <span className={`mt-1 block text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
+            Agrandit uniquement cette vignette sur le schéma, pour la mettre en valeur.
+          </span>
+        </label>
+      ) : null}
       {brandModels.length > 0 ? (
         <label className="block">
           <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Marque / modèle</span>

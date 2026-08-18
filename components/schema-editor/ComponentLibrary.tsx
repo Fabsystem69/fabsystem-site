@@ -386,7 +386,7 @@ export function ComponentLibrary() {
                                 if (item.presetValue) e.dataTransfer.setData("application/fabsystem-preset", item.presetValue);
                                 e.dataTransfer.effectAllowed = "move";
                               }}
-                              onDoubleClick={() => handleClickAdd(item.type, item.presetValue)}
+                              onClick={() => handleClickAdd(item.type, item.presetValue)}
                               className={`flex w-full cursor-grab items-center justify-between rounded-md border px-2.5 py-2 text-left text-sm shadow-sm transition-base active:cursor-grabbing ${
                                 item.key === guidedHighlightKey
                                   ? darkMode
@@ -396,7 +396,7 @@ export function ComponentLibrary() {
                                     ? "border-neutral-700 bg-neutral-800 text-neutral-100 hover:border-neutral-500 hover:bg-neutral-700"
                                     : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-100"
                               }`}
-                              title={`Glisser-déposer sur le canvas, ou double-clic pour ajouter : ${item.label}`}
+                              title={`Glisser-déposer sur le canvas, ou clic pour ajouter : ${item.label}`}
                             >
                               <span className="flex items-center gap-2">
                                 {item.icon ? (

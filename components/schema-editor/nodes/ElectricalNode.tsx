@@ -103,7 +103,13 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   // faire grossir les busbar... trop imposant par rapport aux autres
   // éléments".
   const maxPerSide = Math.max(bySide.left.length, bySide.right.length, bySide.top.length, bySide.bottom.length, 1);
-  const boxSize = Math.min(84, Math.max(BOX_BASE, def?.minIconBoxSize ?? 0, maxPerSide * 14 + 16));
+  const baseBoxSize = Math.min(84, Math.max(BOX_BASE, def?.minIconBoxSize ?? 0, maxPerSide * 14 + 16));
+  // Retour utilisateur : "possibilité d'agrandir une vignette pour la mettre
+  // plus en valeur", limité à la famille batterie et aux boîtiers
+  // (chargeurs/régulateurs/convertisseurs/tableau de distribution) via
+  // `def.allowDisplayScale` — voir le contrôle dans ItemPropertiesPopup.
+  const displayScale = def?.allowDisplayScale ? Math.min(5, Math.max(1, Number(data.displayScale) || 1)) : 1;
+  const boxSize = baseBoxSize * displayScale;
 
   // Étiquettes de bornes intégrées à l'intérieur du contour (V2, retour
   // utilisateur : "les indications de voie sont toujours chevauchées par le
@@ -261,6 +267,9 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
           const dotColor = isPolarized
             ? HANDLE_DOT_COLOR[kind]
             : (connectedEdge?.data?.color ?? "#111827");
+          // Grandit un peu avec la vignette (racine carrée : évite un point
+          // de connexion disproportionné aux niveaux de zoom élevés).
+          const dotSize = 9 * Math.sqrt(displayScale);
 
           return (
             <Handle
@@ -271,8 +280,8 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
               style={{
                 [isVertical ? "top" : "left"]: `${percent}%`,
                 background: dotColor,
-                width: 9,
-                height: 9,
+                width: dotSize,
+                height: dotSize,
                 border: "2px solid white",
               }}
               title={`${def.label} · ${getHandleLabel(def, data, handle)}`}
@@ -285,9 +294,10 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
         // Fond opaque même hors sélection (retour utilisateur : les câbles
         // qui passent sous un nœud traversaient visuellement son nom) —
         // même logique que le fond ajouté aux étiquettes de bornes.
-        className={`max-w-full truncate rounded px-1 text-[10px] font-medium leading-tight ${
+        className={`max-w-full truncate rounded px-1 font-medium leading-tight ${
           selected ? "bg-brand-100 text-neutral-700" : darkMode ? "bg-neutral-950 text-neutral-300" : "bg-white text-neutral-700"
         }`}
+        style={{ fontSize: 10 + (displayScale - 1) * 1.5 }}
         title={String(data.label ?? def.label)}
       >
         {String(data.label ?? def.label)}

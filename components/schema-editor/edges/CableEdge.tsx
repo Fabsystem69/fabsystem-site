@@ -94,7 +94,7 @@ function handleAtPoint(clientX: number, clientY: number): { nodeId: string; hand
 // sur le fond sombre du canvas — retour utilisateur : "les fils noirs
 // doivent passer en bleu en mode nuit". Purement un ajustement d'affichage :
 // la couleur réellement stockée dans les données du câble ne change pas.
-const DARK_MODE_COLOR_OVERRIDE: Record<string, string> = {
+export const DARK_MODE_COLOR_OVERRIDE: Record<string, string> = {
   "#111827": "#60a5fa",
   "#000000": "#60a5fa",
 };
@@ -103,7 +103,7 @@ const DARK_MODE_COLOR_OVERRIDE: Record<string, string> = {
 // indicatif/visuel, aucune section n'est stockée en dehors du champ
 // existant. Extrait le premier nombre trouvé dans le libellé de section
 // ("6 mm²", "1,5 mm²", "3G2,5 mm²"…), virgule française acceptée.
-function parseSectionMm2(section?: string): number | null {
+export function parseSectionMm2(section?: string): number | null {
   if (!section) return null;
   const match = section.match(/([\d,.]+)\s*mm/i);
   if (!match) return null;
@@ -119,7 +119,7 @@ export function cableCaption(data: CableEdgeData | undefined): string {
   return [data?.label, data?.section, lengthLabel].filter(Boolean).join(" · ");
 }
 
-function strokeWidthForSection(mm2: number | null): number {
+export function strokeWidthForSection(mm2: number | null): number {
   if (mm2 === null) return 2;
   if (mm2 <= 1) return 1.5;
   if (mm2 <= 2.5) return 2;

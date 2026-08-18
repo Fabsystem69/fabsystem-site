@@ -1,0 +1,215 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { ViewportPortal } from "@xyflow/react";
+import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { DARK_MODE_COLOR_OVERRIDE, parseSectionMm2, strokeWidthForSection } from "@/components/schema-editor/edges/CableEdge";
+
+// Retour utilisateur : "si un câble différent se croise, je veux qu'il y
+// ait un petit sursaut pour faire comprendre que ce n'est pas une épissure"
+// — deux câbles qui se croisent sans être électriquement reliés (aucun
+// nœud commun) doivent se distinguer visuellement d'une vraie jonction.
+//
+// Approche : plutôt que de recalculer nous-mêmes la géométrie de chaque
+// tracé (dupliquer la logique de coudes de CableEdge, avec ses arrondis et
+// son point de coude optionnel), on lit directement les <path> déjà rendus
+// par React Flow dans le DOM et on les échantillonne avec
+// `getPointAtLength` — toujours pixel-exact avec ce qui est réellement
+// affiché, tracé automatique ou point de coude manuel confondus.
+const MASK_RADIUS = 8;
+const LEG = 11;
+const BUMP_HEIGHT = 6;
+const SAMPLE_STEP = 8;
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface Crossing {
+  key: string;
+  point: Point;
+  straight: { tangent: Point; color: string; strokeWidth: number; dasharray?: string };
+  jumper: { tangent: Point; color: string; strokeWidth: number; dasharray?: string };
+  maskColor: string;
+}
+
+function samplePath(pathEl: SVGPathElement): Point[] {
+  const len = pathEl.getTotalLength();
+  if (!len) return [];
+  const n = Math.max(2, Math.min(120, Math.ceil(len / SAMPLE_STEP)));
+  const pts: Point[] = [];
+  for (let i = 0; i <= n; i++) {
+    const p = pathEl.getPointAtLength((i / n) * len);
+    pts.push({ x: p.x, y: p.y });
+  }
+  return pts;
+}
+
+// Intersection de deux segments (pas de simples droites infinies) : ne
+// retourne un point que si le croisement tombe réellement à l'intérieur
+// des deux segments — exclut les cas parallèles et les simples contacts en
+// bout de segment.
+function segmentIntersection(p1: Point, p2: Point, p3: Point, p4: Point): Point | null {
+  const d1x = p2.x - p1.x;
+  const d1y = p2.y - p1.y;
+  const d2x = p4.x - p3.x;
+  const d2y = p4.y - p3.y;
+  const denom = d1x * d2y - d1y * d2x;
+  if (Math.abs(denom) < 1e-9) return null;
+  const t = ((p3.x - p1.x) * d2y - (p3.y - p1.y) * d2x) / denom;
+  const u = ((p3.x - p1.x) * d1y - (p3.y - p1.y) * d1x) / denom;
+  if (t <= 0 || t >= 1 || u <= 0 || u >= 1) return null;
+  return { x: p1.x + t * d1x, y: p1.y + t * d1y };
+}
+
+function normalize(v: Point): Point {
+  const len = Math.hypot(v.x, v.y) || 1;
+  return { x: v.x / len, y: v.y / len };
+}
+
+function bumpPath(point: Point, tangent: Point): string {
+  const u = normalize(tangent);
+  const perp = { x: -u.y, y: u.x };
+  const start = { x: point.x - u.x * LEG, y: point.y - u.y * LEG };
+  const end = { x: point.x + u.x * LEG, y: point.y + u.y * LEG };
+  const control = { x: point.x + perp.x * BUMP_HEIGHT * 2, y: point.y + perp.y * BUMP_HEIGHT * 2 };
+  return `M${start.x} ${start.y}Q${control.x} ${control.y} ${end.x} ${end.y}`;
+}
+
+function straightLegPath(point: Point, tangent: Point): string {
+  const u = normalize(tangent);
+  const start = { x: point.x - u.x * LEG, y: point.y - u.y * LEG };
+  const end = { x: point.x + u.x * LEG, y: point.y + u.y * LEG };
+  return `M${start.x} ${start.y}L${end.x} ${end.y}`;
+}
+
+export function CableCrossingOverlay() {
+  const edges = useSchemaStore((s) => s.edges);
+  const nodes = useSchemaStore((s) => s.nodes);
+  const darkMode = useSchemaStore((s) => s.darkMode);
+  const [crossings, setCrossings] = useState<Crossing[]>([]);
+
+  useEffect(() => {
+    // Un léger différé (après paint + un court silence) plutôt qu'un
+    // recalcul à chaque frame de glisser : cette détection lit le DOM déjà
+    // rendu, donc doit attendre le prochain paint, et un débounce évite de
+    // relancer O(E²) comparaisons de segments à chaque pixel de déplacement
+    // pendant un glisser de nœud.
+    const timeout = setTimeout(() => {
+      const edgeEls = new Map<string, SVGPathElement>();
+      document.querySelectorAll<HTMLElement>(".react-flow__edge[data-id]").forEach((g) => {
+        const edgeId = g.getAttribute("data-id");
+        const path = g.querySelector<SVGPathElement>("path.react-flow__edge-path");
+        if (edgeId && path) edgeEls.set(edgeId, path);
+      });
+
+      const relevant = edges.filter((e) => edgeEls.has(e.id));
+      const found: Crossing[] = [];
+
+      for (let i = 0; i < relevant.length; i++) {
+        const a = relevant[i];
+        const pathA = edgeEls.get(a.id)!;
+        const ptsA = samplePath(pathA);
+        if (ptsA.length < 2) continue;
+
+        for (let j = i + 1; j < relevant.length; j++) {
+          const b = relevant[j];
+          // Deux câbles reliés au même nœud (même via des bornes
+          // différentes, ex. plusieurs sorties d'un busbar) se rejoignent
+          // légitimement près de ce nœud — pas un vrai croisement.
+          if (a.source === b.source || a.source === b.target || a.target === b.source || a.target === b.target) continue;
+
+          const pathB = edgeEls.get(b.id)!;
+          const ptsB = samplePath(pathB);
+          if (ptsB.length < 2) continue;
+
+          let hit: { point: Point; tangentA: Point; tangentB: Point } | null = null;
+          for (let ia = 0; ia < ptsA.length - 1 && !hit; ia++) {
+            for (let ib = 0; ib < ptsB.length - 1; ib++) {
+              const point = segmentIntersection(ptsA[ia], ptsA[ia + 1], ptsB[ib], ptsB[ib + 1]);
+              if (point) {
+                hit = {
+                  point,
+                  tangentA: { x: ptsA[ia + 1].x - ptsA[ia].x, y: ptsA[ia + 1].y - ptsA[ia].y },
+                  tangentB: { x: ptsB[ib + 1].x - ptsB[ib].x, y: ptsB[ib + 1].y - ptsB[ib].y },
+                };
+                break;
+              }
+            }
+          }
+          if (!hit) continue;
+
+          // Règle stable (déterministe, sans signification électrique) pour
+          // décider lequel des deux câbles fait le sursaut : celui dont
+          // l'id est le plus grand — reste cohérent d'un rendu à l'autre.
+          const jumperIsA = a.id > b.id;
+          const jumperEdge = jumperIsA ? a : b;
+          const straightEdge = jumperIsA ? b : a;
+          const jumperTangent = jumperIsA ? hit.tangentA : hit.tangentB;
+          const straightTangent = jumperIsA ? hit.tangentB : hit.tangentA;
+
+          const colorFor = (color: string | undefined) => {
+            const raw = color ?? "#6b7280";
+            return darkMode ? (DARK_MODE_COLOR_OVERRIDE[raw.toLowerCase()] ?? raw) : raw;
+          };
+          const widthFor = (section: string | undefined) => strokeWidthForSection(parseSectionMm2(section));
+          const dasharrayFor = (cableType: string | undefined) =>
+            cableType === "data-bus" ? "6,4" : cableType === "ac-230v" ? "12,5" : undefined;
+
+          found.push({
+            key: `${a.id}::${b.id}`,
+            point: hit.point,
+            straight: {
+              tangent: straightTangent,
+              color: colorFor(straightEdge.data?.color),
+              strokeWidth: widthFor(straightEdge.data?.section),
+              dasharray: dasharrayFor(straightEdge.data?.cableType),
+            },
+            jumper: {
+              tangent: jumperTangent,
+              color: colorFor(jumperEdge.data?.color),
+              strokeWidth: widthFor(jumperEdge.data?.section),
+              dasharray: dasharrayFor(jumperEdge.data?.cableType),
+            },
+            maskColor: darkMode ? "#0a0a0a" : "#ffffff",
+          });
+        }
+      }
+
+      setCrossings(found);
+    }, 120);
+
+    return () => clearTimeout(timeout);
+  }, [nodes, edges, darkMode]);
+
+  if (crossings.length === 0) return null;
+
+  return (
+    <ViewportPortal>
+      <svg style={{ overflow: "visible", pointerEvents: "none" }}>
+        {crossings.map((c) => (
+          <g key={c.key}>
+            <circle cx={c.point.x} cy={c.point.y} r={MASK_RADIUS} fill={c.maskColor} />
+            <path
+              d={straightLegPath(c.point, c.straight.tangent)}
+              fill="none"
+              stroke={c.straight.color}
+              strokeWidth={c.straight.strokeWidth}
+              strokeDasharray={c.straight.dasharray}
+              strokeLinecap="round"
+            />
+            <path
+              d={bumpPath(c.point, c.jumper.tangent)}
+              fill="none"
+              stroke={c.jumper.color}
+              strokeWidth={c.jumper.strokeWidth}
+              strokeDasharray={c.jumper.dasharray}
+              strokeLinecap="round"
+            />
+          </g>
+        ))}
+      </svg>
+    </ViewportPortal>
+  );
+}

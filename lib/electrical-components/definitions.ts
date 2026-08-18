@@ -30,6 +30,8 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "pilote-automatique", label: "Pilote automatique", typicalPowerW: 30, iconPro: "/schema-icons/pro/pilote-automatique.webp" },
   { value: "chargeur-telephone", label: "Chargeur téléphone / ordinateur", typicalPowerW: 25, iconPro: "/schema-icons/pro/chargeur-telephone.webp" },
   { value: "chauffe-eau", label: "Chauffe-eau", typicalPowerW: 300, iconPro: "/schema-icons/pro/chauffe-eau.webp" },
+  { value: "chauffage-appoint", label: "Chauffage d'appoint (soufflant 12V)", typicalPowerW: 150 },
+  { value: "chauffage-diesel", label: "Chauffage diesel/air (Webasto, Eberspächer…)", typicalPowerW: 40 },
   { value: "climatisation", label: "Climatisation de toit", typicalPowerW: 1500, iconPro: "/schema-icons/pro/climatisation.webp" },
   { value: "ventilateur", label: "Ventilateur de toit", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur.webp" },
   { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500 },
@@ -81,6 +83,34 @@ function variableOutputHandles(data: Record<string, unknown>): ComponentHandleDe
   return handles;
 }
 
+// Busbar réel : une simple barre métallique, tous les points de connexion
+// alignés sur la même face (retour utilisateur : "des points de jonction
+// tout sur la même face pas sur les quatre côtés" et "pas besoin de IN sur
+// un busbar" — contrairement à un tableau de distribution, une barre n'a
+// pas d'entrée dédiée, chaque point est équivalent). Les ids `input`/
+// `out-N` sont conservés pour ne pas casser les câbles déjà connectés sur
+// des schémas existants ; seuls le côté et le libellé changent.
+const BUSBAR_SIDE: "right" = "right";
+
+function busbarHandles(data: Record<string, unknown>): ComponentHandleDef[] {
+  const count = clampOutputCount(data.outputCount ?? DEFAULT_OUTPUTS);
+  const handles: ComponentHandleDef[] = [{ id: "input", label: "1", kind: "positive", side: BUSBAR_SIDE }];
+  for (let i = 1; i <= count; i++) {
+    handles.push({ id: `out-${i}`, label: String(i + 1), kind: "positive", side: BUSBAR_SIDE });
+  }
+  return handles;
+}
+
+const busbarPointCountField = {
+  key: "outputCount",
+  label: "Nombre de points de connexion",
+  type: "number" as const,
+  min: MIN_OUTPUTS,
+  max: MAX_OUTPUTS,
+  step: 1,
+  help: `De ${MIN_OUTPUTS + 1} à ${MAX_OUTPUTS + 1} points au total. Réduire ce nombre supprime les câbles reliés aux points retirés.`,
+};
+
 // Disposition d'une vraie platine de fusibles (retour utilisateur : "4
 // sorties de chaque côté et une entrée sur un autre côté", d'après la photo
 // fournie) : sorties réparties à gauche et à droite, entrée séparée en haut.
@@ -94,6 +124,13 @@ function fuseBlockHandles(data: Record<string, unknown>): ComponentHandleDef[] {
   }
   for (let i = 1; i <= leftCount; i++) {
     handles.push({ id: `out-${rightCount + i}`, label: String(rightCount + i), kind: "positive", side: "left" });
+  }
+  // Retour utilisateur : "platine fusible +/-" — certaines platines
+  // combinent une rangée de fusibles positifs et une barre de retour
+  // négatif (bornier commun, pas de fusible dessus). Ajoutée seulement si
+  // demandée, sur le côté bas pour ne pas se mélanger aux sorties positives.
+  if (data.layout === "positive-negative") {
+    handles.push({ id: "negative-bus", label: "− (commun)", kind: "negative", side: "bottom" });
   }
   return handles;
 }
@@ -136,6 +173,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "battery",
     label: "Batterie",
+    allowDisplayScale: true,
     description: "Stocke l'énergie électrique du système.",
     category: "battery",
     subcategory: "batteries",
@@ -203,6 +241,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "mppt",
     label: "Régulateur MPPT",
+    allowDisplayScale: true,
     description: "Régulateur solaire qui optimise le transfert d'énergie des panneaux vers la batterie.",
     category: "solar",
     subcategory: "regulateurs",
@@ -231,6 +270,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "pwm",
     label: "Régulateur PWM",
+    allowDisplayScale: true,
     description: "Régulateur solaire simple, moins efficace qu'un MPPT mais moins cher.",
     category: "solar",
     subcategory: "regulateurs",
@@ -255,6 +295,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "dcdc",
     label: "Chargeur DC/DC",
+    allowDisplayScale: true,
     description: "Charge la batterie auxiliaire depuis l'alternateur du véhicule en roulant.",
     category: "charger",
     subcategory: "dcdc",
@@ -280,6 +321,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ac-charger",
     label: "Chargeur secteur",
+    allowDisplayScale: true,
     description: "Recharge les batteries sur secteur 230V (quai, groupe électrogène).",
     category: "charger",
     subcategory: "secteur",
@@ -330,6 +372,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // commutée par ce composant.
     type: "battery-isolator",
     label: "Répartiteur de charge",
+    allowDisplayScale: true,
     description: "Sépare deux batteries pour charger l'auxiliaire sans décharger celle du moteur.",
     category: "battery",
     subcategory: "repartiteurs",
@@ -365,6 +408,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // fixe, les deux bornes sont équivalentes.
     type: "battery-combiner",
     label: "Combineur de batteries",
+    allowDisplayScale: true,
     description: "Relie plusieurs batteries en un seul banc pour cumuler leur capacité.",
     category: "battery",
     subcategory: "repartiteurs",
@@ -479,10 +523,84 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "input", label: "IN", kind: "positive", side: "left" },
       { id: "output", label: "OUT", kind: "positive", side: "right" },
     ],
-    defaultData: { amperage: 0 },
+    // Interrupteur inverseur (3 positions / bipolaire, ex. pompe de cale
+    // manuel/auto/off) : un commun alimenté ("IN") peut être aiguillé vers
+    // l'une de deux sorties — la 2ᵉ sortie n'apparaît que si choisie, pour
+    // ne pas ajouter une borne inutile par défaut.
+    getHandles: (data) =>
+      data.poles === "3-positions"
+        ? [
+            { id: "input", label: "IN", kind: "positive", side: "left" as const },
+            { id: "output", label: "OUT 1", kind: "positive", side: "right" as const },
+            { id: "output-2", label: "OUT 2", kind: "positive", side: "right" as const },
+          ]
+        : [
+            { id: "input", label: "IN", kind: "positive", side: "left" as const },
+            { id: "output", label: "OUT", kind: "positive", side: "right" as const },
+          ],
+    defaultData: { amperage: 0, poles: "simple" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
+      {
+        key: "poles",
+        label: "Type",
+        type: "select",
+        help: "3 positions (inverseur) : un commun peut être aiguillé vers l'une de deux sorties, ex. pompe manuel/auto.",
+        options: [
+          { value: "simple", label: "Simple (marche/arrêt)" },
+          { value: "3-positions", label: "3 positions (inverseur)" },
+        ],
+      },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Facultatif : 0 si non connu." },
+    ],
+  },
+  {
+    // Relais automobile classique (4/5 broches) : une bobine de commande
+    // basse puissance (85/86) ferme un contact de puissance séparé
+    // (30 → 87), permettant à un petit signal de commuter un gros courant
+    // sans le faire transiter par l'interrupteur de commande.
+    type: "relay",
+    label: "Relais",
+    description: "Petit contacteur commandé électriquement, pour piloter un gros courant depuis un petit signal.",
+    category: "wiring",
+    subcategory: "distribution",
+    subtitle: "Commande",
+    icon: "/schema-icons/switch.svg",
+    handles: [
+      { id: "coil-positive", label: "86 (bobine +)", kind: "positive", side: "top" },
+      { id: "coil-negative", label: "85 (bobine −)", kind: "negative", side: "top" },
+      { id: "input", label: "30 (commun)", kind: "positive", side: "left" },
+      { id: "output", label: "87 (NO)", kind: "positive", side: "right" },
+    ],
+    getHandles: (data) =>
+      data.contactType === "inverseur"
+        ? [
+            { id: "coil-positive", label: "86 (bobine +)", kind: "positive", side: "top" as const },
+            { id: "coil-negative", label: "85 (bobine −)", kind: "negative", side: "top" as const },
+            { id: "input", label: "30 (commun)", kind: "positive", side: "left" as const },
+            { id: "output", label: "87 (NO)", kind: "positive", side: "right" as const },
+            { id: "output-nc", label: "87a (NF)", kind: "positive", side: "right" as const },
+          ]
+        : [
+            { id: "coil-positive", label: "86 (bobine +)", kind: "positive", side: "top" as const },
+            { id: "coil-negative", label: "85 (bobine −)", kind: "negative", side: "top" as const },
+            { id: "input", label: "30 (commun)", kind: "positive", side: "left" as const },
+            { id: "output", label: "87 (NO)", kind: "positive", side: "right" as const },
+          ],
+    defaultData: { amperage: 30, contactType: "travail" },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      {
+        key: "contactType",
+        label: "Type de contact",
+        type: "select",
+        help: "Travail (NO) : fermé seulement quand la bobine est alimentée. Inverseur (NO+NF) : ajoute une sortie normalement fermée (87a).",
+        options: [
+          { value: "travail", label: "Travail (NO), 4 broches" },
+          { value: "inverseur", label: "Inverseur (NO+NF), 5 broches" },
+        ],
+      },
+      { key: "amperage", label: "Courant nominal du contact", type: "number", unit: "A", help: "Le courant que peut supporter le contact de puissance (30 → 87), pas la bobine." },
     ],
   },
   {
@@ -500,13 +618,13 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       negative: { iconPro: "/schema-icons/pro/busbar-negative.webp" },
     },
     handles: [
-      { id: "input", label: "IN", kind: "positive", side: "left" },
-      { id: "out-1", label: "1", kind: "positive", side: "right" },
-      { id: "out-2", label: "2", kind: "positive", side: "right" },
-      { id: "out-3", label: "3", kind: "positive", side: "right" },
-      { id: "out-4", label: "4", kind: "positive", side: "right" },
+      { id: "input", label: "1", kind: "positive", side: "right" },
+      { id: "out-1", label: "2", kind: "positive", side: "right" },
+      { id: "out-2", label: "3", kind: "positive", side: "right" },
+      { id: "out-3", label: "4", kind: "positive", side: "right" },
+      { id: "out-4", label: "5", kind: "positive", side: "right" },
     ],
-    getHandles: variableOutputHandles,
+    getHandles: busbarHandles,
     defaultData: { polarity: "positive", outputCount: DEFAULT_OUTPUTS },
     fields: [
       { key: "label", label: "Nom", type: "text" },
@@ -520,7 +638,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
           { value: "negative", label: "Négatif" },
         ],
       },
-      outputCountField,
+      busbarPointCountField,
     ],
     // La polarité d'un busbar n'est pas fixe : elle dépend de la propriété
     // choisie par l'utilisateur, pas du type de composant — toutes ses
@@ -529,8 +647,54 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     resolveHandleKind: (data) => (data.polarity === "negative" ? "negative" : "positive"),
   },
   {
+    // Point de jonction où plusieurs câbles de même polarité se rejoignent
+    // (retour utilisateur : "créer aussi l'item épissure, juste un point où
+    // un ou plusieurs câbles peuvent être reliés") — réutilise exactement la
+    // même logique de bornes que le busbar (tout sur une seule face, pas de
+    // borne "IN" dédiée), la différence n'est que sémantique/visuelle :
+    // une épissure est une petite jonction, pas une vraie barre de
+    // distribution.
+    type: "splice",
+    label: "Épissure",
+    description: "Point de jonction où plusieurs câbles de même polarité se rejoignent.",
+    category: "wiring",
+    subcategory: "distribution",
+    subtitle: "Jonction",
+    icon: "/schema-icons/busbar.svg",
+    handles: [
+      { id: "input", label: "1", kind: "positive", side: "right" },
+      { id: "out-1", label: "2", kind: "positive", side: "right" },
+    ],
+    getHandles: busbarHandles,
+    defaultData: { polarity: "positive", outputCount: 1 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      {
+        key: "polarity",
+        label: "Polarité",
+        type: "select",
+        help: "Change la couleur des bornes et des câbles reliés (rouge = positif, noir = négatif).",
+        options: [
+          { value: "positive", label: "Positif" },
+          { value: "negative", label: "Négatif" },
+        ],
+      },
+      {
+        key: "outputCount",
+        label: "Nombre de câbles reliés",
+        type: "number",
+        min: MIN_OUTPUTS,
+        max: MAX_OUTPUTS,
+        step: 1,
+        help: "Réduire ce nombre supprime les câbles reliés aux points retirés.",
+      },
+    ],
+    resolveHandleKind: (data) => (data.polarity === "negative" ? "negative" : "positive"),
+  },
+  {
     type: "distribution-panel",
     label: "Tableau de distribution",
+    allowDisplayScale: true,
     description: "Tableau qui répartit et protège plusieurs circuits consommateurs.",
     category: "wiring",
     subcategory: "distribution",
@@ -613,9 +777,23 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     },
     defaultData: {
       outputCount: DEFAULT_OUTPUTS,
+      layout: "positive",
       ...Object.fromEntries(Array.from({ length: MAX_OUTPUTS }, (_, i) => [`outAmp${i + 1}`, 15])),
     },
-    fields: [{ key: "label", label: "Nom", type: "text" }, outputCountField],
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      {
+        key: "layout",
+        label: "Retour négatif",
+        type: "select",
+        help: "Certaines platines ajoutent un bornier négatif commun (sans fusible) à côté des sorties positives protégées.",
+        options: [
+          { value: "positive", label: "Positif seul" },
+          { value: "positive-negative", label: "Positif + barre négative" },
+        ],
+      },
+      outputCountField,
+    ],
   },
   {
     type: "ground",
@@ -715,6 +893,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "inverter",
     label: "Convertisseur 12/230V",
+    allowDisplayScale: true,
     description: "Transforme le courant continu (12V/24V) en 230V pour les appareils secteur.",
     category: "converter",
     subtitle: "Conversion",
@@ -747,6 +926,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // ont un port 12V/10A en façade en plus des prises 230V.
     type: "power-station",
     label: "Station électrique tout-en-1",
+    allowDisplayScale: true,
     description: "Batterie portable tout-en-un avec ses propres sorties intégrées.",
     category: "battery",
     subcategory: "stations",
@@ -798,6 +978,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "inverter-charger",
     label: "Chargeur-convertisseur tout-en-1",
+    allowDisplayScale: true,
     description: "Combine onduleur et chargeur secteur en un seul appareil (ex. Multiplus).",
     category: "charger",
     subcategory: "tout-en-1",

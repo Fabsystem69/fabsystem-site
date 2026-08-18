@@ -17,6 +17,7 @@ import {
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ElectricalNode } from "./nodes/ElectricalNode";
 import { CableEdge, cableCaption } from "./edges/CableEdge";
+import { CableCrossingOverlay } from "./edges/CableCrossingOverlay";
 import { CableWaypointNode } from "./nodes/CableWaypointNode";
 import { ZoneNode } from "./nodes/ZoneNode";
 import { getConsumerPreset, getComponentDefinition } from "@/lib/electrical-components/definitions";
@@ -283,6 +284,7 @@ export function Canvas() {
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} />
         <Controls showInteractive={false} position="bottom-left" className={darkMode ? "!fill-white [&_button]:!border-neutral-700 [&_button]:!bg-neutral-800 [&_button]:!text-white [&_path]:!fill-white" : undefined} />
+        <CableCrossingOverlay />
       </ReactFlow>
 
       {allNodes.length === 0 ? (
