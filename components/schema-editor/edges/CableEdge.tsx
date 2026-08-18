@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useReactFlow, Position, type EdgeProps, type Edge } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { resolveHandleKindForNode } from "@/lib/electrical-components/checks";
+import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import type { CableEdgeData } from "@/types/schema";
 
 // Rouge d'avertissement franc, choisi pour ne jamais pouvoir être confondu
@@ -46,11 +47,19 @@ function getBend(a: { x: number; y: number }, b: { x: number; y: number }, c: { 
 // positionnée exactement sur ce sommet — reste toujours sur le câble, quelle
 // que soit l'orientation des bornes ; et les coins sont arrondis avec le
 // même `getBend` que le tracé automatique pour un style pixel-identique.
+// Généralisation à N points de coude (retour utilisateur : "poignées/points
+// intermédiaires sur les câbles" — un seul coude ne suffisait pas à dévier
+// proprement un tracé qui doit contourner plusieurs composants). Se réduit
+// exactement au comportement d'origine quand `waypoints` n'a qu'un élément :
+// l'élbow d'entrée suit toujours l'orientation de la borne source, celui de
+// sortie l'orientation de la borne cible ; entre deux points intermédiaires
+// consécutifs, l'orientation alterne (tracé "en escalier"), un choix
+// arbitraire mais stable qui évite un zigzag imprévisible.
 function orthogonalWaypointPath(
   sourceX: number,
   sourceY: number,
   sourcePosition: Position,
-  waypoint: { x: number; y: number },
+  waypoints: { x: number; y: number }[],
   targetX: number,
   targetY: number,
   targetPosition: Position,
@@ -58,11 +67,22 @@ function orthogonalWaypointPath(
 ): string {
   const sourceHorizontal = sourcePosition === Position.Left || sourcePosition === Position.Right;
   const targetHorizontal = targetPosition === Position.Left || targetPosition === Position.Right;
-  const elbow1 = sourceHorizontal ? { x: waypoint.x, y: sourceY } : { x: sourceX, y: waypoint.y };
-  const elbow2 = targetHorizontal ? { x: waypoint.x, y: targetY } : { x: targetX, y: waypoint.y };
-  const rawPoints = [{ x: sourceX, y: sourceY }, elbow1, waypoint, elbow2, { x: targetX, y: targetY }];
-  // Dédoublonne les points consécutifs identiques (ex. elbow1 confondu avec
-  // le point de coude quand celui-ci est déjà aligné avec la borne source) —
+
+  const rawPoints: { x: number; y: number }[] = [{ x: sourceX, y: sourceY }];
+  let lastElbowHorizontal = sourceHorizontal;
+  waypoints.forEach((wp, i) => {
+    const prev = rawPoints[rawPoints.length - 1];
+    const useHorizontal = i === 0 ? sourceHorizontal : !lastElbowHorizontal;
+    const elbow = useHorizontal ? { x: wp.x, y: prev.y } : { x: prev.x, y: wp.y };
+    rawPoints.push(elbow, wp);
+    lastElbowHorizontal = useHorizontal;
+  });
+  const lastPoint = rawPoints[rawPoints.length - 1];
+  const elbow2 = targetHorizontal ? { x: targetX, y: lastPoint.y } : { x: lastPoint.x, y: targetY };
+  rawPoints.push(elbow2, { x: targetX, y: targetY });
+
+  // Dédoublonne les points consécutifs identiques (ex. un élbow confondu
+  // avec le point de coude quand celui-ci est déjà aligné avec la borne) —
   // sinon `getBend` reçoit un triplet dégénéré (distance nulle).
   const points = rawPoints.filter((p, i) => i === 0 || p.x !== rawPoints[i - 1].x || p.y !== rawPoints[i - 1].y);
   let path = `M${points[0].x} ${points[0].y}`;
@@ -72,6 +92,7 @@ function orthogonalWaypointPath(
   path += `L${points[points.length - 1].x} ${points[points.length - 1].y}`;
   return path;
 }
+
 
 // Repère la borne React Flow sous un point écran donné (même technique que
 // edgeIdAtPoint dans Canvas.tsx, mais pour une "handle" de nœud plutôt
@@ -111,8 +132,8 @@ export function parseSectionMm2(section?: string): number | null {
   return Number.isFinite(num) ? num : null;
 }
 
-// Réutilisé par Canvas.tsx pour légender le nœud de coude natif une fois
-// `data.bendPoint` posé (voir CableWaypointNode) — même texte que la
+// Réutilisé par Canvas.tsx pour légender le premier nœud de coude natif une
+// fois `data.bendPoints` posé (voir CableWaypointNode) — même texte que la
 // vignette du tracé automatique, une seule source de vérité.
 export function cableCaption(data: CableEdgeData | undefined): string {
   const lengthLabel = typeof data?.length === "number" ? `${String(data.length).replace(".", ",")} m` : undefined;
@@ -159,11 +180,15 @@ export function CableEdge({
   const isPolarityMismatch =
     (sourceKind === "positive" && targetKind === "negative") ||
     (sourceKind === "negative" && targetKind === "positive");
+  // Retour utilisateur : "insertion fluide de composants inline sur câble"
+  // — mis en évidence pendant qu'un composant compatible est glissé
+  // au-dessus, avant même de lâcher (voir Canvas.tsx handleDragOver).
+  const isSpliceTarget = useSchemaStore((s) => s.spliceHoverEdgeId === id);
   const { screenToFlowPosition } = useReactFlow();
   const draggingEnd = useRef<"source" | "target" | null>(null);
   const draggingLabel = useRef(false);
   // Retour visuel pendant le tout premier glisser (avant que le point de
-  // coude existe) — voir plus bas : une fois `data.bendPoint` défini, ce
+  // coude existe) — voir plus bas : une fois `data.bendPoints[0]` défini, ce
   // n'est plus ce composant mais un vrai nœud React Flow (CableWaypointNode,
   // ajouté par Canvas.tsx) qui gère le glisser, donc cet état ne sert plus
   // qu'à ce tout premier geste.
@@ -179,22 +204,27 @@ export function CableEdge({
     borderRadius: 8,
   });
 
-  // Point de coude choisi à la main, en coordonnées absolues (retour
+  // Points de coude choisis à la main, en coordonnées absolues (retour
   // utilisateur : "la vignette câble devrait avoir les mêmes propriétés
-  // qu'une vignette item… les câbles les suivent parfaitement") — une fois
-  // posé, il se comporte exactement comme un composant du schéma : il ne
-  // recalcule plus sa position par rapport au tracé auto (voir le
-  // commentaire sur `bendPoint` dans types/schema.ts pour l'historique des
-  // approches "relatives" essayées avant, toutes abandonnées).
-  const bendPoint = draggingPoint ?? data?.bendPoint;
+  // qu'une vignette item… les câbles les suivent parfaitement", puis
+  // "poignées/points intermédiaires sur les câbles" pour en avoir plusieurs)
+  // — une fois posés, ils se comportent exactement comme un composant du
+  // schéma : ils ne recalculent plus leur position par rapport au tracé
+  // auto (voir le commentaire sur `bendPoints` dans types/schema.ts pour
+  // l'historique des approches "relatives" essayées avant, abandonnées).
+  // `draggingPoint` ne sert qu'à l'aperçu du tout premier glisser (avant
+  // qu'aucun point n'existe) — une fois `bendPoints[0]` posé, c'est
+  // CableWaypointNode qui gère chaque point individuellement.
+  const savedBendPoints = getBendPoints(data);
+  const bendPoints = draggingPoint ? [draggingPoint] : savedBendPoints;
 
   let edgePath: string;
   let labelX: number;
   let labelY: number;
-  if (bendPoint) {
-    edgePath = orthogonalWaypointPath(sourceX, sourceY, sourcePosition, bendPoint, targetX, targetY, targetPosition, 8);
-    labelX = bendPoint.x;
-    labelY = bendPoint.y;
+  if (bendPoints.length > 0) {
+    edgePath = orthogonalWaypointPath(sourceX, sourceY, sourcePosition, bendPoints, targetX, targetY, targetPosition, 8);
+    labelX = bendPoints[0].x;
+    labelY = bendPoints[0].y;
   } else {
     edgePath = autoPath;
     labelX = autoX;
@@ -290,13 +320,24 @@ export function CableEdge({
       draggingLabel.current = false;
       const pos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
       setDraggingPoint(null);
-      updateEdgeData(id, { bendPoint: pos });
+      updateEdgeData(id, { bendPoints: [pos] });
     },
     [id, screenToFlowPosition, updateEdgeData],
   );
 
   return (
     <>
+      {isSpliceTarget ? (
+        <path
+          d={edgePath}
+          fill="none"
+          stroke="#22c55e"
+          strokeWidth={strokeWidth + 10}
+          strokeOpacity={0.35}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ) : null}
       <BaseEdge
         id={id}
         path={edgePath}
@@ -304,19 +345,19 @@ export function CableEdge({
         style={{ stroke: color, strokeWidth, strokeDasharray, strokeLinejoin: "round", strokeLinecap: "round" }}
       />
       <EdgeLabelRenderer>
-        {/* Une fois `data.bendPoint` posé, c'est CableWaypointNode (un vrai
-            nœud React Flow ajouté par Canvas.tsx) qui affiche cette légende
-            et gère son déplacement — plus cette div, qui ne sert que pour le
-            tracé 100% automatique et pour le tout premier glisser (celui qui
-            crée le point de coude). */}
-        {/* Condition sur `data?.bendPoint` (persisté), jamais sur `bendPoint`
-            (qui inclut l'aperçu local `draggingPoint`) : ce dernier devient
-            vrai dès le premier pointermove du glisser, donc démonterait
-            cette div EN PLEIN GESTE si elle servait ici — perdant du même
-            coup la capture du pointeur, plus aucun pointerup ne serait
-            jamais reçu (bug réel rencontré : le premier glisser ne validait
-            plus jamais rien). */}
-        {caption && !data?.bendPoint ? (
+        {/* Une fois `data.bendPoints[0]` posé, c'est CableWaypointNode (un
+            vrai nœud React Flow ajouté par Canvas.tsx, un par point) qui
+            affiche cette légende et gère le déplacement — plus cette div,
+            qui ne sert que pour le tracé 100% automatique et pour le tout
+            premier glisser (celui qui crée le premier point de coude). */}
+        {/* Condition sur `savedBendPoints` (persisté), jamais sur
+            `bendPoints` (qui inclut l'aperçu local `draggingPoint`) : ce
+            dernier devient non-vide dès le premier pointermove du glisser,
+            donc démonterait cette div EN PLEIN GESTE si elle servait ici —
+            perdant du même coup la capture du pointeur, plus aucun
+            pointerup ne serait jamais reçu (bug réel rencontré : le premier
+            glisser ne validait plus jamais rien). */}
+        {caption && savedBendPoints.length === 0 ? (
           <div
             onPointerDown={handleLabelPointerDown}
             onPointerMove={handleLabelPointerMove}

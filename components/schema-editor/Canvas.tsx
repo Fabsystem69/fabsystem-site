@@ -17,6 +17,7 @@ import {
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ElectricalNode } from "./nodes/ElectricalNode";
 import { CableEdge, cableCaption } from "./edges/CableEdge";
+import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import { CableCrossingOverlay } from "./edges/CableCrossingOverlay";
 import { CableWaypointNode } from "./nodes/CableWaypointNode";
 import { ZoneNode } from "./nodes/ZoneNode";
@@ -32,15 +33,38 @@ const edgeTypes = { cable: CableEdge };
 // les câbles les suivent parfaitement") — ajoutés uniquement à la liste
 // passée à <ReactFlow>, jamais aux nœuds persistés du schéma (voir plus
 // bas) : ni le récapitulatif matériel, ni les contrôles électriques, ni la
-// sauvegarde ne doivent en avoir connaissance, seul `edge.data.bendPoint`
+// sauvegarde ne doivent en avoir connaissance, seul `edge.data.bendPoints`
 // est source de vérité.
 const WAYPOINT_ID_PREFIX = "wp-";
+
+// Un câble peut désormais porter plusieurs points de coude (retour
+// utilisateur : "poignées/points intermédiaires sur les câbles") — l'index
+// est encodé dans l'id du nœud synthétique pour retrouver quel point d'un
+// même câble a bougé.
+function waypointNodeId(edgeId: string, index: number): string {
+  return `${WAYPOINT_ID_PREFIX}${edgeId}::${index}`;
+}
+
+function parseWaypointNodeId(id: string): { edgeId: string; index: number } | null {
+  if (!id.startsWith(WAYPOINT_ID_PREFIX)) return null;
+  const rest = id.slice(WAYPOINT_ID_PREFIX.length);
+  const sep = rest.lastIndexOf("::");
+  if (sep === -1) return null;
+  const index = Number(rest.slice(sep + 2));
+  if (!Number.isFinite(index)) return null;
+  return { edgeId: rest.slice(0, sep), index };
+}
 
 // Composants qui s'intercalent automatiquement quand on les dépose sur un
 // câble existant (retour utilisateur : "spécifiquement pour les fusibles,
 // interrupteur et busbar") — les autres se posent normalement à l'endroit
 // visé, même si un câble passe dessous.
-const SPLICEABLE_TYPES = new Set(["fuse", "switch", "busbar"]);
+// Tout composant "en ligne" à une seule entrée/sortie (ou borne numérotée
+// unique façon busbar) peut s'insérer directement sur un câble existant
+// (retour utilisateur : "insertion fluide de composants inline sur câble") —
+// exclut les composants à IN/OUT multiples (tableau de distribution,
+// platine de fusibles) où le point d'insertion serait ambigu.
+const SPLICEABLE_TYPES = new Set(["fuse", "circuit-breaker", "switch", "battery-switch", "relay", "busbar", "splice"]);
 
 // Repère l'edge React Flow sous un point écran donné, via l'attribut
 // data-testid="rf__edge-{id}" posé par la librairie sur chaque groupe SVG
@@ -96,6 +120,8 @@ export function Canvas() {
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const select = useSchemaStore((s) => s.select);
   const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
+  const draggingComponentType = useSchemaStore((s) => s.draggingComponentType);
+  const setSpliceHoverEdgeId = useSchemaStore((s) => s.setSpliceHoverEdgeId);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -130,12 +156,12 @@ export function Canvas() {
   // par le même mécanisme natif, éprouvé, que n'importe quel composant.
   const waypointNodes = useMemo<Node[]>(
     () =>
-      edges
-        .filter((e) => e.data?.bendPoint)
-        .map((e) => ({
-          id: `${WAYPOINT_ID_PREFIX}${e.id}`,
+      edges.flatMap((e) => {
+        const points = getBendPoints(e.data);
+        return points.map((point, index) => ({
+          id: waypointNodeId(e.id, index),
           type: "cableWaypoint",
-          position: e.data!.bendPoint!,
+          position: point,
           // Par défaut `position` désigne le coin haut-gauche du nœud — le
           // tracé du câble doit passer par son CENTRE (comme l'ancienne
           // vignette, centrée via `translate(-50%,-50%)`). `origin: [0.5,
@@ -143,44 +169,59 @@ export function Canvas() {
           // global `nodeOrigin` de <ReactFlow>, qui s'appliquerait à tort à
           // tous les vrais composants du schéma.
           origin: [0.5, 0.5] as [number, number],
-          data: { edgeId: e.id, label: cableCaption(e.data) },
+          // Seul le premier point porte la légende (nom/section/longueur) —
+          // avec plusieurs points, la répéter sur chacun serait redondant
+          // et chargerait visuellement le câble.
+          data: { edgeId: e.id, index, label: index === 0 ? cableCaption(e.data) : undefined, isLast: index === points.length - 1 },
           draggable: true,
           selectable: false,
           zIndex: 1001,
-        })),
+        }));
+      }),
     [edges],
   );
 
   const reactFlowNodes = useMemo<Node[]>(() => [...nodes, ...waypointNodes], [nodes, waypointNodes]);
 
   // Sépare les changements de position des nœuds de coude synthétiques (à
-  // écrire dans `edge.data.bendPoint`) des changements sur de vrais nœuds
-  // du schéma (route normale du store) — un nœud de coude n'existe jamais
-  // dans `state.nodes`, le laisser passer par `onNodesChange` du store
-  // serait un no-op silencieux qui perdrait le déplacement.
+  // écrire dans `edge.data.bendPoints[index]`) des changements sur de vrais
+  // nœuds du schéma (route normale du store) — un nœud de coude n'existe
+  // jamais dans `state.nodes`, le laisser passer par `onNodesChange` du
+  // store serait un no-op silencieux qui perdrait le déplacement. Groupé
+  // par câble (plutôt qu'appliqué point par point) pour que plusieurs
+  // points d'un même câble qui bougent dans le même lot de changements ne
+  // s'écrasent pas l'un l'autre en repartant chacun de l'état d'avant lot.
   const handleNodesChange = useCallback(
     (changes: NodeChange<Node>[]) => {
-      const waypointChanges: { edgeId: string; position: { x: number; y: number }; trackHistory: boolean }[] = [];
+      const waypointChangesByEdge = new Map<string, { index: number; position: { x: number; y: number }; trackHistory: boolean }[]>();
       const realChanges: NodeChange<Node>[] = [];
       for (const change of changes) {
         if ("id" in change && change.id.startsWith(WAYPOINT_ID_PREFIX)) {
           if (change.type === "position" && change.position) {
-            waypointChanges.push({
-              edgeId: change.id.slice(WAYPOINT_ID_PREFIX.length),
-              position: change.position,
-              trackHistory: change.dragging === false,
-            });
+            const parsed = parseWaypointNodeId(change.id);
+            if (parsed) {
+              const list = waypointChangesByEdge.get(parsed.edgeId) ?? [];
+              list.push({ index: parsed.index, position: change.position, trackHistory: change.dragging === false });
+              waypointChangesByEdge.set(parsed.edgeId, list);
+            }
           }
           continue;
         }
         realChanges.push(change);
       }
-      for (const { edgeId, position, trackHistory } of waypointChanges) {
-        updateEdgeData(edgeId, { bendPoint: position }, { trackHistory });
+      for (const [edgeId, edgeChanges] of waypointChangesByEdge) {
+        const edge = allEdges.find((e) => e.id === edgeId);
+        const points = [...getBendPoints(edge?.data)];
+        let trackHistory = false;
+        for (const { index, position, trackHistory: t } of edgeChanges) {
+          if (index >= 0 && index < points.length) points[index] = position;
+          trackHistory = trackHistory || t;
+        }
+        updateEdgeData(edgeId, { bendPoints: points }, { trackHistory });
       }
       if (realChanges.length > 0) onNodesChange(realChanges as Parameters<typeof onNodesChange>[0]);
     },
-    [onNodesChange, updateEdgeData],
+    [onNodesChange, updateEdgeData, allEdges],
   );
 
   const handleDrop = useCallback(
@@ -203,18 +244,42 @@ export function Canvas() {
         const edgeId = edgeIdAtPoint(event.clientX, event.clientY);
         if (edgeId) {
           spliceNodeOnEdge(edgeId, type, position);
+          setSpliceHoverEdgeId(null);
           return;
         }
       }
+      setSpliceHoverEdgeId(null);
       addComponent(type, position, dataOverride);
     },
-    [addComponent, addZone, spliceNodeOnEdge, screenToFlowPosition],
+    [addComponent, addZone, spliceNodeOnEdge, screenToFlowPosition, setSpliceHoverEdgeId],
   );
 
-  const handleDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "move";
-  }, []);
+  // Met le câble visuellement en évidence pendant le survol d'un glisser
+  // spliceable (retour utilisateur : "insertion fluide" — le voir avant de
+  // lâcher, pas seulement constater après coup que ça a marché). Le type
+  // réel glissé n'est jamais lisible depuis `dataTransfer` avant le dépôt
+  // (limite HTML5 drag-and-drop) — on lit `draggingComponentType`, posé par
+  // ComponentLibrary au `dragstart`.
+  const handleDragOver = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      if (!draggingComponentType || !SPLICEABLE_TYPES.has(draggingComponentType)) return;
+      setSpliceHoverEdgeId(edgeIdAtPoint(event.clientX, event.clientY));
+    },
+    [draggingComponentType, setSpliceHoverEdgeId],
+  );
+
+  const handleDragLeave = useCallback(
+    (event: React.DragEvent) => {
+      // `relatedTarget` reste dans le conteneur canvas quand on survole
+      // juste un enfant (nœud, câble…) — ne réinitialise le survol que
+      // quand le curseur quitte vraiment le canvas.
+      if (event.currentTarget.contains(event.relatedTarget as globalThis.Node | null)) return;
+      setSpliceHoverEdgeId(null);
+    },
+    [setSpliceHoverEdgeId],
+  );
 
   const handleReconnect = useCallback(
     (oldEdge: Edge<CableEdgeData>, newConnection: Connection) => {
@@ -224,7 +289,12 @@ export function Canvas() {
   );
 
   return (
-    <div className={`relative h-full flex-1 ${darkMode ? "bg-neutral-950" : "bg-neutral-50"}`} onDrop={handleDrop} onDragOver={handleDragOver}>
+    <div
+      className={`relative h-full flex-1 ${darkMode ? "bg-neutral-950" : "bg-neutral-50"}`}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
       <ReactFlow
         nodes={reactFlowNodes}
         edges={edges}
@@ -271,12 +341,11 @@ export function Canvas() {
         onPaneClick={() => select(null, null)}
         // v2.1, retour utilisateur : "supprimer le bandeau de droite... le
         // double-clic ouvre les informations item en popup" — remplace
-        // l'ancien bandeau permanent (voir ItemPropertiesPopup.tsx).
-        onNodeDoubleClick={(_, node) => {
-          if (node.id.startsWith(WAYPOINT_ID_PREFIX)) return;
-          select("node", node.id);
-          openItemPropertiesPopup();
-        }}
+        // l'ancien bandeau permanent (voir ItemPropertiesPopup.tsx). Retiré
+        // pour les nœuds (retour utilisateur : un double-clic rapide sur les
+        // boutons zoom de la vignette ouvrait la popup par erreur) — un
+        // bouton "info" dédié dans la vignette l'ouvre à la place ; les
+        // câbles n'ont pas ce conflit et gardent le double-clic.
         onEdgeDoubleClick={(_, edge) => {
           select("edge", edge.id);
           openItemPropertiesPopup();

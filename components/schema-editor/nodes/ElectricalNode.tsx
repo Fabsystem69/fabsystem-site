@@ -63,6 +63,10 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   // branché, puis reprend la couleur réelle du câble connecté, plutôt
   // qu'une couleur générique par "kind" qui peut induire en erreur.
   const edges = useSchemaStore((s) => s.edges);
+  const rotateNode = useSchemaStore((s) => s.rotateNode);
+  const updateNodeData = useSchemaStore((s) => s.updateNodeData);
+  const select = useSchemaStore((s) => s.select);
+  const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
   const updateNodeInternals = useUpdateNodeInternals();
   const rotation = Number(data.rotation) || 0;
   const outputCount = Number(data.outputCount) || 0;
@@ -108,7 +112,12 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   // plus en valeur", limité à la famille batterie et aux boîtiers
   // (chargeurs/régulateurs/convertisseurs/tableau de distribution) via
   // `def.allowDisplayScale` — voir le contrôle dans ItemPropertiesPopup.
-  const displayScale = def?.allowDisplayScale ? Math.min(5, Math.max(1, Number(data.displayScale) || 1)) : 1;
+  // Le curseur garde 5 niveaux distincts (retour utilisateur), mais
+  // l'agrandissement réel est ré-échelonné pour que le niveau 5 (max) ne
+  // dépasse jamais ce que donnait l'ancien niveau 3 — répartition linéaire
+  // entre ×1 (niveau 1) et ×3 (niveau 5), donc niveau 3 = ×2.
+  const displayLevel = def?.allowDisplayScale ? Math.min(5, Math.max(1, Number(data.displayScale) || 1)) : 1;
+  const displayScale = 1 + (displayLevel - 1) * 0.5;
   const boxSize = baseBoxSize * displayScale;
 
   // Étiquettes de bornes intégrées à l'intérieur du contour (V2, retour
@@ -165,8 +174,69 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   if (!def) return null;
   const icon = getNodeIcon(def, data, iconStyle);
 
+  // Retour utilisateur : "un bouton zoom +- et aussi un bouton rotation"
+  // directement sur la vignette — plus rapide que d'ouvrir le panneau de
+  // propriétés juste pour pivoter ou changer la taille d'affichage.
+  // `nodrag`/`nopan` (convention React Flow) empêchent un clic sur ces
+  // boutons de démarrer un glisser du nœud ou un pan du canvas.
+  const quickActionButtonClass = `nodrag nopan flex h-5 w-5 items-center justify-center rounded text-[11px] font-bold leading-none transition-base ${
+    darkMode ? "text-neutral-300 hover:bg-neutral-700" : "text-neutral-600 hover:bg-neutral-200"
+  }`;
+
   return (
     <div className="relative flex w-fit flex-col items-center gap-1">
+      {selected ? (
+        <div
+          className={`nodrag nopan absolute -top-7 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-md border px-1 py-0.5 shadow-sm ${
+            darkMode ? "border-neutral-700 bg-neutral-800" : "border-neutral-200 bg-white"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              select("node", id);
+              openItemPropertiesPopup();
+            }}
+            title="Voir les informations du composant"
+            className={quickActionButtonClass}
+          >
+            ⓘ
+          </button>
+          <div className={`mx-0.5 h-3.5 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+          <button type="button" onClick={(e) => { e.stopPropagation(); rotateNode(id); }} title="Pivoter 90° (raccourci : R)" className={quickActionButtonClass}>
+            ↻
+          </button>
+          {def.allowDisplayScale ? (
+            <>
+              <div className={`mx-0.5 h-3.5 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateNodeData(id, { displayScale: Math.max(1, displayLevel - 1) });
+                }}
+                title="Réduire la vignette"
+                className={quickActionButtonClass}
+              >
+                −
+              </button>
+              <span className={`w-3 text-center text-[10px] font-semibold ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>{displayLevel}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateNodeData(id, { displayScale: Math.min(5, displayLevel + 1) });
+                }}
+                title="Agrandir la vignette"
+                className={quickActionButtonClass}
+              >
+                +
+              </button>
+            </>
+          ) : null}
+        </div>
+      ) : null}
       <div
         className={`relative grid rounded-lg border-2 bg-white shadow-sm transition-shadow ${
           dynamicAccent ? "" : (CATEGORY_ACCENT[def.category] ?? "border-neutral-400")

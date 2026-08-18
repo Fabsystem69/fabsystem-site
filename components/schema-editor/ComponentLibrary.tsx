@@ -90,6 +90,7 @@ export function ComponentLibrary() {
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const collapsed = useSchemaStore((s) => s.leftPanelCollapsed);
+  const setDraggingComponentType = useSchemaStore((s) => s.setDraggingComponentType);
   const toggleLeftPanel = useSchemaStore((s) => s.toggleLeftPanel);
   const { screenToFlowPosition, getZoom } = useReactFlow();
 
@@ -385,7 +386,9 @@ export function ComponentLibrary() {
                                 e.dataTransfer.setData("application/fabsystem-component", item.type);
                                 if (item.presetValue) e.dataTransfer.setData("application/fabsystem-preset", item.presetValue);
                                 e.dataTransfer.effectAllowed = "move";
+                                setDraggingComponentType(item.type);
                               }}
+                              onDragEnd={() => setDraggingComponentType(null)}
                               onClick={() => handleClickAdd(item.type, item.presetValue)}
                               className={`flex w-full cursor-grab items-center justify-between rounded-md border px-2.5 py-2 text-left text-sm shadow-sm transition-base active:cursor-grabbing ${
                                 item.key === guidedHighlightKey

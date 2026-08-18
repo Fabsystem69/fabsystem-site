@@ -15,6 +15,7 @@ import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { getSchemaTemplate } from "@/features/schemas/templates";
+import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
 
 const ICON_STYLE_STORAGE_KEY = "fabsystem-schema:icon-style";
@@ -147,6 +148,20 @@ interface SchemaState {
   // double-clic sur un composant/câble (voir ItemPropertiesPopup.tsx,
   // Canvas.tsx onNodeDoubleClick/onEdgeDoubleClick).
   itemPropertiesPopupOpen: boolean;
+  // État purement visuel du glisser en cours depuis la bibliothèque (retour
+  // utilisateur : "insertion fluide de composants sur câble") — permet à
+  // Canvas.tsx de savoir, pendant le survol, si l'item en cours de glisser
+  // peut s'insérer sur un câble (HTML5 drag-and-drop n'expose pas la valeur
+  // réelle du dataTransfer avant le dépôt, seulement ses clés). Jamais un
+  // pas d'historique, jamais persisté.
+  draggingComponentType: string | null;
+  // Câble actuellement survolé par un glisser spliceable — CableEdge.tsx
+  // s'en sert pour se mettre visuellement en évidence (retour utilisateur :
+  // rendre l'insertion sur câble plus "fluide", donc visible avant même de
+  // lâcher le clic).
+  spliceHoverEdgeId: string | null;
+  setDraggingComponentType: (type: string | null) => void;
+  setSpliceHoverEdgeId: (edgeId: string | null) => void;
   // Filtre d'affichage (retour utilisateur : "isoler le circuit MPPT ou
   // consommateur pour éviter d'avoir toujours tout le schéma") — catégories
   // volontairement masquées du canvas ; vide = tout affiché. Vue seulement,
@@ -239,6 +254,13 @@ interface SchemaState {
   addZone: (position: { x: number; y: number }) => void;
   updateNodeData: (id: string, patch: Record<string, unknown>, options?: { trackHistory?: boolean }) => void;
   updateEdgeData: (id: string, patch: Record<string, unknown>, options?: { trackHistory?: boolean }) => void;
+  /** Insère un nouveau point de coude juste après `index` (retour
+   * utilisateur : "poignées/points intermédiaires sur les câbles"). */
+  addEdgeWaypointAfter: (edgeId: string, index: number) => void;
+  /** Retire uniquement le point `index` — les autres points du même câble
+   * restent en place ; un câble qui n'a plus aucun point revient au tracé
+   * automatique. */
+  removeEdgeWaypoint: (edgeId: string, index: number) => void;
   setOutputCount: (id: string, count: number) => void;
   reconnectEdge: (oldEdge: SchemaEdge, newConnection: Connection) => void;
   spliceNodeOnEdge: (edgeId: string, type: string, position: { x: number; y: number }) => void;
@@ -319,6 +341,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   darkMode: loadDarkMode(),
   leftPanelCollapsed: loadPanelCollapsed(LEFT_PANEL_COLLAPSED_KEY),
   itemPropertiesPopupOpen: false,
+  draggingComponentType: null,
+  spliceHoverEdgeId: null,
   hiddenCategories: [],
   exportIsolatedZoneId: null,
   projectId: null,
@@ -369,6 +393,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
 
   openItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: true }),
   closeItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: false }),
+  setDraggingComponentType: (type) => set({ draggingComponentType: type }),
+  setSpliceHoverEdgeId: (edgeId) => set({ spliceHoverEdgeId: edgeId }),
 
   onNodesChange: (changes) =>
     set((state) => {
@@ -559,6 +585,34 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       ...(options?.trackHistory === false ? null : commit(state)),
     })),
 
+  addEdgeWaypointAfter: (edgeId, index) =>
+    set((state) => {
+      const edge = state.edges.find((e) => e.id === edgeId);
+      if (!edge) return {};
+      const points = getBendPoints(edge.data);
+      const anchor = points[index];
+      if (!anchor) return {};
+      // Décalage fixe pour que le nouveau point soit immédiatement visible
+      // et déplaçable, plutôt que superposé pile sur celui d'à côté.
+      const newPoint = { x: anchor.x + 40, y: anchor.y + 40 };
+      const nextPoints = [...points.slice(0, index + 1), newPoint, ...points.slice(index + 1)];
+      return {
+        edges: state.edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, bendPoints: nextPoints } } : e)),
+        ...commit(state),
+      };
+    }),
+
+  removeEdgeWaypoint: (edgeId, index) =>
+    set((state) => {
+      const edge = state.edges.find((e) => e.id === edgeId);
+      if (!edge) return {};
+      const points = getBendPoints(edge.data).filter((_, i) => i !== index);
+      return {
+        edges: state.edges.map((e) => (e.id === edgeId ? { ...e, data: { ...e.data, bendPoints: points } } : e)),
+        ...commit(state),
+      };
+    }),
+
   // Nombre de sorties d'un busbar/tableau de distribution/platine de
   // fusibles (retour utilisateur : "rajouter des points de sortie") — action
   // dédiée plutôt que updateNodeData car réduire ce nombre doit aussi
@@ -608,10 +662,11 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       }
       const handles = getEffectiveHandles(def, def.defaultData);
       const inputHandle = handles.find((h) => h.id === "input") ?? handles[0];
-      const outputHandle =
-        type === "busbar" || type === "distribution-panel" || type === "fuse-block"
-          ? (handles.find((h) => h.id === "out-1") ?? handles[1])
-          : (handles.find((h) => h.id === "output") ?? handles[1]);
+      // Résolution générique (plutôt qu'une liste de types codée en dur) :
+      // "output" pour un composant à IN/OUT classique (fusible, disjoncteur,
+      // interrupteur, relais…), sinon "out-1" pour un busbar/épissure/
+      // tableau/platine (bornes numérotées sans OUT dédié).
+      const outputHandle = handles.find((h) => h.id === "output") ?? handles.find((h) => h.id === "out-1") ?? handles[1];
       if (!inputHandle || !outputHandle) return {};
 
       const node: SchemaNode = {

@@ -152,8 +152,20 @@ export interface CableEdgeData extends Record<string, unknown> {
    * composant. Comme pour un composant, il ne suit pas automatiquement les
    * nœuds connectés si on les déplace ensuite — l'utilisateur le réajuste
    * au besoin, exactement comme il repositionnerait un élément du schéma.
-   * `undefined` = routage automatique (comportement inchangé). */
+   * `undefined` = routage automatique (comportement inchangé).
+   * @deprecated Remplacé par `bendPoints` (retour utilisateur : "poignées/
+   * points intermédiaires sur les câbles" — un seul coude ne suffisait pas
+   * à dévier proprement un tracé complexe). Conservé uniquement pour lire
+   * les schémas sauvegardés avant ce changement — voir `getBendPoints` dans
+   * CableEdge.tsx, seul point de lecture qui doit connaître ce champ.
+   * Plus jamais écrit par du code neuf. */
   bendPoint?: { x: number; y: number };
+  /** Liste ordonnée de points de coude choisis à la main (remplace
+   * `bendPoint`, qui n'en portait qu'un seul) — mêmes principes : un vrai
+   * nœud React Flow par point (voir CableWaypointNode.tsx), positions
+   * absolues, pas relatives au tracé auto. Tableau vide ou absent =
+   * routage automatique. */
+  bendPoints?: { x: number; y: number }[];
 }
 
 export const CABLE_SECTIONS = [
