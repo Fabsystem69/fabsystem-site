@@ -20,6 +20,7 @@ export function SchemaIssuesWidget() {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const select = useSchemaStore((s) => s.select);
   const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
+  const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const projectName = useSchemaStore((s) => s.projectName);
   const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
   const { getNode, setCenter, getZoom } = useReactFlow();
@@ -77,6 +78,33 @@ export function SchemaIssuesWidget() {
     if (action === "recalculate-all-cable-sections") recalculateAllCableSections();
   }
 
+  // Déplacé depuis le menu Fichier (retour utilisateur) — ces recalculs en
+  // masse concernent la vérification du schéma, leur place naturelle est
+  // donc ici plutôt que dans un menu de gestion de fichier.
+  function handleRecalculateSections() {
+    if (!window.confirm("Recalculer la section de tous les câbles de puissance dont la charge en aval est estimable ? Les sections déjà saisies manuellement seront remplacées.")) {
+      return;
+    }
+    const count = recalculateAllCableSections();
+    window.alert(
+      count > 0
+        ? `${count} section${count > 1 ? "s" : ""} de câble mise${count > 1 ? "s" : ""} à jour.`
+        : "Aucun câble de puissance à recalculer — ajoutez au moins un consommateur avec une puissance connue sur le circuit.",
+    );
+  }
+
+  function handleRecalculateFuses() {
+    if (!window.confirm("Recalculer le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable ? Les calibres déjà saisis manuellement seront remplacés.")) {
+      return;
+    }
+    const count = recalculateAllFuseRatings();
+    window.alert(
+      count > 0
+        ? `${count} calibre${count > 1 ? "s" : ""} mis à jour.`
+        : "Aucun fusible/disjoncteur à recalculer — ajoutez au moins un consommateur avec une puissance connue sur le circuit.",
+    );
+  }
+
   function getIssueActionLabel(action: SchemaIssueAction): string {
     if (action === "recalculate-all-cable-sections") return "Recalculer les sections";
     return "Appliquer";
@@ -115,6 +143,31 @@ export function SchemaIssuesWidget() {
             {isFiltered ? (
               <p className={darkMode ? "text-amber-400" : "text-amber-600"}>Filtre actif — l&apos;export ne prendra que ce qui est affiché.</p>
             ) : null}
+          </div>
+
+          <div className={`flex gap-1.5 border-b p-2 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+            <button
+              type="button"
+              onClick={handleRecalculateSections}
+              disabled={nodes.length === 0}
+              className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
+                darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+              }`}
+              title="Recalcule en une fois la section de tous les câbles de puissance dont la charge en aval est estimable"
+            >
+              Sections câble
+            </button>
+            <button
+              type="button"
+              onClick={handleRecalculateFuses}
+              disabled={nodes.length === 0}
+              className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
+                darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+              }`}
+              title="Recalcule en une fois le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable"
+            >
+              Calibres fusible
+            </button>
           </div>
 
           <div className="max-h-80 overflow-y-auto p-3">

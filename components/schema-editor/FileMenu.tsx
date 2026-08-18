@@ -19,10 +19,12 @@ import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/cl
 import { PROJECT_ASSET_TYPE_LABELS, PROJECT_VOLTAGE_LABELS } from "@/lib/project-labels";
 import { buildCloudAssistant, buildCloudStatusMessage } from "@/lib/schema-editor/save-assistant";
 
-// Regroupe Nouveau / Exemples / Organiser (retour utilisateur : "il commence
-// à avoir beaucoup d'onglets sur le panneau principal") — actions
-// ponctuelles sur le schéma entier, peu utilisées d'affilée, qui n'ont pas
-// besoin de rester visibles en permanence contrairement à Filtrer/Exporter.
+// Regroupe Nouveau / Exemples (retour utilisateur : "il commence à avoir
+// beaucoup d'onglets sur le panneau principal") — actions ponctuelles sur le
+// schéma entier, peu utilisées d'affilée, qui n'ont pas besoin de rester
+// visibles en permanence contrairement à Filtrer/Exporter. ("Organiser"
+// retiré, retour utilisateur : "l'option organiser est chaotique, elle ne
+// sert à rien" — le tri auto produisait un agencement peu lisible.)
 //
 // V2 : "Exemple" (action unique) devient une petite galerie de gabarits
 // (SCHEMA_TEMPLATES) — plusieurs points de départ par cas d'usage, pas un
@@ -37,9 +39,6 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
   const newProject = useSchemaStore((s) => s.newProject);
   const loadTemplate = useSchemaStore((s) => s.loadTemplate);
   const hydrate = useSchemaStore((s) => s.hydrate);
-  const autoLayout = useSchemaStore((s) => s.autoLayout);
-  const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
-  const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
 
@@ -291,37 +290,6 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
     }
     loadTemplate(id);
     setOpen(false);
-  }
-
-  function handleAutoLayout() {
-    autoLayout();
-    setOpen(false);
-  }
-
-  function handleRecalculateSections() {
-    setOpen(false);
-    if (!window.confirm("Recalculer la section de tous les câbles de puissance dont la charge en aval est estimable ? Les sections déjà saisies manuellement seront remplacées.")) {
-      return;
-    }
-    const count = recalculateAllCableSections();
-    window.alert(
-      count > 0
-        ? `${count} section${count > 1 ? "s" : ""} de câble mise${count > 1 ? "s" : ""} à jour.`
-        : "Aucun câble de puissance à recalculer — ajoutez au moins un consommateur avec une puissance connue sur le circuit.",
-    );
-  }
-
-  function handleRecalculateFuses() {
-    setOpen(false);
-    if (!window.confirm("Recalculer le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable ? Les calibres déjà saisis manuellement seront remplacés.")) {
-      return;
-    }
-    const count = recalculateAllFuseRatings();
-    window.alert(
-      count > 0
-        ? `${count} calibre${count > 1 ? "s" : ""} mis à jour.`
-        : "Aucun fusible/disjoncteur à recalculer — ajoutez au moins un consommateur avec une puissance connue sur le circuit.",
-    );
   }
 
   function handleExportFile() {
@@ -766,34 +734,6 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
               <span>{template.label}</span>
             </button>
           ))}
-          <div className={`my-1 border-t ${darkMode ? "border-neutral-700" : "border-neutral-100"}`} />
-          <button
-            type="button"
-            onClick={handleAutoLayout}
-            disabled={nodesCount === 0}
-            className={itemClass}
-            title="Réorganise automatiquement les composants en un bloc compact, sans toucher aux connexions"
-          >
-            Organiser
-          </button>
-          <button
-            type="button"
-            onClick={handleRecalculateSections}
-            disabled={nodesCount === 0}
-            className={itemClass}
-            title="Recalcule en une fois la section de tous les câbles de puissance dont la charge en aval est estimable"
-          >
-            Recalculer les sections de câble
-          </button>
-          <button
-            type="button"
-            onClick={handleRecalculateFuses}
-            disabled={nodesCount === 0}
-            className={itemClass}
-            title="Recalcule en une fois le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable"
-          >
-            Recalculer les calibres de fusible
-          </button>
         </div>
       ) : null}
     </div>

@@ -76,6 +76,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { label: "Produits", href: "/dashboard/catalog", icon: ProductsIcon },
       { label: "Fichiers numériques", href: "/dashboard/catalog/assets", icon: FilesIcon },
       { label: "Codes réduction", href: "/dashboard/discounts", icon: DiscountIcon },
+      { label: "Codes promo éditeur", href: "/dashboard/schema-unlock-codes", icon: DiscountIcon },
     ],
   },
   {

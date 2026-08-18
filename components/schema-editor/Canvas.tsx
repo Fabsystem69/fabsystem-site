@@ -137,11 +137,18 @@ export function Canvas() {
     // ExportMenu.tsx ; s'applique AVANT le filtre par catégorie pour que les
     // deux filtres se cumulent si jamais les deux sont actifs en même temps.
     const zoneFiltered = filterNodesByZone(allNodes, exportIsolatedZoneId);
-    if (hiddenCategories.length === 0) return zoneFiltered;
-    return zoneFiltered.filter((n) => {
-      const def = getComponentDefinition(n.data.componentType);
-      return !def || !hiddenCategories.includes(def.category);
-    });
+    const categoryFiltered =
+      hiddenCategories.length === 0
+        ? zoneFiltered
+        : zoneFiltered.filter((n) => {
+            const def = getComponentDefinition(n.data.componentType);
+            return !def || !hiddenCategories.includes(def.category);
+          });
+    // Zone épinglée (retour utilisateur : "épingler les zones pour éviter
+    // qu'un clic les déplace") — `draggable: false` sur le nœud React Flow
+    // lui-même, pas seulement un style visuel, sinon un glisser fonctionne
+    // toujours malgré l'icône de verrou.
+    return categoryFiltered.map((n) => (n.type === "zone" && n.data.locked ? { ...n, draggable: false } : n));
   }, [allNodes, hiddenCategories, exportIsolatedZoneId]);
 
   const edges = useMemo(() => {

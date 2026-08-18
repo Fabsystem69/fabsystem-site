@@ -87,7 +87,8 @@ export const ProductType = {
   EBOOK: 'EBOOK',
   DIGITAL_DOWNLOAD: 'DIGITAL_DOWNLOAD',
   BUNDLE: 'BUNDLE',
-  SCHEMA_UNLOCK: 'SCHEMA_UNLOCK'
+  SCHEMA_UNLOCK: 'SCHEMA_UNLOCK',
+  COACHING_30MIN: 'COACHING_30MIN'
 } as const
 
 export type ProductType = (typeof ProductType)[keyof typeof ProductType]

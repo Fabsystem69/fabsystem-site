@@ -24,6 +24,7 @@ import { ItemPropertiesPopup } from "./ItemPropertiesPopup";
 import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
+import { CoachingOfferWidget } from "./CoachingOfferWidget";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
@@ -310,6 +311,7 @@ export function Editor() {
       <GuidedTutorial />
       <SchemaIssuesWidget />
       <ItemPropertiesPopup />
+      <CoachingOfferWidget />
     </ReactFlowProvider>
   );
 }

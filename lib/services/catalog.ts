@@ -15,7 +15,7 @@ import type {
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
 
 const productStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
-const productTypeSchema = z.enum(["EBOOK", "DIGITAL_DOWNLOAD", "BUNDLE", "SCHEMA_UNLOCK"]);
+const productTypeSchema = z.enum(["EBOOK", "DIGITAL_DOWNLOAD", "BUNDLE", "SCHEMA_UNLOCK", "COACHING_30MIN"]);
 const purchaseModeSchema = z.enum(["BUY_NOW", "REQUEST_ONLY"]);
 const digitalAssetStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
 const digitalAssetProviderSchema = z.enum(["SUPABASE"]);
@@ -578,14 +578,15 @@ export function createCatalogService(db: CatalogDb) {
     },
 
     async listActiveBuyNowProducts() {
-      // v2.1 : SCHEMA_UNLOCK n'est jamais parcouru/achete via la boutique
-      // generique — il se vend uniquement depuis l'editeur, dans le contexte
-      // d'un Project precis (voir Order.projectId).
+      // v2.1 : SCHEMA_UNLOCK et COACHING_30MIN ne sont jamais parcourus/
+      // achetes via la boutique generique — ils se vendent uniquement depuis
+      // l'editeur (voir Order.projectId pour SCHEMA_UNLOCK, coaching-checkout.ts
+      // pour COACHING_30MIN).
       return db.listProducts(
         {
           status: "ACTIVE",
           purchaseMode: "BUY_NOW",
-          excludeProductTypes: ["SCHEMA_UNLOCK"],
+          excludeProductTypes: ["SCHEMA_UNLOCK", "COACHING_30MIN"],
         },
         {
           activePricesOnly: true,

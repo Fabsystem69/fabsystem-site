@@ -198,7 +198,7 @@ export const BRAND_MODELS: BrandModel[] = [
   // système).
   { id: "victron-cerbo-gx", brand: "Victron", model: "Cerbo GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-cerbo-gx.webp" },
   { id: "victron-ccgx", brand: "Victron", model: "Color Control GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-ccgx.webp" },
-  { id: "victron-gx-touch-70", brand: "Victron", model: "GX Touch 70", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp" },
+  { id: "victron-gx-touch-70", brand: "Victron", model: "GX Touch 70", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp" },
 ];
 
 export function getBrandModelsForType(componentType: string): BrandModel[] {

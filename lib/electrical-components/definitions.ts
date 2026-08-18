@@ -918,7 +918,22 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "negative", label: "−", kind: "negative", side: "left" },
       { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: {},
+    // Retour utilisateur : "le GX Touch 70 c'est juste un lien de
+    // communication pour le relier, pas besoin d'autre câble dessus" — cet
+    // écran se raccorde uniquement par un câble GX (données + alimentation
+    // fournie par ce même câble), sans bornes +/− séparées à câbler,
+    // contrairement à un écran de contrôle classique (ex. BMV, alimenté à
+    // part). Bascule selon `connection`, réglé par défaut sur les modèles
+    // concernés via `BrandModel.defaults`.
+    getHandles: (data) =>
+      data.connection === "communication-only"
+        ? [{ id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom" as const }]
+        : [
+            { id: "positive", label: "+", kind: "positive", side: "right" as const },
+            { id: "negative", label: "−", kind: "negative", side: "left" as const },
+            { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom" as const, optional: true },
+          ],
+    defaultData: { connection: "power" },
     fields: [{ key: "label", label: "Nom", type: "text" }],
   },
   {

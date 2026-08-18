@@ -1,6 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
-import { calcSection, AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
+import { calcSection, AVAILABLE_FUSES_A, AVAILABLE_SECTIONS_MM2 } from "@/lib/calc/section-cable";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 
 // Moteur de recalcul en masse (V2 — inspiré de "Recalculate All Wire
@@ -212,6 +212,21 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
   };
 }
 
+// Un cran en dessous de `current` dans l'échelle standard (retour
+// utilisateur : "si la ligne est sur-calibrée tu n'as le droit de descendre
+// que d'une section, exemple 6mm tu diminues que jusqu'à 4mm pas en
+// dessous") — ne s'applique qu'à la baisse : monter reste sans limite,
+// seule une réduction agressive en un seul recalcul est jugée risquée (une
+// section volontairement surdimensionnée par l'utilisateur, ex. pour une
+// extension future, ne doit pas être ramenée d'un coup au strict minimum
+// théorique). Valeur hors échelle standard (saisie manuelle) : aucune
+// réduction autorisée, par prudence.
+function stepDownOnceMm2(current: number): number {
+  const idx = AVAILABLE_SECTIONS_MM2.indexOf(current);
+  if (idx <= 0) return current;
+  return AVAILABLE_SECTIONS_MM2[idx - 1];
+}
+
 // Recalcule la section de tous les câbles de puissance DC (batterie,
 // protection, distribution, consommateurs confondus — voir
 // `estimateEdgeAmps` ci-dessus) — inchangé pour le secteur AC, les terres
@@ -227,17 +242,34 @@ export function recalculateCableSections(
   const nextEdges = edges.map((edge) => {
     const diagnostic = evaluateEdgeSection(edge, nodes, edges);
     if (!diagnostic) return edge;
-    if (edge.data?.section === diagnostic.recommendedSectionLabel) return edge;
+
+    let targetMm2 = diagnostic.recommendedSectionMm2;
+    if (diagnostic.currentSectionMm2 !== null && targetMm2 < diagnostic.currentSectionMm2) {
+      targetMm2 = Math.max(targetMm2, stepDownOnceMm2(diagnostic.currentSectionMm2));
+    }
+    const targetLabel = formatSectionLabel(targetMm2);
+
+    if (edge.data?.section === targetLabel) return edge;
     updatedCount += 1;
-    return { ...edge, data: { ...edge.data, section: diagnostic.recommendedSectionLabel } };
+    return { ...edge, data: { ...edge.data, section: targetLabel } };
   });
 
   return { edges: nextEdges, updatedCount };
 }
 
+// Même principe que `stepDownOnceMm2` mais pour l'échelle des calibres de
+// fusible/disjoncteur.
+function stepDownOnceFuseA(current: number): number {
+  const idx = AVAILABLE_FUSES_A.indexOf(current);
+  if (idx <= 0) return current;
+  return AVAILABLE_FUSES_A[idx - 1];
+}
+
 // Recalcule le calibre de tous les fusibles/disjoncteurs dont le courant en
 // aval peut être estimé — même règle (marge 25 %) que la suggestion
-// débutant affichée dans le panneau propriétés.
+// débutant affichée dans le panneau propriétés, et même prudence à la
+// baisse qu'un recalcul de section (retour utilisateur : un calibre
+// sur-dimensionné ne descend que d'un cran par recalcul, jamais plus).
 export function recalculateFuseRatings(
   nodes: SchemaNode[],
   edges: SchemaEdge[],
@@ -248,8 +280,13 @@ export function recalculateFuseRatings(
     if (node.data.componentType !== "fuse" && node.data.componentType !== "circuit-breaker") return node;
     const amps = estimateConnectedAmps(node.id, nodes, edges);
     if (amps === null) return node;
-    const rating = AVAILABLE_FUSES_A.find((f) => f >= amps * 1.25);
-    if (!rating || node.data.amperage === rating) return node;
+    let rating = AVAILABLE_FUSES_A.find((f) => f >= amps * 1.25);
+    if (!rating) return node;
+    const currentRating = Number(node.data.amperage) || 0;
+    if (currentRating > 0 && rating < currentRating) {
+      rating = Math.max(rating, stepDownOnceFuseA(currentRating));
+    }
+    if (node.data.amperage === rating) return node;
     updatedCount += 1;
     return { ...node, data: { ...node.data, amperage: rating } };
   });

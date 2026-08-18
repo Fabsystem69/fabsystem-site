@@ -4,6 +4,7 @@ import {
   revokeTrialAccessCodeAction,
 } from "@/app/dashboard/schema-unlock-codes/actions";
 import { listTrialAccessCodes } from "@/lib/services/trial-access-code";
+import { CodesPageTabs } from "@/components/dashboard/CodesPageTabs";
 import {
   AdminAlert,
   AdminBadge,
@@ -44,8 +45,8 @@ export default async function DashboardSchemaUnlockCodesPage({
     <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
         <AdminPageHeader
-          title="Codes promo éditeur de schéma"
-          description="Accès illimité (consommateurs) à distribuer à la communauté, sans paiement — un compte client est requis pour les saisir."
+          title="Codes promo"
+          description="Accès illimité (consommateurs) à l'éditeur de schéma, à distribuer à la communauté sans paiement — un compte client est requis pour les saisir."
           actions={
             <>
               <AdminButton variant="primary" href="/dashboard/schema-unlock-codes/new">
@@ -55,6 +56,8 @@ export default async function DashboardSchemaUnlockCodesPage({
             </>
           }
         />
+
+        <CodesPageTabs active="schema-unlock-codes" />
 
         {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
         {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}

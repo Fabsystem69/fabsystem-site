@@ -272,6 +272,11 @@ function assertProductIsOrderable(product: ProductWithAssets | null) {
     throw badRequest("Product requires the dedicated schema unlock checkout");
   }
 
+  // Meme raison : COACHING_30MIN passe uniquement par coaching-checkout.ts.
+  if (product.productType === "COACHING_30MIN") {
+    throw badRequest("Product requires the dedicated coaching checkout");
+  }
+
   return product;
 }
 

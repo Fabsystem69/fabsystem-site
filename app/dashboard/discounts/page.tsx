@@ -4,6 +4,7 @@ import {
   disableDiscountCodeAction,
 } from "@/app/dashboard/discounts/actions";
 import { UNLIMITED_DISCOUNT_REDEMPTIONS, listDashboardDiscountCodes } from "@/lib/services/discounts";
+import { CodesPageTabs } from "@/components/dashboard/CodesPageTabs";
 import {
   AdminAlert,
   AdminBadge,
@@ -45,7 +46,7 @@ export default async function DashboardDiscountsPage({
     <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
         <AdminPageHeader
-          title="Codes de réduction"
+          title="Codes promo"
           description="Montant fixe ou pourcentage, ciblés sur un produit ou tout le catalogue, nominatifs ou non, usage limité ou illimité."
           actions={
             <>
@@ -56,6 +57,8 @@ export default async function DashboardDiscountsPage({
             </>
           }
         />
+
+        <CodesPageTabs active="discounts" />
 
         {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
         {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}

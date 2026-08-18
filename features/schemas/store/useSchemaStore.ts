@@ -10,7 +10,6 @@ import {
   type Connection,
 } from "@xyflow/react";
 import { getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS } from "@/lib/electrical-components/definitions";
-import { autoLayoutNodes } from "@/lib/electrical-components/auto-layout";
 import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps } from "@/lib/electrical-components/auto-size";
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
@@ -162,6 +161,21 @@ interface SchemaState {
   spliceHoverEdgeId: string | null;
   setDraggingComponentType: (type: string | null) => void;
   setSpliceHoverEdgeId: (edgeId: string | null) => void;
+  // Signaux "utilisateur bloqué" (retour utilisateur : proposer un pack de
+  // coaching quand on sent quelqu'un coincé) — purement éphémères, jamais
+  // persistés ni comptés dans l'historique annuler/rétablir.
+  // Horodatage de la dernière action qui fait vraiment avancer le schéma
+  // (ajout de composant, câble connecté, insertion sur câble) — remis à
+  // zéro à chaque action de ce type ; CoachingOfferWidget s'en sert pour
+  // détecter une inactivité prolongée alors que le schéma a des points à
+  // vérifier non résolus.
+  lastMeaningfulActionAt: number;
+  // Nombre d'annulations consécutives du sélecteur de modèle sans ajout
+  // réussi entre deux — un débutant qui ouvre/referme plusieurs fois de
+  // suite sans jamais choisir est un signal d'hésitation plus immédiat
+  // qu'un simple minuteur d'inactivité.
+  pickerCancelStreak: number;
+  touchMeaningfulAction: () => void;
   // Filtre d'affichage (retour utilisateur : "isoler le circuit MPPT ou
   // consommateur pour éviter d'avoir toujours tout le schéma") — catégories
   // volontairement masquées du canvas ; vide = tout affiché. Vue seulement,
@@ -266,7 +280,10 @@ interface SchemaState {
   spliceNodeOnEdge: (edgeId: string, type: string, position: { x: number; y: number }) => void;
   duplicateNode: (id: string) => void;
   rotateNode: (id: string) => void;
-  autoLayout: () => void;
+  /** Verrouille/déverrouille le déplacement et le redimensionnement d'une
+   * zone (retour utilisateur : "épingler les zones pour éviter qu'un clic
+   * les déplace") — ne concerne que les nœuds de type "zone". */
+  toggleZoneLock: (id: string) => void;
   /** Recalcule la section de tous les câbles éligibles ; renvoie le nombre modifié. */
   recalculateAllCableSections: () => number;
   /** Recalcule le calibre de tous les fusibles/disjoncteurs éligibles ; renvoie le nombre modifié. */
@@ -343,6 +360,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   itemPropertiesPopupOpen: false,
   draggingComponentType: null,
   spliceHoverEdgeId: null,
+  lastMeaningfulActionAt: Date.now(),
+  pickerCancelStreak: 0,
   hiddenCategories: [],
   exportIsolatedZoneId: null,
   projectId: null,
@@ -395,6 +414,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   closeItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: false }),
   setDraggingComponentType: (type) => set({ draggingComponentType: type }),
   setSpliceHoverEdgeId: (edgeId) => set({ spliceHoverEdgeId: edgeId }),
+  touchMeaningfulAction: () => set({ lastMeaningfulActionAt: Date.now(), pickerCancelStreak: 0 }),
 
   onNodesChange: (changes) =>
     set((state) => {
@@ -466,6 +486,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       return {
         edges: [...state.edges, edge],
         pendingSizingTarget,
+        lastMeaningfulActionAt: Date.now(),
+        pickerCancelStreak: 0,
         ...commit(state),
       };
     }),
@@ -499,6 +521,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         selectedNodeId: node.id,
         selectedEdgeId: null,
         pendingModelPickerNodeId: hasBrandModels ? node.id : null,
+        lastMeaningfulActionAt: Date.now(),
+        pickerCancelStreak: 0,
         ...commit(state),
       };
     }),
@@ -534,7 +558,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   // le glisser-déposer (place immédiatement, popup ensuite pour affiner).
   openLibraryPick: (type, position, dataOverride) =>
     set({ pendingLibraryPick: { type, position, dataOverride } }),
-  cancelLibraryPick: () => set({ pendingLibraryPick: null }),
+  cancelLibraryPick: () =>
+    set((state) => ({ pendingLibraryPick: null, pickerCancelStreak: state.pickerCancelStreak + 1 })),
 
   addComponentWithModel: (type, position, brandModelId, dataOverride) =>
     set((state) => {
@@ -567,6 +592,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         selectedNodeId: node.id,
         selectedEdgeId: null,
         pendingLibraryPick: null,
+        lastMeaningfulActionAt: Date.now(),
+        pickerCancelStreak: 0,
         ...commit(state),
       };
     }),
@@ -698,17 +725,10 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         edges: [...state.edges.filter((e) => e.id !== edgeId), edgeA, edgeB],
         selectedNodeId: node.id,
         selectedEdgeId: null,
+        lastMeaningfulActionAt: Date.now(),
+        pickerCancelStreak: 0,
         ...commit(state),
       };
-    }),
-
-  // Auto-agencement (retour utilisateur : export "trop petit et illisible")
-  // — recalcule toutes les positions en un bloc compact, sans toucher aux
-  // connexions ni aux données des composants.
-  autoLayout: () =>
-    set((state) => {
-      if (state.nodes.length === 0) return {};
-      return { nodes: autoLayoutNodes(state.nodes, state.edges), ...commit(state) };
     }),
 
   recalculateAllCableSections: () => {
@@ -741,6 +761,15 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         return { ...n, data: { ...n.data, rotation: (current + 90) % 360 } };
       });
       return { nodes, ...commit(state) };
+    }),
+
+  toggleZoneLock: (id) =>
+    set((state) => {
+      const nodes = state.nodes.map((n) => (n.id === id ? { ...n, data: { ...n.data, locked: !n.data.locked } } : n));
+      // Purement un réglage d'interaction (pas une donnée du schéma qui
+      // mérite un pas d'annuler/rétablir) — pas de commit(state) ici,
+      // contrairement à rotateNode.
+      return { nodes };
     }),
 
   duplicateNode: (id) =>

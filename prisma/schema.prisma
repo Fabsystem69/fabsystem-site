@@ -73,6 +73,13 @@ enum ProductType {
   // se base sur les assets du Product, absents ici, donc aucun cas special
   // requis).
   SCHEMA_UNLOCK
+  // v2.1 : créneau de conseil ponctuel (30 min, visio ou téléphone),
+  // proposé dans l'éditeur de schéma quand l'utilisateur semble bloqué
+  // (voir CoachingOfferWidget.tsx) — pas de DownloadGrant ni de capability
+  // à octroyer, juste une commande normale : sendPurchaseNotification
+  // (déjà appelée pour toute commande payée) suffit à alerter Fabien pour
+  // qu'il recontacte le client et cale le rendez-vous.
+  COACHING_30MIN
 }
 
 enum PurchaseMode {
