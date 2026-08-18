@@ -148,6 +148,9 @@ export const BRAND_MODELS: BrandModel[] = [
   // Prise de quai (retour bêta, 3e testeur : "impossible d'ajouter une
   // prise P17" — connecteur caravane/camping bleu 16A/230V normalisé).
   { id: "p17-16a", brand: "Générique", model: "Prise P17 16A/230V", componentType: "shore-power", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-p17-shore-power.webp" },
+  // Interrupteur dédié WC (retour bêta : icône fournie) — même forme que
+  // l'interrupteur générique, juste un visuel reconnaissable.
+  { id: "interrupteur-toilette", brand: "Générique", model: "Interrupteur toilette", componentType: "switch", defaults: {}, iconPro: "/schema-icons/pro/brand/interrupteur-toilette.webp" },
 
   // Onduleurs purs
   { id: "victron-phoenix-500", brand: "Victron", model: "Phoenix Inverter 12/500", componentType: "inverter", defaults: { powerW: 500, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/victron-phoenix-500.webp" },
@@ -184,6 +187,11 @@ export const BRAND_MODELS: BrandModel[] = [
   // Shunt / monitoring
   { id: "victron-smartshunt-500a", brand: "Victron", model: "SmartShunt 500A", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-500a.png" },
   { id: "victron-bmv-712", brand: "Victron", model: "BMV-712 Smart", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
+  // Retour bêta : "beaucoup ont un 702" — écran visuellement identique au
+  // 712 (même boîtier), fonctions Bluetooth/second capteur en moins,
+  // réutilise donc la même photo.
+  { id: "victron-bmv-702", brand: "Victron", model: "BMV-702", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
+  { id: "victron-bmv-700", brand: "Victron", model: "BMV-700", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-700.webp" },
   { id: "renogy-rbm500", brand: "Renogy", model: "Battery Monitor RBM500", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/renogy-rbm500.webp" },
 
   // Combineur de batteries
@@ -197,6 +205,13 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-argofet-100-3bat", brand: "Victron", model: "Argofet 100A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 100 }, iconPro: "/schema-icons/pro/brand/victron-argofet-100-3bat.png" },
   { id: "cristec-diodis-160-2bat", brand: "Cristec", model: "Diodis 160A 2 batteries", componentType: "battery-isolator", defaults: { outputCount: 2, amperage: 160 } , iconPro: "/schema-icons/pro/brand/cristec-diodis-160-2bat.webp" },
   { id: "cristec-diodis-160-3bat", brand: "Cristec", model: "Diodis 160A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 160 } , iconPro: "/schema-icons/pro/brand/cristec-diodis-160-3bat.webp" },
+
+  // Boîtes à fusibles génériques (retour bêta : photos fournies) — chaque
+  // sortie positive protégée par son propre fusible, plus un bus négatif
+  // intégré du même nombre de points ("layout: positive-negative" déjà
+  // câblé sur le type "fuse-block" générique).
+  { id: "fuse-block-6way", brand: "Générique", model: "Boîte à fusibles 6 circuits 12/24V", componentType: "fuse-block", defaults: { outputCount: 6, layout: "positive-negative" }, iconPro: "/schema-icons/pro/brand/fuse-block-6way.webp" },
+  { id: "fuse-block-12way", brand: "Générique", model: "Boîte à fusibles 12 circuits 12/24V", componentType: "fuse-block", defaults: { outputCount: 12, layout: "positive-negative" }, iconPro: "/schema-icons/pro/brand/fuse-block-12way.webp" },
 
   // Lynx Distributor / Power In / Shunt VE.Can : regroupés dans leur propre
   // famille de composants dédiés (type "lynx-distributor" etc., voir

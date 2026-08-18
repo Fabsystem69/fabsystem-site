@@ -31,7 +31,7 @@ type SchemaEdgeInternal = Edge<CableEdgeData>;
 const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch"]);
 // Lynx Smart BMS coupe automatiquement la batterie en cas de défaut : même
 // rôle protecteur qu'un fusible/disjoncteur pour cette détection.
-const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms"]);
+const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms", "smart-bms-ng"]);
 
 // Bornes de sortie « charge » à protéger avant la batterie, par type de
 // composant source.

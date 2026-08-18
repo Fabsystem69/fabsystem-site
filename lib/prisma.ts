@@ -11,17 +11,25 @@ const globalForPrisma = globalThis as {
 };
 
 function createPool() {
-  const connectionString = process.env.DATABASE_URL;
+  const rawConnectionString = process.env.DATABASE_URL;
 
-  if (!connectionString) {
+  if (!rawConnectionString) {
     throw new Error("Missing DATABASE_URL");
   }
 
+  // On passe `ssl` explicitement ci-dessous, donc `sslmode` dans l'URL est
+  // redondant — et `pg-connection-string` émet un warning de dépréciation
+  // dès qu'il voit `sslmode=require`/`prefer`/`verify-ca` (traités comme
+  // alias de `verify-full` jusqu'à sa v3, moins strict qu'aujourd'hui). On
+  // le retire de l'URL pour garder le comportement actuel sans le warning,
+  // plutôt que d'ajouter `uselibpqcompat=true` qui durcirait la vérification.
+  const url = new URL(rawConnectionString);
+  const useSsl = url.searchParams.get("sslmode") === "require";
+  url.searchParams.delete("sslmode");
+
   return new Pool({
-    connectionString,
-    ssl: connectionString.includes("sslmode=require")
-      ? { rejectUnauthorized: false }
-      : undefined,
+    connectionString: url.toString(),
+    ssl: useSsl ? { rejectUnauthorized: false } : undefined,
   });
 }
 

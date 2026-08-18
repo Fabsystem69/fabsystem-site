@@ -52,6 +52,7 @@ const CORE_WIRING_TYPES = new Set([
   "lynx-distributor",
   "lynx-shunt",
   "mini-bms",
+  "smart-bms-ng",
 ]);
 
 // Tronc batterie principal (retour utilisateur : "créer un câble batterie +
@@ -73,6 +74,7 @@ const BATTERY_TRUNK_COMPONENT_TYPES = new Set([
   "lynx-distributor",
   "lynx-shunt",
   "mini-bms",
+  "smart-bms-ng",
 ]);
 
 function isPowerCableType(value: string | undefined): value is PowerCableType {

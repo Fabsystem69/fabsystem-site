@@ -19,7 +19,13 @@ export interface ConsumerPreset {
 // depuis "Générique" qui ne laissait pas deviner qu'il restait modifiable
 // (nom + puissance libres une fois sélectionné).
 export const CONSUMER_PRESETS: ConsumerPreset[] = [
-  { value: "eclairage-led", label: "Éclairage LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp" },
+  // Retour utilisateur : "l'éclairage c'est trop générique" — trois usages
+  // distincts plutôt qu'un seul préréglage fourre-tout, "Éclairage LED"
+  // conservé comme choix générique pour qui ne veut pas se soucier du détail.
+  { value: "eclairage-led", label: "Éclairage LED (générique)", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp" },
+  { value: "spot-led", label: "Spot LED encastré", typicalPowerW: 3 },
+  { value: "ruban-led", label: "Ruban LED", typicalPowerW: 10 },
+  { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3 },
   { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp" },
   { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp" },
   { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp" },
@@ -29,6 +35,12 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "pompe-eau-immergee-10l", label: "Pompe à eau immergée 10L/min (type Comet)", typicalPowerW: 20, iconPro: "/schema-icons/pro/pompe-eau-immergee-10l.jpg" },
   { value: "prise-usb-12v", label: "Prise USB / 12 V", typicalPowerW: 15, iconPro: "/schema-icons/pro/prise-usb-12v.webp" },
   { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp" },
+  { value: "alarme", label: "Système d'alarme", typicalPowerW: 5 },
+  { value: "tele-12v", label: "Télé 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/tele-12v.jpg" },
+  { value: "tele-220v", label: "Télé 220V", typicalPowerW: 60 },
+  { value: "micro-ondes", label: "Micro-ondes", typicalPowerW: 1000 },
+  { value: "electrovanne", label: "Électrovanne (circuit d'eau)", typicalPowerW: 6, iconPro: "/schema-icons/pro/electrovanne.webp" },
+  { value: "wc-electrique", label: "WC électrique marin 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/wc-electrique.webp" },
 
   { value: "guindeau", label: "Guindeau", typicalPowerW: 800, iconPro: "/schema-icons/pro/guindeau.webp" },
   { value: "pilote-automatique", label: "Pilote automatique", typicalPowerW: 30, iconPro: "/schema-icons/pro/pilote-automatique.webp" },
@@ -44,6 +56,11 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "chauffage-truma", label: "Chauffage d'appoint 12V/230V (type Truma)", typicalPowerW: 900, iconPro: "/schema-icons/pro/chauffage-truma.webp" },
   { value: "climatisation", label: "Climatisation de toit", typicalPowerW: 1500, iconPro: "/schema-icons/pro/climatisation.webp" },
   { value: "ventilateur", label: "Ventilateur de toit", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur.webp" },
+  // Retour utilisateur : "ventilateur sans toit, certains font leur propre
+  // système" — montage DIY mural/façade, distinct du ventilateur de toit
+  // ci-dessus.
+  { value: "ventilateur-diy", label: "Ventilateur 12V (DIY, sans toit)", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur-diy.webp" },
+  { value: "blower-12v", label: "Blower / turbine 12V", typicalPowerW: 25, iconPro: "/schema-icons/pro/blower-12v.jpg" },
   { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500 },
 
   { value: "generique", label: "Au choix", typicalPowerW: 0 },
@@ -513,6 +530,17 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subtitle: "Protection",
     icon: "/schema-icons/fuse.svg",
     iconPro: "/schema-icons/pro/fuse.webp",
+    // Retour bêta : "changer l'illustration avec le type de fusible, ça
+    // aiderait à la compréhension et au choix du porte-fusible" — une photo
+    // réelle par format physique plutôt que l'icône générique unique.
+    iconVariantField: "fuseType",
+    iconVariants: {
+      mega: { iconPro: "/schema-icons/pro/fuse-mega.webp" },
+      midi: { iconPro: "/schema-icons/pro/fuse-midi.webp" },
+      anl: { iconPro: "/schema-icons/pro/fuse-anl.webp" },
+      "classe-t": { iconPro: "/schema-icons/pro/fuse-classe-t.jpg" },
+      lame: { iconPro: "/schema-icons/pro/fuse-lame.webp" },
+    },
     badge: { field: "amperage", unit: "A" },
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
@@ -628,6 +656,68 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "100A courant sur les petits BMS DIY 4S." },
     ],
+  },
+  {
+    // Victron Smart BMS NG (retour bêta : icône fournie, "j'ai une batterie
+    // avec BMS séparé") — même rôle que le Lynx Smart BMS (coupe batterie
+    // et système en cas de défaut) mais boîtier autonome à visser, pas un
+    // module du bus Lynx : composant distinct plutôt qu'un modèle de marque
+    // du type "lynx-smart-bms", pour ne pas le ranger dans la famille Lynx.
+    // Mêmes bornes externes réelles : batterie (+/−), système (+/−), et
+    // port de communication.
+    type: "smart-bms-ng",
+    label: "Smart BMS NG",
+    description: "Coupe automatiquement la batterie du système en cas de défaut (surcharge, décharge profonde, température) — boîtier autonome, indépendant du bus Lynx.",
+    category: "wiring",
+    subcategory: "coupure",
+    subtitle: "Protection",
+    icon: "/schema-icons/battery-switch.svg",
+    iconPro: "/schema-icons/pro/brand/victron-smart-bms-ng.png",
+    minIconBoxSize: 64,
+    handles: [
+      { id: "batt-negative", label: "BATT−", kind: "negative", side: "left" },
+      { id: "batt-positive", label: "BATT+", kind: "positive", side: "left" },
+      { id: "sys-negative", label: "SYS−", kind: "negative", side: "right" },
+      { id: "sys-positive", label: "SYS+", kind: "positive", side: "right" },
+      { id: "ve-can", label: "Communication", kind: "neutral", side: "bottom", optional: true },
+    ],
+    defaultData: { amperage: 100 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A" },
+    ],
+  },
+  {
+    // VE.Bus BMS NG (retour bêta : icône fournie, à vérifier avant de
+    // câbler) — vérifié sur le manuel constructeur Victron (Rev 05 -
+    // 06/2026) : contrairement au Smart BMS NG ci-dessus, ce boîtier NE
+    // coupe RIEN directement. Il pilote à distance l'onduleur-chargeur
+    // VE.Bus et les chargeurs/charges compatibles via des sorties signal.
+    // Citation du manuel : "the BMS does not have a battery negative
+    // connection. This is because the BMS obtains battery negative from
+    // the VE.Bus. As such, the BMS cannot be used without a VE.Bus
+    // Inverter/charger or a VE.Bus inverter." D'où l'absence volontaire de
+    // borne "Battery−" ici (contrairement au Smart BMS NG) et la borne
+    // VE.Bus obligatoire vers le Multiplus/Quattro.
+    type: "vebus-bms-ng",
+    label: "VE.Bus BMS NG",
+    description: "Protège une batterie Lithium NG en pilotant à distance l'onduleur-chargeur VE.Bus et les chargeurs/charges compatibles — ne coupe rien directement, contrairement au Smart BMS NG.",
+    category: "wiring",
+    subcategory: "coupure",
+    subtitle: "Protection",
+    icon: "/schema-icons/battery-switch.svg",
+    iconPro: "/schema-icons/pro/brand/victron-vebus-bms-ng.png",
+    minIconBoxSize: 64,
+    handles: [
+      { id: "battery-positive", label: "Battery+", kind: "positive", side: "left" },
+      { id: "ve-bus", label: "VE.Bus → MultiPlus/Quattro", kind: "neutral", side: "right" },
+      { id: "remote-h", label: "Remote H", kind: "neutral", side: "bottom", optional: true },
+      { id: "remote-l", label: "Remote L", kind: "neutral", side: "bottom", optional: true },
+      { id: "load-disconnect", label: "Load Disconnect → charge(s)", kind: "neutral", side: "top", optional: true },
+      { id: "charge-disconnect", label: "Charge Disconnect → chargeur(s)", kind: "neutral", side: "top", optional: true },
+    ],
+    defaultData: {},
+    fields: [{ key: "label", label: "Nom", type: "text" }],
   },
   {
     type: "switch",
@@ -1155,6 +1245,44 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     fields: [{ key: "label", label: "Nom", type: "text" }],
   },
   {
+    // Sonde de niveau (retour bêta : icône fournie, "il n'y a pas de niveau
+    // ou sonde ?") — jauge résistive classique de réservoir (33-240 Ω),
+    // câblée en 2 fils : signal vers le compteur, masse commune.
+    type: "jauge-niveau",
+    label: "Sonde de niveau",
+    description: "Jauge résistive dans un réservoir (eau propre, eaux usées/noires), reliée à un compteur de niveau.",
+    category: "measurement",
+    subcategory: "niveau",
+    subtitle: "Mesure",
+    icon: "/schema-icons/shunt.svg",
+    iconPro: "/schema-icons/pro/jauge-niveau.webp",
+    handles: [
+      { id: "signal", label: "Signal", kind: "neutral", side: "right" },
+      { id: "masse", label: "Masse", kind: "negative", side: "left" },
+    ],
+    defaultData: {},
+    fields: [{ key: "label", label: "Nom", type: "text", help: "Ex. Réservoir eau propre, Réservoir eaux noires…" }],
+  },
+  {
+    // Compteur/affichage relié à une sonde de niveau ci-dessus — alimenté à
+    // part (+/−), plus le fil de signal venant de la jauge.
+    type: "compteur-niveau",
+    label: "Compteur de niveau",
+    description: "Affiche le niveau mesuré par une sonde de réservoir (eau propre, eaux usées/noires…).",
+    category: "measurement",
+    subcategory: "niveau",
+    subtitle: "Mesure",
+    icon: "/schema-icons/shunt.svg",
+    iconPro: "/schema-icons/pro/compteur-niveau.jpeg",
+    handles: [
+      { id: "positive", label: "+", kind: "positive", side: "right" },
+      { id: "negative", label: "−", kind: "negative", side: "right" },
+      { id: "signal", label: "Signal", kind: "neutral", side: "left" },
+    ],
+    defaultData: {},
+    fields: [{ key: "label", label: "Nom", type: "text" }],
+  },
+  {
     type: "inverter",
     label: "Convertisseur 12/230V",
     description: "Transforme le courant continu (12V/24V) en 230V pour les appareils secteur.",
@@ -1411,6 +1539,7 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   lynx: "Lynx",
   masse: "Masse",
   shunts: "Shunts",
+  niveau: "Niveau de réservoir",
   ecrans: "Écrans de contrôle",
   coupure: "Coupe-batterie & BatteryProtect",
 };
