@@ -43,6 +43,9 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-gel-110ah", brand: "Victron", model: "GEL Deep Cycle 12V/110Ah", componentType: "battery", defaults: { technology: "gel", voltage: 12, capacityAh: 110 }, iconPro: "/schema-icons/pro/brand/victron-gel-110ah.webp" },
   { id: "victron-gel-220ah", brand: "Victron", model: "GEL Deep Cycle 12V/220Ah", componentType: "battery", defaults: { technology: "gel", voltage: 12, capacityAh: 220 }, iconPro: "/schema-icons/pro/brand/victron-gel-220ah.webp" },
   { id: "victron-lead-carbon-106ah", brand: "Victron", model: "Lead Carbon 12V/106Ah", componentType: "battery", defaults: { technology: "lead-carbon", voltage: 12, capacityAh: 106 }, iconPro: "/schema-icons/pro/brand/victron-lead-carbon-106ah.webp" },
+  // Retour bêta (3e testeur) : "batterie lithium 280Ah type PowerQueen à ajouter".
+  { id: "powerqueen-lifepo4-280ah", brand: "PowerQueen", model: "12,8V/280Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 280 }, iconPro: "/schema-icons/pro/brand/powerqueen-lifepo4-280ah.webp" },
+  { id: "powerqueen-lifepo4-320ah", brand: "PowerQueen", model: "12,8V/320Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 320 }, iconPro: "/schema-icons/pro/brand/powerqueen-lifepo4-320ah.webp" },
   // Marque française (batteries LiFePO4 grand public).
   { id: "energie-mobile-lt12-100hd", brand: "Énergie Mobile", model: "LT12-100HD-BT 12V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/energie-mobile-lt12-100hd.webp" },
   { id: "energie-mobile-lt12-200hd", brand: "Énergie Mobile", model: "LT12-200HD-BT 12V/200Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 }, iconPro: "/schema-icons/pro/brand/energie-mobile-lt12-200hd.webp" },
@@ -66,6 +69,8 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-200w-rigid", brand: "Renogy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/renogy-200w-rigid.webp" },
   { id: "renogy-175w-flexible", brand: "Renogy", model: "175W flexible", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } , iconPro: "/schema-icons/pro/brand/renogy-175w-flexible.webp" },
   { id: "victron-175w-rigid", brand: "Victron", model: "BlueSolar 175W rigide", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } , iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
+  // Retour bêta (3e testeur) : "panneau Victron 360W très utilisé, à ajouter".
+  { id: "victron-365w-mono", brand: "Victron", model: "365W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 365, voltage: 0 }, iconPro: "/schema-icons/pro/brand/victron-365w-mono.webp" },
   // Un seul visuel disponible par marque pour la gamme panneaux (retour
   // utilisateur) — réutilisé sur toutes les puissances de la même marque
   // plutôt que de laisser certaines sans icône.
@@ -140,6 +145,10 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "cristec-ypower-12-30", brand: "Cristec", model: "YPOWER 12V/30A", componentType: "ac-charger", defaults: { chargeAmperage: 30 } , iconPro: "/schema-icons/pro/brand/cristec-ypower-12-30.webp" },
   { id: "cristec-ypower-24-15", brand: "Cristec", model: "YPOWER 24V/15A", componentType: "ac-charger", defaults: { chargeAmperage: 15 }, iconPro: "/schema-icons/pro/brand/cristec-ypower-24-15.webp" },
 
+  // Prise de quai (retour bêta, 3e testeur : "impossible d'ajouter une
+  // prise P17" — connecteur caravane/camping bleu 16A/230V normalisé).
+  { id: "p17-16a", brand: "Générique", model: "Prise P17 16A/230V", componentType: "shore-power", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-p17-shore-power.webp" },
+
   // Onduleurs purs
   { id: "victron-phoenix-500", brand: "Victron", model: "Phoenix Inverter 12/500", componentType: "inverter", defaults: { powerW: 500, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/victron-phoenix-500.webp" },
   { id: "victron-phoenix-800", brand: "Victron", model: "Phoenix Inverter 12/800", componentType: "inverter", defaults: { powerW: 800, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/victron-phoenix-800.png" },
@@ -154,8 +163,11 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-multiplus-500-20", brand: "Victron", model: "MultiPlus 12/500/20", componentType: "inverter-charger", defaults: { powerW: 500, voltageDC: 12, chargeAmperage: 20 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-500-20.webp" },
   { id: "victron-multiplus-800-35", brand: "Victron", model: "Multi 12/800/35", componentType: "inverter-charger", defaults: { powerW: 800, voltageDC: 12, chargeAmperage: 35 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-800-35.webp" },
   { id: "victron-multiplus-1200-50", brand: "Victron", model: "MultiPlus 12/1200/50", componentType: "inverter-charger", defaults: { powerW: 1200, voltageDC: 12, chargeAmperage: 50 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1200-50.webp" },
-  { id: "victron-multiplus-1600-70", brand: "Victron", model: "MultiPlus 12/1600/70", componentType: "inverter-charger", defaults: { powerW: 1600, voltageDC: 12, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1600-70.png" },
+  { id: "victron-multiplus-1600-70", brand: "Victron", model: "MultiPlus 12/1600/70", componentType: "inverter-charger", defaults: { powerW: 1600, voltageDC: 12, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1600-70.webp" },
   { id: "victron-multiplus-ii-24-3000-70", brand: "Victron", model: "MultiPlus-II GX 24/3000/70", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 24, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-ii-24-3000-70.webp" },
+  // Retour bêta (3e testeur) : "ne trouve pas comment ajouter un Multiplus
+  // II 12/3000VA".
+  { id: "victron-multiplus-ii-12-3000-120", brand: "Victron", model: "MultiPlus-II 12/3000/120-32", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 12, chargeAmperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-ii-12-3000-120.webp" },
   { id: "victron-multiplus-3000-120", brand: "Victron", model: "MultiPlus 12/3000/120", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 12, chargeAmperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-3000-120.png" },
   { id: "creabest-inverter-charger-2000w", brand: "Creabest", model: "Inverter Charger 2000W 12V-230V/80A", componentType: "inverter-charger", defaults: { powerW: 2000, voltageDC: 12, chargeAmperage: 80 }, iconPro: "/schema-icons/pro/brand/creabest-inverter-charger-2000w.webp" },
 
@@ -171,7 +183,7 @@ export const BRAND_MODELS: BrandModel[] = [
 
   // Shunt / monitoring
   { id: "victron-smartshunt-500a", brand: "Victron", model: "SmartShunt 500A", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-500a.png" },
-  { id: "victron-bmv-712", brand: "Victron", model: "BMV-712 Smart", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.png" },
+  { id: "victron-bmv-712", brand: "Victron", model: "BMV-712 Smart", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
   { id: "renogy-rbm500", brand: "Renogy", model: "Battery Monitor RBM500", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/renogy-rbm500.webp" },
 
   // Combineur de batteries
@@ -185,6 +197,12 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-argofet-100-3bat", brand: "Victron", model: "Argofet 100A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 100 }, iconPro: "/schema-icons/pro/brand/victron-argofet-100-3bat.png" },
   { id: "cristec-diodis-160-2bat", brand: "Cristec", model: "Diodis 160A 2 batteries", componentType: "battery-isolator", defaults: { outputCount: 2, amperage: 160 } , iconPro: "/schema-icons/pro/brand/cristec-diodis-160-2bat.webp" },
   { id: "cristec-diodis-160-3bat", brand: "Cristec", model: "Diodis 160A 3 batteries", componentType: "battery-isolator", defaults: { outputCount: 3, amperage: 160 } , iconPro: "/schema-icons/pro/brand/cristec-diodis-160-3bat.webp" },
+
+  // Lynx Distributor / Power In / Shunt VE.Can : regroupés dans leur propre
+  // famille de composants dédiés (type "lynx-distributor" etc., voir
+  // definitions.ts) plutôt qu'en modèles de marque d'un type générique —
+  // retour utilisateur : "classe tous les Lynx ensemble dans la famille
+  // Lynx" pour les retrouver groupés dans la bibliothèque.
 
   // Coupure basse tension (BatteryProtect : déconnecte automatiquement une
   // charge sous un seuil de tension réglable — rattaché à "battery-switch",

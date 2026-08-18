@@ -73,7 +73,7 @@ export function EditorStartPicker({
     // en fond, canvas vide) plutôt qu'un écran qui remplace toute la page —
     // même esprit qu'une boîte de dialogue de démarrage, l'éditeur "derrière"
     // rend la transition vers le choix fait moins abrupte.
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
         className={`flex max-h-[85vh] w-full max-w-3xl flex-col overflow-y-auto rounded-2xl border p-6 shadow-2xl sm:p-8 ${
           darkMode ? "border-neutral-800 bg-neutral-950" : "border-neutral-200 bg-white"

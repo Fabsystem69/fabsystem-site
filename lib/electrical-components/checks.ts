@@ -29,7 +29,9 @@ type SchemaEdgeInternal = Edge<CableEdgeData>;
 // démo concurrente, pas assez pour prétendre à une vérification complète.
 
 const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch"]);
-const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel"]);
+// Lynx Smart BMS coupe automatiquement la batterie en cas de défaut : même
+// rôle protecteur qu'un fusible/disjoncteur pour cette détection.
+const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms"]);
 
 // Bornes de sortie « charge » à protéger avant la batterie, par type de
 // composant source.
@@ -40,7 +42,7 @@ const CHARGE_SOURCE_OUTPUT_HANDLE: Record<string, string> = {
   alternator: "positive",
 };
 
-const AC_COMPONENT_TYPES = new Set(["ac-panel", "socket-220v", "ac-charger", "inverter", "inverter-charger", "shore-power", "power-station"]);
+const AC_COMPONENT_TYPES = new Set(["ac-panel", "socket-220v", "ac-charger", "inverter", "inverter-charger", "shore-power", "power-station", "easysolar"]);
 
 // Resout la polarite reelle d'une borne (via resolveHandleKind si le
 // composant en a un, ex. busbar +/− configurable) — reutilise par

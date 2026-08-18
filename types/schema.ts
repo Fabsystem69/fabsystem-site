@@ -99,15 +99,6 @@ export interface ComponentDefinition {
    * (busbar…), juste un plancher plus haut que la taille par défaut.
    */
   minIconBoxSize?: number;
-  /**
-   * Autorise l'agrandissement manuel de la vignette (contrôle "Taille
-   * d'affichage", 1 à 5, dans le panneau propriétés) — retour utilisateur :
-   * "possibilité d'agrandir une vignette pour la mettre plus en valeur",
-   * limité à la famille batterie et aux boîtiers (chargeurs, régulateurs,
-   * convertisseurs) plutôt qu'à tous les composants (un fusible ou un
-   * interrupteur n'a pas besoin d'être mis en avant de cette façon).
-   */
-  allowDisplayScale?: boolean;
 }
 
 export type IconStyle = "simple" | "pro";

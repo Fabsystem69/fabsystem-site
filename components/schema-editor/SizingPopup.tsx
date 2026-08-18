@@ -181,7 +181,7 @@ function SizingPopupShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onDismiss}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onDismiss}>
       <div
         onClick={(e) => e.stopPropagation()}
         className={`w-full max-w-sm rounded-2xl border p-6 shadow-2xl ${darkMode ? "border-neutral-800 bg-neutral-950" : "border-neutral-200 bg-white"}`}

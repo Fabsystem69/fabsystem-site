@@ -63,6 +63,7 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   "circuit-breaker": ["coupe-circuit", "coupe circuit"],
   "battery-switch": ["coupure basse tension", "protection batterie"],
   ground: ["masse", "terre"],
+  busbar: ["bornier"],
 };
 
 // Retire espaces/tirets avant comparaison : les noms de produit reels

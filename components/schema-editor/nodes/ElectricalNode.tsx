@@ -64,6 +64,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   // qu'une couleur générique par "kind" qui peut induire en erreur.
   const edges = useSchemaStore((s) => s.edges);
   const rotateNode = useSchemaStore((s) => s.rotateNode);
+  const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const select = useSchemaStore((s) => s.select);
   const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
@@ -109,14 +110,14 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const maxPerSide = Math.max(bySide.left.length, bySide.right.length, bySide.top.length, bySide.bottom.length, 1);
   const baseBoxSize = Math.min(84, Math.max(BOX_BASE, def?.minIconBoxSize ?? 0, maxPerSide * 14 + 16));
   // Retour utilisateur : "possibilité d'agrandir une vignette pour la mettre
-  // plus en valeur", limité à la famille batterie et aux boîtiers
-  // (chargeurs/régulateurs/convertisseurs/tableau de distribution) via
-  // `def.allowDisplayScale` — voir le contrôle dans ItemPropertiesPopup.
-  // Le curseur garde 5 niveaux distincts (retour utilisateur), mais
-  // l'agrandissement réel est ré-échelonné pour que le niveau 5 (max) ne
-  // dépasse jamais ce que donnait l'ancien niveau 3 — répartition linéaire
-  // entre ×1 (niveau 1) et ×3 (niveau 5), donc niveau 3 = ×2.
-  const displayLevel = def?.allowDisplayScale ? Math.min(5, Math.max(1, Number(data.displayScale) || 1)) : 1;
+  // plus en valeur" — initialement limité à la famille batterie et aux
+  // boîtiers, puis étendu à tous les composants (retour bêta : demandé
+  // explicitement pour les panneaux solaires, entre autres). Le curseur
+  // garde 5 niveaux distincts, mais l'agrandissement réel est ré-échelonné
+  // pour que le niveau 5 (max) ne dépasse jamais ce que donnait l'ancien
+  // niveau 3 — répartition linéaire entre ×1 (niveau 1) et ×3 (niveau 5),
+  // donc niveau 3 = ×2.
+  const displayLevel = Math.min(5, Math.max(1, Number(data.displayScale) || 1));
   const displayScale = 1 + (displayLevel - 1) * 0.5;
   const boxSize = baseBoxSize * displayScale;
 
@@ -207,34 +208,37 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
           <button type="button" onClick={(e) => { e.stopPropagation(); rotateNode(id); }} title="Pivoter 90° (raccourci : R)" className={quickActionButtonClass}>
             ↻
           </button>
-          {def.allowDisplayScale ? (
-            <>
-              <div className={`mx-0.5 h-3.5 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updateNodeData(id, { displayScale: Math.max(1, displayLevel - 1) });
-                }}
-                title="Réduire la vignette"
-                className={quickActionButtonClass}
-              >
-                −
-              </button>
-              <span className={`w-3 text-center text-[10px] font-semibold ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>{displayLevel}</span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  updateNodeData(id, { displayScale: Math.min(5, displayLevel + 1) });
-                }}
-                title="Agrandir la vignette"
-                className={quickActionButtonClass}
-              >
-                +
-              </button>
-            </>
-          ) : null}
+          {/* Retour utilisateur (bêta) : "un outil copier accessible
+              directement sur l'icône, au lieu de devoir chercher dans le
+              menu" — dupliquait déjà via le footer de la popup propriétés,
+              ajouté ici en accès direct comme les autres actions rapides. */}
+          <button type="button" onClick={(e) => { e.stopPropagation(); duplicateNode(id); }} title="Dupliquer" className={quickActionButtonClass}>
+            ⧉
+          </button>
+          <div className={`mx-0.5 h-3.5 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              updateNodeData(id, { displayScale: Math.max(1, displayLevel - 1) });
+            }}
+            title="Réduire la vignette"
+            className={quickActionButtonClass}
+          >
+            −
+          </button>
+          <span className={`w-3 text-center text-[10px] font-semibold ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>{displayLevel}</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              updateNodeData(id, { displayScale: Math.min(5, displayLevel + 1) });
+            }}
+            title="Agrandir la vignette"
+            className={quickActionButtonClass}
+          >
+            +
+          </button>
         </div>
       ) : null}
       <div

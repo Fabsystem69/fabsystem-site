@@ -23,15 +23,25 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp" },
   { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp" },
   { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp" },
+  // Retour utilisateur : "pompe immergée avec les deux possibilités" — deux
+  // références réelles fournies plutôt qu'un seul préréglage générique.
+  { value: "pompe-eau-immergee-25l", label: "Pompe à eau immergée 25L/min (type Reich Powerjet)", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau-immergee-25l.jpg" },
+  { value: "pompe-eau-immergee-10l", label: "Pompe à eau immergée 10L/min (type Comet)", typicalPowerW: 20, iconPro: "/schema-icons/pro/pompe-eau-immergee-10l.jpg" },
   { value: "prise-usb-12v", label: "Prise USB / 12 V", typicalPowerW: 15, iconPro: "/schema-icons/pro/prise-usb-12v.webp" },
   { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp" },
 
   { value: "guindeau", label: "Guindeau", typicalPowerW: 800, iconPro: "/schema-icons/pro/guindeau.webp" },
   { value: "pilote-automatique", label: "Pilote automatique", typicalPowerW: 30, iconPro: "/schema-icons/pro/pilote-automatique.webp" },
   { value: "chargeur-telephone", label: "Chargeur téléphone / ordinateur", typicalPowerW: 25, iconPro: "/schema-icons/pro/chargeur-telephone.webp" },
-  { value: "chauffe-eau", label: "Chauffe-eau", typicalPowerW: 300, iconPro: "/schema-icons/pro/chauffe-eau.webp" },
+  { value: "chauffe-eau", label: "Chauffe-eau 220V", typicalPowerW: 300, iconPro: "/schema-icons/pro/chauffe-eau.webp" },
+  { value: "chauffe-eau-12v", label: "Chauffe-eau 12V (résistance)", typicalPowerW: 120, iconPro: "/schema-icons/pro/chauffe-eau-12v.jpeg" },
+  { value: "convertisseur-12-19v", label: "Convertisseur 12V/19V (chargeur PC portable)", typicalPowerW: 90 },
   { value: "chauffage-appoint", label: "Chauffage d'appoint (soufflant 12V)", typicalPowerW: 150 },
-  { value: "chauffage-diesel", label: "Chauffage diesel/air (Webasto, Eberspächer…)", typicalPowerW: 40 },
+  { value: "chauffage-diesel", label: "Chauffage diesel/air 12V (type Webasto, Eberspächer…)", typicalPowerW: 40, iconPro: "/schema-icons/pro/chauffage-diesel.webp" },
+  // Truma Eezy : chauffage d'appoint électrique, résistance sur secteur
+  // 230V + soufflerie sur 12V — distinct du chauffage diesel ci-dessus (pas
+  // le même combustible ni la même alimentation).
+  { value: "chauffage-truma", label: "Chauffage d'appoint 12V/230V (type Truma)", typicalPowerW: 900, iconPro: "/schema-icons/pro/chauffage-truma.webp" },
   { value: "climatisation", label: "Climatisation de toit", typicalPowerW: 1500, iconPro: "/schema-icons/pro/climatisation.webp" },
   { value: "ventilateur", label: "Ventilateur de toit", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur.webp" },
   { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500 },
@@ -58,7 +68,10 @@ function consumerIconVariants(): Record<string, { icon?: string; iconPro?: strin
 // points de sortie". Bornes générées à partir de `data.outputCount`, dans
 // des bornes raisonnables pour rester lisible sur la vignette.
 export const MIN_OUTPUTS = 1;
-export const MAX_OUTPUTS = 10;
+// Retour bêta : "limitée à 10 fusibles, j'ai 2 boîtes de 12" — plafond
+// commun à tous les composants à sorties variables (busbar, tableau de
+// distribution, platine de fusibles, répartiteur de charge).
+export const MAX_OUTPUTS = 12;
 export const DEFAULT_OUTPUTS = 4;
 
 function clampOutputCount(value: unknown): number {
@@ -125,12 +138,15 @@ function fuseBlockHandles(data: Record<string, unknown>): ComponentHandleDef[] {
   for (let i = 1; i <= leftCount; i++) {
     handles.push({ id: `out-${rightCount + i}`, label: String(rightCount + i), kind: "positive", side: "left" });
   }
-  // Retour utilisateur : "platine fusible +/-" — certaines platines
-  // combinent une rangée de fusibles positifs et une barre de retour
-  // négatif (bornier commun, pas de fusible dessus). Ajoutée seulement si
-  // demandée, sur le côté bas pour ne pas se mélanger aux sorties positives.
+  // Retour utilisateur : "platine fusible +/-" puis, en bêta, "la BaF
+  // devrait aussi avoir les entrées/sorties des − dessus" — un retour
+  // négatif par sortie positive (pas un simple bornier commun unique),
+  // pour câbler chaque circuit en +/− directement sur la platine. Côté bas,
+  // pour ne jamais se mélanger visuellement aux sorties positives.
   if (data.layout === "positive-negative") {
-    handles.push({ id: "negative-bus", label: "− (commun)", kind: "negative", side: "bottom" });
+    for (let i = 1; i <= count; i++) {
+      handles.push({ id: `out-${i}-neg`, label: `−${i}`, kind: "negative", side: "bottom" });
+    }
   }
   return handles;
 }
@@ -173,7 +189,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "battery",
     label: "Batterie",
-    allowDisplayScale: true,
     description: "Stocke l'énergie électrique du système.",
     category: "battery",
     subcategory: "batteries",
@@ -242,7 +257,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "mppt",
     label: "Régulateur MPPT",
-    allowDisplayScale: true,
     description: "Régulateur solaire qui optimise le transfert d'énergie des panneaux vers la batterie.",
     category: "solar",
     subcategory: "regulateurs",
@@ -271,7 +285,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "pwm",
     label: "Régulateur PWM",
-    allowDisplayScale: true,
     description: "Régulateur solaire simple, moins efficace qu'un MPPT mais moins cher.",
     category: "solar",
     subcategory: "regulateurs",
@@ -294,9 +307,34 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     ],
   },
   {
+    // Routeur de charge / dérivation (ex. Victron Smart BuckBoost + relais,
+    // ou un routeur dédié) : détourne le surplus de production solaire une
+    // fois la batterie pleine vers une charge résistive (dump load, ex.
+    // ballon d'eau chaude) plutôt que de le perdre. Retour bêta : composant
+    // manquant du catalogue.
+    type: "solar-router",
+    label: "Routeur de charge solaire",
+    description: "Envoie le surplus de production solaire vers une charge dédiée (ballon d'eau chaude...) une fois la batterie pleine, au lieu de le perdre.",
+    category: "solar",
+    subcategory: "regulateurs",
+    subtitle: "Dérivation",
+    icon: "/schema-icons/mppt.svg",
+    handles: [
+      { id: "bat-negative", label: "BAT−", kind: "negative", side: "left" },
+      { id: "bat-positive", label: "BAT+", kind: "positive", side: "left" },
+      { id: "load-negative", label: "CHARGE−", kind: "negative", side: "right" },
+      { id: "load-positive", label: "CHARGE+", kind: "positive", side: "right" },
+    ],
+    defaultData: { amperage: 20, systemVoltage: 12 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A" },
+      { key: "systemVoltage", label: "Tension système", type: "number", unit: "V" },
+    ],
+  },
+  {
     type: "dcdc",
     label: "Chargeur DC/DC",
-    allowDisplayScale: true,
     description: "Charge la batterie auxiliaire depuis l'alternateur du véhicule en roulant.",
     category: "charger",
     subcategory: "dcdc",
@@ -352,7 +390,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "ac-charger",
     label: "Chargeur secteur",
-    allowDisplayScale: true,
     description: "Recharge les batteries sur secteur 230V (quai, groupe électrogène).",
     category: "charger",
     subcategory: "secteur",
@@ -403,7 +440,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // commutée par ce composant.
     type: "battery-isolator",
     label: "Répartiteur de charge",
-    allowDisplayScale: true,
     description: "Sépare deux batteries pour charger l'auxiliaire sans décharger celle du moteur.",
     category: "battery",
     subcategory: "repartiteurs",
@@ -439,7 +475,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // fixe, les deux bornes sont équivalentes.
     type: "battery-combiner",
     label: "Combineur de batteries",
-    allowDisplayScale: true,
     description: "Relie plusieurs batteries en un seul banc pour cumuler leur capacité.",
     category: "battery",
     subcategory: "repartiteurs",
@@ -495,6 +530,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
           { value: "mega", label: "MEGA" },
           { value: "midi", label: "MIDI" },
           { value: "anl", label: "ANL" },
+          { value: "classe-t", label: "Classe T" },
           { value: "lame", label: "Lame" },
           { value: "generique", label: "Générique" },
         ],
@@ -516,9 +552,35 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "input", label: "IN", kind: "positive", side: "left" },
       { id: "output", label: "OUT", kind: "positive", side: "right" },
     ],
-    defaultData: { amperage: 16 },
+    // Retour bêta : "n'a qu'1 entrée/1 sortie, il en faudrait 2×2 (+ et −
+    // des panneaux dessus)" — un disjoncteur bipolaire protège les deux
+    // polarités à la fois, plutôt que le seul + habituel. Variante
+    // facultative (par défaut inchangé, 1 entrée/1 sortie).
+    getHandles: (data) =>
+      data.poles === "bipolar"
+        ? [
+            { id: "input", label: "IN+", kind: "positive", side: "left" as const },
+            { id: "input-negative", label: "IN−", kind: "negative", side: "left" as const },
+            { id: "output", label: "OUT+", kind: "positive", side: "right" as const },
+            { id: "output-negative", label: "OUT−", kind: "negative", side: "right" as const },
+          ]
+        : [
+            { id: "input", label: "IN", kind: "positive", side: "left" as const },
+            { id: "output", label: "OUT", kind: "positive", side: "right" as const },
+          ],
+    defaultData: { amperage: 16, poles: "simple" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
+      {
+        key: "poles",
+        label: "Type",
+        type: "select",
+        help: "Bipolaire (2×2) : coupe le + et le − en même temps sur le même disjoncteur, ex. en sortie directe d'un panneau solaire.",
+        options: [
+          { value: "simple", label: "Simple (+ seul)" },
+          { value: "bipolar", label: "Bipolaire (+ et −)" },
+        ],
+      },
       { key: "amperage", label: "Calibre", type: "number", unit: "A", help: "Doit être choisi selon la section du câble à protéger, pas selon l'appareil branché." },
     ],
   },
@@ -539,6 +601,32 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Laissez 0 si vous ne connaissez pas la valeur." },
+    ],
+  },
+  {
+    // Mini BMS (retour bêta : icône fournie, "prend les spec pour câblage")
+    // — carte de protection intégrée à un pack LiFePO4 DIY (ex. JBD/Daly
+    // 4S). Spec de câblage réelle : seul le retour négatif est commuté par
+    // les MOSFET de la carte (B− → P−), le + reste un simple bus direct
+    // non commuté — à la différence du coupe-batterie ci-dessus qui coupe
+    // le +. Pas de bornes +, contrairement à un shunt qui mesure sans
+    // jamais couper.
+    type: "mini-bms",
+    label: "BMS (mini, intégré batterie)",
+    description: "Protège une batterie LiFePO4 (surcharge, décharge profonde, court-circuit) en coupant le retour négatif — souvent la petite carte intégrée dans le boîtier de la batterie.",
+    category: "wiring",
+    subcategory: "coupure",
+    subtitle: "Protection",
+    icon: "/schema-icons/battery-switch.svg",
+    iconPro: "/schema-icons/pro/mini-bms.webp",
+    handles: [
+      { id: "batt-negative", label: "B−", kind: "negative", side: "left" },
+      { id: "sys-negative", label: "P−", kind: "negative", side: "right" },
+    ],
+    defaultData: { amperage: 100 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "100A courant sur les petits BMS DIY 4S." },
     ],
   },
   {
@@ -597,6 +685,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "distribution",
     subtitle: "Commande",
     icon: "/schema-icons/switch.svg",
+    iconPro: "/schema-icons/pro/relay.webp",
     handles: [
       { id: "coil-positive", label: "86 (bobine +)", kind: "positive", side: "top" },
       { id: "coil-negative", label: "85 (bobine −)", kind: "negative", side: "top" },
@@ -725,7 +814,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "distribution-panel",
     label: "Tableau de distribution",
-    allowDisplayScale: true,
     description: "Tableau qui répartit et protège plusieurs circuits consommateurs.",
     category: "wiring",
     subcategory: "distribution",
@@ -802,13 +890,18 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // sous `outAmp{N}` (voir ItemPropertiesPopup.FuseBlockOutputs, qui génère un
     // champ par sortie selon `outputCount`, plutôt qu'une liste statique).
     getHandleLabel: (data, handle) => {
-      if (!handle.id.startsWith("out-")) return handle.label;
+      // Bornes négatives ("out-N-neg") : pas de fusible dessus, jamais de
+      // calibre affiché — seules les sorties positives ("out-N") le sont.
+      if (!handle.id.startsWith("out-") || handle.id.endsWith("-neg")) return handle.label;
       const amp = Number(data[`outAmp${handle.id.slice(4)}`]) || 0;
       return `${handle.label} · ${amp}A`;
     },
     defaultData: {
       outputCount: DEFAULT_OUTPUTS,
-      layout: "positive",
+      // Retour bêta : "par défaut, ajouter le négatif sur la boîte à
+      // fusibles" — les deux polarités disponibles dès l'ajout, plutôt que
+      // de devoir aller chercher le réglage.
+      layout: "positive-negative",
       ...Object.fromEntries(Array.from({ length: MAX_OUTPUTS }, (_, i) => [`outAmp${i + 1}`, 15])),
     },
     fields: [
@@ -817,13 +910,138 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
         key: "layout",
         label: "Retour négatif",
         type: "select",
-        help: "Certaines platines ajoutent un bornier négatif commun (sans fusible) à côté des sorties positives protégées.",
+        help: "Un retour négatif par sortie positive (pas de fusible dessus), pour câbler chaque circuit en +/− directement sur la platine.",
         options: [
           { value: "positive", label: "Positif seul" },
-          { value: "positive-negative", label: "Positif + barre négative" },
+          { value: "positive-negative", label: "Positif + retours négatifs" },
         ],
       },
       outputCountField,
+    ],
+  },
+  {
+    // Famille Lynx (retour bêta : "classe tous les Lynx ensemble") — quatre
+    // modules du même système de bus DC Victron, groupés sous la même
+    // sous-catégorie plutôt qu'en modèles de marque de types génériques
+    // différents, pour rester repérables ensemble dans la bibliothèque.
+    // Lynx Power In : bus d'entrée avec fusible Classe T intégré en série
+    // entre la batterie et le reste du bus Lynx — 1 entrée, 1 sortie, +
+    // seul (calibre standard 400A).
+    type: "lynx-power-in",
+    label: "Lynx Power In",
+    description: "Bus d'entrée Lynx avec fusible Classe T intégré, entre la batterie et le reste du bus Lynx.",
+    category: "wiring",
+    subcategory: "lynx",
+    subtitle: "Entrée Lynx",
+    icon: "/schema-icons/fuse.svg",
+    iconPro: "/schema-icons/pro/brand/lynx-class-t-power-in-m10.webp",
+    badge: { field: "amperage", unit: "A" },
+    handles: [
+      { id: "input", label: "IN", kind: "positive", side: "left" },
+      { id: "output", label: "OUT", kind: "positive", side: "right" },
+    ],
+    defaultData: { amperage: 400 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Calibre du fusible Classe T", type: "number", unit: "A", help: "400A en standard sur le Lynx Power In." },
+    ],
+  },
+  {
+    // Lynx Distributor : bus positif fixe à 6 sorties, chacune protégée par
+    // son propre fusible MEGA — le retour négatif se fait via un second bus
+    // Lynx séparé, pas sur ce même produit (spec produit réelle : 6 sorties,
+    // pas de nombre variable comme la platine de fusibles générique).
+    type: "lynx-distributor",
+    label: "Lynx Distributor",
+    description: "Bus positif Lynx à 6 sorties, chacune protégée par un fusible MEGA.",
+    category: "wiring",
+    subcategory: "lynx",
+    subtitle: "Distribution Lynx",
+    icon: "/schema-icons/busbar.svg",
+    iconPro: "/schema-icons/pro/brand/lynx-distributor-m10.webp",
+    handles: [
+      { id: "input", label: "IN", kind: "positive", side: "top" },
+      { id: "out-1", label: "1", kind: "positive", side: "right" },
+      { id: "out-2", label: "2", kind: "positive", side: "right" },
+      { id: "out-3", label: "3", kind: "positive", side: "right" },
+      { id: "out-4", label: "4", kind: "positive", side: "left" },
+      { id: "out-5", label: "5", kind: "positive", side: "left" },
+      { id: "out-6", label: "6", kind: "positive", side: "left" },
+    ],
+    getHandleLabel: (data, handle) => {
+      if (!handle.id.startsWith("out-")) return handle.label;
+      const amp = Number(data[`outAmp${handle.id.slice(4)}`]) || 0;
+      return `${handle.label} · ${amp}A`;
+    },
+    defaultData: {
+      outAmp1: 100,
+      outAmp2: 100,
+      outAmp3: 100,
+      outAmp4: 100,
+      outAmp5: 100,
+      outAmp6: 100,
+    },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "outAmp1", label: "Calibre sortie 1", type: "number", unit: "A" },
+      { key: "outAmp2", label: "Calibre sortie 2", type: "number", unit: "A" },
+      { key: "outAmp3", label: "Calibre sortie 3", type: "number", unit: "A" },
+      { key: "outAmp4", label: "Calibre sortie 4", type: "number", unit: "A" },
+      { key: "outAmp5", label: "Calibre sortie 5", type: "number", unit: "A" },
+      { key: "outAmp6", label: "Calibre sortie 6", type: "number", unit: "A" },
+    ],
+  },
+  {
+    // Lynx Shunt VE.Can : shunt 1000A intégré au bus Lynx — mêmes bornes
+    // que le shunt générique (Battery/System/Communication), rattaché ici à
+    // la famille Lynx plutôt qu'à la mesure pour rester groupé visuellement.
+    type: "lynx-shunt",
+    label: "Lynx Shunt VE.Can",
+    description: "Mesure le courant entre batterie et système, intégré au bus Lynx (jusqu'à 1000A).",
+    category: "wiring",
+    subcategory: "lynx",
+    subtitle: "Mesure Lynx",
+    icon: "/schema-icons/shunt.svg",
+    iconPro: "/schema-icons/pro/brand/lynx-shunt-vecan-m10.webp",
+    handles: [
+      { id: "battery", label: "Battery", kind: "negative", side: "left" },
+      { id: "system", label: "System", kind: "negative", side: "right" },
+      { id: "ve-can", label: "Communication", kind: "neutral", side: "bottom", optional: true },
+    ],
+    defaultData: { amperage: 1000 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A" },
+    ],
+  },
+  {
+    // Lynx Smart BMS (retour bêta : icône fournie, produit manquant du
+    // catalogue) — module de bus Lynx qui coupe batterie et système en cas
+    // de défaut (surcharge/décharge/température), à la différence du Lynx
+    // Distributor (bus passif) ou du Lynx Shunt (mesure seule). Bornes
+    // physiques du boîtier : côté batterie (+/−) et côté système (+/−),
+    // plus le port VE.Can — topologie interne de coupure non représentée,
+    // seules les bornes externes réelles du produit le sont.
+    type: "lynx-smart-bms",
+    label: "Lynx Smart BMS",
+    description: "Coupe automatiquement la batterie du système en cas de défaut (surcharge, décharge profonde, température) — placé entre la batterie et le reste du bus Lynx.",
+    category: "wiring",
+    subcategory: "lynx",
+    subtitle: "Protection Lynx",
+    icon: "/schema-icons/busbar.svg",
+    iconPro: "/schema-icons/pro/lynx-smart-bms.webp",
+    minIconBoxSize: 64,
+    handles: [
+      { id: "batt-negative", label: "BATT−", kind: "negative", side: "left" },
+      { id: "batt-positive", label: "BATT+", kind: "positive", side: "left" },
+      { id: "sys-negative", label: "SYS−", kind: "negative", side: "right" },
+      { id: "sys-positive", label: "SYS+", kind: "positive", side: "right" },
+      { id: "ve-can", label: "Communication", kind: "neutral", side: "bottom", optional: true },
+    ],
+    defaultData: { amperage: 500 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Ex. 500A pour le Lynx Smart BMS 500." },
     ],
   },
   {
@@ -939,7 +1157,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "inverter",
     label: "Convertisseur 12/230V",
-    allowDisplayScale: true,
     description: "Transforme le courant continu (12V/24V) en 230V pour les appareils secteur.",
     category: "converter",
     subtitle: "Conversion",
@@ -972,7 +1189,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // ont un port 12V/10A en façade en plus des prises 230V.
     type: "power-station",
     label: "Station électrique tout-en-1",
-    allowDisplayScale: true,
     description: "Batterie portable tout-en-un avec ses propres sorties intégrées.",
     category: "battery",
     subcategory: "stations",
@@ -1024,7 +1240,6 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   {
     type: "inverter-charger",
     label: "Chargeur-convertisseur tout-en-1",
-    allowDisplayScale: true,
     description: "Combine onduleur et chargeur secteur en un seul appareil (ex. Multiplus).",
     category: "charger",
     subcategory: "tout-en-1",
@@ -1054,6 +1269,40 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { key: "powerW", label: "Puissance", type: "number", unit: "W" },
       { key: "voltageDC", label: "Tension DC", type: "number", unit: "V" },
       { key: "chargeAmperage", label: "Courant de charge", type: "number", unit: "A", help: "Quand alimenté en 230V (quai, groupe)." },
+    ],
+  },
+  {
+    // EasySolar (retour bêta : icône fournie) — combine dans un seul
+    // boîtier un chargeur-convertisseur type Multiplus et un régulateur
+    // MPPT solaire. Pas un nouveau rôle électrique, juste la réunion des
+    // bornes déjà utilisées séparément par "inverter-charger" (DC, AC IN/
+    // OUT) et "mppt" (PV+/PV−) sur un seul composant, pour éviter d'avoir à
+    // dessiner deux boîtiers reliés en interne pour un seul vrai appareil.
+    type: "easysolar",
+    label: "EasySolar (onduleur-chargeur + MPPT intégré)",
+    description: "Combine onduleur-chargeur (type Multiplus) et régulateur MPPT solaire dans un seul boîtier.",
+    category: "charger",
+    subcategory: "tout-en-1",
+    subtitle: "Type EasySolar",
+    icon: "/schema-icons/inverter.svg",
+    iconPro: "/schema-icons/pro/easysolar.webp",
+    minIconBoxSize: 64,
+    handles: [
+      { id: "dc-negative", label: "DC−", kind: "negative", side: "left" },
+      { id: "dc-positive", label: "DC+", kind: "positive", side: "left" },
+      { id: "pv-negative", label: "PV−", kind: "negative", side: "left" },
+      { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
+      { id: "ac-in", label: "AC IN", kind: "neutral", side: "top" },
+      { id: "ac-out", label: "AC OUT", kind: "neutral", side: "right" },
+      { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
+    ],
+    defaultData: { powerW: 1600, voltageDC: 12, chargeAmperage: 70, mpptAmperage: 50, systemVoltage: 12 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "powerW", label: "Puissance onduleur", type: "number", unit: "W" },
+      { key: "voltageDC", label: "Tension DC", type: "number", unit: "V" },
+      { key: "chargeAmperage", label: "Courant de charge secteur", type: "number", unit: "A", help: "Quand alimenté en 230V (quai, groupe)." },
+      { key: "mpptAmperage", label: "Courant MPPT", type: "number", unit: "A", help: "Choisi selon la puissance des panneaux branchés." },
     ],
   },
   {
@@ -1159,6 +1408,7 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   "tout-en-1": "Tout-en-1",
   protection: "Protection",
   distribution: "Distribution",
+  lynx: "Lynx",
   masse: "Masse",
   shunts: "Shunts",
   ecrans: "Écrans de contrôle",

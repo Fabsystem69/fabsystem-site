@@ -68,7 +68,7 @@ export function ModelPickerModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={dismiss}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={dismiss}>
       <div
         onClick={(e) => e.stopPropagation()}
         className={`flex max-h-[80vh] w-full max-w-md flex-col overflow-y-auto rounded-2xl border p-6 shadow-2xl ${

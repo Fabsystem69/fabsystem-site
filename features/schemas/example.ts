@@ -69,7 +69,12 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
   const nodes: SchemaNode[] = [
     // Chaîne solaire
     buildNode("ex-solar", "solar-panel", 40, 100, { label: "Panneau solaire", powerW: 200, voltage: 0 }),
-    buildNode("ex-mppt", "mppt", 200, 20, { label: "MPPT", amperage: 30, systemVoltage: 12 }),
+    // Protection avant le MPPT (retour utilisateur : "le disjoncteur manque
+    // entre le panneau solaire et le MPPT → risque électrique si intervention
+    // sur le MPPT en plein soleil"). Coupure de sécurité entre les mains de
+    // l'utilisateur, à la différence d'un fusible qu'il faudrait remplacer.
+    buildNode("ex-breaker-solar", "circuit-breaker", 130, 40, { label: "Disjoncteur solaire", amperage: 16 }),
+    buildNode("ex-mppt", "mppt", 260, 20, { label: "MPPT", amperage: 30, systemVoltage: 12 }),
 
     // Chaîne alternateur / DC-DC (batterie moteur)
     buildNode("ex-battery-moteur", "battery", 40, 360, { label: "Batterie moteur", voltage: 12, capacityAh: 100, technology: "plomb" }),
@@ -156,8 +161,9 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
   ];
 
   const edges: SchemaEdge[] = [
-    // Solaire → MPPT
-    buildEdge("ex-e1", "ex-solar", "positive", "ex-mppt", "pv-positive", RED, "power-positive", "6 mm²", L_6),
+    // Solaire → disjoncteur → MPPT
+    buildEdge("ex-e1", "ex-solar", "positive", "ex-breaker-solar", "input", RED, "power-positive", "6 mm²", 0.5),
+    buildEdge("ex-e1b", "ex-breaker-solar", "output", "ex-mppt", "pv-positive", RED, "power-positive", "6 mm²", L_6),
     buildEdge("ex-e2", "ex-solar", "negative", "ex-mppt", "pv-negative", BLACK, "power-negative", "6 mm²", L_6),
 
     // Batterie moteur → Fusible → DC-DC

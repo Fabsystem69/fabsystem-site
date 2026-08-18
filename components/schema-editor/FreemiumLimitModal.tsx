@@ -119,7 +119,7 @@ export function FreemiumLimitModal() {
     }`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={dismiss}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={dismiss}>
       <div
         onClick={(e) => e.stopPropagation()}
         className={`flex w-full max-w-md flex-col rounded-2xl border p-6 shadow-2xl ${
