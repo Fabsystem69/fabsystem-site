@@ -46,9 +46,6 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "ecoworthy-lifepo4-200ah", brand: "EcoWorthy", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
   { id: "creabest-lifepo4-100ah", brand: "Creabest", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 } , iconPro: "/schema-icons/pro/brand/creabest-lifepo4-100ah.webp" },
   { id: "creabest-lifepo4-200ah", brand: "Creabest", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } , iconPro: "/schema-icons/pro/brand/creabest-lifepo4-200ah.webp" },
-  // Marque française, spécialiste batteries lithium pour camping-car/van.
-  { id: "voltinov-lifepo4-100ah", brand: "Voltinov", model: "12V 100Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 } },
-  { id: "voltinov-lifepo4-200ah", brand: "Voltinov", model: "12V 200Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 200 } },
 
   // Panneaux solaires (retour utilisateur : "l'item doit être trouvable
   // facilement, choisir le modèle/puissance de la même gamme" — jusqu'ici 0
@@ -58,21 +55,21 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-200w-rigid", brand: "Renogy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/renogy-200w-rigid.webp" },
   { id: "renogy-175w-flexible", brand: "Renogy", model: "175W flexible", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } , iconPro: "/schema-icons/pro/brand/renogy-175w-flexible.webp" },
   { id: "victron-175w-rigid", brand: "Victron", model: "BlueSolar 175W rigide", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } , iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
-  { id: "victron-115w-rigid", brand: "Victron", model: "BlueSolar 115W rigide", componentType: "solar-panel", defaults: { powerW: 115, voltage: 0 } },
+  // Un seul visuel disponible par marque pour la gamme panneaux (retour
+  // utilisateur) — réutilisé sur toutes les puissances de la même marque
+  // plutôt que de laisser certaines sans icône.
+  { id: "victron-115w-rigid", brand: "Victron", model: "BlueSolar 115W rigide", componentType: "solar-panel", defaults: { powerW: 115, voltage: 0 }, iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
   { id: "bougerv-200w-flexible", brand: "BougeRV", model: "200W flexible", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
   { id: "bougerv-400w-rigid", brand: "BougeRV", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 } },
-  { id: "ecoworthy-100w-rigid", brand: "EcoWorthy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 } },
+  { id: "ecoworthy-100w-rigid", brand: "EcoWorthy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 }, iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
   { id: "ecoworthy-200w-rigid", brand: "EcoWorthy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
-  { id: "ecoworthy-400w-rigid", brand: "EcoWorthy", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 } },
+  { id: "ecoworthy-400w-rigid", brand: "EcoWorthy", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 }, iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
   // Marque française, panneaux solaires nomades/portables très répandus en
   // camping-car.
-  { id: "sunology-100w-portable", brand: "Sunology", model: "Move 100W portable", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 } },
+  { id: "sunology-100w-portable", brand: "Sunology", model: "Move 100W portable", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 }, iconPro: "/schema-icons/pro/brand/sunology-200w-portable.webp" },
   { id: "sunology-200w-portable", brand: "Sunology", model: "Move 200W portable", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/sunology-200w-portable.webp" },
 
   // MPPT
-  // Pas d'iconPro ici : le visuel fourni pour ce modèle était corrompu
-  // (retour utilisateur) — retombe sur l'icône générique MPPT en attendant
-  // un visuel correct.
   { id: "victron-bluesolar-100-15", brand: "Victron", model: "BlueSolar MPPT 100/15", componentType: "mppt", defaults: { amperage: 15, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/victron-bluesolar-100-15.webp" },
   { id: "victron-smartsolar-75-15", brand: "Victron", model: "SmartSolar MPPT 75/15", componentType: "mppt", defaults: { amperage: 15, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-75-15.png" },
   { id: "victron-smartsolar-100-20", brand: "Victron", model: "SmartSolar MPPT 100/20", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-20.png" },
@@ -85,6 +82,12 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-rover-elite-40a", brand: "Renogy", model: "Rover Elite 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
   { id: "ecoworthy-mppt-20a", brand: "EcoWorthy", model: "MPPT 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-mppt-20a.webp" },
   { id: "ecoworthy-mppt-40a", brand: "EcoWorthy", model: "MPPT 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-mppt-40a.webp" },
+  // Marque chinoise très vendue (Amazon), gamme Tracer — même boîtier
+  // décliné sur tout le calibrage, un seul visuel réutilisé sur les 4.
+  { id: "epever-tracer-10a", brand: "EPEVER", model: "Tracer 10A", componentType: "mppt", defaults: { amperage: 10, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  { id: "epever-tracer-20a", brand: "EPEVER", model: "Tracer 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  { id: "epever-tracer-30a", brand: "EPEVER", model: "Tracer 30A", componentType: "mppt", defaults: { amperage: 30, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  { id: "epever-tracer-40a", brand: "EPEVER", model: "Tracer 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
 
   // PWM (retour utilisateur : "chaque item détaillé pareil" — 0 modèle
   // jusqu'ici alors que le MPPT, son jumeau, en a 10).
