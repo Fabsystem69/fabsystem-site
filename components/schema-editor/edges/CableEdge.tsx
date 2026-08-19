@@ -16,7 +16,7 @@ import type { CableEdgeData } from "@/types/schema";
 // recalculer la géométrie des coudes) : un décalage diagonal constant reste
 // lisible sur les portions horizontales ET verticales du tracé, sans
 // dupliquer toute la logique d'arrondi des coudes.
-const THREE_CONDUCTOR_SECTIONS = new Set(["3G2,5 mm²", "3G1,5 mm²"]);
+export const THREE_CONDUCTOR_SECTIONS = new Set(["3G2,5 mm²", "3G1,5 mm²"]);
 const THREE_CONDUCTOR_OFFSET = 2.5;
 
 // Rouge d'avertissement franc, choisi pour ne jamais pouvoir être confondu

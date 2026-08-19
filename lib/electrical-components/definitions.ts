@@ -12,7 +12,25 @@ export interface ConsumerPreset {
   typicalPowerW: number;
   icon?: string;
   iconPro?: string;
+  // Sous-famille (retour utilisateur : "fait des sous-famille dans
+  // appareils") — purement un regroupement d'affichage dans la bibliothèque/
+  // l'onglet Ajouter, jamais une donnée électrique. `undefined` (seulement
+  // "Au choix") reste hors groupe, affiché à part.
+  group?: string;
 }
+
+// Ordre d'affichage des sous-familles "Appareils" — reprend les
+// regroupements déjà esquissés en commentaires dans CONSUMER_PRESETS.
+export const CONSUMER_PRESET_GROUP_ORDER = [
+  "Éclairage",
+  "Feux de navigation",
+  "Réfrigération",
+  "Eau",
+  "Chauffage & ventilation",
+  "Électronique & confort",
+  "Manœuvre & pont",
+  "Sécurité",
+];
 
 // Les 5 plus courants d'abord (retour utilisateur), puis les autres par
 // ordre alphabétique de sujet, et "Au choix" toujours en dernier — renommé
@@ -22,56 +40,56 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // Retour utilisateur : "l'éclairage c'est trop générique" — trois usages
   // distincts plutôt qu'un seul préréglage fourre-tout, "Éclairage LED"
   // conservé comme choix générique pour qui ne veut pas se soucier du détail.
-  { value: "eclairage-led", label: "Éclairage LED (générique)", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp" },
-  { value: "spot-led", label: "Spot LED encastré", typicalPowerW: 3 },
-  { value: "ruban-led", label: "Ruban LED", typicalPowerW: 10, iconPro: "/schema-icons/pro/ruban-led.jpg" },
-  { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3 },
-  { value: "plafonnier-led", label: "Plafonnier LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/plafonnier-led.jpg" },
-  { value: "eclairage-marche", label: "Éclairage de marche/passerelle", typicalPowerW: 2, iconPro: "/schema-icons/pro/eclairage-marche.jpg" },
-  { value: "projecteur-pont", label: "Projecteur de pont", typicalPowerW: 20, iconPro: "/schema-icons/pro/projecteur-pont.jpg" },
+  { value: "eclairage-led", label: "Éclairage LED (générique)", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp", group: "Éclairage" },
+  { value: "spot-led", label: "Spot LED encastré", typicalPowerW: 3, group: "Éclairage" },
+  { value: "ruban-led", label: "Ruban LED", typicalPowerW: 10, iconPro: "/schema-icons/pro/ruban-led.jpg", group: "Éclairage" },
+  { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3, group: "Éclairage" },
+  { value: "plafonnier-led", label: "Plafonnier LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage" },
+  { value: "eclairage-marche", label: "Éclairage de marche/passerelle", typicalPowerW: 2, iconPro: "/schema-icons/pro/eclairage-marche.jpg", group: "Éclairage" },
+  { value: "projecteur-pont", label: "Projecteur de pont", typicalPowerW: 20, iconPro: "/schema-icons/pro/projecteur-pont.jpg", group: "Éclairage" },
   // Feux réglementaires bateau — chacun sur son propre circuit en usage réel
   // (pas un seul préréglage générique "feux de navigation").
-  { value: "feu-mouillage", label: "Feu de mouillage (ancre)", typicalPowerW: 5, iconPro: "/schema-icons/pro/feu-mouillage.jpg" },
-  { value: "feu-tete-de-mat", label: "Feu de tête de mât (tricolore)", typicalPowerW: 5, iconPro: "/schema-icons/pro/feu-tete-de-mat.jpg" },
-  { value: "feu-babord", label: "Feu de navigation bâbord (rouge)", typicalPowerW: 3, iconPro: "/schema-icons/pro/feu-babord.jpg" },
-  { value: "feu-tribord", label: "Feu de navigation tribord (vert)", typicalPowerW: 3, iconPro: "/schema-icons/pro/feu-tribord.jpg" },
-  { value: "klaxon", label: "Klaxon / avertisseur sonore", typicalPowerW: 15, iconPro: "/schema-icons/pro/klaxon.webp" },
-  { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp" },
-  { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp" },
-  { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp" },
+  { value: "feu-mouillage", label: "Feu de mouillage (ancre)", typicalPowerW: 5, iconPro: "/schema-icons/pro/feu-mouillage.jpg", group: "Feux de navigation" },
+  { value: "feu-tete-de-mat", label: "Feu de tête de mât (tricolore)", typicalPowerW: 5, iconPro: "/schema-icons/pro/feu-tete-de-mat.jpg", group: "Feux de navigation" },
+  { value: "feu-babord", label: "Feu de navigation bâbord (rouge)", typicalPowerW: 3, iconPro: "/schema-icons/pro/feu-babord.jpg", group: "Feux de navigation" },
+  { value: "feu-tribord", label: "Feu de navigation tribord (vert)", typicalPowerW: 3, iconPro: "/schema-icons/pro/feu-tribord.jpg", group: "Feux de navigation" },
+  { value: "klaxon", label: "Klaxon / avertisseur sonore", typicalPowerW: 15, iconPro: "/schema-icons/pro/klaxon.webp", group: "Sécurité" },
+  { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp", group: "Réfrigération" },
+  { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp", group: "Réfrigération" },
+  { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau" },
   // Retour utilisateur : "pompe immergée avec les deux possibilités" — deux
   // références réelles fournies plutôt qu'un seul préréglage générique.
-  { value: "pompe-eau-immergee-25l", label: "Pompe à eau immergée 25L/min (type Reich Powerjet)", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau-immergee-25l.jpg" },
-  { value: "pompe-eau-immergee-10l", label: "Pompe à eau immergée 10L/min (type Comet)", typicalPowerW: 20, iconPro: "/schema-icons/pro/pompe-eau-immergee-10l.jpg" },
-  { value: "prise-usb-12v", label: "Prise USB / 12 V", typicalPowerW: 15, iconPro: "/schema-icons/pro/prise-usb-12v.webp" },
-  { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp" },
-  { value: "alarme", label: "Système d'alarme", typicalPowerW: 5 },
-  { value: "tele-12v", label: "Télé 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/tele-12v.jpg" },
-  { value: "tele-220v", label: "Télé 220V", typicalPowerW: 60 },
-  { value: "micro-ondes", label: "Micro-ondes", typicalPowerW: 1000 },
-  { value: "electrovanne", label: "Électrovanne (circuit d'eau)", typicalPowerW: 6, iconPro: "/schema-icons/pro/electrovanne.webp" },
-  { value: "wc-electrique", label: "WC électrique marin 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/wc-electrique.webp" },
+  { value: "pompe-eau-immergee-25l", label: "Pompe à eau immergée 25L/min (type Reich Powerjet)", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau-immergee-25l.jpg", group: "Eau" },
+  { value: "pompe-eau-immergee-10l", label: "Pompe à eau immergée 10L/min (type Comet)", typicalPowerW: 20, iconPro: "/schema-icons/pro/pompe-eau-immergee-10l.jpg", group: "Eau" },
+  { value: "prise-usb-12v", label: "Prise USB / 12 V", typicalPowerW: 15, iconPro: "/schema-icons/pro/prise-usb-12v.webp", group: "Électronique & confort" },
+  { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp", group: "Électronique & confort" },
+  { value: "alarme", label: "Système d'alarme", typicalPowerW: 5, group: "Sécurité" },
+  { value: "tele-12v", label: "Télé 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/tele-12v.jpg", group: "Électronique & confort" },
+  { value: "tele-220v", label: "Télé 220V", typicalPowerW: 60, group: "Électronique & confort" },
+  { value: "micro-ondes", label: "Micro-ondes", typicalPowerW: 1000, group: "Électronique & confort" },
+  { value: "electrovanne", label: "Électrovanne (circuit d'eau)", typicalPowerW: 6, iconPro: "/schema-icons/pro/electrovanne.webp", group: "Eau" },
+  { value: "wc-electrique", label: "WC électrique marin 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/wc-electrique.webp", group: "Eau" },
 
-  { value: "guindeau", label: "Guindeau", typicalPowerW: 800, iconPro: "/schema-icons/pro/guindeau.webp" },
-  { value: "pilote-automatique", label: "Pilote automatique", typicalPowerW: 30, iconPro: "/schema-icons/pro/pilote-automatique.webp" },
-  { value: "chargeur-telephone", label: "Chargeur téléphone / ordinateur", typicalPowerW: 25, iconPro: "/schema-icons/pro/chargeur-telephone.webp" },
-  { value: "chauffe-eau", label: "Chauffe-eau 220V", typicalPowerW: 300, iconPro: "/schema-icons/pro/chauffe-eau.webp" },
-  { value: "chauffe-eau-12v", label: "Chauffe-eau 12V (résistance)", typicalPowerW: 120, iconPro: "/schema-icons/pro/chauffe-eau-12v.jpeg" },
-  { value: "convertisseur-12-19v", label: "Convertisseur 12V/19V (chargeur PC portable)", typicalPowerW: 90 },
-  { value: "chauffage-appoint", label: "Chauffage d'appoint (soufflant 12V)", typicalPowerW: 150 },
-  { value: "chauffage-diesel", label: "Chauffage diesel/air 12V (type Webasto, Eberspächer…)", typicalPowerW: 40, iconPro: "/schema-icons/pro/chauffage-diesel.webp" },
+  { value: "guindeau", label: "Guindeau", typicalPowerW: 800, iconPro: "/schema-icons/pro/guindeau.webp", group: "Manœuvre & pont" },
+  { value: "pilote-automatique", label: "Pilote automatique", typicalPowerW: 30, iconPro: "/schema-icons/pro/pilote-automatique.webp", group: "Manœuvre & pont" },
+  { value: "chargeur-telephone", label: "Chargeur téléphone / ordinateur", typicalPowerW: 25, iconPro: "/schema-icons/pro/chargeur-telephone.webp", group: "Électronique & confort" },
+  { value: "chauffe-eau", label: "Chauffe-eau 220V", typicalPowerW: 300, iconPro: "/schema-icons/pro/chauffe-eau.webp", group: "Eau" },
+  { value: "chauffe-eau-12v", label: "Chauffe-eau 12V (résistance)", typicalPowerW: 120, iconPro: "/schema-icons/pro/chauffe-eau-12v.jpeg", group: "Eau" },
+  { value: "convertisseur-12-19v", label: "Convertisseur 12V/19V (chargeur PC portable)", typicalPowerW: 90, group: "Électronique & confort" },
+  { value: "chauffage-appoint", label: "Chauffage d'appoint (soufflant 12V)", typicalPowerW: 150, group: "Chauffage & ventilation" },
+  { value: "chauffage-diesel", label: "Chauffage diesel/air 12V (type Webasto, Eberspächer…)", typicalPowerW: 40, iconPro: "/schema-icons/pro/chauffage-diesel.webp", group: "Chauffage & ventilation" },
   // Truma Eezy : chauffage d'appoint électrique, résistance sur secteur
   // 230V + soufflerie sur 12V — distinct du chauffage diesel ci-dessus (pas
   // le même combustible ni la même alimentation).
-  { value: "chauffage-truma", label: "Chauffage d'appoint 12V/230V (type Truma)", typicalPowerW: 900, iconPro: "/schema-icons/pro/chauffage-truma.webp" },
-  { value: "climatisation", label: "Climatisation de toit", typicalPowerW: 1500, iconPro: "/schema-icons/pro/climatisation.webp" },
-  { value: "ventilateur", label: "Ventilateur de toit", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur.webp" },
+  { value: "chauffage-truma", label: "Chauffage d'appoint 12V/230V (type Truma)", typicalPowerW: 900, iconPro: "/schema-icons/pro/chauffage-truma.webp", group: "Chauffage & ventilation" },
+  { value: "climatisation", label: "Climatisation de toit", typicalPowerW: 1500, iconPro: "/schema-icons/pro/climatisation.webp", group: "Chauffage & ventilation" },
+  { value: "ventilateur", label: "Ventilateur de toit", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur.webp", group: "Chauffage & ventilation" },
   // Retour utilisateur : "ventilateur sans toit, certains font leur propre
   // système" — montage DIY mural/façade, distinct du ventilateur de toit
   // ci-dessus.
-  { value: "ventilateur-diy", label: "Ventilateur 12V (DIY, sans toit)", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur-diy.webp" },
-  { value: "blower-12v", label: "Blower / turbine 12V", typicalPowerW: 25, iconPro: "/schema-icons/pro/blower-12v.jpg" },
-  { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500 },
+  { value: "ventilateur-diy", label: "Ventilateur 12V (DIY, sans toit)", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur-diy.webp", group: "Chauffage & ventilation" },
+  { value: "blower-12v", label: "Blower / turbine 12V", typicalPowerW: 25, iconPro: "/schema-icons/pro/blower-12v.jpg", group: "Chauffage & ventilation" },
+  { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500, group: "Électronique & confort" },
 
   { value: "generique", label: "Au choix", typicalPowerW: 0 },
 ];
@@ -208,6 +226,27 @@ const outputCountField = {
   help: `De ${MIN_OUTPUTS} à ${MAX_OUTPUTS}. Réduire ce nombre supprime les câbles reliés aux sorties retirées.`,
 };
 
+// Icônes du fusible par type + calibre exact quand une vraie photo existe
+// (retour utilisateur : "génère les icônes pour chaque fusible suivant
+// l'intensité"), sinon une seule photo générique par format physique.
+const FUSE_ICON_VARIANTS: Record<string, { icon?: string; iconPro?: string }> = {
+  mega: { iconPro: "/schema-icons/pro/fuse-mega.webp" },
+  midi: { iconPro: "/schema-icons/pro/fuse-midi.webp" },
+  anl: { iconPro: "/schema-icons/pro/fuse-anl.webp" },
+  "classe-t": { iconPro: "/schema-icons/pro/fuse-classe-t.jpg" },
+  lame: { iconPro: "/schema-icons/pro/fuse-lame.webp" },
+  "lame-5": { iconPro: "/schema-icons/pro/fuse-lame-5a.webp" },
+  "lame-15": { iconPro: "/schema-icons/pro/fuse-lame-15a.webp" },
+  "lame-20": { iconPro: "/schema-icons/pro/fuse-lame-20a.webp" },
+  "lame-25": { iconPro: "/schema-icons/pro/fuse-lame-25a.webp" },
+  "midi-30": { iconPro: "/schema-icons/pro/fuse-midi-30a.webp" },
+  "midi-40": { iconPro: "/schema-icons/pro/fuse-midi-40a.webp" },
+  "midi-50": { iconPro: "/schema-icons/pro/fuse-midi-50a.webp" },
+  "midi-60": { iconPro: "/schema-icons/pro/fuse-midi-60a.webp" },
+  "midi-80": { iconPro: "/schema-icons/pro/fuse-midi-80a.webp" },
+  "midi-100": { iconPro: "/schema-icons/pro/fuse-midi-100a.webp" },
+};
+
 // Bibliothèque de composants (docs/schema/CDC_FabSystem_Schema_V1.md §8-13).
 // Architecture centralisée (§45) : un seul rendu générique (ElectricalNode)
 // piloté par ces définitions — ajouter un composant ne touche jamais au
@@ -277,11 +316,17 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "negative", label: "PV−", kind: "negative", side: "left" },
       { id: "positive", label: "PV+", kind: "positive", side: "right" },
     ],
-    defaultData: { powerW: 100, voltage: 0 },
+    defaultData: { powerW: 100, voltage: 0, vocVoltage: 0 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "powerW", label: "Puissance", type: "number", unit: "W", help: "Puissance crête indiquée sur l'étiquette du panneau — détermine la vitesse de charge et le calibre du régulateur (MPPT/PWM) à choisir." },
       { key: "voltage", label: "Tension", type: "number", unit: "V", help: "Facultatif : 0 si non connue." },
+      // Retour utilisateur : "pour le série il faut que tu ai les données Voc
+      // des panneaux et la donnée max des MPPT" — nécessaire pour vérifier
+      // qu'un montage en série ne dépasse pas la tension d'entrée max du
+      // régulateur (distinct du calibre en ampères, déjà vérifié via la
+      // puissance totale).
+      { key: "vocVoltage", label: "Tension circuit ouvert (Voc)", type: "number", unit: "V", help: "Indiquée sur l'étiquette du panneau (Voc). Facultatif : 0 si non connue — nécessaire pour vérifier un montage en série." },
     ],
   },
   {
@@ -305,11 +350,12 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
       { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { amperage: 20, systemVoltage: 12 },
+    defaultData: { amperage: 20, systemVoltage: 12, maxPvVoltage: 0 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Choisi selon la puissance des panneaux branchés (W ÷ tension système ≈ ampérage requis), pas selon les besoins de consommation." },
       { key: "systemVoltage", label: "Tension système", type: "number", unit: "V", help: "La tension de votre batterie (12V le plus souvent) — pas celle des panneaux." },
+      { key: "maxPvVoltage", label: "Tension d'entrée PV max", type: "number", unit: "V", help: "Indiquée sur la fiche technique du régulateur. Facultatif : 0 si non connue — nécessaire pour vérifier qu'un montage de panneaux en série ne la dépasse pas." },
     ],
   },
   {
@@ -333,11 +379,12 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       // que le MPPT jumeau l'a.
       { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { amperage: 10, systemVoltage: 12 },
+    defaultData: { amperage: 10, systemVoltage: 12, maxPvVoltage: 0 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Choisi selon la puissance des panneaux branchés (W ÷ tension système ≈ ampérage requis), pas selon les besoins de consommation." },
       { key: "systemVoltage", label: "Tension système", type: "number", unit: "V", help: "La tension de votre batterie (12V le plus souvent) — pas celle des panneaux." },
+      { key: "maxPvVoltage", label: "Tension d'entrée PV max", type: "number", unit: "V", help: "Indiquée sur la fiche technique du régulateur. Facultatif : 0 si non connue — nécessaire pour vérifier qu'un montage de panneaux en série ne la dépasse pas." },
     ],
   },
   {
@@ -586,14 +633,20 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // Retour bêta : "changer l'illustration avec le type de fusible, ça
     // aiderait à la compréhension et au choix du porte-fusible" — une photo
     // réelle par format physique plutôt que l'icône générique unique.
+    // Puis "génère les icônes pour chaque fusible suivant l'intensité" :
+    // pour les calibres où une vraie photo par ampérage existe (lame et
+    // midi), la clé combine type ET calibre — sinon on retombe sur la photo
+    // générique du type via `getIconVariantKey`.
     iconVariantField: "fuseType",
-    iconVariants: {
-      mega: { iconPro: "/schema-icons/pro/fuse-mega.webp" },
-      midi: { iconPro: "/schema-icons/pro/fuse-midi.webp" },
-      anl: { iconPro: "/schema-icons/pro/fuse-anl.webp" },
-      "classe-t": { iconPro: "/schema-icons/pro/fuse-classe-t.jpg" },
-      lame: { iconPro: "/schema-icons/pro/fuse-lame.webp" },
+    getIconVariantKey: (data) => {
+      const fuseType = typeof data.fuseType === "string" ? data.fuseType : undefined;
+      if (!fuseType) return undefined;
+      const amperage = typeof data.amperage === "number" ? data.amperage : Number(data.amperage);
+      const compositeKey = Number.isFinite(amperage) ? `${fuseType}-${amperage}` : undefined;
+      if (compositeKey && FUSE_ICON_VARIANTS[compositeKey]) return compositeKey;
+      return fuseType;
     },
+    iconVariants: FUSE_ICON_VARIANTS,
     badge: { field: "amperage", unit: "A" },
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
@@ -1015,7 +1068,15 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     category: "wiring",
     subcategory: "distribution",
     subtitle: "Commande AC",
-    icon: "/schema-icons/switch.svg",
+    // Icône dédiée (retour utilisateur : audit des icônes génériques) —
+    // symbole classique de commutateur à deux positions (2 entrées, 1
+    // sortie commune), remplace l'ancien renvoi vers le symbole générique
+    // "switch.svg" (interrupteur simple, pas de sélection entre 2 sources).
+    // `iconPro` : vraie photo trouvée par l'utilisateur dans docs/_local/icon
+    // (manette rotative OFF/1/2, Salzer/Sterling) — usage détourné mais
+    // visuellement exact pour un inverseur manuel de source.
+    icon: "/schema-icons/ac-transfer-switch.svg",
+    iconPro: "/schema-icons/pro/ac-transfer-switch.jpg",
     handles: [
       { id: "in-1", label: "IN 1 (quai)", kind: "neutral", side: "left" },
       { id: "in-2", label: "IN 2 (groupe)", kind: "neutral", side: "left" },
@@ -1246,6 +1307,10 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "masse",
     subtitle: "Châssis",
     icon: "/schema-icons/ground.svg",
+    // `iconPro` réutilise le symbole faute de vraie photo (retour
+    // utilisateur : audit des icônes génériques, "créer aussi en mode
+    // illustration") — pas d'outil de génération d'image disponible ici.
+    iconPro: "/schema-icons/ground.svg",
     handles: [{ id: "ground", label: "Masse", kind: "negative", side: "left" }],
     defaultData: {},
     fields: [{ key: "label", label: "Nom", type: "text" }],
@@ -1473,17 +1538,18 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     type: "inverter-charger",
     label: "Chargeur-convertisseur tout-en-1",
     description: "Combine onduleur et chargeur secteur en un seul appareil (ex. Multiplus).",
-    category: "charger",
-    subcategory: "tout-en-1",
+    category: "charger-converter",
     subtitle: "Type Multiplus",
     // CDC §12 : "Convertisseur-chargeur — option V1 si le développement
     // reste raisonnable" — type Victron Multiplus (onduleur + chargeur
-    // secteur bidirectionnel dans le même boîtier). Rangé dans la famille
-    // Chargeur (pas Convertisseur) — retour utilisateur : "les deux
+    // secteur bidirectionnel dans le même boîtier). D'abord rangé dans la
+    // famille Chargeur (retour utilisateur historique : "les deux
     // convertisseurs ça se comprend pas, met juste le convertisseur 12/230
-    // tout seul, et l'autre dans la partie chargeur" — ce boîtier charge la
-    // batterie depuis le secteur autant qu'il convertit, contrairement au
-    // simple onduleur ("inverter") qui ne fait que convertir.
+    // tout seul, et l'autre dans la partie chargeur"), puis déplacé dans sa
+    // propre famille "Chargeur-convertisseur" (retour utilisateur plus
+    // récent, explicite) — ce boîtier charge la batterie depuis le secteur
+    // autant qu'il convertit, contrairement au simple onduleur ("inverter")
+    // qui ne fait que convertir.
     icon: "/schema-icons/inverter.svg",
     iconPro: "/schema-icons/pro/inverter.webp",
     badge: { field: "chargeAmperage", unit: "A" },
@@ -1513,8 +1579,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     type: "easysolar",
     label: "EasySolar (onduleur-chargeur + MPPT intégré)",
     description: "Combine onduleur-chargeur (type Multiplus) et régulateur MPPT solaire dans un seul boîtier.",
-    category: "charger",
-    subcategory: "tout-en-1",
+    category: "charger-converter",
     subtitle: "Type EasySolar",
     icon: "/schema-icons/inverter.svg",
     iconPro: "/schema-icons/pro/easysolar.webp",
@@ -1611,13 +1676,11 @@ export function getNodeIcon(def: ComponentDefinition, data: Record<string, unkno
     const brandIcon = getBrandModel(data.brandModelId)?.iconPro;
     if (brandIcon) return brandIcon;
   }
-  if (def.iconVariantField) {
-    const key = data[def.iconVariantField];
-    if (typeof key === "string") {
-      const variant = def.iconVariants?.[key];
-      const variantIcon = style === "pro" ? (variant?.iconPro ?? variant?.icon) : variant?.icon;
-      if (variantIcon) return variantIcon;
-    }
+  const variantKey = def.getIconVariantKey ? def.getIconVariantKey(data) : def.iconVariantField ? data[def.iconVariantField] : undefined;
+  if (typeof variantKey === "string") {
+    const variant = def.iconVariants?.[variantKey];
+    const variantIcon = style === "pro" ? (variant?.iconPro ?? variant?.icon) : variant?.icon;
+    if (variantIcon) return variantIcon;
   }
   return getComponentIcon(def, style);
 }
@@ -1627,8 +1690,20 @@ export const CATEGORY_LABELS: Record<string, string> = {
   battery: "Batterie",
   charger: "Chargeur",
   converter: "Convertisseur",
+  // Retour utilisateur : "catégorie à part entière pour les chargeur
+  // convertisseur" — les appareils tout-en-1 (Multiplus, EasySolar) qui
+  // combinent onduleur et chargeur secteur avaient jusqu'ici leur propre
+  // sous-famille "tout-en-1" à l'intérieur de "Chargeur" (retour utilisateur
+  // antérieur : "les deux convertisseurs ça se comprend pas, met... l'autre
+  // dans la partie chargeur"). Nouvelle demande explicite : une famille à
+  // part entière plutôt qu'une sous-famille.
+  "charger-converter": "Chargeur-convertisseur",
   wiring: "Protection & câblage",
-  measurement: "Mesure",
+  // Retour utilisateur : "la catégorie mesure serait pas mieux en s'appelant
+  // Supervision système" — la famille couvre désormais aussi les hubs GX
+  // (Cerbo, Venus GX, GX Touch, Ekrano), pas seulement des capteurs de
+  // mesure brute (shunt, jauges).
+  measurement: "Supervision système",
   consumers: "Appareils",
 };
 

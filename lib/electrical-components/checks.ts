@@ -146,6 +146,304 @@ function reachesProtection(
   return false;
 }
 
+// Types de protection avec un calibre unique et directement lisible dans
+// `data.amperage` (contrairement à fuse-block/distribution-panel/
+// lynx-distributor qui répartissent en plusieurs branches à calibres
+// indépendants — pas un seul chiffre à comparer à la source).
+const PROTECTION_AMPERAGE_TYPES = new Set(["fuse", "circuit-breaker", "lynx-smart-bms", "lynx-power-in", "mini-bms"]);
+
+// Mêmes traversée/tolérance que `reachesProtection` (busbar/coupe-batterie
+// en passe-plats, 2 sauts), mais retourne les nœuds de protection trouvés au
+// lieu d'un simple booléen — nécessaire pour comparer leur calibre à celui
+// de la source (voir `computeOversizedProtectionIssues`).
+function findNearestProtections(
+  startNodeId: string,
+  startHandle: string,
+  nodes: SchemaNodeInternal[],
+  edges: SchemaEdgeInternal[],
+  maxHops = 2,
+): SchemaNodeInternal[] {
+  const found: SchemaNodeInternal[] = [];
+  let frontier = neighborsViaHandle(startNodeId, startHandle, edges);
+  const visited = new Set<string>([startNodeId]);
+
+  for (let hop = 0; hop < maxHops; hop++) {
+    const next: string[] = [];
+    for (const id of frontier) {
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const node = nodes.find((n) => n.id === id);
+      if (!node) continue;
+      const type = node.data.componentType;
+      if (PROTECTION_AMPERAGE_TYPES.has(type)) {
+        found.push(node);
+        continue;
+      }
+      if (PASSTHROUGH_TYPES.has(type)) {
+        for (const e of edges) {
+          if (e.source === id && !visited.has(e.target)) next.push(e.target);
+          else if (e.target === id && !visited.has(e.source)) next.push(e.source);
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  return found;
+}
+
+// Courant nominal max d'une source de charge, par type — même liste que
+// `CHARGE_SOURCE_OUTPUT_HANDLE` mais avec le champ (parfois nommé
+// différemment, ex. "chargeAmperage" sur le chargeur secteur) qui porte le
+// courant réel à comparer au calibre de la protection en aval.
+const SOURCE_AMPS_GETTERS: Record<string, (data: Record<string, unknown>) => number> = {
+  mppt: (data) => Number(data.amperage) || 0,
+  pwm: (data) => Number(data.amperage) || 0,
+  dcdc: (data) => Number(data.amperage) || 0,
+  "ac-charger": (data) => Number(data.chargeAmperage) || 0,
+  alternator: (data) => Number(data.amperage) || 0,
+  "wind-turbine": (data) => {
+    const voltage = Number(data.voltage) || 0;
+    const powerW = Number(data.powerW) || 0;
+    return voltage > 0 ? powerW / voltage : 0;
+  },
+};
+
+// Marge tolérée entre le courant nominal d'une source et le calibre de sa
+// protection : ~1,25x est une pratique standard (courant continu), on ne
+// signale qu'au-delà pour éviter les faux positifs sur un choix de calibre
+// légèrement large mais raisonnable.
+const PROTECTION_OVERSIZE_RATIO = 1.5;
+
+// Retour utilisateur : "MPPT 20A + fusible 40A sans avertissement, le
+// fusible ne sert plus dans ce cas là" — jusqu'ici seule la *présence* d'une
+// protection était vérifiée (`reachesProtection`), jamais la cohérence de
+// son calibre avec la source qu'elle protège. Un fusible trop large ne
+// coupera jamais avant que le courant dépasse ce que le câble (dimensionné
+// sur le courant nominal de la source) peut encaisser — piège classique pour
+// un débutant qui pense "plus gros = plus sûr".
+function computeOversizedProtectionIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const node of nodes) {
+    const type = node.data.componentType;
+    const outputHandle = CHARGE_SOURCE_OUTPUT_HANDLE[type];
+    const getSourceAmps = SOURCE_AMPS_GETTERS[type];
+    if (!outputHandle || !getSourceAmps) continue;
+
+    const sourceAmps = getSourceAmps(node.data);
+    if (sourceAmps <= 0) continue;
+
+    const protections = findNearestProtections(node.id, outputHandle, nodes, edges);
+    for (const protectionNode of protections) {
+      const protectionAmps = Number(protectionNode.data.amperage) || 0;
+      if (protectionAmps <= 0 || protectionAmps <= sourceAmps * PROTECTION_OVERSIZE_RATIO) continue;
+
+      const sourceLabel = String(node.data.label ?? getComponentDefinition(type)?.label ?? type);
+      const protectionLabel = String(
+        protectionNode.data.label ?? getComponentDefinition(protectionNode.data.componentType)?.label ?? protectionNode.data.componentType,
+      );
+      issues.push({
+        id: `${protectionNode.id}-oversized-for-${node.id}`,
+        targetKind: "node",
+        targetId: protectionNode.id,
+        message: `« ${protectionLabel} » (${formatAmps(protectionAmps)} A) est largement surdimensionné par rapport à « ${sourceLabel} » (${formatAmps(sourceAmps)} A max) : il ne protège plus vraiment ce circuit, le courant réel ne pourra jamais le faire fondre. Rapprochez son calibre du courant nominal de la source.`,
+      });
+    }
+  }
+
+  return issues;
+}
+
+const PV_REGULATOR_TYPES = new Set(["mppt", "pwm"]);
+const PV_INPUT_HANDLES = ["pv-positive", "pv-negative"];
+
+// Panneaux solaires en amont d'un régulateur, en traversant les jonctions
+// (busbar, coupe-batterie) comme de simples passe-plats — même logique que
+// `reachesProtection`, mais remonte le graphe au lieu de le descendre.
+// Un panneau NE stoppe PAS la remontée : en montage série, les panneaux se
+// chaînent directement entre eux (PV+ de A → PV− de B → régulateur), sans
+// passer par un busbar — s'arrêter au premier panneau rencontré manquerait
+// tous les suivants de la chaîne et sous-évaluerait la puissance réelle
+// (retour utilisateur : "fait attention au montage en série également").
+// `visited` empêche toute boucle même si le schéma est mal câblé en anneau.
+function collectUpstreamSolarPanels(
+  nodeId: string,
+  handles: string[],
+  nodes: SchemaNodeInternal[],
+  edges: SchemaEdgeInternal[],
+): SchemaNodeInternal[] {
+  const panels: SchemaNodeInternal[] = [];
+  const visited = new Set<string>([nodeId]);
+  let frontier: string[] = handles.flatMap((h) => neighborsViaHandle(nodeId, h, edges));
+
+  while (frontier.length > 0) {
+    const next: string[] = [];
+    for (const id of frontier) {
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const node = nodes.find((n) => n.id === id);
+      if (!node) continue;
+      const type = node.data.componentType;
+      if (type === "solar-panel") panels.push(node);
+      if (type === "solar-panel" || PASSTHROUGH_TYPES.has(type)) {
+        for (const e of edges) {
+          if (e.source === id && !visited.has(e.target)) next.push(e.target);
+          else if (e.target === id && !visited.has(e.source)) next.push(e.source);
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  return panels;
+}
+
+// Regroupe les panneaux en amont d'un régulateur par « string » série : une
+// chaîne de panneaux reliés directement entre eux (PV+ de A → PV− de B),
+// sans passer par un busbar. Deux strings distinctes de part et d'autre d'un
+// busbar sont en parallèle : chacune garde sa tension propre (pas de somme
+// entre elles), alors que dans une même string les tensions Voc s'additionnent
+// — c'est cette confusion série/parallèle que le contrôle de tension doit
+// respecter (retour utilisateur : "il faut que tu ai les données Voc des
+// panneaux et la donnée max des MPPT" pour vérifier le montage en série).
+function collectPvStrings(
+  nodeId: string,
+  handles: string[],
+  nodes: SchemaNodeInternal[],
+  edges: SchemaEdgeInternal[],
+): SchemaNodeInternal[][] {
+  const strings: SchemaNodeInternal[][] = [];
+  const visited = new Set<string>([nodeId]);
+
+  type Frontier = { id: string; chain: SchemaNodeInternal[] };
+  let frontier: Frontier[] = handles.flatMap((h) => neighborsViaHandle(nodeId, h, edges).map((id) => ({ id, chain: [] })));
+
+  while (frontier.length > 0) {
+    const next: Frontier[] = [];
+    for (const { id, chain } of frontier) {
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const node = nodes.find((n) => n.id === id);
+      if (!node) continue;
+      const type = node.data.componentType;
+
+      if (type === "solar-panel") {
+        const newChain = [...chain, node];
+        const panelNeighbors: string[] = [];
+        for (const e of edges) {
+          if (e.source === id && !visited.has(e.target)) panelNeighbors.push(e.target);
+          else if (e.target === id && !visited.has(e.source)) panelNeighbors.push(e.source);
+        }
+        if (panelNeighbors.length === 0) {
+          strings.push(newChain);
+        } else {
+          for (const n of panelNeighbors) next.push({ id: n, chain: newChain });
+        }
+        continue;
+      }
+
+      if (PASSTHROUGH_TYPES.has(type)) {
+        // Jonction parallèle : chaque branche reprend à zéro (pas de somme
+        // avec ce qui était déjà accumulé côté régulateur).
+        for (const e of edges) {
+          if (e.source === id && !visited.has(e.target)) next.push({ id: e.target, chain });
+          else if (e.target === id && !visited.has(e.source)) next.push({ id: e.source, chain });
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  return strings;
+}
+
+// Tension d'une string série = somme des Voc de ses panneaux (Voc, pas la
+// tension nominale "voltage" — c'est la tension réelle à vide, la plus
+// pénalisante, celle qui peut dépasser la tension d'entrée max du régulateur
+// par temps froid). Ignore une string dont un panneau n'a pas de Voc
+// renseigné (0 = "non connue", même convention que les autres champs
+// facultatifs) : mieux vaut ne pas signaler que signaler à partir d'une
+// tension sous-évaluée.
+function computeSeriesVoltageIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const node of nodes) {
+    const type = node.data.componentType;
+    if (!PV_REGULATOR_TYPES.has(type)) continue;
+
+    const maxPvVoltage = Number(node.data.maxPvVoltage) || 0;
+    if (maxPvVoltage <= 0) continue;
+
+    const strings = collectPvStrings(node.id, PV_INPUT_HANDLES, nodes, edges);
+    let worstStringVoltage = 0;
+    for (const string of strings) {
+      if (string.some((p) => !(Number(p.data.vocVoltage) > 0))) continue;
+      const stringVoltage = string.reduce((sum, p) => sum + Number(p.data.vocVoltage), 0);
+      if (stringVoltage > worstStringVoltage) worstStringVoltage = stringVoltage;
+    }
+    if (worstStringVoltage <= maxPvVoltage) continue;
+
+    const label = String(node.data.label ?? getComponentDefinition(type)?.label ?? type);
+    const regulatorKind = type === "mppt" ? "MPPT" : "PWM";
+    issues.push({
+      id: `${node.id}-series-overvoltage`,
+      targetKind: "node",
+      targetId: node.id,
+      message: `« ${label} » (régulateur ${regulatorKind}, ${maxPvVoltage} V max en entrée) reçoit une chaîne de panneaux en série à ${formatAmps(worstStringVoltage)} V en circuit ouvert (Voc) : trop élevé, risque de destruction du régulateur — réduisez le nombre de panneaux en série ou câblez-les en parallèle.`,
+    });
+  }
+
+  return issues;
+}
+
+// Marge de "overpaneling" tolérée : brancher plus de puissance crête que le
+// courant nominal ne le suggère en arithmétique pure est une pratique
+// standard et documentée par les fabricants (le plein soleil STC simultané
+// sur tout le champ est rare), pas une erreur. Vérifié sur catalogue réel :
+// le Victron SmartSolar 75/15 (15A) annonce lui-même 220W max en 12V —
+// 220/(15×12) ≈ 1,22 — et le 100/30 (30A) annonce 440W — 440/(30×12) ≈ 1,22.
+// 1,3 couvre cette marge constructeur sans laisser passer un vrai
+// sous-dimensionnement (ex. l'exemple utilisateur 4×300W=1200W sur 15A
+// reste très largement au-dessus, ratio ≈ 6,7).
+const SOLAR_OVERSIZE_RATIO = 1.3;
+
+// Retour utilisateur : "tu as généré un calcul de vérification de la
+// puissance des panneaux solaires par rapport au MPPT ? exemple 4 panneaux
+// de 300W = 1200W pour un MPPT de 15A" — jusqu'ici seule une aide textuelle
+// sur le champ ampérage existait, aucun contrôle calculé. Courant théorique
+// = puissance totale des panneaux ÷ tension système.
+function computeSolarSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const node of nodes) {
+    const type = node.data.componentType;
+    if (!PV_REGULATOR_TYPES.has(type)) continue;
+
+    const panels = collectUpstreamSolarPanels(node.id, PV_INPUT_HANDLES, nodes, edges);
+    if (panels.length === 0) continue;
+
+    const totalW = panels.reduce((sum, p) => sum + (Number(p.data.powerW) || 0), 0);
+    const systemVoltage = Number(node.data.systemVoltage) || 0;
+    const regulatorAmps = Number(node.data.amperage) || 0;
+    if (totalW <= 0 || systemVoltage <= 0 || regulatorAmps <= 0) continue;
+
+    const requiredAmps = totalW / systemVoltage;
+    if (requiredAmps > regulatorAmps * SOLAR_OVERSIZE_RATIO) {
+      const label = String(node.data.label ?? getComponentDefinition(type)?.label ?? type);
+      const regulatorKind = type === "mppt" ? "MPPT" : "PWM";
+      issues.push({
+        id: `${node.id}-solar-oversized`,
+        targetKind: "node",
+        targetId: node.id,
+        message: `« ${label} » (régulateur ${regulatorKind} ${formatAmps(regulatorAmps)} A) est sous-dimensionné pour ${totalW} W de panneaux branchés (~${formatAmps(requiredAmps)} A sous ${systemVoltage} V) : passez à un régulateur plus puissant ou réduisez la puissance branchée.`,
+      });
+    }
+  }
+
+  return issues;
+}
+
 function computeElectricalIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
   const issues: SchemaIssue[] = [];
 
@@ -286,6 +584,9 @@ export function computeSchemaIssues(
     return !structurallyBlockedNodeIds.has(edge.source) && !structurallyBlockedNodeIds.has(edge.target);
   });
   const polarityIssues = computePolarityIssues(nodes, edges);
+  const solarSizingIssues = computeSolarSizingIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
+  const seriesVoltageIssues = computeSeriesVoltageIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
+  const oversizedProtectionIssues = computeOversizedProtectionIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
 
-  return [...issues, ...electricalIssues, ...cableSizingIssues, ...polarityIssues];
+  return [...issues, ...electricalIssues, ...cableSizingIssues, ...polarityIssues, ...solarSizingIssues, ...seriesVoltageIssues, ...oversizedProtectionIssues];
 }

@@ -22,7 +22,7 @@ interface LibraryItem {
 
 // Ordre d'affichage des familles (indépendant de l'ordre d'apparition dans
 // COMPONENT_DEFINITIONS) — "layout" (Zone) toujours en tête, comme avant.
-const CATEGORY_ORDER = ["layout", "solar", "battery", "charger", "converter", "wiring", "measurement", "consumers"];
+const CATEGORY_ORDER = ["layout", "solar", "battery", "charger", "charger-converter", "converter", "wiring", "measurement", "consumers"];
 
 const NO_SUBCATEGORY = "_";
 

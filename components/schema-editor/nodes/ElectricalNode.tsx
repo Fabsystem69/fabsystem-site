@@ -79,7 +79,6 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const rotateNode = useSchemaStore((s) => s.rotateNode);
   const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
-  const select = useSchemaStore((s) => s.select);
   const updateNodeInternals = useUpdateNodeInternals();
   const rotation = Number(data.rotation) || 0;
   const mirrored = Boolean(data.mirrored);
@@ -374,7 +373,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
                 height: dotSize,
                 border: "2px solid white",
               }}
-              title={`${def.label} · ${getHandleLabel(def, data, handle)}`}
+              title={`${def.label} · ${getHandleLabel(def, data, handle)} — cliquez et glissez pour créer un câble`}
             />
           );
         })}

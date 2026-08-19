@@ -6,7 +6,7 @@
 // convertisseur, chargeur, batterie") — un débutant qui ne sait pas encore
 // ce qu'est un "MPPT" reconnaît "Solaire" comme famille de rayon plutôt que
 // l'ancien découpage par rôle (source/charge/distribution).
-export type ComponentCategory = "solar" | "battery" | "charger" | "converter" | "wiring" | "measurement" | "consumers";
+export type ComponentCategory = "solar" | "battery" | "charger" | "charger-converter" | "converter" | "wiring" | "measurement" | "consumers";
 
 export type HandleKind = "positive" | "negative" | "neutral" | "earth";
 
@@ -78,6 +78,14 @@ export interface ComponentDefinition {
   iconVariantField?: string;
   /** Icônes par valeur du champ désigné par `iconVariantField`. */
   iconVariants?: Record<string, { icon?: string; iconPro?: string }>;
+  /**
+   * Calcule la clé de `iconVariants` à partir de plusieurs champs de `data`
+   * plutôt qu'un seul (ex. fusible : type ET intensité, retour utilisateur
+   * "génère les icônes pour chaque fusible suivant l'intensité") — prime sur
+   * `iconVariantField` quand fourni. Retourne `undefined` pour retomber sur
+   * l'icône générique du composant.
+   */
+  getIconVariantKey?: (data: Record<string, unknown>) => string | undefined;
   /**
    * Pastille affichée directement sur la vignette (ex. le calibre d'un
    * fusible) — retour utilisateur : "je voudrais que l'intensité apparaisse".

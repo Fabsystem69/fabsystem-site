@@ -220,7 +220,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     buildEdge("edge_mst1z7wk_5", "ex-busbar-pos", "out-4", "circuit-breaker_mst1ysym_3", "input", RED, "power-positive", "16 mm²", L_16, { x: 1480, y: 160 }),
 
     // Écran de contrôle : alimentation + liaisons VE.Direct (vert)
-    buildEdge("edge_msuphid0_3", "ex-fuse-monitor", "input", "ex-busbar-pos", "out-2", RED, "power-positive"),
+    buildEdge("edge_msuphid0_3", "ex-fuse-monitor", "input", "ex-busbar-pos", "out-2", RED, "power-positive", "0,5 mm²", 1),
     buildEdge("edge_msupqwwm_6", "ex-monitor", "positive", "ex-fuse-monitor", "output", RED, "power-positive", "0,5 mm²", 2),
     buildEdge("ex-e30", "ex-busbar-neg", "out-8", "ex-monitor", "negative", BLACK, "power-negative", "0,75 mm²", L_075, { x: 680, y: 640 }),
     buildEdge("ex-e31", "ex-shunt", "ve-direct", "ex-monitor", "ve-direct", GREEN, "data-bus", undefined, 1.5),

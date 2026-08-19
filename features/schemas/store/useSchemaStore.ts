@@ -44,9 +44,15 @@ function loadDarkMode(): boolean {
 // canvas sur petit écran ou pour se concentrer sur le dessin. Préférence
 // d'affichage pure, comme darkMode/iconStyle : pas un pas d'historique, pas
 // dans le brouillon du schéma.
+// Retour utilisateur : "laisser réduit le bandeau gauche mais pas le
+// supprimer non plus" — depuis l'ajout de l'onglet "Ajouter" du ruban (voie
+// principale pour poser un composant), le panneau gauche démarre replié par
+// défaut ; quiconque l'a déjà explicitement rouvert/refermé garde son choix
+// (valeur "0"/"1" en localStorage), seule l'absence de préférence bascule.
 function loadPanelCollapsed(key: string): boolean {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(key) === "1";
+  if (typeof window === "undefined") return true;
+  const stored = window.localStorage.getItem(key);
+  return stored === null ? true : stored === "1";
 }
 
 // v2.1 : palier gratuit — 3 composants "consommateurs" (category === "consumers"
@@ -64,6 +70,127 @@ function countConsumerNodes(nodes: SchemaNode[]) {
 
 function isConsumerType(type: string) {
   return getComponentDefinition(type)?.category === "consumers";
+}
+
+// Retour bêta : "j'ai mis 2 batteries (en quantité)... pas demandé si elles
+// étaient en série ou en parallèle" — dès qu'une 2e batterie apparaît sur un
+// schéma qui n'en avait qu'une, on propose de les relier (l'utilisateur peut
+// toujours ignorer). Volontairement limité au cas "exactement 2 batteries" :
+// au-delà, deviner quelle paire relier serait plus souvent faux que juste
+// (ex. batterie moteur + batterie auxiliaire, systèmes déjà distincts).
+function findSoleOtherBattery(nodeId: string, nodes: SchemaNode[]): string | null {
+  const others = nodes.filter((n) => n.id !== nodeId && n.data.componentType === "battery");
+  return others.length === 1 ? others[0].id : null;
+}
+
+// Retour utilisateur : "j'ai trouvé une incohérence pour les BMV, c'est
+// l'écran d'affichage qui montrait, mais dans un kit BMV il y a le shunt +
+// affichage... crée une fonction : quand on ajoute un BMV, l'écran et le
+// shunt s'ajoutent sur le canvas" — un vrai kit BMV-700/702/712 est vendu
+// avec son écran filaire dédié, contrairement au SmartShunt (Bluetooth
+// seul, pas d'écran physique) volontairement exclu de cette liste.
+const BMV_DISPLAY_SHUNT_IDS = new Set(["victron-bmv-700", "victron-bmv-702", "victron-bmv-712"]);
+
+// Modèle d'écran à appliquer automatiquement à l'écran jumeau (retour
+// utilisateur : les vraies photos d'écran, déplacées depuis les entrées
+// "shunt" vers ces entrées "system-monitor" dédiées) — sans ça, l'écran créé
+// afficherait une icône générique au lieu de la vraie photo du kit BMV.
+const BMV_DISPLAY_MODEL_BY_SHUNT_ID: Record<string, string> = {
+  "victron-bmv-700": "victron-bmv-700-display",
+  "victron-bmv-702": "victron-bmv-702-display",
+  "victron-bmv-712": "victron-bmv-712-display",
+};
+
+// Construit l'écran de contrôle jumeau + le câble VE.Direct qui le relie au
+// shunt — jamais si ce shunt a déjà un écran relié (évite d'en empiler un
+// second si l'utilisateur choisit/rechoisit un modèle BMV plusieurs fois).
+function buildPairedShuntMonitor(shuntNode: SchemaNode, edges: SchemaEdge[]): { node: SchemaNode; edge: SchemaEdge } | null {
+  const alreadyPaired = edges.some(
+    (e) => (e.source === shuntNode.id && e.sourceHandle === "ve-direct") || (e.target === shuntNode.id && e.targetHandle === "ve-direct"),
+  );
+  if (alreadyPaired) return null;
+
+  const monitorDef = getComponentDefinition("system-monitor");
+  if (!monitorDef) return null;
+
+  const shuntBrandModelId = String(shuntNode.data.brandModelId ?? "");
+  const displayModelId = BMV_DISPLAY_MODEL_BY_SHUNT_ID[shuntBrandModelId];
+  const displayModel = displayModelId ? getBrandModel(displayModelId) : undefined;
+
+  const monitorNode: SchemaNode = {
+    id: nextId("system-monitor"),
+    type: "electrical",
+    position: { x: shuntNode.position.x + 170, y: shuntNode.position.y },
+    data: {
+      componentType: "system-monitor",
+      label: displayModel ? `Écran ${displayModel.model}` : monitorDef.label,
+      ...monitorDef.defaultData,
+      ...(displayModel ? { brandModelId: displayModel.id, brand: displayModel.brand, model: displayModel.model, ...displayModel.defaults } : {}),
+    },
+  };
+  const edge: SchemaEdge = {
+    id: nextId("edge"),
+    source: shuntNode.id,
+    sourceHandle: "ve-direct",
+    target: monitorNode.id,
+    targetHandle: "ve-direct",
+    type: "cable",
+    data: { color: "#16a34a", cableType: "data-bus" },
+  };
+  return { node: monitorNode, edge };
+}
+
+// Retour utilisateur : "le GX Touch 70 ne peut pas être dissocié du Cerbo GX
+// car il n'a aucun contrôle, à la différence du Cerbo qui est le
+// calculateur mais sans écran" — même principe que le pairage BMV
+// shunt/écran, mais inversé : ici c'est l'écran (GX Touch, sans aucune
+// intelligence propre) qui, choisi seul, exige son cerveau (Cerbo GX, sans
+// écran) plutôt que l'inverse.
+// GX Touch 50 : même principe que le 70 (retour utilisateur) — écran seul,
+// aucune intelligence propre, toujours jumelé à un Cerbo/Venus GX. Ekrano GX
+// est volontairement absent de cette liste : contrairement aux GX Touch, il
+// combine écran ET calculateur dans le même boîtier, donc autonome.
+const GX_TOUCH_MODEL_IDS = new Set(["victron-gx-touch-70", "victron-gx-touch-50"]);
+const CERBO_GX_MODEL_ID = "victron-cerbo-gx";
+
+// Construit le Cerbo GX jumeau + le câble GX (VE.Direct) qui l'alimente en
+// données — jamais si ce GX Touch a déjà un Cerbo relié (même garde-fou que
+// buildPairedShuntMonitor : évite d'en empiler un second si l'utilisateur
+// rechoisit GX Touch 70 plusieurs fois).
+function buildPairedCerboForGxTouch(touchNode: SchemaNode, edges: SchemaEdge[]): { node: SchemaNode; edge: SchemaEdge } | null {
+  const alreadyPaired = edges.some(
+    (e) => (e.source === touchNode.id && e.sourceHandle === "ve-direct") || (e.target === touchNode.id && e.targetHandle === "ve-direct"),
+  );
+  if (alreadyPaired) return null;
+
+  const monitorDef = getComponentDefinition("system-monitor");
+  const cerboModel = getBrandModel(CERBO_GX_MODEL_ID);
+  if (!monitorDef || !cerboModel) return null;
+
+  const cerboNode: SchemaNode = {
+    id: nextId("system-monitor"),
+    type: "electrical",
+    position: { x: touchNode.position.x + 170, y: touchNode.position.y },
+    data: {
+      componentType: "system-monitor",
+      label: cerboModel.model,
+      ...monitorDef.defaultData,
+      brandModelId: cerboModel.id,
+      brand: cerboModel.brand,
+      model: cerboModel.model,
+      ...cerboModel.defaults,
+    },
+  };
+  const edge: SchemaEdge = {
+    id: nextId("edge"),
+    source: touchNode.id,
+    sourceHandle: "ve-direct",
+    target: cerboNode.id,
+    targetHandle: "ve-direct",
+    type: "cable",
+    data: { color: "#16a34a", cableType: "data-bus" },
+  };
+  return { node: cerboNode, edge };
 }
 
 const DEFAULT_CABLE_TYPE_BY_KIND: Record<HandleKind, string> = {
@@ -141,6 +268,12 @@ interface SchemaState {
   hydrated: boolean;
   iconStyle: IconStyle;
   darkMode: boolean;
+  // Retour utilisateur : "le bouton Grille ne fait pas apparaître et
+  // disparaître la grille, elle y est toujours sur le canvas" — le switch
+  // du ruban ne pilotait que l'export/impression (Canvas.tsx ne le lisait
+  // pas) ; levé au store pour que Canvas.tsx (affichage réel) ET les
+  // captures d'export lisent la même valeur.
+  showGrid: boolean;
   leftPanelCollapsed: boolean;
   // v2.1, retour utilisateur : "le bandeau de droite... si celui est réduit
   // on ne sait même pas qu'on peut modifier, on refait un montage avec un
@@ -228,6 +361,14 @@ interface SchemaState {
   // permet un calcul (consommateur de puissance connue à proximité) —
   // sinon reste `null`, pas de popup vide.
   pendingSizingTarget: { kind: "cable"; edgeId: string } | { kind: "fuse"; nodeId: string } | null;
+  // Retour bêta : "j'ai mis 2 batteries... pas demandé si elles étaient en
+  // série ou en parallèle" — posé par `addComponent`/`addComponentWithModel`/
+  // `duplicateNode` quand une 2e batterie apparaît alors qu'une seule autre
+  // existait déjà (voir `findSoleOtherBattery`), consommé par
+  // BatteryPairPopup. N'écrase jamais silencieusement un choix de modèle en
+  // cours : la popup ne s'affiche qu'une fois `pendingModelPickerNodeId` et
+  // `pendingLibraryPick` retombés à `null`.
+  pendingBatteryPairPrompt: { nodeId: string; partnerId: string } | null;
   // Mode guidé pas à pas (retour utilisateur : "capable de faire un schéma
   // basique... en mode guidé étape par étape") — préférence d'affichage pure
   // comme darkMode/iconStyle : pas un pas d'historique, pas persistée dans
@@ -271,6 +412,7 @@ interface SchemaState {
   setProjectId: (id: string | null) => void;
   setIconStyle: (style: IconStyle) => void;
   setDarkMode: (value: boolean) => void;
+  setShowGrid: (value: boolean) => void;
   toggleLeftPanel: () => void;
   openItemPropertiesPopup: () => void;
   closeItemPropertiesPopup: () => void;
@@ -289,6 +431,7 @@ interface SchemaState {
    * la main (pas de logique de rattachement automatique). */
   addZone: (position: { x: number; y: number }) => void;
   updateNodeData: (id: string, patch: Record<string, unknown>, options?: { trackHistory?: boolean }) => void;
+  applyBrandModelToNode: (id: string, brandModelId: string) => void;
   updateEdgeData: (id: string, patch: Record<string, unknown>, options?: { trackHistory?: boolean }) => void;
   /** Insère un nouveau point de coude juste après `index` (retour
    * utilisateur : "poignées/points intermédiaires sur les câbles"). */
@@ -339,6 +482,7 @@ interface SchemaState {
     dataOverride?: Record<string, unknown>
   ) => void;
   dismissSizingPopup: () => void;
+  resolveBatteryPairPrompt: (mode: "series" | "parallel" | "skip") => void;
   startGuidedMode: () => void;
   exitGuidedMode: () => void;
   advanceGuidedStep: () => void;
@@ -386,6 +530,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   hydrated: false,
   iconStyle: loadIconStyle(),
   darkMode: loadDarkMode(),
+  showGrid: true,
   leftPanelCollapsed: loadPanelCollapsed(LEFT_PANEL_COLLAPSED_KEY),
   itemPropertiesPopupOpen: false,
   draggingComponentType: null,
@@ -399,6 +544,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   pendingModelPickerNodeId: null,
   pendingLibraryPick: null,
   pendingSizingTarget: null,
+  pendingBatteryPairPrompt: null,
   guidedMode: false,
   guidedStepIndex: 0,
   consumerBaseline: 0,
@@ -437,6 +583,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     if (typeof window !== "undefined") window.localStorage.setItem(DARK_MODE_STORAGE_KEY, value ? "1" : "0");
     set({ darkMode: value });
   },
+
+  setShowGrid: (value) => set({ showGrid: value }),
 
   toggleLeftPanel: () =>
     set((state) => {
@@ -552,11 +700,13 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       // batterie") : le tutoriel porte sur le câblage, pas sur le choix
       // d'une marque — reste générique, modifiable ensuite normalement.
       const hasBrandModels = !state.guidedMode && getBrandModelsForType(type).length > 0;
+      const batteryPartnerId = !state.guidedMode && type === "battery" ? findSoleOtherBattery(node.id, [...state.nodes, node]) : null;
       return {
         nodes: [...state.nodes, node],
         selectedNodeId: node.id,
         selectedEdgeId: null,
         pendingModelPickerNodeId: hasBrandModels ? node.id : null,
+        pendingBatteryPairPrompt: batteryPartnerId ? { nodeId: node.id, partnerId: batteryPartnerId } : null,
         lastMeaningfulActionAt: Date.now(),
         pickerCancelStreak: 0,
         ...commit(state),
@@ -623,11 +773,24 @@ export const useSchemaStore = create<SchemaState>((set) => ({
             : {}),
         },
       };
+      const batteryPartnerId = type === "battery" ? findSoleOtherBattery(node.id, [...state.nodes, node]) : null;
+
+      const pairedMonitor =
+        type === "shunt" && brandModel && BMV_DISPLAY_SHUNT_IDS.has(brandModel.id)
+          ? buildPairedShuntMonitor(node, state.edges)
+          : type === "system-monitor" && brandModel && GX_TOUCH_MODEL_IDS.has(brandModel.id)
+            ? buildPairedCerboForGxTouch(node, state.edges)
+            : null;
+      const nodes = pairedMonitor ? [...state.nodes, node, pairedMonitor.node] : [...state.nodes, node];
+      const edges = pairedMonitor ? [...state.edges, pairedMonitor.edge] : state.edges;
+
       return {
-        nodes: [...state.nodes, node],
+        nodes,
+        edges,
         selectedNodeId: node.id,
         selectedEdgeId: null,
         pendingLibraryPick: null,
+        pendingBatteryPairPrompt: batteryPartnerId ? { nodeId: node.id, partnerId: batteryPartnerId } : null,
         lastMeaningfulActionAt: Date.now(),
         pickerCancelStreak: 0,
         ...commit(state),
@@ -636,11 +799,78 @@ export const useSchemaStore = create<SchemaState>((set) => ({
 
   dismissSizingPopup: () => set({ pendingSizingTarget: null }),
 
+  // Retour bêta : voir `pendingBatteryPairPrompt` — relie la batterie qui
+  // vient d'être ajoutée à l'unique autre batterie déjà présente. "skip" ne
+  // câble rien (cas normal : deux banques indépendantes, ex. batterie moteur
+  // + batterie auxiliaire). Mêmes handles/couleurs que `onConnect` pour une
+  // borne + ou − (HANDLE_COLORS/DEFAULT_CABLE_TYPE_BY_KIND).
+  resolveBatteryPairPrompt: (mode) =>
+    set((state) => {
+      const prompt = state.pendingBatteryPairPrompt;
+      if (!prompt) return {};
+      if (mode === "skip") return { pendingBatteryPairPrompt: null };
+
+      const a = state.nodes.find((n) => n.id === prompt.partnerId);
+      const b = state.nodes.find((n) => n.id === prompt.nodeId);
+      if (!a || !b) return { pendingBatteryPairPrompt: null };
+
+      const positiveData = { color: HANDLE_COLORS.positive, cableType: DEFAULT_CABLE_TYPE_BY_KIND.positive };
+      const negativeData = { color: HANDLE_COLORS.negative, cableType: DEFAULT_CABLE_TYPE_BY_KIND.negative };
+
+      const newEdges: SchemaEdge[] =
+        mode === "parallel"
+          ? [
+              { id: nextId("edge"), source: a.id, sourceHandle: "positive", target: b.id, targetHandle: "positive", type: "cable", data: positiveData },
+              { id: nextId("edge"), source: a.id, sourceHandle: "negative", target: b.id, targetHandle: "negative", type: "cable", data: negativeData },
+            ]
+          : [
+              { id: nextId("edge"), source: a.id, sourceHandle: "positive", target: b.id, targetHandle: "negative", type: "cable", data: positiveData },
+            ];
+
+      return {
+        edges: [...state.edges, ...newEdges],
+        pendingBatteryPairPrompt: null,
+        lastMeaningfulActionAt: Date.now(),
+        ...commit(state),
+      };
+    }),
+
   updateNodeData: (id, patch, options) =>
     set((state) => ({
       nodes: state.nodes.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...patch } } : n)),
       ...(options?.trackHistory === false ? null : commit(state)),
     })),
+
+  // Utilisé par ModelPickerModal quand un modèle est choisi pour un nœud
+  // déjà posé sur le canvas (glisser-déposer) — même effet que
+  // `updateNodeData` avec les champs du modèle, plus le pairage écran/shunt
+  // BMV (voir `buildPairedShuntMonitor`) qu'un simple `updateNodeData` ne
+  // peut pas faire (il ne crée jamais de second nœud).
+  applyBrandModelToNode: (id, brandModelId) =>
+    set((state) => {
+      const node = state.nodes.find((n) => n.id === id);
+      const brandModel = getBrandModel(brandModelId);
+      if (!node || !brandModel) return {};
+
+      const updatedNode: SchemaNode = {
+        ...node,
+        data: { ...node.data, brandModelId: brandModel.id, brand: brandModel.brand, model: brandModel.model, ...brandModel.defaults },
+      };
+      const nodes = state.nodes.map((n) => (n.id === id ? updatedNode : n));
+
+      const pairedMonitor =
+        node.data.componentType === "shunt" && BMV_DISPLAY_SHUNT_IDS.has(brandModel.id)
+          ? buildPairedShuntMonitor(updatedNode, state.edges)
+          : node.data.componentType === "system-monitor" && GX_TOUCH_MODEL_IDS.has(brandModel.id)
+            ? buildPairedCerboForGxTouch(updatedNode, state.edges)
+            : null;
+
+      return {
+        nodes: pairedMonitor ? [...nodes, pairedMonitor.node] : nodes,
+        edges: pairedMonitor ? [...state.edges, pairedMonitor.edge] : state.edges,
+        ...commit(state),
+      };
+    }),
 
   updateEdgeData: (id, patch, options) =>
     set((state) => ({
@@ -832,10 +1062,13 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         selected: false,
         data: { ...original.data },
       };
+      const batteryPartnerId =
+        node.data.componentType === "battery" ? findSoleOtherBattery(node.id, [...state.nodes, node]) : null;
       return {
         nodes: [...state.nodes, node],
         selectedNodeId: node.id,
         selectedEdgeId: null,
+        pendingBatteryPairPrompt: batteryPartnerId ? { nodeId: node.id, partnerId: batteryPartnerId } : state.pendingBatteryPairPrompt,
         ...commit(state),
       };
     }),

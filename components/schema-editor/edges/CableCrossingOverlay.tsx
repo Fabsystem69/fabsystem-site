@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ViewportPortal } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
-import { DARK_MODE_COLOR_OVERRIDE, parseSectionMm2, strokeWidthForSection } from "@/components/schema-editor/edges/CableEdge";
+import { DARK_MODE_COLOR_OVERRIDE, THREE_CONDUCTOR_SECTIONS, parseSectionMm2, strokeWidthForSection } from "@/components/schema-editor/edges/CableEdge";
 
 // Retour utilisateur : "si un câble différent se croise, je veux qu'il y
 // ait un petit sursaut pour faire comprendre que ce n'est pas une épissure"
@@ -19,6 +19,11 @@ import { DARK_MODE_COLOR_OVERRIDE, parseSectionMm2, strokeWidthForSection } from
 const MASK_RADIUS = 8;
 const LEG = 11;
 const BUMP_HEIGHT = 6;
+// Retour utilisateur : "si câble croise d'autre câble tu fais le sursaut
+// plus grand" — uniquement pour un câble simple (le rendu 3G/3-conducteurs
+// est décoratif, voir isThreeConductor dans CableEdge : un sursaut plus
+// large s'y désolidariserait visiblement des 3 traits parallèles réels).
+const BUMP_HEIGHT_LARGE = 10;
 const SAMPLE_STEP = 8;
 // Retour utilisateur : "empêche-les dans les courbes, le fil donne
 // l'impression d'être coupé" — le sursaut suppose une portion de câble
@@ -39,7 +44,7 @@ interface Crossing {
   key: string;
   point: Point;
   straight: { tangent: Point; color: string; strokeWidth: number; dasharray?: string };
-  jumper: { tangent: Point; color: string; strokeWidth: number; dasharray?: string };
+  jumper: { tangent: Point; color: string; strokeWidth: number; dasharray?: string; bumpHeight: number };
   maskColor: string;
 }
 
@@ -92,12 +97,12 @@ function normalize(v: Point): Point {
   return { x: v.x / len, y: v.y / len };
 }
 
-function bumpPath(point: Point, tangent: Point): string {
+function bumpPath(point: Point, tangent: Point, bumpHeight: number): string {
   const u = normalize(tangent);
   const perp = { x: -u.y, y: u.x };
   const start = { x: point.x - u.x * LEG, y: point.y - u.y * LEG };
   const end = { x: point.x + u.x * LEG, y: point.y + u.y * LEG };
-  const control = { x: point.x + perp.x * BUMP_HEIGHT * 2, y: point.y + perp.y * BUMP_HEIGHT * 2 };
+  const control = { x: point.x + perp.x * bumpHeight * 2, y: point.y + perp.y * bumpHeight * 2 };
   return `M${start.x} ${start.y}Q${control.x} ${control.y} ${end.x} ${end.y}`;
 }
 
@@ -200,6 +205,7 @@ export function CableCrossingOverlay() {
               color: colorFor(jumperEdge.data?.color),
               strokeWidth: widthFor(jumperEdge.data?.section),
               dasharray: dasharrayFor(jumperEdge.data?.cableType),
+              bumpHeight: THREE_CONDUCTOR_SECTIONS.has(jumperEdge.data?.section ?? "") ? BUMP_HEIGHT : BUMP_HEIGHT_LARGE,
             },
             maskColor: darkMode ? "#0a0a0a" : "#ffffff",
           });
@@ -229,7 +235,7 @@ export function CableCrossingOverlay() {
               strokeLinecap="round"
             />
             <path
-              d={bumpPath(c.point, c.jumper.tangent)}
+              d={bumpPath(c.point, c.jumper.tangent, c.jumper.bumpHeight)}
               fill="none"
               stroke={c.jumper.color}
               strokeWidth={c.jumper.strokeWidth}

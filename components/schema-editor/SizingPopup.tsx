@@ -93,6 +93,9 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
         <div className={`mt-4 rounded-lg border p-3 ${darkMode ? "border-brand-800 bg-brand-950" : "border-brand-300 bg-brand-50"}`}>
           <p className={`text-xs ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Section minimale : {result.sMin} mm²</p>
           <p className={`text-2xl font-bold ${darkMode ? "text-neutral-50" : "text-neutral-950"}`}>{result.section} mm² recommandé</p>
+          <p className={`mt-1 text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
+            Calculé sur {(l * 2).toLocaleString("fr-FR")} m électriques (aller-retour compris) — la longueur enregistrée reste vos {l.toLocaleString("fr-FR")} m aller.
+          </p>
         </div>
       ) : (
         <p className={`mt-4 text-sm ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Renseignez l&apos;intensité et la longueur.</p>

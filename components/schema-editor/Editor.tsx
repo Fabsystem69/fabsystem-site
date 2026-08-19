@@ -18,16 +18,16 @@ import {
   buildCloudStatusMessage,
   buildLocalDraftAssistant,
 } from "@/lib/schema-editor/save-assistant";
-import { Toolbar } from "./Toolbar";
+import { Ribbon } from "./Ribbon";
 import { ComponentLibrary } from "./ComponentLibrary";
 import { Canvas } from "./Canvas";
-import { ItemPropertiesPopup } from "./ItemPropertiesPopup";
 import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
 import { CoachingOfferWidget } from "./CoachingOfferWidget";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
+import { BatteryPairPopup } from "./BatteryPairPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
 import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 
@@ -329,7 +329,7 @@ export function Editor() {
   return (
     <ReactFlowProvider>
       <div className={`flex h-screen flex-col ${darkMode ? "bg-neutral-950" : "bg-white"}`}>
-        <Toolbar />
+        <Ribbon />
         <SaveAssistantBanner />
         <div className="flex min-h-0 flex-1">
           <ComponentLibrary />
@@ -351,9 +351,9 @@ export function Editor() {
       <ModelPickerModal />
       <FreemiumLimitModal />
       <SizingPopup />
+      <BatteryPairPopup />
       <GuidedTutorial />
       <SchemaIssuesWidget />
-      <ItemPropertiesPopup />
       <CoachingOfferWidget />
     </ReactFlowProvider>
   );

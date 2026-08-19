@@ -75,10 +75,10 @@ function buildSolarBasicTemplate(): { projectName: string; nodes: SchemaNode[]; 
 
   const edges: SchemaEdge[] = [
     // Deux panneaux en parallèle → MPPT
-    buildEdge("sb-e1", "sb-solar-1", "positive", "sb-mppt", "pv-positive", RED, "power-positive", "4 mm²", 3),
-    buildEdge("sb-e2", "sb-solar-1", "negative", "sb-mppt", "pv-negative", BLACK, "power-negative", "4 mm²", 3),
-    buildEdge("sb-e3", "sb-solar-2", "positive", "sb-mppt", "pv-positive", RED, "power-positive", "4 mm²", 3),
-    buildEdge("sb-e4", "sb-solar-2", "negative", "sb-mppt", "pv-negative", BLACK, "power-negative", "4 mm²", 3),
+    buildEdge("sb-e1", "sb-solar-1", "positive", "sb-mppt", "pv-positive", RED, "power-positive", "6 mm²", 3),
+    buildEdge("sb-e2", "sb-solar-1", "negative", "sb-mppt", "pv-negative", BLACK, "power-negative", "6 mm²", 3),
+    buildEdge("sb-e3", "sb-solar-2", "positive", "sb-mppt", "pv-positive", RED, "power-positive", "6 mm²", 3),
+    buildEdge("sb-e4", "sb-solar-2", "negative", "sb-mppt", "pv-negative", BLACK, "power-negative", "6 mm²", 3),
 
     // MPPT → fusible → batterie (protection sortie MPPT, sert aussi de
     // fusible principal batterie)
@@ -180,8 +180,8 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
 
     // Appoint solaire → fusible → batterie (deuxième source de charge, à
     // côté du chargeur secteur)
-    buildEdge("qt-e16", "qt-solar", "positive", "qt-mppt", "pv-positive", RED, "power-positive", "4 mm²", 3),
-    buildEdge("qt-e17", "qt-solar", "negative", "qt-mppt", "pv-negative", BLACK, "power-negative", "4 mm²", 3),
+    buildEdge("qt-e16", "qt-solar", "positive", "qt-mppt", "pv-positive", RED, "power-positive", "6 mm²", 3),
+    buildEdge("qt-e17", "qt-solar", "negative", "qt-mppt", "pv-negative", BLACK, "power-negative", "6 mm²", 3),
     buildEdge("qt-e18", "qt-mppt", "bat-positive", "qt-fuse-mppt", "input", RED, "power-positive", "6 mm²", 1.5),
     buildEdge("qt-e19", "qt-fuse-mppt", "output", "qt-battery", "positive", RED, "power-positive", "6 mm²", 1.5),
     buildEdge("qt-e20", "qt-mppt", "bat-negative", "qt-battery", "negative", BLACK, "power-negative", "6 mm²", 1.5),
@@ -192,7 +192,7 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     // s'arrête dès qu'on coupe le reste de l'installation. « + Manuel »
     // suit le circuit conventionnel (busbar → interrupteur).
     buildEdge("qt-e21", "qt-battery", "positive", "qt-fuse-pompe-auto", "input", RED, "power-positive", "2,5 mm²", 1),
-    buildEdge("qt-e22", "qt-fuse-pompe-auto", "output", "qt-pompe", "positive-auto", RED, "power-positive", "2,5 mm²", 3),
+    buildEdge("qt-e22", "qt-fuse-pompe-auto", "output", "qt-pompe", "positive-auto", RED, "power-positive", "6 mm²", 3),
     buildEdge("qt-e23", "qt-busbar", "out-3", "qt-switch-pompe", "input", RED, "power-positive", "2,5 mm²", 3),
     buildEdge("qt-e24", "qt-switch-pompe", "output", "qt-pompe", "positive-manual", RED, "power-positive", "2,5 mm²", 1),
     buildEdge("qt-e25", "qt-battery", "negative", "qt-pompe", "negative", BLACK, "power-negative", "2,5 mm²", 4),
@@ -475,8 +475,8 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
   ];
 
   const edges: SchemaEdge[] = [
-    buildEdge("vl-e1", "vl-solar", "positive", "vl-mppt", "pv-positive", RED, "power-positive", "4 mm²", 3),
-    buildEdge("vl-e2", "vl-solar", "negative", "vl-mppt", "pv-negative", BLACK, "power-negative", "4 mm²", 3),
+    buildEdge("vl-e1", "vl-solar", "positive", "vl-mppt", "pv-positive", RED, "power-positive", "6 mm²", 3),
+    buildEdge("vl-e2", "vl-solar", "negative", "vl-mppt", "pv-negative", BLACK, "power-negative", "6 mm²", 3),
     buildEdge("vl-e3", "vl-mppt", "bat-positive", "vl-mppt-fuse", "input", RED, "power-positive", "6 mm²", 1.2),
     buildEdge("vl-e4", "vl-mppt-fuse", "output", "vl-service-battery", "positive", RED, "power-positive", "6 mm²", 1.2),
     buildEdge("vl-e5", "vl-mppt", "bat-negative", "vl-busbar-neg", "input", BLACK, "power-negative", "6 mm²", 1.5, { x: 977, y: 330 }),
@@ -715,8 +715,13 @@ function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[];
     // Solaire
     buildNode("pb-solar-1", "solar-panel", 40, -40, { label: "Panneau solaire 1", powerW: 300, voltage: 0 }),
     buildNode("pb-solar-2", "solar-panel", 40, 140, { label: "Panneau solaire 2", powerW: 300, voltage: 0 }),
-    buildNode("pb-mppt", "mppt", 340, 40, { label: "SmartSolar MPPT 100/30", amperage: 30, systemVoltage: 12, brandModelId: "victron-smartsolar-100-30", brand: "Victron", model: "SmartSolar MPPT 100/30" }),
-    buildNode("pb-fuse-mppt", "fuse", 620, 40, { label: "Fusible MPPT", fuseType: "midi", amperage: 35 }),
+    // Audit : 2×300W = 600W dépassait la puissance PV max réelle du 100/30
+    // (440W en 12V d'après la fiche Victron) — remplacé par le 100/50 (700W
+    // max en 12V), qui couvre 600W avec la marge de surdimensionnement
+    // habituelle admise par le fabricant (retour utilisateur : contrôle
+    // puissance panneaux/régulateur).
+    buildNode("pb-mppt", "mppt", 340, 40, { label: "SmartSolar MPPT 100/50", amperage: 50, systemVoltage: 12, brandModelId: "victron-smartsolar-100-50", brand: "Victron", model: "SmartSolar MPPT 100/50" }),
+    buildNode("pb-fuse-mppt", "fuse", 620, 40, { label: "Fusible MPPT", fuseType: "midi", amperage: 60 }),
 
     // Éolien
     buildNode("pb-wind", "wind-turbine", 40, 340, { label: "Éolienne Silent Wind Pro", powerW: 420, voltage: 12, brandModelId: "silentwind-pro-420w", brand: "Silent Wind", model: "Wind Generator Pro 12V/420W" }),
@@ -799,13 +804,16 @@ function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[];
 
   const edges: SchemaEdge[] = [
     // Solaire → MPPT → fusible → bus Lynx
-    buildEdge("pb-e1", "pb-solar-1", "positive", "pb-mppt", "pv-positive", RED, "power-positive", "6 mm²", 3),
-    buildEdge("pb-e2", "pb-solar-1", "negative", "pb-mppt", "pv-negative", BLACK, "power-negative", "6 mm²", 3),
-    buildEdge("pb-e3", "pb-solar-2", "positive", "pb-mppt", "pv-positive", RED, "power-positive", "6 mm²", 3),
-    buildEdge("pb-e4", "pb-solar-2", "negative", "pb-mppt", "pv-negative", BLACK, "power-negative", "6 mm²", 3),
+    // Audit : sections recalculées pour le 100/50 (50A) — le 10 mm² restait
+    // suffisant sur pb-e5 (1m, chute de tension négligeable sur une si
+    // courte distance) mais pas sur les autres, plus longues.
+    buildEdge("pb-e1", "pb-solar-1", "positive", "pb-mppt", "pv-positive", RED, "power-positive", "16 mm²", 3),
+    buildEdge("pb-e2", "pb-solar-1", "negative", "pb-mppt", "pv-negative", BLACK, "power-negative", "16 mm²", 3),
+    buildEdge("pb-e3", "pb-solar-2", "positive", "pb-mppt", "pv-positive", RED, "power-positive", "16 mm²", 3),
+    buildEdge("pb-e4", "pb-solar-2", "negative", "pb-mppt", "pv-negative", BLACK, "power-negative", "16 mm²", 3),
     buildEdge("pb-e5", "pb-mppt", "bat-positive", "pb-fuse-mppt", "input", RED, "power-positive", "10 mm²", 1),
-    buildEdge("pb-e6", "pb-fuse-mppt", "output", "pb-lynx-bms", "sys-positive", RED, "power-positive", "10 mm²", 2),
-    buildEdge("pb-e7", "pb-mppt", "bat-negative", "pb-busbar-neg-main", "out-1", BLACK, "power-negative", "10 mm²", 2.5),
+    buildEdge("pb-e6", "pb-fuse-mppt", "output", "pb-lynx-bms", "sys-positive", RED, "power-positive", "16 mm²", 2),
+    buildEdge("pb-e7", "pb-mppt", "bat-negative", "pb-busbar-neg-main", "out-1", BLACK, "power-negative", "16 mm²", 2.5),
 
     // Éolienne → fusible → bus Lynx
     buildEdge("pb-e8", "pb-wind", "positive", "pb-fuse-wind", "input", RED, "power-positive", "6 mm²", 1),

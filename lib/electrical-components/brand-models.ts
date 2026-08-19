@@ -70,23 +70,42 @@ export const BRAND_MODELS: BrandModel[] = [
   // facilement, choisir le modèle/puissance de la même gamme" — jusqu'ici 0
   // modèle alors que ce sont des produits de marque bien réels, avec des
   // puissances standard du marché).
-  { id: "renogy-100w-rigid", brand: "Renogy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 } },
-  { id: "renogy-200w-rigid", brand: "Renogy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/renogy-200w-rigid.webp" },
-  { id: "renogy-175w-flexible", brand: "Renogy", model: "175W flexible", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } , iconPro: "/schema-icons/pro/brand/renogy-175w-flexible.webp" },
-  { id: "victron-175w-rigid", brand: "Victron", model: "BlueSolar 175W rigide", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0 } , iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
+  // Voc (tension circuit ouvert) relevées sur fiches techniques
+  // constructeur — nécessaires au contrôle de montage série (retour
+  // utilisateur : "il faut que tu ai les données Voc des panneaux et la
+  // donnée max des MPPT"). Recherche faite modèle par modèle ; certaines
+  // gammes (EcoWorthy, Sunology "Move") n'ont pas de fiche officielle
+  // identifiable avec certitude et restent à 0 (= non connue, aucune fausse
+  // alerte tant que non renseignée) plutôt que d'inventer une valeur.
+  { id: "renogy-100w-rigid", brand: "Renogy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0, vocVoltage: 24.3 } },
+  { id: "renogy-200w-rigid", brand: "Renogy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0, vocVoltage: 27 } , iconPro: "/schema-icons/pro/brand/renogy-200w-rigid.webp" },
+  { id: "renogy-175w-flexible", brand: "Renogy", model: "175W flexible", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0, vocVoltage: 23.9 } , iconPro: "/schema-icons/pro/brand/renogy-175w-flexible.webp" },
+  // Voc 23,7V = version Monocristalline (SPM041751200). Victron vend aussi
+  // une version Polycristalline (SPP041751200, Voc 21,9V) sous un nom très
+  // proche — le catalogue ne distingue pas la techno, valeur la plus haute
+  // retenue par prudence (ne jamais sous-estimer une Voc côté sécurité).
+  { id: "victron-175w-rigid", brand: "Victron", model: "BlueSolar 175W rigide", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0, vocVoltage: 23.7 } , iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
   // Retour bêta (3e testeur) : "panneau Victron 360W très utilisé, à ajouter".
-  { id: "victron-365w-mono", brand: "Victron", model: "365W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 365, voltage: 0 }, iconPro: "/schema-icons/pro/brand/victron-365w-mono.webp" },
+  { id: "victron-365w-mono", brand: "Victron", model: "365W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 365, voltage: 0, vocVoltage: 48.4 }, iconPro: "/schema-icons/pro/brand/victron-365w-mono.webp" },
   // Un seul visuel disponible par marque pour la gamme panneaux (retour
   // utilisateur) — réutilisé sur toutes les puissances de la même marque
   // plutôt que de laisser certaines sans icône.
-  { id: "victron-115w-rigid", brand: "Victron", model: "BlueSolar 115W rigide", componentType: "solar-panel", defaults: { powerW: 115, voltage: 0 }, iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
+  { id: "victron-115w-rigid", brand: "Victron", model: "BlueSolar 115W rigide", componentType: "solar-panel", defaults: { powerW: 115, voltage: 0, vocVoltage: 23.32 }, iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
+  // Voc non renseignée : gamme BougeRV 200W flexible couvre plusieurs
+  // modèles très différents (Yuma CIGS ~30-31,5V, Arch Pro N-Type ~31,7V,
+  // version 9BB ~24,7V) sans moyen fiable d'identifier lequel correspond à
+  // cette entrée catalogue — mieux vaut 0 (non connue) qu'une valeur fausse.
   { id: "bougerv-200w-flexible", brand: "BougeRV", model: "200W flexible", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
-  { id: "bougerv-400w-rigid", brand: "BougeRV", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 } },
+  { id: "bougerv-400w-rigid", brand: "BougeRV", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0, vocVoltage: 39.7 }, iconPro: "/schema-icons/pro/brand/bougerv-400w-rigid.jpeg" },
+  // Voc non trouvée (specs EcoWorthy publiées uniquement en image, valeurs
+  // contradictoires selon les revendeurs) : laissée à 0 volontairement.
   { id: "ecoworthy-100w-rigid", brand: "EcoWorthy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 }, iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
   { id: "ecoworthy-200w-rigid", brand: "EcoWorthy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
   { id: "ecoworthy-400w-rigid", brand: "EcoWorthy", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 }, iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
   // Marque française, panneaux solaires nomades/portables très répandus en
-  // camping-car.
+  // camping-car. Voc non trouvée : aucun modèle "Move" dans la gamme
+  // Sunology actuelle (Play/Play2/PlayMax/City/GO/Storey/Vault) ne
+  // correspond avec certitude à ce nom catalogue.
   { id: "sunology-100w-portable", brand: "Sunology", model: "Move 100W portable", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 }, iconPro: "/schema-icons/pro/brand/sunology-200w-portable.webp" },
   { id: "sunology-200w-portable", brand: "Sunology", model: "Move 200W portable", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/sunology-200w-portable.webp" },
 
@@ -148,7 +167,7 @@ export const BRAND_MODELS: BrandModel[] = [
   // seulement) — même gamme Blue Smart, boîtier différent.
   { id: "victron-blue-smart-ip67-12-7", brand: "Victron", model: "Blue Smart IP67 12/7", componentType: "ac-charger", defaults: { chargeAmperage: 7 }, iconPro: "/schema-icons/pro/brand/victron-blue-smart-ip67-12-7.webp" },
   { id: "victron-blue-smart-ip67-12-25", brand: "Victron", model: "Blue Smart IP67 12/25", componentType: "ac-charger", defaults: { chargeAmperage: 25 }, iconPro: "/schema-icons/pro/brand/victron-blue-smart-ip67-12-25.webp" },
-  { id: "renogy-onboard-charger-20a", brand: "Renogy", model: "12V 20A On-Board Charger", componentType: "ac-charger", defaults: { chargeAmperage: 20 } },
+  { id: "renogy-onboard-charger-20a", brand: "Renogy", model: "12V 20A On-Board Charger", componentType: "ac-charger", defaults: { chargeAmperage: 20 }, iconPro: "/schema-icons/pro/brand/renogy-onboard-charger-20a.webp" },
   // Marque française (La Rochelle), référence historique en électronique
   // de bord marine — gamme de chargeurs YPOWER.
   { id: "cristec-ypower-12-20", brand: "Cristec", model: "YPOWER 12V/20A", componentType: "ac-charger", defaults: { chargeAmperage: 20 } , iconPro: "/schema-icons/pro/brand/cristec-ypower-12-20.webp" },
@@ -183,6 +202,7 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-inverter-2000w", brand: "Renogy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/renogy-inverter-2000w.webp" },
   { id: "ecoworthy-inverter-1000w", brand: "EcoWorthy", model: "1000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 1000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-inverter-1000w.webp" },
   { id: "ecoworthy-inverter-2000w", brand: "EcoWorthy", model: "2000W Pure Sine Wave", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-inverter-2000w.webp" },
+  { id: "generique-inverter-2000w", brand: "Générique", model: "Onduleur 2000W 12V/230V", componentType: "inverter", defaults: { powerW: 2000, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/generique-inverter-2000w.webp" },
   { id: "mastervolt-ac-master-300w", brand: "Mastervolt", model: "AC Master 12V/300W", componentType: "inverter", defaults: { powerW: 300, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-ac-master-300w.jpg" },
   { id: "mastervolt-ac-master-700w", brand: "Mastervolt", model: "AC Master 12V/700W", componentType: "inverter", defaults: { powerW: 700, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-ac-master-700w.jpg" },
   { id: "mastervolt-ac-master-1500w", brand: "Mastervolt", model: "AC Master 12V/1500W", componentType: "inverter", defaults: { powerW: 1500, voltageDC: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-ac-master-1500w.jpg" },
@@ -192,6 +212,9 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-multiplus-800-35", brand: "Victron", model: "Multi 12/800/35", componentType: "inverter-charger", defaults: { powerW: 800, voltageDC: 12, chargeAmperage: 35 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-800-35.webp" },
   { id: "victron-multiplus-1200-50", brand: "Victron", model: "MultiPlus 12/1200/50", componentType: "inverter-charger", defaults: { powerW: 1200, voltageDC: 12, chargeAmperage: 50 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1200-50.webp" },
   { id: "victron-multiplus-1600-70", brand: "Victron", model: "MultiPlus 12/1600/70", componentType: "inverter-charger", defaults: { powerW: 1600, voltageDC: 12, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-1600-70.webp" },
+  // Compact : même puissance que le 1600/70 ci-dessus, boîtier plus réduit
+  // (encombrement moindre) — gamme distincte chez Victron, pas un doublon.
+  { id: "victron-multiplus-compact-1600-70", brand: "Victron", model: "MultiPlus Compact 12/1600/70", componentType: "inverter-charger", defaults: { powerW: 1600, voltageDC: 12, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-compact-1600-70.webp" },
   { id: "victron-multiplus-ii-24-3000-70", brand: "Victron", model: "MultiPlus-II GX 24/3000/70", componentType: "inverter-charger", defaults: { powerW: 3000, voltageDC: 24, chargeAmperage: 70 }, iconPro: "/schema-icons/pro/brand/victron-multiplus-ii-24-3000-70.webp" },
   // Retour bêta (3e testeur) : "ne trouve pas comment ajouter un Multiplus
   // II 12/3000VA".
@@ -211,14 +234,19 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "ecoflow-delta-3", brand: "EcoFlow", model: "Delta 3", componentType: "power-station", defaults: { powerW: 1600, capacityWh: 1024 }, iconPro: "/schema-icons/pro/brand/ecoflow-delta-3.webp" },
   { id: "aferiy-p280", brand: "AFERIY", model: "P280", componentType: "power-station", defaults: { powerW: 2800, capacityWh: 2048, connectorLayout: "dual-xt90-xt60" }, iconPro: "/schema-icons/pro/brand/aferiy-p280.webp" },
 
-  // Shunt / monitoring
+  // Shunt / monitoring — retour utilisateur : "ce que tu as maintenant en
+  // item ce sont les écrans d'affichage et non le shunt en lui-même... dans
+  // un kit BMV il y a le shunt + affichage". Les entrées "shunt" utilisaient
+  // à tort la photo de l'écran ; le boîtier shunt est physiquement identique
+  // sur toute la gamme BMV-700/702/712 (même pièce Victron), donc une seule
+  // photo partagée. Les vraies photos d'écran ont été redéployées sur des
+  // entrées "system-monitor" dédiées ci-dessous, reliées automatiquement au
+  // shunt à la sélection (voir BMV_DISPLAY_SHUNT_IDS dans useSchemaStore.ts).
   { id: "victron-smartshunt-500a", brand: "Victron", model: "SmartShunt 500A", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-500a.png" },
-  { id: "victron-bmv-712", brand: "Victron", model: "BMV-712 Smart", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
-  // Retour bêta : "beaucoup ont un 702" — écran visuellement identique au
-  // 712 (même boîtier), fonctions Bluetooth/second capteur en moins,
-  // réutilise donc la même photo.
-  { id: "victron-bmv-702", brand: "Victron", model: "BMV-702", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
-  { id: "victron-bmv-700", brand: "Victron", model: "BMV-700", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-700.webp" },
+  { id: "victron-smartshunt-300a", brand: "Victron", model: "SmartShunt 300A", componentType: "shunt", defaults: { amperage: 300 }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-300a.webp" },
+  { id: "victron-bmv-712", brand: "Victron", model: "BMV-712 Smart", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp" },
+  { id: "victron-bmv-702", brand: "Victron", model: "BMV-702", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp" },
+  { id: "victron-bmv-700", brand: "Victron", model: "BMV-700", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp" },
   { id: "renogy-rbm500", brand: "Renogy", model: "Battery Monitor RBM500", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/renogy-rbm500.webp" },
 
   // Combineur de batteries
@@ -258,8 +286,29 @@ export const BRAND_MODELS: BrandModel[] = [
   // agréger les liaisons VE.Direct/VE.Bus et donner une vue d'ensemble du
   // système).
   { id: "victron-cerbo-gx", brand: "Victron", model: "Cerbo GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-cerbo-gx.webp" },
+  { id: "victron-cerbo-gx-mk2", brand: "Victron", model: "Cerbo GX MK2", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-cerbo-gx-mk2.jpg" },
   { id: "victron-ccgx", brand: "Victron", model: "Color Control GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-ccgx.webp" },
+  // Venus GX (retour utilisateur : "équivalent au Cerbo") — même rôle de
+  // calculateur/hub sans écran, gamme antérieure au Cerbo (pas de WiFi/
+  // Bluetooth intégré, davantage d'E/S filaires en façade).
+  { id: "victron-venus-gx", brand: "Victron", model: "Venus GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-venus-gx.png" },
   { id: "victron-gx-touch-70", brand: "Victron", model: "GX Touch 70", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp" },
+  // GX Touch 50 : même principe que le 70 ci-dessus (retour utilisateur) —
+  // écran seul, sans aucune intelligence propre, toujours jumelé à un
+  // Cerbo/Venus GX (voir GX_TOUCH_MODEL_IDS dans useSchemaStore.ts).
+  { id: "victron-gx-touch-50", brand: "Victron", model: "GX Touch 50", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-50.webp" },
+  // Ekrano GX (retour utilisateur : "écran tout-en-1") — contrairement aux
+  // GX Touch ci-dessus, combine l'écran ET le calculateur GX dans le même
+  // boîtier : autonome, ne nécessite pas de Cerbo/Venus séparé.
+  { id: "victron-ekrano-gx", brand: "Victron", model: "Ekrano GX", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-ekrano-gx.webp" },
+
+  // Écran dédié d'un kit BMV (retour utilisateur, voir plus haut) — les
+  // vraies photos d'écran, déplacées ici depuis les entrées "shunt". Le
+  // 702 réutilise la photo du 712 (même boîtier, retour bêta : "beaucoup
+  // ont un 702").
+  { id: "victron-bmv-712-display", brand: "Victron", model: "BMV-712 Smart (écran)", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
+  { id: "victron-bmv-702-display", brand: "Victron", model: "BMV-702 (écran)", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
+  { id: "victron-bmv-700-display", brand: "Victron", model: "BMV-700 (écran)", componentType: "system-monitor", defaults: {}, iconPro: "/schema-icons/pro/brand/victron-bmv-700.webp" },
 
   // Connecteur Y MC4 (2 vers 1) : jonction de deux chaînes de panneaux
   // solaires en parallèle — même rôle qu'une "Épissure" générique, juste un

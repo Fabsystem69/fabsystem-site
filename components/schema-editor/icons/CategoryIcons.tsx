@@ -67,13 +67,18 @@ function ProtectionIcon({ className }: IconProps) {
 }
 
 function MesureIcon({ className }: IconProps) {
-  // Cadran + aiguille — shunt/écran de contrôle.
+  // Écran de supervision (moniteur + mini tableau de bord) — retour
+  // utilisateur : "génère un nouveau icon plus sympa pour cette catégorie"
+  // après renommage "Mesure" → "Supervision système" (la famille couvre
+  // désormais aussi les hubs GX en plus des capteurs bruts) ; remplace
+  // l'ancien cadran+aiguille, plus évocateur d'un simple ampèremètre que
+  // d'un écran de contrôle.
   return (
     <svg viewBox="0 0 20 20" className={className} {...strokeProps}>
-      <circle cx="10" cy="11" r="7" />
-      <line x1="10" y1="11" x2="13.2" y2="7" />
-      <line x1="10" y1="2.7" x2="10" y2="4.2" />
-      <circle cx="10" cy="11" r="1" fill="currentColor" stroke="none" />
+      <rect x="2" y="3" width="16" height="11" rx="1.5" />
+      <line x1="7" y1="17.3" x2="13" y2="17.3" />
+      <line x1="10" y1="14" x2="10" y2="17.3" />
+      <polyline points="4.5,10.5 7,7.5 9,9.3 11.5,6 15.5,9" />
     </svg>
   );
 }
@@ -86,6 +91,21 @@ function ConversionIcon({ className }: IconProps) {
       <polyline points="10.5,3.5 14,7 10.5,10.5" />
       <line x1="17" y1="14" x2="6" y2="14" />
       <polyline points="9.5,17.5 6,14 9.5,10.5" />
+    </svg>
+  );
+}
+
+function ChargerConverterIcon({ className }: IconProps) {
+  // Boîtier (rect) + éclair (charge) + double flèche (conversion) — famille
+  // Chargeur-convertisseur (retour utilisateur : "catégorie à part entière
+  // pour les chargeur convertisseur"), les appareils tout-en-1 type
+  // Multiplus/EasySolar qui combinent les deux rôles dans un seul boîtier.
+  return (
+    <svg viewBox="0 0 20 20" className={className} {...strokeProps}>
+      <rect x="2" y="3" width="16" height="14" rx="1.5" />
+      <polygon points="10,5.5 6.5,10.5 9,10.5 8,14.5 12,9.5 9.5,9.5" fill="currentColor" stroke="none" />
+      <line x1="13.5" y1="6.5" x2="16.5" y2="6.5" />
+      <polyline points="15.3,5.3 16.5,6.5 15.3,7.7" />
     </svg>
   );
 }
@@ -107,6 +127,7 @@ const CATEGORY_ICON_COMPONENTS: Record<string, (props: IconProps) => ReactElemen
   battery: BatteryIcon,
   charger: ChargeIcon,
   converter: ConversionIcon,
+  "charger-converter": ChargerConverterIcon,
   wiring: ProtectionIcon,
   measurement: MesureIcon,
   consumers: ConsommateursIcon,

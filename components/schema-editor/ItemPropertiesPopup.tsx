@@ -9,44 +9,18 @@ import { calcSection, fusibleRecommande } from "@/lib/calc/section-cable";
 import { estimateConnectedAmps, estimateEdgeAmps, evaluateEdgeSection, findBatteryVoltage } from "@/lib/electrical-components/auto-size";
 import { CABLE_SECTIONS } from "@/types/schema";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
-import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
 import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaStore";
 
-// v2.1, retour utilisateur : "supprimer le bandeau de droite car si celui
-// est réduit on ne sait même pas qu'on peut modifier, on refait un montage
-// avec un nouvel item" — remplace l'ancien bandeau permanent PropertiesPanel
-// par un popup ouvert explicitement au double-clic sur un composant/câble
-// (voir Canvas.tsx onNodeDoubleClick/onEdgeDoubleClick), jamais discret.
-export function ItemPropertiesPopup() {
-  const open = useSchemaStore((s) => s.itemPropertiesPopupOpen);
-  const close = useSchemaStore((s) => s.closeItemPropertiesPopup);
-  const nodes = useSchemaStore((s) => s.nodes);
-  const edges = useSchemaStore((s) => s.edges);
-  const selectedNodeId = useSchemaStore((s) => s.selectedNodeId);
-  const selectedEdgeId = useSchemaStore((s) => s.selectedEdgeId);
-  const darkMode = useSchemaStore((s) => s.darkMode);
-  useEscapeToClose(close);
-
-  const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : undefined;
-  const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) : undefined;
-
-  if (!open || (!selectedNode && !selectedEdge)) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/40 p-4" onClick={close}>
-      <div onClick={(e) => e.stopPropagation()} className="h-full max-h-[calc(100vh-2rem)] w-full max-w-sm">
-        {selectedNode && selectedNode.data.componentType === "zone" ? (
-          <ZonePropertiesCard node={selectedNode} darkMode={darkMode} onClose={close} />
-        ) : selectedNode ? (
-          <NodePropertiesCard node={selectedNode} nodes={nodes} edges={edges} darkMode={darkMode} onClose={close} />
-        ) : selectedEdge ? (
-          <EdgePropertiesCard edge={selectedEdge} nodes={nodes} edges={edges} darkMode={darkMode} onClose={close} />
-        ) : null}
-      </div>
-    </div>
-  );
-}
+// v2.2, retour utilisateur : "intègre le bandeau droit propriété avec les
+// mêmes fonctions mais dans le bandeau supérieur, toujours même principe,
+// c'est pour l'autre reste réduit" — remplace le popup plein écran par un
+// onglet contextuel du ruban (voir PropertiesTab.tsx + Ribbon.tsx), sur le
+// même principe que Fichier/Export déjà fusionnés. Les trois cartes
+// ci-dessous (Node/Edge/Zone) sont inchangées dans leur logique métier —
+// seul `CardShell` a changé de contenant (dropdown du ruban au lieu d'un
+// panneau plein écran, voir son commentaire).
+export { NodePropertiesCard, EdgePropertiesCard, ZonePropertiesCard };
 
 function CardShell({
   title,
@@ -63,8 +37,11 @@ function CardShell({
   children: React.ReactNode;
   footer?: React.ReactNode;
 }) {
+  // Plus de `h-full` (retour utilisateur : bandeau propriétés déplacé dans
+  // le ruban) : hauteur naturelle, plafonnée + défilante pour rester dans
+  // un RibbonPanel plutôt que dans un panneau plein écran.
   return (
-    <div className={`flex h-full flex-col overflow-hidden rounded-2xl border shadow-2xl ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
+    <div className={`flex max-h-[75vh] flex-col overflow-hidden rounded-md border ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
       <div className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
         <div>
           <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{title}</h2>
@@ -251,7 +228,7 @@ function NodePropertiesCard({
       ) : null}
       <label className="block">
         <span className={`mb-1 flex items-center justify-between text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>
-          <span>Taille d'affichage</span>
+          <span>Taille d&apos;affichage</span>
           <span>×{Number(node.data.displayScale) || 1}</span>
         </span>
         <input
@@ -603,6 +580,11 @@ function SectionSuggestion({
               connais.
             </p>
           )}
+          {result ? (
+            <p className={`mt-1 text-[10px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
+              Calcul basé sur {(l * 2).toLocaleString("fr-FR")} m électriques (aller-retour compris).
+            </p>
+          ) : null}
         </div>
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
-import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
+import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 
 // Popup de choix de marque/modèle, deux déclencheurs distincts :
@@ -19,7 +19,7 @@ export function ModelPickerModal() {
   const libraryPick = useSchemaStore((s) => s.pendingLibraryPick);
   const nodes = useSchemaStore((s) => s.nodes);
   const darkMode = useSchemaStore((s) => s.darkMode);
-  const updateNodeData = useSchemaStore((s) => s.updateNodeData);
+  const applyBrandModelToNode = useSchemaStore((s) => s.applyBrandModelToNode);
   const dismissModelPicker = useSchemaStore((s) => s.dismissModelPicker);
   const cancelLibraryPick = useSchemaStore((s) => s.cancelLibraryPick);
   const addComponentWithModel = useSchemaStore((s) => s.addComponentWithModel);
@@ -48,14 +48,7 @@ export function ModelPickerModal() {
       return;
     }
     if (!node) return;
-    const brandModel = getBrandModel(id);
-    if (!brandModel) return;
-    updateNodeData(node.id, {
-      brandModelId: brandModel.id,
-      brand: brandModel.brand,
-      model: brandModel.model,
-      ...brandModel.defaults,
-    });
+    applyBrandModelToNode(node.id, id);
     dismissModelPicker();
   }
 

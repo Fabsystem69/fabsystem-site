@@ -20,6 +20,7 @@ import { CableEdge, cableCaption } from "./edges/CableEdge";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import { CableCrossingOverlay } from "./edges/CableCrossingOverlay";
 import { AlignmentGuideOverlay } from "./AlignmentGuideOverlay";
+import { WiringHintBanner } from "./WiringHintBanner";
 import { CableWaypointNode } from "./nodes/CableWaypointNode";
 import { ZoneNode } from "./nodes/ZoneNode";
 import { getConsumerPreset, getComponentDefinition } from "@/lib/electrical-components/definitions";
@@ -171,6 +172,7 @@ export function Canvas() {
   const setSpliceHoverEdgeId = useSchemaStore((s) => s.setSpliceHoverEdgeId);
   const setAlignmentGuides = useSchemaStore((s) => s.setAlignmentGuides);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  const showGrid = useSchemaStore((s) => s.showGrid);
   const { screenToFlowPosition } = useReactFlow();
 
   // Isolement par catégorie (retour utilisateur : "isoler le circuit MPPT ou
@@ -367,6 +369,7 @@ export function Canvas() {
       // aucune utilité ici et gêne plus qu'autre chose sur un canvas.
       onContextMenu={(e) => e.preventDefault()}
     >
+      <WiringHintBanner />
       <ReactFlow
         nodes={reactFlowNodes}
         edges={edges}
@@ -429,7 +432,7 @@ export function Canvas() {
         // sur le fond du canvas désélectionne et referme le popup.
         onPaneClick={() => select(null, null)}
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} />
+        {showGrid ? <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} /> : null}
         <Controls showInteractive={false} position="bottom-left" className={darkMode ? "!fill-white [&_button]:!border-neutral-700 [&_button]:!bg-neutral-800 [&_button]:!text-white [&_path]:!fill-white" : undefined} />
         <CableCrossingOverlay />
         <AlignmentGuideOverlay />
