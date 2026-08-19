@@ -366,6 +366,7 @@ export type CustomerWhereInput = {
   projects?: Prisma.ProjectListRelationFilter
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionListRelationFilter
   customCatalogItems?: Prisma.CustomCatalogItemListRelationFilter
+  errorReports?: Prisma.ErrorReportListRelationFilter
 }
 
 export type CustomerOrderByWithRelationInput = {
@@ -401,6 +402,7 @@ export type CustomerOrderByWithRelationInput = {
   projects?: Prisma.ProjectOrderByRelationAggregateInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionOrderByRelationAggregateInput
   customCatalogItems?: Prisma.CustomCatalogItemOrderByRelationAggregateInput
+  errorReports?: Prisma.ErrorReportOrderByRelationAggregateInput
 }
 
 export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -439,6 +441,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   projects?: Prisma.ProjectListRelationFilter
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionListRelationFilter
   customCatalogItems?: Prisma.CustomCatalogItemListRelationFilter
+  errorReports?: Prisma.ErrorReportListRelationFilter
 }, "id" | "email">
 
 export type CustomerOrderByWithAggregationInput = {
@@ -532,6 +535,7 @@ export type CustomerCreateInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateInput = {
@@ -567,6 +571,7 @@ export type CustomerUncheckedCreateInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUpdateInput = {
@@ -602,6 +607,7 @@ export type CustomerUpdateInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateInput = {
@@ -637,6 +643,7 @@ export type CustomerUncheckedUpdateInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateManyInput = {
@@ -799,14 +806,14 @@ export type CustomerSumOrderByAggregateInput = {
   engineHours?: Prisma.SortOrder
 }
 
-export type CustomerScalarRelationFilter = {
-  is?: Prisma.CustomerWhereInput
-  isNot?: Prisma.CustomerWhereInput
-}
-
 export type CustomerNullableScalarRelationFilter = {
   is?: Prisma.CustomerWhereInput | null
   isNot?: Prisma.CustomerWhereInput | null
+}
+
+export type CustomerScalarRelationFilter = {
+  is?: Prisma.CustomerWhereInput
+  isNot?: Prisma.CustomerWhereInput
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -851,6 +858,22 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type CustomerCreateNestedOneWithoutErrorReportsInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutErrorReportsInput, Prisma.CustomerUncheckedCreateWithoutErrorReportsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutErrorReportsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+}
+
+export type CustomerUpdateOneWithoutErrorReportsNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutErrorReportsInput, Prisma.CustomerUncheckedCreateWithoutErrorReportsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutErrorReportsInput
+  upsert?: Prisma.CustomerUpsertWithoutErrorReportsInput
+  disconnect?: Prisma.CustomerWhereInput | boolean
+  delete?: Prisma.CustomerWhereInput | boolean
+  connect?: Prisma.CustomerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutErrorReportsInput, Prisma.CustomerUpdateWithoutErrorReportsInput>, Prisma.CustomerUncheckedUpdateWithoutErrorReportsInput>
 }
 
 export type CustomerCreateNestedOneWithoutCapabilitiesInput = {
@@ -995,6 +1018,162 @@ export type CustomerUpdateOneRequiredWithoutTrialAccessCodeRedemptionsNestedInpu
   update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutTrialAccessCodeRedemptionsInput, Prisma.CustomerUpdateWithoutTrialAccessCodeRedemptionsInput>, Prisma.CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput>
 }
 
+export type CustomerCreateWithoutErrorReportsInput = {
+  id?: string
+  name?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  email: string
+  passwordHash?: string | null
+  phone?: string | null
+  address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
+  customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerUncheckedCreateWithoutErrorReportsInput = {
+  id?: string
+  name?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  email: string
+  passwordHash?: string | null
+  phone?: string | null
+  address?: string | null
+  electricalSkillLevel?: $Enums.ElectricalSkillLevel | null
+  assetType?: $Enums.AssetType
+  assetBrand?: string | null
+  assetModel?: string | null
+  registration?: string | null
+  odometerKm?: number | null
+  engineHours?: number | null
+  status?: $Enums.CustomerStatus
+  origin?: $Enums.CustomerOrigin
+  marketingConsent?: boolean
+  marketingConsentAt?: Date | string | null
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  quotes?: Prisma.QuoteUncheckedCreateNestedManyWithoutCustomerInput
+  invoices?: Prisma.InvoiceUncheckedCreateNestedManyWithoutCustomerInput
+  remises?: Prisma.RemiseUncheckedCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedCreateNestedManyWithoutCustomerInput
+  sessions?: Prisma.CustomerSessionUncheckedCreateNestedManyWithoutCustomerInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
+  customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerCreateOrConnectWithoutErrorReportsInput = {
+  where: Prisma.CustomerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutErrorReportsInput, Prisma.CustomerUncheckedCreateWithoutErrorReportsInput>
+}
+
+export type CustomerUpsertWithoutErrorReportsInput = {
+  update: Prisma.XOR<Prisma.CustomerUpdateWithoutErrorReportsInput, Prisma.CustomerUncheckedUpdateWithoutErrorReportsInput>
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutErrorReportsInput, Prisma.CustomerUncheckedCreateWithoutErrorReportsInput>
+  where?: Prisma.CustomerWhereInput
+}
+
+export type CustomerUpdateToOneWithWhereWithoutErrorReportsInput = {
+  where?: Prisma.CustomerWhereInput
+  data: Prisma.XOR<Prisma.CustomerUpdateWithoutErrorReportsInput, Prisma.CustomerUncheckedUpdateWithoutErrorReportsInput>
+}
+
+export type CustomerUpdateWithoutErrorReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
+  customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerUncheckedUpdateWithoutErrorReportsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  firstName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  electricalSkillLevel?: Prisma.NullableEnumElectricalSkillLevelFieldUpdateOperationsInput | $Enums.ElectricalSkillLevel | null
+  assetType?: Prisma.EnumAssetTypeFieldUpdateOperationsInput | $Enums.AssetType
+  assetBrand?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assetModel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  registration?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  odometerKm?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  engineHours?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  origin?: Prisma.EnumCustomerOriginFieldUpdateOperationsInput | $Enums.CustomerOrigin
+  marketingConsent?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  marketingConsentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quotes?: Prisma.QuoteUncheckedUpdateManyWithoutCustomerNestedInput
+  invoices?: Prisma.InvoiceUncheckedUpdateManyWithoutCustomerNestedInput
+  remises?: Prisma.RemiseUncheckedUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  magicLoginTokens?: Prisma.MagicLoginTokenUncheckedUpdateManyWithoutCustomerNestedInput
+  sessions?: Prisma.CustomerSessionUncheckedUpdateManyWithoutCustomerNestedInput
+  capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
+  trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
+  customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+}
+
 export type CustomerCreateWithoutCapabilitiesInput = {
   id?: string
   name?: string | null
@@ -1027,6 +1206,7 @@ export type CustomerCreateWithoutCapabilitiesInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutCapabilitiesInput = {
@@ -1061,6 +1241,7 @@ export type CustomerUncheckedCreateWithoutCapabilitiesInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutCapabilitiesInput = {
@@ -1111,6 +1292,7 @@ export type CustomerUpdateWithoutCapabilitiesInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
@@ -1145,6 +1327,7 @@ export type CustomerUncheckedUpdateWithoutCapabilitiesInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutCustomCatalogItemsInput = {
@@ -1179,6 +1362,7 @@ export type CustomerCreateWithoutCustomCatalogItemsInput = {
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutCustomCatalogItemsInput = {
@@ -1213,6 +1397,7 @@ export type CustomerUncheckedCreateWithoutCustomCatalogItemsInput = {
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutCustomCatalogItemsInput = {
@@ -1263,6 +1448,7 @@ export type CustomerUpdateWithoutCustomCatalogItemsInput = {
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutCustomCatalogItemsInput = {
@@ -1297,6 +1483,7 @@ export type CustomerUncheckedUpdateWithoutCustomCatalogItemsInput = {
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutProjectsInput = {
@@ -1331,6 +1518,7 @@ export type CustomerCreateWithoutProjectsInput = {
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutProjectsInput = {
@@ -1365,6 +1553,7 @@ export type CustomerUncheckedCreateWithoutProjectsInput = {
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutProjectsInput = {
@@ -1415,6 +1604,7 @@ export type CustomerUpdateWithoutProjectsInput = {
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutProjectsInput = {
@@ -1449,6 +1639,7 @@ export type CustomerUncheckedUpdateWithoutProjectsInput = {
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutQuotesInput = {
@@ -1483,6 +1674,7 @@ export type CustomerCreateWithoutQuotesInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutQuotesInput = {
@@ -1517,6 +1709,7 @@ export type CustomerUncheckedCreateWithoutQuotesInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutQuotesInput = {
@@ -1567,6 +1760,7 @@ export type CustomerUpdateWithoutQuotesInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutQuotesInput = {
@@ -1601,6 +1795,7 @@ export type CustomerUncheckedUpdateWithoutQuotesInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutInvoicesInput = {
@@ -1635,6 +1830,7 @@ export type CustomerCreateWithoutInvoicesInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutInvoicesInput = {
@@ -1669,6 +1865,7 @@ export type CustomerUncheckedCreateWithoutInvoicesInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutInvoicesInput = {
@@ -1719,6 +1916,7 @@ export type CustomerUpdateWithoutInvoicesInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutInvoicesInput = {
@@ -1753,6 +1951,7 @@ export type CustomerUncheckedUpdateWithoutInvoicesInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutRemisesInput = {
@@ -1787,6 +1986,7 @@ export type CustomerCreateWithoutRemisesInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutRemisesInput = {
@@ -1821,6 +2021,7 @@ export type CustomerUncheckedCreateWithoutRemisesInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutRemisesInput = {
@@ -1871,6 +2072,7 @@ export type CustomerUpdateWithoutRemisesInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutRemisesInput = {
@@ -1905,6 +2107,7 @@ export type CustomerUncheckedUpdateWithoutRemisesInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutOrdersInput = {
@@ -1939,6 +2142,7 @@ export type CustomerCreateWithoutOrdersInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutOrdersInput = {
@@ -1973,6 +2177,7 @@ export type CustomerUncheckedCreateWithoutOrdersInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutOrdersInput = {
@@ -2023,6 +2228,7 @@ export type CustomerUpdateWithoutOrdersInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutOrdersInput = {
@@ -2057,6 +2263,7 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutMagicLoginTokensInput = {
@@ -2091,6 +2298,7 @@ export type CustomerCreateWithoutMagicLoginTokensInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
@@ -2125,6 +2333,7 @@ export type CustomerUncheckedCreateWithoutMagicLoginTokensInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutMagicLoginTokensInput = {
@@ -2175,6 +2384,7 @@ export type CustomerUpdateWithoutMagicLoginTokensInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
@@ -2209,6 +2419,7 @@ export type CustomerUncheckedUpdateWithoutMagicLoginTokensInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutSessionsInput = {
@@ -2243,6 +2454,7 @@ export type CustomerCreateWithoutSessionsInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutSessionsInput = {
@@ -2277,6 +2489,7 @@ export type CustomerUncheckedCreateWithoutSessionsInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutSessionsInput = {
@@ -2327,6 +2540,7 @@ export type CustomerUpdateWithoutSessionsInput = {
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutSessionsInput = {
@@ -2361,6 +2575,7 @@ export type CustomerUncheckedUpdateWithoutSessionsInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   trialAccessCodeRedemptions?: Prisma.TrialAccessCodeRedemptionUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutTrialAccessCodeRedemptionsInput = {
@@ -2395,6 +2610,7 @@ export type CustomerCreateWithoutTrialAccessCodeRedemptionsInput = {
   capabilities?: Prisma.CustomerCapabilityCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput = {
@@ -2429,6 +2645,7 @@ export type CustomerUncheckedCreateWithoutTrialAccessCodeRedemptionsInput = {
   capabilities?: Prisma.CustomerCapabilityUncheckedCreateNestedManyWithoutCustomerInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutCustomerInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedCreateNestedManyWithoutCustomerInput
+  errorReports?: Prisma.ErrorReportUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutTrialAccessCodeRedemptionsInput = {
@@ -2479,6 +2696,7 @@ export type CustomerUpdateWithoutTrialAccessCodeRedemptionsInput = {
   capabilities?: Prisma.CustomerCapabilityUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput = {
@@ -2513,6 +2731,7 @@ export type CustomerUncheckedUpdateWithoutTrialAccessCodeRedemptionsInput = {
   capabilities?: Prisma.CustomerCapabilityUncheckedUpdateManyWithoutCustomerNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutCustomerNestedInput
   customCatalogItems?: Prisma.CustomCatalogItemUncheckedUpdateManyWithoutCustomerNestedInput
+  errorReports?: Prisma.ErrorReportUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 
@@ -2531,6 +2750,7 @@ export type CustomerCountOutputType = {
   projects: number
   trialAccessCodeRedemptions: number
   customCatalogItems: number
+  errorReports: number
 }
 
 export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2544,6 +2764,7 @@ export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   projects?: boolean | CustomerCountOutputTypeCountProjectsArgs
   trialAccessCodeRedemptions?: boolean | CustomerCountOutputTypeCountTrialAccessCodeRedemptionsArgs
   customCatalogItems?: boolean | CustomerCountOutputTypeCountCustomCatalogItemsArgs
+  errorReports?: boolean | CustomerCountOutputTypeCountErrorReportsArgs
 }
 
 /**
@@ -2626,6 +2847,13 @@ export type CustomerCountOutputTypeCountCustomCatalogItemsArgs<ExtArgs extends r
   where?: Prisma.CustomCatalogItemWhereInput
 }
 
+/**
+ * CustomerCountOutputType without action
+ */
+export type CustomerCountOutputTypeCountErrorReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ErrorReportWhereInput
+}
+
 
 export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2660,6 +2888,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   projects?: boolean | Prisma.Customer$projectsArgs<ExtArgs>
   trialAccessCodeRedemptions?: boolean | Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs>
   customCatalogItems?: boolean | Prisma.Customer$customCatalogItemsArgs<ExtArgs>
+  errorReports?: boolean | Prisma.Customer$errorReportsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
 
@@ -2750,6 +2979,7 @@ export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   projects?: boolean | Prisma.Customer$projectsArgs<ExtArgs>
   trialAccessCodeRedemptions?: boolean | Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs>
   customCatalogItems?: boolean | Prisma.Customer$customCatalogItemsArgs<ExtArgs>
+  errorReports?: boolean | Prisma.Customer$errorReportsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CustomerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2768,6 +2998,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     projects: Prisma.$ProjectPayload<ExtArgs>[]
     trialAccessCodeRedemptions: Prisma.$TrialAccessCodeRedemptionPayload<ExtArgs>[]
     customCatalogItems: Prisma.$CustomCatalogItemPayload<ExtArgs>[]
+    errorReports: Prisma.$ErrorReportPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3196,6 +3427,7 @@ export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends runtime
   projects<T extends Prisma.Customer$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   trialAccessCodeRedemptions<T extends Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$trialAccessCodeRedemptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TrialAccessCodeRedemptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   customCatalogItems<T extends Prisma.Customer$customCatalogItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$customCatalogItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomCatalogItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  errorReports<T extends Prisma.Customer$errorReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$errorReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ErrorReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3872,6 +4104,30 @@ export type Customer$customCatalogItemsArgs<ExtArgs extends runtime.Types.Extens
   take?: number
   skip?: number
   distinct?: Prisma.CustomCatalogItemScalarFieldEnum | Prisma.CustomCatalogItemScalarFieldEnum[]
+}
+
+/**
+ * Customer.errorReports
+ */
+export type Customer$errorReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ErrorReport
+   */
+  select?: Prisma.ErrorReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ErrorReport
+   */
+  omit?: Prisma.ErrorReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ErrorReportInclude<ExtArgs> | null
+  where?: Prisma.ErrorReportWhereInput
+  orderBy?: Prisma.ErrorReportOrderByWithRelationInput | Prisma.ErrorReportOrderByWithRelationInput[]
+  cursor?: Prisma.ErrorReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ErrorReportScalarFieldEnum | Prisma.ErrorReportScalarFieldEnum[]
 }
 
 /**

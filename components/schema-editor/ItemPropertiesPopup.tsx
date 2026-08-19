@@ -20,7 +20,72 @@ import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaS
 // ci-dessous (Node/Edge/Zone) sont inchangées dans leur logique métier —
 // seul `CardShell` a changé de contenant (dropdown du ruban au lieu d'un
 // panneau plein écran, voir son commentaire).
-export { NodePropertiesCard, EdgePropertiesCard, ZonePropertiesCard };
+export { NodePropertiesCard, EdgePropertiesCard, ZonePropertiesCard, useBrandModelSelector };
+
+// Extrait de NodePropertiesCard (retour utilisateur : "rajoute marque
+// modèle juste après le nom" dans le ruban) — réutilisé tel quel par
+// PropertiesTab.tsx pour éviter de dupliquer la logique de filtrage par
+// technologie et de fusion avec le catalogue perso du compte. `node`
+// optionnel : PropertiesTab doit pouvoir appeler ce Hook sans condition même
+// quand c'est un câble/une zone qui est sélectionné (règle des Hooks —
+// jamais d'appel conditionnel), donc tout est no-op tant qu'il n'y a pas de
+// composant sélectionné.
+function useBrandModelSelector(node: SchemaNode | undefined) {
+  const updateNodeData = useSchemaStore((s) => s.updateNodeData);
+  const customCatalogItems = useSchemaStore((s) => s.customCatalogItems);
+
+  const componentType = node?.data.componentType;
+  const selectedTechnology = componentType === "battery" ? String(node?.data.technology ?? "") : null;
+  const officialBrandModels = componentType
+    ? getBrandModelsForType(componentType).filter((m) => !selectedTechnology || m.defaults.technology === selectedTechnology)
+    : [];
+  const ownCustomItems = componentType
+    ? customCatalogItems
+        .filter((i) => i.componentType === componentType)
+        .filter((i) => !selectedTechnology || i.defaults.technology === selectedTechnology)
+    : [];
+  const brandModels = [
+    ...officialBrandModels,
+    ...ownCustomItems.map((i) => ({ id: `custom:${i.id}`, brand: `${i.brand} (perso)`, model: i.model })),
+  ];
+  const brandModelsByBrand = new Map<string, typeof brandModels>();
+  for (const m of brandModels) {
+    const list = brandModelsByBrand.get(m.brand) ?? [];
+    list.push(m);
+    brandModelsByBrand.set(m.brand, list);
+  }
+
+  function handleBrandModelChange(value: string) {
+    if (!node) return;
+    if (!value) {
+      updateNodeData(node.id, { brandModelId: "", brand: "", model: "", customItemIconDataUrl: undefined });
+      return;
+    }
+    if (value.startsWith("custom:")) {
+      const item = customCatalogItems.find((i) => `custom:${i.id}` === value);
+      if (!item) return;
+      updateNodeData(node.id, {
+        brandModelId: value,
+        brand: item.brand,
+        model: item.model,
+        customItemIconDataUrl: item.imageDataUrl,
+        ...item.defaults,
+      });
+      return;
+    }
+    const brandModel = getBrandModel(value);
+    if (!brandModel) return;
+    updateNodeData(node.id, {
+      brandModelId: brandModel.id,
+      brand: brandModel.brand,
+      model: brandModel.model,
+      customItemIconDataUrl: undefined,
+      ...brandModel.defaults,
+    });
+  }
+
+  return { brandModels, brandModelsByBrand, handleBrandModelChange };
+}
 
 function CardShell({
   title,
@@ -81,6 +146,15 @@ function NodePropertiesCard({
   const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const rotateNode = useSchemaStore((s) => s.rotateNode);
   const customCatalogItems = useSchemaStore((s) => s.customCatalogItems);
+  // Marque/modèle (V2) : le composant reste générique dans la bibliothèque —
+  // choisir un modèle ici ne fait que pré-remplir les champs déjà existants
+  // avec les valeurs réelles du datasheet. Les items personnalisés du
+  // compte (préfixe "custom:", retour utilisateur : widget de création
+  // d'item) se mélangent à la liste sans jamais toucher au catalogue
+  // officiel. Logique partagée avec PropertiesTab.tsx via
+  // `useBrandModelSelector` — appelé avant le `return null` ci-dessous
+  // (règle des Hooks : jamais d'appel conditionnel).
+  const { brandModels, brandModelsByBrand, handleBrandModelChange } = useBrandModelSelector(node);
 
   const def = getComponentDefinition(node.data.componentType);
   if (!def) return null;
@@ -123,64 +197,6 @@ function NodePropertiesCard({
       }
     }
     updateNodeData(node.id, { [key]: value });
-  }
-
-  // Marque/modèle (V2) : le composant reste générique dans la bibliothèque
-  // — choisir un modèle ici ne fait que pré-remplir les champs déjà
-  // existants avec les valeurs réelles du datasheet. Reste modifiable
-  // ensuite comme n'importe quel champ. Les items personnalisés du compte
-  // (préfixe "custom:", retour utilisateur : widget de création d'item) se
-  // mélangent à la liste sans jamais toucher au catalogue officiel — la
-  // photo se pose directement sur le node (`customItemIconDataUrl`, voir
-  // getNodeIcon dans definitions.ts), pas dans BRAND_MODELS.
-  function handleBrandModelChange(value: string) {
-    if (!value) {
-      updateNodeData(node.id, { brandModelId: "", brand: "", model: "", customItemIconDataUrl: undefined });
-      return;
-    }
-    if (value.startsWith("custom:")) {
-      const item = customCatalogItems.find((i) => `custom:${i.id}` === value);
-      if (!item) return;
-      updateNodeData(node.id, {
-        brandModelId: value,
-        brand: item.brand,
-        model: item.model,
-        customItemIconDataUrl: item.imageDataUrl,
-        ...item.defaults,
-      });
-      return;
-    }
-    const brandModel = getBrandModel(value);
-    if (!brandModel) return;
-    updateNodeData(node.id, {
-      brandModelId: brandModel.id,
-      brand: brandModel.brand,
-      model: brandModel.model,
-      customItemIconDataUrl: undefined,
-      ...brandModel.defaults,
-    });
-  }
-
-  // Retour utilisateur : "classées par type, quand tu sélectionnes le type
-  // ça filtre les autres" — pour une batterie, ne propose que les modèles
-  // de la technologie déjà choisie dans le champ juste en dessous, plutôt
-  // que de mélanger AGM/GEL/LiFePO4/Plomb dans la même liste.
-  const selectedTechnology = node.data.componentType === "battery" ? String(node.data.technology ?? "") : null;
-  const officialBrandModels = getBrandModelsForType(node.data.componentType).filter(
-    (m) => !selectedTechnology || m.defaults.technology === selectedTechnology,
-  );
-  const ownCustomItems = customCatalogItems
-    .filter((i) => i.componentType === node.data.componentType)
-    .filter((i) => !selectedTechnology || i.defaults.technology === selectedTechnology);
-  const brandModels = [
-    ...officialBrandModels,
-    ...ownCustomItems.map((i) => ({ id: `custom:${i.id}`, brand: `${i.brand} (perso)`, model: i.model })),
-  ];
-  const brandModelsByBrand = new Map<string, typeof brandModels>();
-  for (const m of brandModels) {
-    const list = brandModelsByBrand.get(m.brand) ?? [];
-    list.push(m);
-    brandModelsByBrand.set(m.brand, list);
   }
 
   const inputClass = `w-full rounded-md border px-2.5 py-1.5 text-sm focus:outline-none ${

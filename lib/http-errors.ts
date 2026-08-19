@@ -1,6 +1,12 @@
-import { NextResponse } from "next/server";
-import { logServerEvent } from "@/lib/server-log";
-
+// Volontairement sans aucune dépendance serveur (ex. `server-only`,
+// `next/server`, journalisation) : ce fichier est aussi importé par du code
+// CLIENT (ex. lib/checkout-flow.ts → components/cart/CartDrawer.tsx) pour
+// les classes d'erreur/factories ci-dessous. `toErrorResponse` (qui utilise
+// NextResponse et journalise/persiste) vit à part dans
+// lib/server/error-response.ts, jamais importable depuis un bundle client —
+// un import statique server-only ici casserait tout composant client qui
+// touche ce fichier, même sans jamais appeler la fonction concernée (repéré
+// en testant `/outils/schema` après un premier essai raté : 500 côté client).
 export class HttpError extends Error {
   readonly status: number;
   readonly code: string;
@@ -77,45 +83,4 @@ export function serviceUnavailable(message = "Service unavailable") {
 
 export function isHttpError(error: unknown): error is HttpError {
   return error instanceof HttpError;
-}
-
-export function toErrorResponse(error: unknown, context: string) {
-  if (isHttpError(error)) {
-    if (error.status >= 500) {
-      logServerEvent("error", `${context}: http error`, {
-        status: error.status,
-        code: error.code,
-        details: error.details,
-      });
-    } else {
-      logServerEvent("warn", `${context}: http error`, {
-        status: error.status,
-        code: error.code,
-        details: error.details,
-      });
-    }
-
-    return NextResponse.json(
-      {
-        error: error.message,
-        code: error.code,
-      },
-      {
-        status: error.status,
-        headers: error.headers,
-      }
-    );
-  }
-
-  logServerEvent("error", `${context}: unexpected error`, {
-    error,
-  });
-
-  return NextResponse.json(
-    {
-      error: "Internal server error",
-      code: "INTERNAL_SERVER_ERROR",
-    },
-    { status: 500 }
-  );
 }

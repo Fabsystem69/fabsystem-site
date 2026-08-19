@@ -4,7 +4,7 @@ import { getRequiredBaseUrl } from "@/lib/server/env";
 import {
   parseCustomerAuthRequestLink,
 } from "@/lib/customer-auth-request";
-import { toErrorResponse } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { createCustomerAuthRequestLinkService } from "@/lib/services/customer-auth-request-link";
 import { requestMagicLoginLink } from "@/lib/services/customer-auth";
 import { sendCustomerMagicLoginEmail } from "@/lib/services/customer-email";

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { toErrorResponse } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { parseCreateProjectInput } from "@/lib/project-payload";
 import { logServerEvent } from "@/lib/server-log";
 import { enforceRateLimit } from "@/lib/rate-limit";

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { badRequest, toErrorResponse } from "@/lib/http-errors";
+import { badRequest } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { getProject } from "@/lib/services/project";
 import { getEngineRegistry } from "@/lib/engines/index";

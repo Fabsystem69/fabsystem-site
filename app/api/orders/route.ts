@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createOrderFromCart } from "@/lib/services/order";
-import { toErrorResponse } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { parseCreateOrderRequest } from "@/lib/order-request";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { getCurrentCartFromRequest } from "@/lib/server/cart-session";

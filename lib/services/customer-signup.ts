@@ -26,7 +26,15 @@ export type SignUpCustomerResult =
 export async function signUpCustomer(input: {
   email: string;
   password: string;
-  name?: string;
+  // Retour utilisateur : "on va obliger à mettre nom et prénom à
+  // l'inscription pour m'aider dans les recherches" — jusqu'ici `name`
+  // (optionnel, jamais rempli en pratique) laissait des comptes sans
+  // identité exploitable pour retrouver un client (cf. recherche
+  // jcbp@orange.fr sans nom lors de l'audit rate-limit du 19/08).
+  // Obligatoires désormais, mêmes règles que la fiche profil
+  // (customer-profile-payload.ts) pour rester cohérent partout.
+  firstName: string;
+  lastName: string;
   // RGPD : choix produit assumé — la case newsletter/offres est
   // obligatoire pour créer un compte depuis ce formulaire (retour
   // utilisateur explicite : "si pas coché pas de validation possible").
@@ -35,9 +43,15 @@ export async function signUpCustomer(input: {
   marketingConsent: boolean;
 }): Promise<SignUpCustomerResult> {
   const normalizedEmail = normalizeCustomerEmail(input.email);
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
 
   if (input.password.length < 8) {
     throw badRequest("Le mot de passe doit contenir au moins 8 caractères");
+  }
+
+  if (!firstName || !lastName) {
+    throw badRequest("Le prénom et le nom sont requis pour créer un compte");
   }
 
   if (!input.marketingConsent) {
@@ -57,7 +71,12 @@ export async function signUpCustomer(input: {
   const customer = await prisma.customer.create({
     data: {
       email: normalizedEmail,
-      name: input.name?.trim() || null,
+      firstName,
+      lastName,
+      // Synchronisé pour le reste du code existant qui lit encore `name`
+      // (commandes, emails, dashboard admin) — même convention que
+      // normalizeCustomerProfileData.
+      name: `${firstName} ${lastName}`.trim(),
       status: "ACTIVE",
       origin: "SIGNUP",
       passwordHash,

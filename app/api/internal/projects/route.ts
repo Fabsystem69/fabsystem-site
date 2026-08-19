@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { badRequest, toErrorResponse } from "@/lib/http-errors";
+import { badRequest } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { requireApiSession } from "@/lib/internal-api";
 import { parseAdminCreateProjectInput } from "@/lib/project-payload";
 import { adminActor } from "@/lib/server/project-actor";

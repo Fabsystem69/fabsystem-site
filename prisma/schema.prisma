@@ -236,6 +236,7 @@ model Customer {
   projects         Project[]
   trialAccessCodeRedemptions TrialAccessCodeRedemption[]
   customCatalogItems CustomCatalogItem[]
+  errorReports     ErrorReport[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
@@ -243,6 +244,29 @@ model Customer {
   @@index([status])
   @@index([registration])
   @@index([origin])
+}
+
+// Retour utilisateur : "possible d'avoir les remontées d'erreur avec l'id
+// du client quand cela se passe directement dans mon dashboard ?" — jusqu'ici
+// les erreurs serveur (5xx) ne partaient que dans les logs Vercel, sans
+// aucun lien vers le compte concerné (voir l'audit rate-limit du 19/08, où
+// il a fallu recouper IP + heure + requête SQL manuelle pour identifier le
+// client). `customerId` nullable : une erreur peut survenir hors contexte
+// authentifié (visiteur anonyme, échec avant résolution de session) — on ne
+// perd pas l'erreur pour autant, juste le lien client.
+model ErrorReport {
+  id         String    @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  route      String
+  message    String
+  statusCode Int
+  code       String?
+  details    Json?
+  createdAt  DateTime  @default(now())
+
+  @@index([customerId])
+  @@index([createdAt])
 }
 
 // Couche 2 (MASTER-11) : droit générique attribué à un Customer, indépendant

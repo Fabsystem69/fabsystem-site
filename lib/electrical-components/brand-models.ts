@@ -73,10 +73,10 @@ export const BRAND_MODELS: BrandModel[] = [
   // Voc (tension circuit ouvert) relevées sur fiches techniques
   // constructeur — nécessaires au contrôle de montage série (retour
   // utilisateur : "il faut que tu ai les données Voc des panneaux et la
-  // donnée max des MPPT"). Recherche faite modèle par modèle ; certaines
-  // gammes (EcoWorthy, Sunology "Move") n'ont pas de fiche officielle
-  // identifiable avec certitude et restent à 0 (= non connue, aucune fausse
-  // alerte tant que non renseignée) plutôt que d'inventer une valeur.
+  // donnée max des MPPT"). Les entrées sans fiche fiable identifiable
+  // (BougeRV 200W flexible ambigu, EcoWorthy 100W/200W rigide et 400W
+  // bifacial génériques, Sunology "Move") ont été supprimées plutôt que
+  // renseignées avec une valeur devinée.
   { id: "renogy-100w-rigid", brand: "Renogy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0, vocVoltage: 24.3 } },
   { id: "renogy-200w-rigid", brand: "Renogy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0, vocVoltage: 27 } , iconPro: "/schema-icons/pro/brand/renogy-200w-rigid.webp" },
   { id: "renogy-175w-flexible", brand: "Renogy", model: "175W flexible", componentType: "solar-panel", defaults: { powerW: 175, voltage: 0, vocVoltage: 23.9 } , iconPro: "/schema-icons/pro/brand/renogy-175w-flexible.webp" },
@@ -91,55 +91,77 @@ export const BRAND_MODELS: BrandModel[] = [
   // utilisateur) — réutilisé sur toutes les puissances de la même marque
   // plutôt que de laisser certaines sans icône.
   { id: "victron-115w-rigid", brand: "Victron", model: "BlueSolar 115W rigide", componentType: "solar-panel", defaults: { powerW: 115, voltage: 0, vocVoltage: 23.32 }, iconPro: "/schema-icons/pro/brand/victron-175w-rigid.webp" },
-  // Voc non renseignée : gamme BougeRV 200W flexible couvre plusieurs
-  // modèles très différents (Yuma CIGS ~30-31,5V, Arch Pro N-Type ~31,7V,
-  // version 9BB ~24,7V) sans moyen fiable d'identifier lequel correspond à
-  // cette entrée catalogue — mieux vaut 0 (non connue) qu'une valeur fausse.
-  { id: "bougerv-200w-flexible", brand: "BougeRV", model: "200W flexible", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
   { id: "bougerv-400w-rigid", brand: "BougeRV", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0, vocVoltage: 39.7 }, iconPro: "/schema-icons/pro/brand/bougerv-400w-rigid.jpeg" },
-  // Voc non trouvée (specs EcoWorthy publiées uniquement en image, valeurs
-  // contradictoires selon les revendeurs) : laissée à 0 volontairement.
-  { id: "ecoworthy-100w-rigid", brand: "EcoWorthy", model: "100W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 }, iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
-  { id: "ecoworthy-200w-rigid", brand: "EcoWorthy", model: "200W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
-  { id: "ecoworthy-400w-rigid", brand: "EcoWorthy", model: "400W rigide bifacial", componentType: "solar-panel", defaults: { powerW: 400, voltage: 0 }, iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
-  // Marque française, panneaux solaires nomades/portables très répandus en
-  // camping-car. Voc non trouvée : aucun modèle "Move" dans la gamme
-  // Sunology actuelle (Play/Play2/PlayMax/City/GO/Storey/Vault) ne
-  // correspond avec certitude à ce nom catalogue.
-  { id: "sunology-100w-portable", brand: "Sunology", model: "Move 100W portable", componentType: "solar-panel", defaults: { powerW: 100, voltage: 0 }, iconPro: "/schema-icons/pro/brand/sunology-200w-portable.webp" },
-  { id: "sunology-200w-portable", brand: "Sunology", model: "Move 200W portable", componentType: "solar-panel", defaults: { powerW: 200, voltage: 0 } , iconPro: "/schema-icons/pro/brand/sunology-200w-portable.webp" },
+  // Pas de photo dédiée par modèle disponible pour la gamme BougeRV — retour
+  // utilisateur : "utilise des photo bougerv rigide ou flexible selon le
+  // modèle" — les deux seuls visuels du dossier (un rigide, un flexible)
+  // réutilisés selon la construction réelle de chaque panneau plutôt qu'un
+  // seul appliqué à tout.
+  { id: "bougerv-200w-ntype-shadepower", brand: "BougeRV", model: "200W N-Type ShadePower rigide", componentType: "solar-panel", defaults: { powerW: 200, voltage: 31, vocVoltage: 36.4 }, iconPro: "/schema-icons/pro/brand/bougerv-400w-rigid.jpeg" },
+  { id: "bougerv-arch-pro-100w", brand: "BougeRV", model: "Arch Pro 100W flexible fibre de verre", componentType: "solar-panel", defaults: { powerW: 100, voltage: 32.4, vocVoltage: 37.8 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  { id: "bougerv-arch-pro-200w", brand: "BougeRV", model: "Arch Pro 200W flexible fibre de verre", componentType: "solar-panel", defaults: { powerW: 200, voltage: 31, vocVoltage: 36 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  // Gamme Yuma CIGS flexible — specs officielles fournies par l'utilisateur
+  // (fiche "Spec Quick View" BougeRV, 5 SKU). Résout l'ambiguïté qui avait
+  // fait supprimer l'ancienne entrée générique "200W flexible" (plusieurs
+  // sous-modèles Yuma aux Voc différents non distingués). Adhésif/perforé
+  // ne change que la fixation, pas l'électrique — mêmes Vmp/Voc/Isc pour les
+  // deux 100W, distingués ici car ce sont des SKU réellement différents.
+  { id: "bougerv-yuma-200w-adhesive", brand: "BougeRV", model: "Yuma 200W flexible (adhésif, ISE138)", componentType: "solar-panel", defaults: { powerW: 200, voltage: 24, vocVoltage: 30.4 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  { id: "bougerv-yuma-200w-punched", brand: "BougeRV", model: "Yuma 200W flexible (perforé, ISE154)", componentType: "solar-panel", defaults: { powerW: 200, voltage: 24, vocVoltage: 30.4 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  { id: "bougerv-yuma-100w-adhesive", brand: "BougeRV", model: "Yuma 100W flexible (adhésif, ISE160)", componentType: "solar-panel", defaults: { powerW: 100, voltage: 24, vocVoltage: 30.5 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  { id: "bougerv-yuma-100w-adhesive-long", brand: "BougeRV", model: "Yuma 100W flexible (adhésif long, ISE137)", componentType: "solar-panel", defaults: { powerW: 100, voltage: 24, vocVoltage: 30.5 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  { id: "bougerv-yuma-100w-punched", brand: "BougeRV", model: "Yuma 100W flexible (perforé, ISE152)", componentType: "solar-panel", defaults: { powerW: 100, voltage: 24, vocVoltage: 30.5 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  // Specs EcoWorthy fournies par l'utilisateur (fiches produit à jour,
+  // 19/08/2026) — remplacent les 3 anciennes entrées EcoWorthy sans Voc
+  // (100W/200W rigide, 400W bifacial génériques) supprimées faute de fiche
+  // fiable ; ces trois-là correspondent aux vrais modèles du catalogue
+  // EcoWorthy actuel.
+  { id: "ecoworthy-170w-rigid", brand: "EcoWorthy", model: "170W rigide monocristallin", componentType: "solar-panel", defaults: { powerW: 170, voltage: 19, vocVoltage: 23 }, iconPro: "/schema-icons/pro/brand/ecoworthy-200w-rigid.webp" },
+  { id: "ecoworthy-200w-flexible", brand: "EcoWorthy", model: "200W flexible", componentType: "solar-panel", defaults: { powerW: 200, voltage: 25.1, vocVoltage: 29.1 } },
+  { id: "ecoworthy-500w-bifacial", brand: "EcoWorthy", model: "500W bifacial N-Type TOPCon", componentType: "solar-panel", defaults: { powerW: 500, voltage: 33.05, vocVoltage: 39.55 } },
 
-  // MPPT
-  { id: "victron-bluesolar-100-15", brand: "Victron", model: "BlueSolar MPPT 100/15", componentType: "mppt", defaults: { amperage: 15, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/victron-bluesolar-100-15.webp" },
-  { id: "victron-smartsolar-75-15", brand: "Victron", model: "SmartSolar MPPT 75/15", componentType: "mppt", defaults: { amperage: 15, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-75-15.png" },
-  { id: "victron-smartsolar-100-20", brand: "Victron", model: "SmartSolar MPPT 100/20", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-20.png" },
-  { id: "victron-smartsolar-100-30", brand: "Victron", model: "SmartSolar MPPT 100/30", componentType: "mppt", defaults: { amperage: 30, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-30.png" },
-  { id: "victron-smartsolar-100-50", brand: "Victron", model: "SmartSolar MPPT 100/50", componentType: "mppt", defaults: { amperage: 50, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-50.png" },
-  { id: "victron-smartsolar-150-35", brand: "Victron", model: "SmartSolar MPPT 150/35", componentType: "mppt", defaults: { amperage: 35, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-150-35.png" },
-  { id: "renogy-rover-20a", brand: "Renogy", model: "Rover 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-20a.webp" },
-  { id: "renogy-rover-40a", brand: "Renogy", model: "Rover 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-40a.webp" },
-  { id: "renogy-rover-60a", brand: "Renogy", model: "Rover 60A", componentType: "mppt", defaults: { amperage: 60, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/renogy-rover-60a.webp" },
-  { id: "renogy-rover-elite-40a", brand: "Renogy", model: "Rover Elite 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } },
-  { id: "ecoworthy-mppt-20a", brand: "EcoWorthy", model: "MPPT 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-mppt-20a.webp" },
-  { id: "ecoworthy-mppt-40a", brand: "EcoWorthy", model: "MPPT 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/ecoworthy-mppt-40a.webp" },
+  // MPPT — maxPvVoltage relevé sur fiches techniques constructeur (retour
+  // utilisateur : même travail que pour le Voc des panneaux, "on va faire
+  // la même chose pour les mppt et Vmax"). Convention Victron : le premier
+  // nombre du nom du modèle EST la tension max (100/15 → 100V), confirmée
+  // sur les fiches officielles.
+  { id: "victron-bluesolar-100-15", brand: "Victron", model: "BlueSolar MPPT 100/15", componentType: "mppt", defaults: { amperage: 15, systemVoltage: 12, maxPvVoltage: 100 } , iconPro: "/schema-icons/pro/brand/victron-bluesolar-100-15.webp" },
+  { id: "victron-smartsolar-75-15", brand: "Victron", model: "SmartSolar MPPT 75/15", componentType: "mppt", defaults: { amperage: 15, systemVoltage: 12, maxPvVoltage: 75 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-75-15.png" },
+  { id: "victron-smartsolar-100-20", brand: "Victron", model: "SmartSolar MPPT 100/20", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-20.png" },
+  { id: "victron-smartsolar-100-30", brand: "Victron", model: "SmartSolar MPPT 100/30", componentType: "mppt", defaults: { amperage: 30, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-30.png" },
+  { id: "victron-smartsolar-100-50", brand: "Victron", model: "SmartSolar MPPT 100/50", componentType: "mppt", defaults: { amperage: 50, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-100-50.png" },
+  { id: "victron-smartsolar-150-35", brand: "Victron", model: "SmartSolar MPPT 150/35", componentType: "mppt", defaults: { amperage: 35, systemVoltage: 12, maxPvVoltage: 150 }, iconPro: "/schema-icons/pro/brand/victron-smartsolar-150-35.png" },
+  { id: "renogy-rover-20a", brand: "Renogy", model: "Rover 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/renogy-rover-20a.webp" },
+  { id: "renogy-rover-40a", brand: "Renogy", model: "Rover 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/renogy-rover-40a.webp" },
+  // Seuil d'alarme surtension du manuel officiel (dommage permanent annoncé
+  // à partir de 150V) — retenu plutôt que la tension nominale d'entrée pour
+  // rester du côté sécurité de la vérification.
+  { id: "renogy-rover-60a", brand: "Renogy", model: "Rover 60A", componentType: "mppt", defaults: { amperage: 60, systemVoltage: 12, maxPvVoltage: 145 }, iconPro: "/schema-icons/pro/brand/renogy-rover-60a.webp" },
+  { id: "renogy-rover-elite-40a", brand: "Renogy", model: "Rover Elite 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12, maxPvVoltage: 100 } },
+  { id: "ecoworthy-mppt-20a", brand: "EcoWorthy", model: "MPPT 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12, maxPvVoltage: 50 } , iconPro: "/schema-icons/pro/brand/ecoworthy-mppt-20a.webp" },
+  { id: "ecoworthy-mppt-40a", brand: "EcoWorthy", model: "MPPT 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12, maxPvVoltage: 100 } , iconPro: "/schema-icons/pro/brand/ecoworthy-mppt-40a.webp" },
   // Marque chinoise très vendue (Amazon), gamme Tracer — même boîtier
   // décliné sur tout le calibrage, un seul visuel réutilisé sur les 4.
-  { id: "epever-tracer-10a", brand: "EPEVER", model: "Tracer 10A", componentType: "mppt", defaults: { amperage: 10, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
-  { id: "epever-tracer-20a", brand: "EPEVER", model: "Tracer 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
-  { id: "epever-tracer-30a", brand: "EPEVER", model: "Tracer 30A", componentType: "mppt", defaults: { amperage: 30, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
-  { id: "epever-tracer-40a", brand: "EPEVER", model: "Tracer 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  // 10A/20A confirmés à 100V par l'utilisateur (vérifié directement).
+  { id: "epever-tracer-10a", brand: "EPEVER", model: "Tracer 10A", componentType: "mppt", defaults: { amperage: 10, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  { id: "epever-tracer-20a", brand: "EPEVER", model: "Tracer 20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  { id: "epever-tracer-30a", brand: "EPEVER", model: "Tracer 30A", componentType: "mppt", defaults: { amperage: 30, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
+  { id: "epever-tracer-40a", brand: "EPEVER", model: "Tracer 40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12, maxPvVoltage: 100 }, iconPro: "/schema-icons/pro/brand/epever-mppt.webp" },
   // Marque néerlandaise, référence historique en électronique de bord
   // marine (comme Cristec côté français).
-  { id: "mastervolt-mppt-scm25", brand: "Mastervolt", model: "SCM25 MPPT", componentType: "mppt", defaults: { amperage: 25, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-mppt-scm25.jpg" },
+  { id: "mastervolt-mppt-scm25", brand: "Mastervolt", model: "SCM25 MPPT", componentType: "mppt", defaults: { amperage: 25, systemVoltage: 12, maxPvVoltage: 75 }, iconPro: "/schema-icons/pro/brand/mastervolt-mppt-scm25.jpg" },
 
   // PWM (retour utilisateur : "chaque item détaillé pareil" — 0 modèle
-  // jusqu'ici alors que le MPPT, son jumeau, en a 10).
-  { id: "victron-bluesolar-pwm-12-20", brand: "Victron", model: "BlueSolar PWM-Pro 12/24V-20A", componentType: "pwm", defaults: { amperage: 20, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/victron-bluesolar-pwm-12-20.webp" },
-  { id: "victron-bluesolar-pwm-12-30", brand: "Victron", model: "BlueSolar PWM-Pro 12/24V-30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/victron-bluesolar-pwm-12-30.webp" },
-  { id: "renogy-wanderer-10a", brand: "Renogy", model: "Wanderer 10A", componentType: "pwm", defaults: { amperage: 10, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/renogy-wanderer-10a.webp" },
-  { id: "renogy-wanderer-30a", brand: "Renogy", model: "Wanderer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } },
-  { id: "renogy-adventurer-30a", brand: "Renogy", model: "Adventurer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12 } , iconPro: "/schema-icons/pro/brand/renogy-adventurer-30a.webp" },
-  { id: "mastervolt-pwm-scm20", brand: "Mastervolt", model: "SCM20 PWM 20A", componentType: "pwm", defaults: { amperage: 20, systemVoltage: 12 }, iconPro: "/schema-icons/pro/brand/mastervolt-pwm-scm20.jpg" },
+  // jusqu'ici alors que le MPPT, son jumeau, en a 10). maxPvVoltage : les
+  // fiches PWM annoncent une tension max côté 24V (le panneau) distincte de
+  // la tension système — Victron/Mastervolt partagent le même firmware/
+  // fiche (28V en 12V, 55V en 24V), valeur 24V retenue par défaut.
+  { id: "victron-bluesolar-pwm-12-20", brand: "Victron", model: "BlueSolar PWM-Pro 12/24V-20A", componentType: "pwm", defaults: { amperage: 20, systemVoltage: 12, maxPvVoltage: 55 } , iconPro: "/schema-icons/pro/brand/victron-bluesolar-pwm-12-20.webp" },
+  { id: "victron-bluesolar-pwm-12-30", brand: "Victron", model: "BlueSolar PWM-Pro 12/24V-30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12, maxPvVoltage: 55 } , iconPro: "/schema-icons/pro/brand/victron-bluesolar-pwm-12-30.webp" },
+  { id: "renogy-wanderer-10a", brand: "Renogy", model: "Wanderer 10A", componentType: "pwm", defaults: { amperage: 10, systemVoltage: 12, maxPvVoltage: 50 } , iconPro: "/schema-icons/pro/brand/renogy-wanderer-10a.webp" },
+  { id: "renogy-wanderer-30a", brand: "Renogy", model: "Wanderer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12, maxPvVoltage: 25 } },
+  { id: "renogy-adventurer-30a", brand: "Renogy", model: "Adventurer 30A", componentType: "pwm", defaults: { amperage: 30, systemVoltage: 12, maxPvVoltage: 50 } , iconPro: "/schema-icons/pro/brand/renogy-adventurer-30a.webp" },
+  { id: "mastervolt-pwm-scm20", brand: "Mastervolt", model: "SCM20 PWM 20A", componentType: "pwm", defaults: { amperage: 20, systemVoltage: 12, maxPvVoltage: 55 }, iconPro: "/schema-icons/pro/brand/mastervolt-pwm-scm20.jpg" },
 
   // DC-DC
   { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png" },

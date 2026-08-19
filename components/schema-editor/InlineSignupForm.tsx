@@ -12,6 +12,8 @@ import Link from "next/link";
 // (rattacher le schéma en cours à un projet, continuer la redemption de
 // code, continuer le checkout…).
 export function InlineSignupForm({ darkMode, onSuccess }: { darkMode: boolean; onSuccess: () => void }) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +29,7 @@ export function InlineSignupForm({ darkMode, onSuccess }: { darkMode: boolean; o
       const response = await fetch("/api/client-auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, marketingConsent }),
+        body: JSON.stringify({ firstName, lastName, email, password, marketingConsent }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
@@ -63,6 +65,26 @@ export function InlineSignupForm({ darkMode, onSuccess }: { darkMode: boolean; o
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          required
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          placeholder="Prénom"
+          autoComplete="given-name"
+          className={inputClass}
+        />
+        <input
+          type="text"
+          required
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          placeholder="Nom"
+          autoComplete="family-name"
+          className={inputClass}
+        />
+      </div>
       <input
         type="email"
         required

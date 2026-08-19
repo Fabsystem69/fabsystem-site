@@ -50,6 +50,7 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 
 export const ModelName = {
   Customer: 'Customer',
+  ErrorReport: 'ErrorReport',
   CustomerCapability: 'CustomerCapability',
   CustomCatalogItem: 'CustomCatalogItem',
   Project: 'Project',
@@ -125,6 +126,20 @@ export const CustomerScalarFieldEnum = {
 } as const
 
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
+export const ErrorReportScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  route: 'route',
+  message: 'message',
+  statusCode: 'statusCode',
+  code: 'code',
+  details: 'details',
+  createdAt: 'createdAt'
+} as const
+
+export type ErrorReportScalarFieldEnum = (typeof ErrorReportScalarFieldEnum)[keyof typeof ErrorReportScalarFieldEnum]
 
 
 export const CustomerCapabilityScalarFieldEnum = {
@@ -638,19 +653,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

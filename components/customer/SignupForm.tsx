@@ -16,6 +16,8 @@ const inputClass =
 // format compact des popups de l'éditeur.
 export function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
   const router = useRouter();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [marketingConsent, setMarketingConsent] = useState(false);
@@ -31,7 +33,7 @@ export function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () => void })
       const response = await fetch("/api/client-auth/signup", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password, marketingConsent }),
+        body: JSON.stringify({ firstName, lastName, email, password, marketingConsent }),
       });
       const body = (await response.json().catch(() => null)) as { error?: string; status?: string } | null;
 
@@ -51,10 +53,43 @@ export function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () => void })
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
       <h2 className="text-lg font-semibold text-neutral-950">Créer un compte</h2>
       <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-        Email et mot de passe suffisent pour commencer.
+        Quelques informations suffisent pour commencer.
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="signup-first-name" className="block text-sm font-medium text-neutral-900">
+              Prénom
+            </label>
+            <input
+              id="signup-first-name"
+              name="firstName"
+              type="text"
+              autoComplete="given-name"
+              required
+              value={firstName}
+              onChange={(event) => setFirstName(event.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label htmlFor="signup-last-name" className="block text-sm font-medium text-neutral-900">
+              Nom
+            </label>
+            <input
+              id="signup-last-name"
+              name="lastName"
+              type="text"
+              autoComplete="family-name"
+              required
+              value={lastName}
+              onChange={(event) => setLastName(event.target.value)}
+              className={inputClass}
+            />
+          </div>
+        </div>
+
         <div>
           <label htmlFor="signup-email" className="block text-sm font-medium text-neutral-900">
             Email

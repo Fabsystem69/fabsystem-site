@@ -43,7 +43,11 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "eclairage-led", label: "Éclairage LED (générique)", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp", group: "Éclairage" },
   { value: "spot-led", label: "Spot LED encastré", typicalPowerW: 3, group: "Éclairage" },
   { value: "ruban-led", label: "Ruban LED", typicalPowerW: 10, iconPro: "/schema-icons/pro/ruban-led.jpg", group: "Éclairage" },
-  { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3, group: "Éclairage" },
+  // Photo récupérée de l'ancienne icône générique "Consommateur" (retour
+  // utilisateur : elle prêtait à confusion en tant qu'illustration
+  // générique — c'est en réalité une vraie liseuse LED articulée, un
+  // meilleur usage ici qu'à la poubelle).
+  { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3, iconPro: "/schema-icons/pro/consumer.webp", group: "Éclairage" },
   { value: "plafonnier-led", label: "Plafonnier LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage" },
   { value: "eclairage-marche", label: "Éclairage de marche/passerelle", typicalPowerW: 2, iconPro: "/schema-icons/pro/eclairage-marche.jpg", group: "Éclairage" },
   { value: "projecteur-pont", label: "Projecteur de pont", typicalPowerW: 20, iconPro: "/schema-icons/pro/projecteur-pont.jpg", group: "Éclairage" },
@@ -65,8 +69,10 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp", group: "Électronique & confort" },
   { value: "alarme", label: "Système d'alarme", typicalPowerW: 5, group: "Sécurité" },
   { value: "tele-12v", label: "Télé 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/tele-12v.jpg", group: "Électronique & confort" },
-  { value: "tele-220v", label: "Télé 220V", typicalPowerW: 60, group: "Électronique & confort" },
-  { value: "micro-ondes", label: "Micro-ondes", typicalPowerW: 1000, group: "Électronique & confort" },
+  // Même visuel que la 12V (retour utilisateur) : une télé se ressemble
+  // quelle que soit son alimentation, pas de photo dédiée à distinguer.
+  { value: "tele-220v", label: "Télé 220V", typicalPowerW: 60, iconPro: "/schema-icons/pro/tele-12v.jpg", group: "Électronique & confort" },
+  { value: "micro-ondes", label: "Micro-ondes", typicalPowerW: 1000, iconPro: "/schema-icons/pro/micro-ondes.webp", group: "Électronique & confort" },
   { value: "electrovanne", label: "Électrovanne (circuit d'eau)", typicalPowerW: 6, iconPro: "/schema-icons/pro/electrovanne.webp", group: "Eau" },
   { value: "wc-electrique", label: "WC électrique marin 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/wc-electrique.webp", group: "Eau" },
 
@@ -89,7 +95,7 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // ci-dessus.
   { value: "ventilateur-diy", label: "Ventilateur 12V (DIY, sans toit)", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur-diy.webp", group: "Chauffage & ventilation" },
   { value: "blower-12v", label: "Blower / turbine 12V", typicalPowerW: 25, iconPro: "/schema-icons/pro/blower-12v.jpg", group: "Chauffage & ventilation" },
-  { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500, group: "Électronique & confort" },
+  { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500, iconPro: "/schema-icons/pro/prise-220v.jpg", group: "Électronique & confort" },
 
   { value: "generique", label: "Au choix", typicalPowerW: 0 },
 ];
@@ -1609,7 +1615,13 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     category: "consumers",
     subtitle: "Générique",
     icon: "/schema-icons/consumer.svg",
-    iconPro: "/schema-icons/pro/consumer.webp",
+    // Retour utilisateur : "l'illustration générique des appareils porte à
+    // confusion, ça ressemble à une lampe" — l'ancienne photo (une liseuse
+    // LED articulée) laissait croire que le préréglage "Au choix" était
+    // réservé à l'éclairage. Symbole ⏻ générique (boîtier + bouton
+    // marche/arrêt) réutilisé aussi en mode Pro : aucune photo ne peut
+    // représenter "n'importe quel appareil" sans induire en erreur.
+    iconPro: "/schema-icons/consumer.svg",
     iconVariantField: "presetType",
     iconVariants: consumerIconVariants(),
     handles: [

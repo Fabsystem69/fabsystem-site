@@ -391,6 +391,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   Customer: 'Customer',
+  ErrorReport: 'ErrorReport',
   CustomerCapability: 'CustomerCapability',
   CustomCatalogItem: 'CustomCatalogItem',
   Project: 'Project',
@@ -437,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "customerCapability" | "customCatalogItem" | "project" | "projectRetainedValue" | "projectValueDependency" | "projectSchema" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial" | "trialAccessCode" | "trialAccessCodeRedemption"
+    modelProps: "customer" | "errorReport" | "customerCapability" | "customCatalogItem" | "project" | "projectRetainedValue" | "projectValueDependency" | "projectSchema" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial" | "trialAccessCode" | "trialAccessCodeRedemption"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -512,6 +513,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CustomerCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CustomerCountAggregateOutputType> | number
+        }
+      }
+    }
+    ErrorReport: {
+      payload: Prisma.$ErrorReportPayload<ExtArgs>
+      fields: Prisma.ErrorReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ErrorReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ErrorReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>
+        }
+        findFirst: {
+          args: Prisma.ErrorReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ErrorReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>
+        }
+        findMany: {
+          args: Prisma.ErrorReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>[]
+        }
+        create: {
+          args: Prisma.ErrorReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>
+        }
+        createMany: {
+          args: Prisma.ErrorReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ErrorReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>[]
+        }
+        delete: {
+          args: Prisma.ErrorReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>
+        }
+        update: {
+          args: Prisma.ErrorReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.ErrorReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ErrorReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ErrorReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.ErrorReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ErrorReportPayload>
+        }
+        aggregate: {
+          args: Prisma.ErrorReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateErrorReport>
+        }
+        groupBy: {
+          args: Prisma.ErrorReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ErrorReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ErrorReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ErrorReportCountAggregateOutputType> | number
         }
       }
     }
@@ -2876,6 +2951,20 @@ export const CustomerScalarFieldEnum = {
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
 
 
+export const ErrorReportScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  route: 'route',
+  message: 'message',
+  statusCode: 'statusCode',
+  code: 'code',
+  details: 'details',
+  createdAt: 'createdAt'
+} as const
+
+export type ErrorReportScalarFieldEnum = (typeof ErrorReportScalarFieldEnum)[keyof typeof ErrorReportScalarFieldEnum]
+
+
 export const CustomerCapabilityScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
@@ -3387,19 +3476,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: DbNull,
   JsonNull: JsonNull
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -3539,6 +3628,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'CapabilityScope'
  */
 export type EnumCapabilityScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CapabilityScope'>
@@ -3563,20 +3666,6 @@ export type EnumCustomerCapabilityStatusFieldRefInput<$PrismaModel> = FieldRefIn
  * Reference to a field of type 'CustomerCapabilityStatus[]'
  */
 export type ListEnumCustomerCapabilityStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CustomerCapabilityStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -4045,6 +4134,7 @@ export interface PrismaClientOptions {
 }
 export type GlobalOmitConfig = {
   customer?: Prisma.CustomerOmit
+  errorReport?: Prisma.ErrorReportOmit
   customerCapability?: Prisma.CustomerCapabilityOmit
   customCatalogItem?: Prisma.CustomCatalogItemOmit
   project?: Prisma.ProjectOmit

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { badRequest, toErrorResponse } from "@/lib/http-errors";
+import { badRequest } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { createRateLimitKeyPart, enforceRateLimit } from "@/lib/rate-limit";
 import {
   CUSTOMER_SESSION_COOKIE_NAME,
@@ -14,7 +15,11 @@ export const runtime = "nodejs";
 const bodySchema = z.object({
   email: z.string().trim().email(),
   password: z.string().min(8),
-  name: z.string().trim().min(1).optional(),
+  // Retour utilisateur : "on va obliger à mettre nom et prénom à
+  // l'inscription" — remplace l'ancien `name` optionnel jamais rempli en
+  // pratique.
+  firstName: z.string().trim().min(1),
+  lastName: z.string().trim().min(1),
   marketingConsent: z.literal(true),
 });
 

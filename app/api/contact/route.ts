@@ -1,5 +1,6 @@
 import { assertHumanDelay, parseContactPayload } from "@/lib/contact-request";
-import { payloadTooLarge, toErrorResponse } from "@/lib/http-errors";
+import { payloadTooLarge } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { enforceRateLimit, getClientIp } from "@/lib/rate-limit";
 import { sendMail } from "@/lib/server/nodemailer";
 import { logServerEvent } from "@/lib/server-log";

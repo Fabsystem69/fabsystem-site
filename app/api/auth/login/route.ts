@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { toErrorResponse, unauthorized } from "@/lib/http-errors";
+import { unauthorized } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { enforceRateLimit, getClientIp } from "@/lib/rate-limit";
 import { logServerEvent } from "@/lib/server-log";
 import {

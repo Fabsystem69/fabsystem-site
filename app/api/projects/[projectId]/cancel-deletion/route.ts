@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { toErrorResponse } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { cancelDeletion } from "@/lib/services/project";
 

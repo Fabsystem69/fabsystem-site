@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
-import { payloadTooLarge, toErrorResponse } from "@/lib/http-errors";
+import { payloadTooLarge } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import {
   assertPublicTestimonialHumanDelay,
   parsePublicTestimonialPayload,

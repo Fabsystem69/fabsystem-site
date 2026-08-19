@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { toErrorResponse } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { getCartSummary, removeProductFromCart } from "@/lib/services/cart";
 import { getCurrentCartFromRequest } from "@/lib/server/cart-session";
 

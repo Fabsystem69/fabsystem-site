@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { unauthorized, toErrorResponse } from "@/lib/http-errors";
+import { unauthorized } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
 
 export const dynamic = "force-dynamic";

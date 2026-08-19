@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { badRequest, toErrorResponse } from "@/lib/http-errors";
+import { badRequest } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { createRateLimitKeyPart, enforceRateLimit } from "@/lib/rate-limit";
 import {
   CUSTOMER_SESSION_COOKIE_NAME,

@@ -203,6 +203,22 @@ export function TrendDownIcon(props: IconProps) {
   );
 }
 
+export function ErrorsIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="M12 4 3 20h18L12 4Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M12 10v4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+      <circle cx="12" cy="17" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function LogoutIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

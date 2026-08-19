@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { badRequest, toErrorResponse } from "@/lib/http-errors";
+import { badRequest } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { addProductToCart, getCartSummary } from "@/lib/services/cart";
 import { getOrCreateCartForRequest } from "@/lib/server/cart-session";
 

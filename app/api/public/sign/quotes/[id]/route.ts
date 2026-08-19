@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { isHttpError, toErrorResponse } from "@/lib/http-errors";
+import { isHttpError } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import {
   findQuoteForSignature,
   invalidSignatureResponse,

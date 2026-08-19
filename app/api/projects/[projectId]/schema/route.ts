@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@/lib/generated/prisma/client";
-import { payloadTooLarge, toErrorResponse } from "@/lib/http-errors";
+import { payloadTooLarge } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import { MAX_PROJECT_SCHEMA_REQUEST_BYTES } from "@/lib/project-schema-contract";
 import { parseSaveProjectSchemaInput } from "@/lib/project-schema-payload";
 import { enforceRateLimit } from "@/lib/rate-limit";
@@ -59,9 +60,13 @@ export async function PUT(request: Request, { params }: Params) {
   try {
     // Autosave potentiellement fréquent depuis l'éditeur — même principe
     // que projects-create, fenêtre plus large adaptée à un débounce court.
+    // Limite remontée de 60 à 100 (retour utilisateur, suite à l'alerte
+    // rate-limit du 19/08 : un client légitime en train de construire un
+    // schéma complet peut légitimement dépasser 60 sauvegardes en 5 min avec
+    // le debounce de 700ms — pas un bug, juste un seuil un peu juste).
     await enforceRateLimit(request, {
       name: "project-schema-save",
-      limit: 60,
+      limit: 100,
       windowMs: 5 * 60 * 1000,
     });
 

@@ -1,4 +1,5 @@
-import { isHttpError, conflict, notFound, serviceUnavailable, toErrorResponse } from "@/lib/http-errors";
+import { isHttpError, conflict, notFound, serviceUnavailable } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 
 type ErrorWithCode = {
   code?: string;

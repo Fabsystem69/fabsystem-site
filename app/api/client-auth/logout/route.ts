@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { toErrorResponse } from "@/lib/http-errors";
+import { toErrorResponse } from "@/lib/server/error-response";
 import {
   CUSTOMER_SESSION_COOKIE_NAME,
   getCustomerSessionTokenFromCookie,

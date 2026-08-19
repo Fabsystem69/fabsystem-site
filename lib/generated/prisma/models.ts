@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Customer'
+export type * from './models/ErrorReport'
 export type * from './models/CustomerCapability'
 export type * from './models/CustomCatalogItem'
 export type * from './models/Project'

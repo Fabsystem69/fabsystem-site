@@ -4,6 +4,7 @@ import {
   CustomersIcon,
   DashboardIcon,
   DiscountIcon,
+  ErrorsIcon,
   FilesIcon,
   InvoicesIcon,
   OrdersIcon,
@@ -85,7 +86,12 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     title: "Gestion",
-    items: [{ label: "Récap URSSAF", href: "/dashboard/accounting", icon: AccountingIcon }],
+    items: [
+      { label: "Récap URSSAF", href: "/dashboard/accounting", icon: AccountingIcon },
+      // Retour utilisateur : "avoir les remontées d'erreur avec l'id du
+      // client directement dans mon dashboard" — voir lib/services/error-reports.ts.
+      { label: "Erreurs", href: "/dashboard/errors", icon: ErrorsIcon },
+    ],
   },
   {
     title: "Historique",
