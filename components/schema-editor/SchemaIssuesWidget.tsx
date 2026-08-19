@@ -126,6 +126,7 @@ export function SchemaIssuesWidget() {
               type="button"
               onClick={() => setOpen(false)}
               className={`rounded-md p-1 text-xs ${darkMode ? "text-neutral-500 hover:bg-neutral-800" : "text-neutral-400 hover:bg-neutral-100"}`}
+              title="Fermer"
               aria-label="Fermer"
             >
               ✕

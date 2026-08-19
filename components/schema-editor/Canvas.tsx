@@ -19,6 +19,7 @@ import { ElectricalNode } from "./nodes/ElectricalNode";
 import { CableEdge, cableCaption } from "./edges/CableEdge";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import { CableCrossingOverlay } from "./edges/CableCrossingOverlay";
+import { AlignmentGuideOverlay } from "./AlignmentGuideOverlay";
 import { CableWaypointNode } from "./nodes/CableWaypointNode";
 import { ZoneNode } from "./nodes/ZoneNode";
 import { getConsumerPreset, getComponentDefinition } from "@/lib/electrical-components/definitions";
@@ -94,6 +95,53 @@ const SPLICE_SEARCH_OFFSETS: [number, number][] = [
   [-16, 0], [16, 0], [0, -16], [0, 16],
 ];
 
+// Guide d'alignement magnétique (retour utilisateur : "pas toujours possible
+// de laisser un fil conducteur droit, il y a souvent un décalage") — pendant
+// le glisser d'un composant, si sa position se rapproche de celle d'un
+// voisin déjà câblé (même X ou même Y, à quelques pixels près), on accroche
+// dessus plutôt que de laisser le câble arriver légèrement de travers. Ne
+// compare qu'aux voisins reliés par un câble (pas tous les nœuds du schéma)
+// — c'est précisément le cas où garder le fil droit compte visuellement.
+const ALIGNMENT_SNAP_THRESHOLD = 6;
+
+function snapToConnectedNeighbors(
+  draggedNodeId: string,
+  proposedPosition: { x: number; y: number },
+  allNodes: Node<ElectricalNodeData>[],
+  allEdges: Edge<CableEdgeData>[],
+): { position: { x: number; y: number }; guides: { x: number | null; y: number | null } } {
+  const neighborIds = new Set<string>();
+  for (const edge of allEdges) {
+    if (edge.source === draggedNodeId) neighborIds.add(edge.target);
+    else if (edge.target === draggedNodeId) neighborIds.add(edge.source);
+  }
+  if (neighborIds.size === 0) return { position: proposedPosition, guides: { x: null, y: null } };
+
+  let snappedX: number | null = null;
+  let snappedY: number | null = null;
+  let bestXDelta = ALIGNMENT_SNAP_THRESHOLD;
+  let bestYDelta = ALIGNMENT_SNAP_THRESHOLD;
+
+  for (const node of allNodes) {
+    if (!neighborIds.has(node.id)) continue;
+    const dx = Math.abs(node.position.x - proposedPosition.x);
+    if (dx < bestXDelta) {
+      bestXDelta = dx;
+      snappedX = node.position.x;
+    }
+    const dy = Math.abs(node.position.y - proposedPosition.y);
+    if (dy < bestYDelta) {
+      bestYDelta = dy;
+      snappedY = node.position.y;
+    }
+  }
+
+  return {
+    position: { x: snappedX ?? proposedPosition.x, y: snappedY ?? proposedPosition.y },
+    guides: { x: snappedX, y: snappedY },
+  };
+}
+
 function edgeIdAtPoint(clientX: number, clientY: number): string | null {
   for (const [dx, dy] of SPLICE_SEARCH_OFFSETS) {
     const found = edgeIdAtExactPoint(clientX + dx, clientY + dy);
@@ -121,6 +169,7 @@ export function Canvas() {
   const select = useSchemaStore((s) => s.select);
   const draggingComponentType = useSchemaStore((s) => s.draggingComponentType);
   const setSpliceHoverEdgeId = useSchemaStore((s) => s.setSpliceHoverEdgeId);
+  const setAlignmentGuides = useSchemaStore((s) => s.setAlignmentGuides);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -225,9 +274,22 @@ export function Canvas() {
         }
         updateEdgeData(edgeId, { bendPoints: points }, { trackHistory });
       }
+
+      // Guide d'alignement magnétique : n'accroche que pendant un glisser
+      // actif (`dragging: true`) d'un seul nœud à la fois — au dépôt
+      // (`dragging: false`) ou hors glisser, le repère visuel disparaît.
+      let activeGuides: { x: number | null; y: number | null } = { x: null, y: null };
+      for (const change of realChanges) {
+        if (change.type !== "position" || !change.position || !change.dragging) continue;
+        const snap = snapToConnectedNeighbors(change.id, change.position, allNodes, allEdges);
+        change.position = snap.position;
+        if (snap.guides.x !== null || snap.guides.y !== null) activeGuides = snap.guides;
+      }
+      setAlignmentGuides(activeGuides);
+
       if (realChanges.length > 0) onNodesChange(realChanges as Parameters<typeof onNodesChange>[0]);
     },
-    [onNodesChange, updateEdgeData, allEdges],
+    [onNodesChange, updateEdgeData, allEdges, allNodes, setAlignmentGuides],
   );
 
   const handleDrop = useCallback(
@@ -370,6 +432,7 @@ export function Canvas() {
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} />
         <Controls showInteractive={false} position="bottom-left" className={darkMode ? "!fill-white [&_button]:!border-neutral-700 [&_button]:!bg-neutral-800 [&_button]:!text-white [&_path]:!fill-white" : undefined} />
         <CableCrossingOverlay />
+        <AlignmentGuideOverlay />
       </ReactFlow>
 
       {allNodes.length === 0 ? (

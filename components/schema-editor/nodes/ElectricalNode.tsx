@@ -44,6 +44,19 @@ function rotateSide(side: Side, rotation: number): Side {
   return SIDE_CYCLE[index];
 }
 
+// Miroir horizontal (retour utilisateur : "pouvoir déplacer les bornes +/-
+// pour éviter des croisements" — proposé à la place un miroir plutôt qu'un
+// déplacement libre des bornes, bien moins de chantier pour couvrir la
+// majorité des cas). Seul gauche/droite s'inverse — comme pour la rotation,
+// on ne retourne jamais l'icône elle-même (resterait lisible), seul le côté
+// effectif de chaque borne change.
+function flipSide(side: Side, mirrored: boolean): Side {
+  if (!mirrored) return side;
+  if (side === "left") return "right";
+  if (side === "right") return "left";
+  return side;
+}
+
 const SIDE_TO_POSITION: Record<Side, Position> = {
   left: Position.Left,
   top: Position.Top,
@@ -69,6 +82,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const select = useSchemaStore((s) => s.select);
   const updateNodeInternals = useUpdateNodeInternals();
   const rotation = Number(data.rotation) || 0;
+  const mirrored = Boolean(data.mirrored);
   const outputCount = Number(data.outputCount) || 0;
 
   // React Flow met en cache la position de chaque borne pour tracer les
@@ -78,7 +92,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   // pivotent pas".
   useEffect(() => {
     updateNodeInternals(id);
-  }, [id, rotation, outputCount, updateNodeInternals]);
+  }, [id, rotation, mirrored, outputCount, updateNodeInternals]);
 
   // Calculs sûrs même si `def` est introuvable (repli sur des tableaux
   // vides) : les Hooks ci-dessous doivent s'exécuter dans le même ordre à
@@ -87,7 +101,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const effectiveHandles = def ? getEffectiveHandles(def, data) : [];
   const handlesWithSide = effectiveHandles.map((handle) => ({
     handle,
-    side: rotateSide(handle.side, rotation),
+    side: rotateSide(flipSide(handle.side, mirrored), rotation),
   }));
   const bySide: Record<Side, typeof handlesWithSide> = { left: [], top: [], right: [], bottom: [] };
   for (const entry of handlesWithSide) bySide[entry.side].push(entry);
@@ -197,6 +211,18 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
               `select()` dans useSchemaStore.ts. */}
           <button type="button" onClick={(e) => { e.stopPropagation(); rotateNode(id); }} title="Pivoter 90° (raccourci : R)" className={quickActionButtonClass}>
             ↻
+          </button>
+          {/* Retour utilisateur : "pouvoir déplacer les bornes +/- pour
+              éviter des croisements" — miroir horizontal plutôt qu'un
+              déplacement libre des bornes (bien moins de chantier pour
+              couvrir la majorité des cas de croisement). */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); updateNodeData(id, { mirrored: !mirrored }); }}
+            title="Miroir horizontal (inverse gauche/droite des bornes)"
+            className={`${quickActionButtonClass} ${mirrored ? (darkMode ? "bg-neutral-700" : "bg-neutral-200") : ""}`}
+          >
+            ⇋
           </button>
           {/* Retour utilisateur (bêta) : "un outil copier accessible
               directement sur l'icône, au lieu de devoir chercher dans le

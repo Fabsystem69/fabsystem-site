@@ -163,6 +163,14 @@ interface SchemaState {
   spliceHoverEdgeId: string | null;
   setDraggingComponentType: (type: string | null) => void;
   setSpliceHoverEdgeId: (edgeId: string | null) => void;
+  // Guide d'alignement magnétique pendant le glisser d'un composant (retour
+  // utilisateur : "pas toujours possible de laisser un fil conducteur
+  // droit, il y a souvent un décalage") — coordonnée(s) sur laquelle le
+  // nœud déplacé vient de s'accrocher, purement pour l'affichage du repère
+  // visuel dans Canvas.tsx (voir AlignmentGuideOverlay). Jamais persisté ni
+  // compté dans l'historique.
+  alignmentGuides: { x: number | null; y: number | null };
+  setAlignmentGuides: (guides: { x: number | null; y: number | null }) => void;
   // Signaux "utilisateur bloqué" (retour utilisateur : proposer un pack de
   // coaching quand on sent quelqu'un coincé) — purement éphémères, jamais
   // persistés ni comptés dans l'historique annuler/rétablir.
@@ -382,6 +390,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   itemPropertiesPopupOpen: false,
   draggingComponentType: null,
   spliceHoverEdgeId: null,
+  alignmentGuides: { x: null, y: null },
   lastMeaningfulActionAt: Date.now(),
   pickerCancelStreak: 0,
   hiddenCategories: [],
@@ -440,6 +449,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   closeItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: false }),
   setDraggingComponentType: (type) => set({ draggingComponentType: type }),
   setSpliceHoverEdgeId: (edgeId) => set({ spliceHoverEdgeId: edgeId }),
+  setAlignmentGuides: (guides) => set({ alignmentGuides: guides }),
   touchMeaningfulAction: () => set({ lastMeaningfulActionAt: Date.now(), pickerCancelStreak: 0 }),
 
   onNodesChange: (changes) =>

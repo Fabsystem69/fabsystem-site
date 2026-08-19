@@ -129,6 +129,22 @@ function NodePropertiesCard({
       setOutputCount(node.id, Number(value));
       return;
     }
+    // Retour utilisateur : "je veux que les batteries soient classées par
+    // type, quand tu sélectionnes le type ça filtre les autres" — changer
+    // la technologie retire la sélection marque/modèle si elle ne
+    // correspond plus (ex. passer de LiFePO4 à GEL avec un modèle LiFePO4
+    // choisi n'aurait plus de sens), pour ne jamais laisser un modèle
+    // affiché en décalage avec la technologie affichée juste en dessous.
+    const currentBrandModelId = node.data.componentType === "battery" ? String(node.data.brandModelId ?? "") : "";
+    if (key === "technology" && currentBrandModelId) {
+      const current = currentBrandModelId.startsWith("custom:")
+        ? customCatalogItems.find((i) => `custom:${i.id}` === currentBrandModelId)?.defaults.technology
+        : getBrandModel(currentBrandModelId)?.defaults.technology;
+      if (current !== value) {
+        updateNodeData(node.id, { technology: value, brandModelId: "", brand: "", model: "", customItemIconDataUrl: undefined });
+        return;
+      }
+    }
     updateNodeData(node.id, { [key]: value });
   }
 
@@ -168,8 +184,17 @@ function NodePropertiesCard({
     });
   }
 
-  const officialBrandModels = getBrandModelsForType(node.data.componentType);
-  const ownCustomItems = customCatalogItems.filter((i) => i.componentType === node.data.componentType);
+  // Retour utilisateur : "classées par type, quand tu sélectionnes le type
+  // ça filtre les autres" — pour une batterie, ne propose que les modèles
+  // de la technologie déjà choisie dans le champ juste en dessous, plutôt
+  // que de mélanger AGM/GEL/LiFePO4/Plomb dans la même liste.
+  const selectedTechnology = node.data.componentType === "battery" ? String(node.data.technology ?? "") : null;
+  const officialBrandModels = getBrandModelsForType(node.data.componentType).filter(
+    (m) => !selectedTechnology || m.defaults.technology === selectedTechnology,
+  );
+  const ownCustomItems = customCatalogItems
+    .filter((i) => i.componentType === node.data.componentType)
+    .filter((i) => !selectedTechnology || i.defaults.technology === selectedTechnology);
   const brandModels = [
     ...officialBrandModels,
     ...ownCustomItems.map((i) => ({ id: `custom:${i.id}`, brand: `${i.brand} (perso)`, model: i.model })),

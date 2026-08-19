@@ -208,7 +208,9 @@ function computeCableSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdge
     const currentContext =
       diagnostic.ampsSource === "protection" && diagnostic.protectionAmps !== null
         ? `il est protégé en ${formatAmps(diagnostic.protectionAmps)} A`
-        : `il transporte environ ${formatAmps(diagnostic.amps)} A`;
+        : diagnostic.ampsSource === "charger" && diagnostic.sourceAmps !== null
+          ? `il est relié à une source de ${formatAmps(diagnostic.sourceAmps)} A`
+          : `il transporte environ ${formatAmps(diagnostic.amps)} A`;
 
     if (diagnostic.status === "missing") {
       issues.push({

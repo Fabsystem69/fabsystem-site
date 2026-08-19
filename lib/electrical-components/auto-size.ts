@@ -22,7 +22,8 @@ export interface EdgeSectionDiagnostic {
   amps: number;
   loadAmps: number | null;
   protectionAmps: number | null;
-  ampsSource: "load" | "protection";
+  sourceAmps: number | null;
+  ampsSource: "load" | "protection" | "charger";
   voltage: number;
   length: number;
   recommendedSectionMm2: number;
@@ -64,6 +65,41 @@ function getProtectionAmperage(node: SchemaNode | undefined): number | null {
   if (node.data.componentType !== "fuse" && node.data.componentType !== "circuit-breaker") return null;
   const amperage = Number(node.data.amperage) || 0;
   return amperage > 0 ? amperage : null;
+}
+
+// Ampérage nominal propre d'une source/chargeur (bug critique retour bêta :
+// "j'ai un orion xs 50 situé à 4,2m de ma batterie lithium et ça me met en
+// cable seulement 16mm2") — jusqu'ici `estimateEdgeAmps` ne connaissait que
+// la puissance des consommateurs en aval, jamais l'ampérage propre du
+// chargeur qui alimente la batterie (aucun consommateur entre batterie et
+// DC-DC/MPPT/alternateur), donc un câble batterie ↔ chargeur sans fusible
+// calibré juste à côté se voyait sous-dimensionné. Chaque type a son propre
+// nom de champ ampérage (voir definitions.ts : "amperage" pour dcdc/mppt/
+// pwm/solar-router/alternateur, "chargeAmperage" pour ac-charger/inverter-
+// charger, les deux pour easysolar qui cumule MPPT + chargeur secteur).
+function getSourceAmperage(node: SchemaNode | undefined): number | null {
+  if (!node) return null;
+  switch (node.data.componentType) {
+    case "dcdc":
+    case "mppt":
+    case "pwm":
+    case "solar-router":
+    case "alternator": {
+      const amperage = Number(node.data.amperage) || 0;
+      return amperage > 0 ? amperage : null;
+    }
+    case "ac-charger":
+    case "inverter-charger": {
+      const amperage = Number(node.data.chargeAmperage) || 0;
+      return amperage > 0 ? amperage : null;
+    }
+    case "easysolar": {
+      const amperage = Math.max(Number(node.data.chargeAmperage) || 0, Number(node.data.mpptAmperage) || 0);
+      return amperage > 0 ? amperage : null;
+    }
+    default:
+      return null;
+  }
 }
 
 // Ampérage traversant un fusible/disjoncteur : suit sa borne "output" (le
@@ -159,6 +195,31 @@ function getEdgeProtectionReferenceAmps(edge: SchemaEdge, nodes: SchemaNode[], l
   return protectionAmps > 0 ? protectionAmps : null;
 }
 
+// Même patron que `getEdgeProtectionReferenceAmps` ci-dessus, pour la
+// référence source/chargeur (voir `getSourceAmperage`) : le câble batterie
+// ↔ chargeur direct capte l'ampérage via `adjacentSourceAmps`, un câble en
+// amont (ex. batterie → busbar, avant le chargeur) le capte via
+// `downstreamSourceAmps` puisque le nœud chargeur fait partie de son
+// `loadSide`.
+function getEdgeSourceReferenceAmps(edge: SchemaEdge, nodes: SchemaNode[], loadSide: Set<string> | null): number | null {
+  const adjacentSourceAmps = Math.max(
+    getSourceAmperage(nodes.find((node) => node.id === edge.source)) ?? 0,
+    getSourceAmperage(nodes.find((node) => node.id === edge.target)) ?? 0,
+  );
+
+  const downstreamSourceAmps = Math.max(
+    0,
+    ...(loadSide
+      ? nodes
+          .filter((node) => loadSide.has(node.id))
+          .map((node) => getSourceAmperage(node) ?? 0)
+      : []),
+  );
+
+  const sourceAmps = Math.max(adjacentSourceAmps, downstreamSourceAmps);
+  return sourceAmps > 0 ? sourceAmps : null;
+}
+
 // Ampérage estimé traversant CE câble précis : la somme de puissance de
 // tous les consommateurs situés du côté "charge" (pas seulement un
 // consommateur directement raccordé aux deux bouts) — c'est ce qui permet
@@ -189,7 +250,8 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
   const loadSide = getEdgeLoadSide(edge, nodes, edges);
   const loadAmps = estimateEdgeAmps(edge, nodes, edges);
   const protectionAmps = getEdgeProtectionReferenceAmps(edge, nodes, loadSide);
-  const amps = Math.max(loadAmps ?? 0, protectionAmps ?? 0);
+  const sourceAmps = getEdgeSourceReferenceAmps(edge, nodes, loadSide);
+  const amps = Math.max(loadAmps ?? 0, protectionAmps ?? 0, sourceAmps ?? 0);
   if (amps <= 0) return null;
 
   const voltage = findBatteryVoltage(nodes);
@@ -197,11 +259,19 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
   const { section } = calcSection(amps, length, 3, voltage);
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
+  const ampsSource: EdgeSectionDiagnostic["ampsSource"] =
+    sourceAmps !== null && sourceAmps >= (protectionAmps ?? 0) && sourceAmps > (loadAmps ?? 0)
+      ? "charger"
+      : protectionAmps !== null && protectionAmps > (loadAmps ?? 0)
+        ? "protection"
+        : "load";
+
   return {
     amps,
     loadAmps,
     protectionAmps,
-    ampsSource: protectionAmps !== null && protectionAmps > (loadAmps ?? 0) ? "protection" : "load",
+    sourceAmps,
+    ampsSource,
     voltage,
     length,
     recommendedSectionMm2: section,

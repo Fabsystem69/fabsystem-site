@@ -43,6 +43,11 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-gel-110ah", brand: "Victron", model: "GEL Deep Cycle 12V/110Ah", componentType: "battery", defaults: { technology: "gel", voltage: 12, capacityAh: 110 }, iconPro: "/schema-icons/pro/brand/victron-gel-110ah.webp" },
   { id: "victron-gel-220ah", brand: "Victron", model: "GEL Deep Cycle 12V/220Ah", componentType: "battery", defaults: { technology: "gel", voltage: 12, capacityAh: 220 }, iconPro: "/schema-icons/pro/brand/victron-gel-220ah.webp" },
   { id: "victron-lead-carbon-106ah", brand: "Victron", model: "Lead Carbon 12V/106Ah", componentType: "battery", defaults: { technology: "lead-carbon", voltage: 12, capacityAh: 106 }, iconPro: "/schema-icons/pro/brand/victron-lead-carbon-106ah.webp" },
+  // Retour utilisateur : "il y a bien une photo de batterie plomb mais elle
+  // ne se retrouve pas dans la liste des items en Yuasa" — la photo posée
+  // comme icône générique de la technologie "plomb" est en fait une vraie
+  // photo produit Yuasa, jamais ajoutée comme modèle de marque à part.
+  { id: "yuasa-marine-100ah", brand: "Yuasa", model: "Marine 12V/100Ah (C20)", componentType: "battery", defaults: { technology: "plomb", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/battery-plomb.jpg" },
   // Retour bêta (3e testeur) : "batterie lithium 280Ah type PowerQueen à ajouter".
   { id: "powerqueen-lifepo4-280ah", brand: "PowerQueen", model: "12,8V/280Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 280 }, iconPro: "/schema-icons/pro/brand/powerqueen-lifepo4-280ah.webp" },
   { id: "powerqueen-lifepo4-320ah", brand: "PowerQueen", model: "12,8V/320Ah LiFePO4", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 320 }, iconPro: "/schema-icons/pro/brand/powerqueen-lifepo4-320ah.webp" },
