@@ -340,6 +340,7 @@ export function FileMenu({ darkMode }: { darkMode: boolean }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        title="Nouveau schéma, gabarits, style des icônes, filtrer les catégories, fichier local (.fabschema), projets cloud"
         className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-base ${
           darkMode ? "border-indigo-500/50 text-indigo-300 hover:bg-indigo-500/10" : "border-indigo-200 text-indigo-700 hover:bg-indigo-50"
         }`}

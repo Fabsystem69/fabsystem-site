@@ -103,6 +103,7 @@ function NodePropertiesCard({
   const deleteSelected = useSchemaStore((s) => s.deleteSelected);
   const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const rotateNode = useSchemaStore((s) => s.rotateNode);
+  const customCatalogItems = useSchemaStore((s) => s.customCatalogItems);
 
   const def = getComponentDefinition(node.data.componentType);
   if (!def) return null;
@@ -134,10 +135,26 @@ function NodePropertiesCard({
   // Marque/modèle (V2) : le composant reste générique dans la bibliothèque
   // — choisir un modèle ici ne fait que pré-remplir les champs déjà
   // existants avec les valeurs réelles du datasheet. Reste modifiable
-  // ensuite comme n'importe quel champ.
+  // ensuite comme n'importe quel champ. Les items personnalisés du compte
+  // (préfixe "custom:", retour utilisateur : widget de création d'item) se
+  // mélangent à la liste sans jamais toucher au catalogue officiel — la
+  // photo se pose directement sur le node (`customItemIconDataUrl`, voir
+  // getNodeIcon dans definitions.ts), pas dans BRAND_MODELS.
   function handleBrandModelChange(value: string) {
     if (!value) {
-      updateNodeData(node.id, { brandModelId: "", brand: "", model: "" });
+      updateNodeData(node.id, { brandModelId: "", brand: "", model: "", customItemIconDataUrl: undefined });
+      return;
+    }
+    if (value.startsWith("custom:")) {
+      const item = customCatalogItems.find((i) => `custom:${i.id}` === value);
+      if (!item) return;
+      updateNodeData(node.id, {
+        brandModelId: value,
+        brand: item.brand,
+        model: item.model,
+        customItemIconDataUrl: item.imageDataUrl,
+        ...item.defaults,
+      });
       return;
     }
     const brandModel = getBrandModel(value);
@@ -146,11 +163,17 @@ function NodePropertiesCard({
       brandModelId: brandModel.id,
       brand: brandModel.brand,
       model: brandModel.model,
+      customItemIconDataUrl: undefined,
       ...brandModel.defaults,
     });
   }
 
-  const brandModels = getBrandModelsForType(node.data.componentType);
+  const officialBrandModels = getBrandModelsForType(node.data.componentType);
+  const ownCustomItems = customCatalogItems.filter((i) => i.componentType === node.data.componentType);
+  const brandModels = [
+    ...officialBrandModels,
+    ...ownCustomItems.map((i) => ({ id: `custom:${i.id}`, brand: `${i.brand} (perso)`, model: i.model })),
+  ];
   const brandModelsByBrand = new Map<string, typeof brandModels>();
   for (const m of brandModels) {
     const list = brandModelsByBrand.get(m.brand) ?? [];
@@ -224,7 +247,9 @@ function NodePropertiesCard({
           <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Marque / modèle</span>
           <select value={String(node.data.brandModelId ?? "")} onChange={(e) => handleBrandModelChange(e.target.value)} className={inputClass}>
             <option value="">Générique</option>
-            {Array.from(brandModelsByBrand.entries()).map(([brand, models]) => (
+            {Array.from(brandModelsByBrand.entries())
+              .sort(([a], [b]) => a.localeCompare(b, "fr"))
+              .map(([brand, models]) => (
               <optgroup key={brand} label={brand}>
                 {models.map((m) => (
                   <option key={m.id} value={m.id}>{m.model}</option>

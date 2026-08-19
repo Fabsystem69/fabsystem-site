@@ -19,6 +19,8 @@ export function Toolbar() {
   const saveStatus = useSchemaStore((s) => s.saveStatus);
   const saveMessage = useSchemaStore((s) => s.saveMessage);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  const autoLayout = useSchemaStore((s) => s.autoLayout);
+  const nodeCount = useSchemaStore((s) => s.nodes.filter((n) => n.type !== "zone").length);
 
   const saveToneClass =
     saveStatus === "error"
@@ -69,6 +71,15 @@ export function Toolbar() {
         </ToolbarButton>
         <ToolbarButton darkMode={darkMode} onClick={redo} disabled={future.length === 0} title="Rétablir (Ctrl/Cmd+Shift+Z)">
           ↷
+        </ToolbarButton>
+
+        <ToolbarButton
+          darkMode={darkMode}
+          onClick={autoLayout}
+          disabled={nodeCount === 0}
+          title="Réorganise automatiquement les composants : les espace proprement dans chaque zone et entre les zones (Ctrl/Cmd+Z pour annuler)"
+        >
+          ▦ Organiser
         </ToolbarButton>
 
         <ExportMenu darkMode={darkMode} />

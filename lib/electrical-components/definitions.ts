@@ -814,10 +814,14 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
         key: "poles",
         label: "Type",
         type: "select",
-        help: "3 positions (inverseur) : un commun peut être aiguillé vers l'une de deux sorties, ex. pompe manuel/auto.",
+        // Retour utilisateur : "ON-OFF-ON" — préciser que les deux positions
+        // sont maintenues (pas de position centrale à ressort/momentanée,
+        // qu'un vrai "(ON)-OFF-ON" aurait) : un aiguillage statique, comme
+        // le modèle Sterling déjà au catalogue.
+        help: "ON-OFF-ON : un commun maintenu peut être aiguillé vers l'une de deux sorties (OFF au centre), ex. pompe manuel/auto.",
         options: [
           { value: "simple", label: "Simple (marche/arrêt)" },
-          { value: "3-positions", label: "3 positions (inverseur)" },
+          { value: "3-positions", label: "3 positions (ON-OFF-ON)" },
         ],
       },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Facultatif : 0 si non connu." },
@@ -1000,6 +1004,25 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       },
       outputCountField,
     ],
+  },
+  {
+    // Inverseur de source secteur : sélectionne manuellement quai OU
+    // groupe électrogène, jamais les deux — évite de les relier
+    // accidentellement ensemble (deux sources AC en direct = dangereux).
+    type: "ac-transfer-switch",
+    label: "Inverseur de source secteur",
+    description: "Sélectionne manuellement une seule source 230V à la fois (quai ou groupe électrogène) pour ne jamais les relier entre elles.",
+    category: "wiring",
+    subcategory: "distribution",
+    subtitle: "Commande AC",
+    icon: "/schema-icons/switch.svg",
+    handles: [
+      { id: "in-1", label: "IN 1 (quai)", kind: "neutral", side: "left" },
+      { id: "in-2", label: "IN 2 (groupe)", kind: "neutral", side: "left" },
+      { id: "out", label: "OUT", kind: "neutral", side: "right" },
+    ],
+    defaultData: {},
+    fields: [{ key: "label", label: "Nom", type: "text" }],
   },
   {
     type: "ac-panel",
@@ -1576,6 +1599,14 @@ export function getComponentIcon(def: ComponentDefinition, style: IconStyle): st
 // — sinon (marque sans correspondance visuelle, ou générique) on retombe
 // sur la logique par variante existante.
 export function getNodeIcon(def: ComponentDefinition, data: Record<string, unknown>, style: IconStyle): string | undefined {
+  // Item de catalogue personnalisé (retour utilisateur : widget de création
+  // d'item) : sa photo (base64) est posée directement sur le node quand
+  // choisie dans le sélecteur marque/modèle (voir ItemPropertiesPopup.tsx),
+  // pas dans BRAND_MODELS (catalogue statique du code, jamais mélangé aux
+  // items privés d'un compte) — priorité sur tout le reste en mode "pro".
+  if (style === "pro" && typeof data.customItemIconDataUrl === "string" && data.customItemIconDataUrl) {
+    return data.customItemIconDataUrl;
+  }
   if (style === "pro" && typeof data.brandModelId === "string") {
     const brandIcon = getBrandModel(data.brandModelId)?.iconPro;
     if (brandIcon) return brandIcon;

@@ -183,8 +183,6 @@ export function CableEdge({
   const darkMode = useSchemaStore((s) => s.darkMode);
   const reconnectEdgeAction = useSchemaStore((s) => s.reconnectEdge);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
-  const select = useSchemaStore((s) => s.select);
-  const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
   // Selecteurs cibles (pas `s.nodes` en entier) : le retour est une simple
   // chaine ("positive"/"negative"/...), Zustand ne redeclenche donc un
   // rendu que si la polarite resolue change reellement, pas a chaque
@@ -460,35 +458,10 @@ export function CableEdge({
           />
         ))}
 
-        {/* Retour utilisateur : "il manque le menu vu qu'il n'y a plus de
-            bandeau à droite" — le double-clic (onEdgeDoubleClick, voir
-            Canvas.tsx) ouvre toujours la popup de propriétés, mais reste
-            invisible tant qu'on ne le devine pas ; ce bouton lui donne une
-            affordance visible, même traitement que les composants et les
-            zones. Décalé de la position de la légende/du point de coude
-            (pas superposé dessus) pour ne jamais gêner leur glisser. */}
-        {selected ? (
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              select("edge", id);
-              openItemPropertiesPopup();
-            }}
-            title="Voir les propriétés du câble"
-            style={{
-              position: "absolute",
-              zIndex: 1001,
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY - 22}px)`,
-              pointerEvents: "all",
-            }}
-            className={`flex h-6 w-6 items-center justify-center rounded-md border text-xs shadow-sm transition-base ${
-              darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800" : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100"
-            }`}
-          >
-            ⓘ
-          </button>
-        ) : null}
+        {/* Bouton "ⓘ" retiré (retour utilisateur : "dérangeant de cliquer
+            sur le i à chaque fois") — le popup de propriétés s'ouvre
+            maintenant automatiquement dès la sélection du câble, voir
+            `select()` dans useSchemaStore.ts. */}
       </EdgeLabelRenderer>
     </>
   );

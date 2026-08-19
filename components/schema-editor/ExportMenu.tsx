@@ -135,7 +135,7 @@ export function ExportMenu({ darkMode }: { darkMode: boolean }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={nodesCount === 0 || busy}
-        title={nodesCount === 0 ? "Ajoutez au moins un composant pour exporter" : undefined}
+        title={nodesCount === 0 ? "Ajoutez au moins un composant pour exporter" : "Exporter le schéma en image (PNG) ou en planche PDF"}
         className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-base disabled:cursor-not-allowed disabled:opacity-40 ${
           darkMode ? "border-sky-500/50 text-sky-300 hover:bg-sky-500/10" : "border-sky-200 text-sky-700 hover:bg-sky-50"
         } ${spotlight ? "ring-2 ring-emerald-400 ring-offset-1" : ""}`}

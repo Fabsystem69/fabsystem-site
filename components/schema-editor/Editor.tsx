@@ -11,6 +11,7 @@ import {
   saveProjectSchemaApi,
 } from "@/features/schemas/projectSchemaApi";
 import { captureSchemaThumbnail } from "@/features/schemas/export";
+import { listCustomCatalogItemsApi } from "@/features/schemas/customCatalogApi";
 import { getSchemaTemplate } from "@/features/schemas/templates";
 import {
   buildCloudAssistant,
@@ -99,6 +100,7 @@ export function Editor() {
   const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
   const isLoggedIn = useSchemaStore((s) => s.isLoggedIn);
   const setIsLoggedIn = useSchemaStore((s) => s.setIsLoggedIn);
+  const setCustomCatalogItems = useSchemaStore((s) => s.setCustomCatalogItems);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParams = useSearchParams();
   const urlProjectId = searchParams.get("projectId");
@@ -194,6 +196,20 @@ export function Editor() {
       cancelled = true;
     };
   }, [projectId, setHasUnlimitedConsumers, setIsLoggedIn]);
+
+  // Charge les items de catalogue personnalisés du compte connecté (retour
+  // utilisateur : widget de création d'item) — inutile de tenter l'appel
+  // pour un invité, l'API répond de toute façon vide sans session.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let cancelled = false;
+    listCustomCatalogItemsApi().then((items) => {
+      if (!cancelled) setCustomCatalogItems(items);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, setCustomCatalogItems]);
 
   function handleChooseContinue() {
     if (!pendingDraft) return;

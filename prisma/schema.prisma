@@ -235,6 +235,7 @@ model Customer {
   capabilities     CustomerCapability[]
   projects         Project[]
   trialAccessCodeRedemptions TrialAccessCodeRedemption[]
+  customCatalogItems CustomCatalogItem[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
@@ -269,6 +270,33 @@ model CustomerCapability {
   @@index([status])
   @@index([customerId, capability])
   @@index([scope, scopeId])
+}
+
+// Item de catalogue créé par un utilisateur dans l'éditeur de schémas
+// (retour utilisateur : "widget qui fait la création d'item personnalisé si
+// manquant") — même forme qu'un `BrandModel` du code (lib/electrical-
+// components/brand-models.ts), mais privé au compte qui l'a créé, jamais
+// mélangé automatiquement au catalogue officiel partagé. `componentType`
+// choisi par l'utilisateur détermine les champs possibles (`defaults`),
+// exactement comme pour un modèle de marque officiel. Photo stockée en
+// base64 directement (même approche que `Quote.signatureDataUrl`, voir
+// lib/signature-image.ts) plutôt qu'un service de stockage externe — la
+// limite de poids (250 Ko, voir lib/custom-catalog-image.ts) rend ce choix
+// raisonnable, pas besoin de la complexité d'un bucket pour ce volume.
+model CustomCatalogItem {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  componentType String
+  brand         String
+  model         String
+  defaults      Json
+  imageDataUrl  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([componentType])
 }
 
 // Couche 3 (MASTER-11) : Project, source de vérité métier du travail client

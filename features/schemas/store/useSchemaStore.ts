@@ -15,6 +15,8 @@ import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths"
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { getSchemaTemplate } from "@/features/schemas/templates";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
+import { computeAutoLayout } from "@/lib/schema-editor/auto-layout";
+import type { CustomCatalogItem } from "@/features/schemas/customCatalogApi";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
 
 const ICON_STYLE_STORAGE_KEY = "fabsystem-schema:icon-style";
@@ -246,6 +248,12 @@ interface SchemaState {
   // formulaire de connexion ou d'inscription doit s'afficher dans les
   // popups d'achat/redemption.
   isLoggedIn: boolean;
+  /** Items de catalogue créés par l'utilisateur (retour utilisateur :
+   * "widget de création d'item personnalisé si manquant") — chargés depuis
+   * /api/schema-editor/custom-items par Editor.tsx, même mécanisme que
+   * hasUnlimitedConsumers/isLoggedIn ci-dessus (statut serveur injecté
+   * depuis l'extérieur du store). */
+  customCatalogItems: CustomCatalogItem[];
   // Popup de limite gratuite (achat / code promo / coaching) — posée par
   // addComponent/duplicateNode/spliceNodeOnEdge quand un ajout de
   // consommateur est refusé, jamais silencieusement ignorée.
@@ -286,6 +294,13 @@ interface SchemaState {
   spliceNodeOnEdge: (edgeId: string, type: string, position: { x: number; y: number }) => void;
   duplicateNode: (id: string) => void;
   rotateNode: (id: string) => void;
+  /** Réorganise tout le schéma automatiquement : dispose chaque zone (et le
+   * groupe de nœuds hors zone) avec un algorithme de mise en page en
+   * couches, puis range les blocs obtenus côte à côte avec un espacement
+   * généreux — retour utilisateur : "widget qui calcule le placement le
+   * plus optimisé... bien aéré dans chaque zone et entre les zones". */
+  autoLayout: () => void;
+  setCustomCatalogItems: (items: CustomCatalogItem[]) => void;
   /** Verrouille/déverrouille le déplacement et le redimensionnement d'une
    * zone (retour utilisateur : "épingler les zones pour éviter qu'un clic
    * les déplace") — ne concerne que les nœuds de type "zone". */
@@ -380,11 +395,13 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   consumerBaseline: 0,
   hasUnlimitedConsumers: false,
   isLoggedIn: false,
+  customCatalogItems: [],
   freemiumLimitPopupOpen: false,
 
   setProjectName: (name) => set({ projectName: name }),
   setHasUnlimitedConsumers: (value) => set({ hasUnlimitedConsumers: value }),
   setIsLoggedIn: (value) => set({ isLoggedIn: value }),
+  setCustomCatalogItems: (items) => set({ customCatalogItems: items }),
   dismissFreemiumLimitPopup: () => set({ freemiumLimitPopupOpen: false }),
   setProjectId: (id) => set({ projectId: id }),
 
@@ -772,6 +789,12 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       return { nodes, ...commit(state) };
     }),
 
+  autoLayout: () =>
+    set((state) => {
+      const { nodes, edges } = computeAutoLayout(state.nodes, state.edges);
+      return { nodes, edges, ...commit(state) };
+    }),
+
   toggleZoneLock: (id) =>
     set((state) => {
       const nodes = state.nodes.map((n) => (n.id === id ? { ...n, data: { ...n.data, locked: !n.data.locked } } : n));
@@ -824,10 +847,18 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       };
     }),
 
+  // Retour utilisateur : "c'est dérangeant de cliquer sur le i à chaque
+  // fois" — le popup de propriétés s'ouvre automatiquement dès qu'un
+  // élément est sélectionné (un clic suffit) et se ferme dès qu'on
+  // désélectionne (clic sur le fond du canvas), plutôt que de dépendre
+  // d'un bouton dédié ou d'un double-clic. Reste un popup minimaliste, pas
+  // un bandeau permanent (retour utilisateur explicite) : rien n'est
+  // affiché tant que rien n'est sélectionné.
   select: (kind, id) =>
     set({
       selectedNodeId: kind === "node" ? id : null,
       selectedEdgeId: kind === "edge" ? id : null,
+      itemPropertiesPopupOpen: kind !== null && id !== null,
     }),
 
   undo: () =>

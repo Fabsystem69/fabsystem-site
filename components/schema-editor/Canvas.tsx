@@ -119,7 +119,6 @@ export function Canvas() {
   const reconnectEdgeAction = useSchemaStore((s) => s.reconnectEdge);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const select = useSchemaStore((s) => s.select);
-  const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
   const draggingComponentType = useSchemaStore((s) => s.draggingComponentType);
   const setSpliceHoverEdgeId = useSchemaStore((s) => s.setSpliceHoverEdgeId);
   const darkMode = useSchemaStore((s) => s.darkMode);
@@ -361,18 +360,12 @@ export function Canvas() {
           select("node", node.id);
         }}
         onEdgeClick={(_, edge) => select("edge", edge.id)}
+        // Retour utilisateur : "dérangeant de cliquer sur le i à chaque
+        // fois" — un simple clic (ci-dessus) sélectionne ET ouvre le popup
+        // de propriétés (voir `select()` dans useSchemaStore.ts), plus
+        // besoin d'un double-clic dédié ni d'un bouton "i" séparé. Un clic
+        // sur le fond du canvas désélectionne et referme le popup.
         onPaneClick={() => select(null, null)}
-        // v2.1, retour utilisateur : "supprimer le bandeau de droite... le
-        // double-clic ouvre les informations item en popup" — remplace
-        // l'ancien bandeau permanent (voir ItemPropertiesPopup.tsx). Retiré
-        // pour les nœuds (retour utilisateur : un double-clic rapide sur les
-        // boutons zoom de la vignette ouvrait la popup par erreur) — un
-        // bouton "info" dédié dans la vignette l'ouvre à la place ; les
-        // câbles n'ont pas ce conflit et gardent le double-clic.
-        onEdgeDoubleClick={(_, edge) => {
-          select("edge", edge.id);
-          openItemPropertiesPopup();
-        }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} />
         <Controls showInteractive={false} position="bottom-left" className={darkMode ? "!fill-white [&_button]:!border-neutral-700 [&_button]:!bg-neutral-800 [&_button]:!text-white [&_path]:!fill-white" : undefined} />

@@ -47,7 +47,7 @@ const CHARGE_SOURCE_OUTPUT_HANDLE: Record<string, string> = {
   "wind-turbine": "positive",
 };
 
-const AC_COMPONENT_TYPES = new Set(["ac-panel", "socket-220v", "ac-charger", "inverter", "inverter-charger", "shore-power", "power-station", "easysolar"]);
+const AC_COMPONENT_TYPES = new Set(["ac-panel", "socket-220v", "ac-charger", "inverter", "inverter-charger", "shore-power", "power-station", "easysolar", "ac-transfer-switch"]);
 
 // Resout la polarite reelle d'une borne (via resolveHandleKind si le
 // composant en a un, ex. busbar +/− configurable) — reutilise par

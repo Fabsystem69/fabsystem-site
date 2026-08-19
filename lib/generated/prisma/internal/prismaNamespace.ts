@@ -392,6 +392,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   Customer: 'Customer',
   CustomerCapability: 'CustomerCapability',
+  CustomCatalogItem: 'CustomCatalogItem',
   Project: 'Project',
   ProjectRetainedValue: 'ProjectRetainedValue',
   ProjectValueDependency: 'ProjectValueDependency',
@@ -436,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "customer" | "customerCapability" | "project" | "projectRetainedValue" | "projectValueDependency" | "projectSchema" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial" | "trialAccessCode" | "trialAccessCodeRedemption"
+    modelProps: "customer" | "customerCapability" | "customCatalogItem" | "project" | "projectRetainedValue" | "projectValueDependency" | "projectSchema" | "quote" | "quoteItem" | "invoice" | "invoiceItem" | "remise" | "itemTemplate" | "documentSequence" | "product" | "productPrice" | "digitalAsset" | "productAsset" | "bundleItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "downloadGrant" | "discountCode" | "discountRedemption" | "magicLoginToken" | "customerSession" | "testimonial" | "trialAccessCode" | "trialAccessCodeRedemption"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -585,6 +586,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CustomerCapabilityCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CustomerCapabilityCountAggregateOutputType> | number
+        }
+      }
+    }
+    CustomCatalogItem: {
+      payload: Prisma.$CustomCatalogItemPayload<ExtArgs>
+      fields: Prisma.CustomCatalogItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CustomCatalogItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CustomCatalogItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>
+        }
+        findFirst: {
+          args: Prisma.CustomCatalogItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CustomCatalogItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>
+        }
+        findMany: {
+          args: Prisma.CustomCatalogItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>[]
+        }
+        create: {
+          args: Prisma.CustomCatalogItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>
+        }
+        createMany: {
+          args: Prisma.CustomCatalogItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CustomCatalogItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>[]
+        }
+        delete: {
+          args: Prisma.CustomCatalogItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>
+        }
+        update: {
+          args: Prisma.CustomCatalogItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.CustomCatalogItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CustomCatalogItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CustomCatalogItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.CustomCatalogItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomCatalogItemPayload>
+        }
+        aggregate: {
+          args: Prisma.CustomCatalogItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCustomCatalogItem>
+        }
+        groupBy: {
+          args: Prisma.CustomCatalogItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CustomCatalogItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CustomCatalogItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CustomCatalogItemCountAggregateOutputType> | number
         }
       }
     }
@@ -2819,6 +2894,21 @@ export const CustomerCapabilityScalarFieldEnum = {
 export type CustomerCapabilityScalarFieldEnum = (typeof CustomerCapabilityScalarFieldEnum)[keyof typeof CustomerCapabilityScalarFieldEnum]
 
 
+export const CustomCatalogItemScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  componentType: 'componentType',
+  brand: 'brand',
+  model: 'model',
+  defaults: 'defaults',
+  imageDataUrl: 'imageDataUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomCatalogItemScalarFieldEnum = (typeof CustomCatalogItemScalarFieldEnum)[keyof typeof CustomCatalogItemScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
@@ -3477,6 +3567,20 @@ export type ListEnumCustomerCapabilityStatusFieldRefInput<$PrismaModel> = FieldR
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'ProjectAssetType'
  */
 export type EnumProjectAssetTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectAssetType'>
@@ -3515,20 +3619,6 @@ export type EnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'ProjectStatus[]'
  */
 export type ListEnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -3956,6 +4046,7 @@ export interface PrismaClientOptions {
 export type GlobalOmitConfig = {
   customer?: Prisma.CustomerOmit
   customerCapability?: Prisma.CustomerCapabilityOmit
+  customCatalogItem?: Prisma.CustomCatalogItemOmit
   project?: Prisma.ProjectOmit
   projectRetainedValue?: Prisma.ProjectRetainedValueOmit
   projectValueDependency?: Prisma.ProjectValueDependencyOmit

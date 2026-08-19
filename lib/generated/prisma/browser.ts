@@ -28,6 +28,11 @@ export type Customer = Prisma.CustomerModel
  */
 export type CustomerCapability = Prisma.CustomerCapabilityModel
 /**
+ * Model CustomCatalogItem
+ * 
+ */
+export type CustomCatalogItem = Prisma.CustomCatalogItemModel
+/**
  * Model Project
  * 
  */

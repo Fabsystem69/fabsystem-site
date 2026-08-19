@@ -51,6 +51,7 @@ export const AnyNull = runtime.objectEnumValues.instances.AnyNull
 export const ModelName = {
   Customer: 'Customer',
   CustomerCapability: 'CustomerCapability',
+  CustomCatalogItem: 'CustomCatalogItem',
   Project: 'Project',
   ProjectRetainedValue: 'ProjectRetainedValue',
   ProjectValueDependency: 'ProjectValueDependency',
@@ -142,6 +143,21 @@ export const CustomerCapabilityScalarFieldEnum = {
 } as const
 
 export type CustomerCapabilityScalarFieldEnum = (typeof CustomerCapabilityScalarFieldEnum)[keyof typeof CustomerCapabilityScalarFieldEnum]
+
+
+export const CustomCatalogItemScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  componentType: 'componentType',
+  brand: 'brand',
+  model: 'model',
+  defaults: 'defaults',
+  imageDataUrl: 'imageDataUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomCatalogItemScalarFieldEnum = (typeof CustomCatalogItemScalarFieldEnum)[keyof typeof CustomCatalogItemScalarFieldEnum]
 
 
 export const ProjectScalarFieldEnum = {

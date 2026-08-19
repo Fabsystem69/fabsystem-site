@@ -67,7 +67,6 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const select = useSchemaStore((s) => s.select);
-  const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
   const updateNodeInternals = useUpdateNodeInternals();
   const rotation = Number(data.rotation) || 0;
   const outputCount = Number(data.outputCount) || 0;
@@ -192,19 +191,10 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
             darkMode ? "border-neutral-700 bg-neutral-800" : "border-neutral-200 bg-white"
           }`}
         >
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              select("node", id);
-              openItemPropertiesPopup();
-            }}
-            title="Voir les informations du composant"
-            className={quickActionButtonClass}
-          >
-            ⓘ
-          </button>
-          <div className={`mx-0.5 h-3.5 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+          {/* Bouton "ⓘ" retiré (retour utilisateur : "dérangeant de cliquer
+              sur le i à chaque fois") — le popup de propriétés s'ouvre
+              maintenant automatiquement dès la sélection du composant, voir
+              `select()` dans useSchemaStore.ts. */}
           <button type="button" onClick={(e) => { e.stopPropagation(); rotateNode(id); }} title="Pivoter 90° (raccourci : R)" className={quickActionButtonClass}>
             ↻
           </button>

@@ -10,6 +10,7 @@
  */
 export type * from './models/Customer'
 export type * from './models/CustomerCapability'
+export type * from './models/CustomCatalogItem'
 export type * from './models/Project'
 export type * from './models/ProjectRetainedValue'
 export type * from './models/ProjectValueDependency'

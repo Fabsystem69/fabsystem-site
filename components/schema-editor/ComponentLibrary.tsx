@@ -7,6 +7,7 @@ import { getBrandModelsForType } from "@/lib/electrical-components/brand-models"
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { useGuidedStep } from "@/lib/schema-editor/useGuidedStep";
 import { CategoryIcon } from "./icons/CategoryIcons";
+import { CreateCustomItemModal } from "./CreateCustomItemModal";
 
 interface LibraryItem {
   key: string;
@@ -83,6 +84,7 @@ function buildSearchHaystack(type: string, label: string, subtitle?: string, des
 
 export function ComponentLibrary() {
   const [query, setQuery] = useState("");
+  const [createItemOpen, setCreateItemOpen] = useState(false);
   const nodes = useSchemaStore((s) => s.nodes);
   const addComponent = useSchemaStore((s) => s.addComponent);
   const openLibraryPick = useSchemaStore((s) => s.openLibraryPick);
@@ -323,6 +325,21 @@ export function ComponentLibrary() {
           ‹
         </button>
       </div>
+      {!collapsed ? (
+        <div className={`border-b px-3 py-2 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+          <button
+            type="button"
+            onClick={() => setCreateItemOpen(true)}
+            title="Créer un modèle personnalisé (marque/référence manquante), avec sa vraie photo"
+            className={`w-full rounded-md border px-2.5 py-1.5 text-xs font-medium transition-base ${
+              darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
+            }`}
+          >
+            + Créer un item personnalisé
+          </button>
+        </div>
+      ) : null}
+      {createItemOpen ? <CreateCustomItemModal onClose={() => setCreateItemOpen(false)} /> : null}
 
       <div className="flex-1 overflow-y-auto p-3">
         {grouped.size === 0 ? (

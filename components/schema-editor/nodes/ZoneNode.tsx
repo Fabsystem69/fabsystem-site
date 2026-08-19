@@ -22,8 +22,6 @@ export function ZoneNode({ id, data }: NodeProps) {
   // recliquée. On compare directement à notre propre sélection.
   const isSelected = useSchemaStore((s) => s.selectedNodeId === id);
   const toggleZoneLock = useSchemaStore((s) => s.toggleZoneLock);
-  const select = useSchemaStore((s) => s.select);
-  const openItemPropertiesPopup = useSchemaStore((s) => s.openItemPropertiesPopup);
   const darkMode = useSchemaStore((s) => s.darkMode);
 
   return (
@@ -52,27 +50,10 @@ export function ZoneNode({ id, data }: NodeProps) {
             // cliquables même quand la zone est en train d'être glissée, et
             // ne déclenchent jamais eux-mêmes un glisser/pan.
             <div className="nodrag nopan m-1.5 flex shrink-0 items-center gap-1">
-              <button
-                type="button"
-                className={`flex h-6 w-6 items-center justify-center rounded-md border text-xs shadow-sm transition-base ${
-                  darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-200 hover:bg-neutral-800" : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100"
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  select("node", id);
-                  openItemPropertiesPopup();
-                }}
-                // Retour utilisateur : "il manque le menu vu qu'il n'y a
-                // plus de bandeau à droite" — le double-clic qui ouvrait la
-                // popup de propriétés a été retiré pour les composants
-                // (conflit avec leurs boutons de zoom), les zones n'ont
-                // jamais eu d'équivalent puisqu'elles n'ont pas de bandeau
-                // à droite non plus depuis le début. Bouton dédié plutôt
-                // que réintroduire un double-clic ici.
-                title="Renommer, changer la couleur ou supprimer la zone"
-              >
-                ⓘ
-              </button>
+              {/* Bouton "ⓘ" retiré (retour utilisateur : "dérangeant de
+                  cliquer sur le i à chaque fois") — sélectionner la zone
+                  (clic dessus) ouvre maintenant automatiquement son popup
+                  de propriétés, voir `select()` dans useSchemaStore.ts. */}
               <button
                 type="button"
                 className={`flex h-6 w-6 items-center justify-center rounded-md border text-xs shadow-sm transition-base ${
