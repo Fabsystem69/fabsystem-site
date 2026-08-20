@@ -11,7 +11,10 @@ export type OutilMeta = {
     | "awg"
     | "schema"
     | "soc-batterie"
-    | "charge-secteur";
+    | "charge-secteur"
+    | "fusible"
+    | "onduleur"
+    | "dcdc-alternateur";
   /** Illustration technique réelle (UI-10 correctif final §4 : "composante
    * principale de l'identité SaaS de cette page") — jamais un emoji, une
    * icône générique ou un placeholder. */
@@ -86,6 +89,35 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     image: "/outils/charge-secteur.webp",
     title: "Chargeur secteur",
     description: "Dimensionnez votre chargeur secteur et vérifiez la compatibilité avec la borne 230V.",
+    tag: "Nouveau",
+    cta: "Calculer",
+  },
+  // Retour utilisateur : "créer les outils manquant" — 3 gaps identifiés en
+  // auditant le concurrent Wireframe (usewireframe.com/calculators).
+  // `image` : pas de photo dédiée disponible pour l'instant (même
+  // convention que les autres — jamais un placeholder posé en dur), à
+  // fournir avant que ces cartes soient vraiment prêtes à l'affichage.
+  {
+    id: "fusible",
+    image: "/outils/fusible.webp",
+    title: "Calibre de fusible",
+    description: "Trouvez le calibre et le format (Lame, MIDI, MEGA, ANL, Classe T) adapté à votre circuit.",
+    tag: "Nouveau",
+    cta: "Calculer",
+  },
+  {
+    id: "onduleur",
+    image: "/outils/onduleur.webp",
+    title: "Dimensionnement onduleur",
+    description: "Calculez la puissance d'onduleur nécessaire selon vos appareils 230V et leurs appels de démarrage.",
+    tag: "Nouveau",
+    cta: "Calculer",
+  },
+  {
+    id: "dcdc-alternateur",
+    image: "/outils/dcdc-alternateur.webp",
+    title: "Chargeur DC-DC / alternateur",
+    description: "Dimensionnez votre chargeur batterie à batterie selon l'alternateur et la batterie servitude.",
     tag: "Nouveau",
     cta: "Calculer",
   },

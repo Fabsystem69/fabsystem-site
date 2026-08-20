@@ -20,6 +20,9 @@ const CALCULATOR_COMPONENTS: Partial<Record<OutilMeta["id"], ReturnType<typeof d
   awg: dynamic(() => import("@/components/outils/calculators/AwgCalculator")),
   "soc-batterie": dynamic(() => import("@/components/outils/calculators/SocBatterieCalculator")),
   "charge-secteur": dynamic(() => import("@/components/outils/calculators/ChargeSecteurCalculator")),
+  fusible: dynamic(() => import("@/components/outils/calculators/FuseSizeCalculator")),
+  onduleur: dynamic(() => import("@/components/outils/calculators/InverterSizeCalculator")),
+  "dcdc-alternateur": dynamic(() => import("@/components/outils/calculators/DcdcChargerSizeCalculator")),
 };
 
 const MENU_TOOLS = OUTILS_CALCULATEURS.filter((o) => o.id !== "schema");
