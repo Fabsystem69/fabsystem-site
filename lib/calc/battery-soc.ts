@@ -44,6 +44,16 @@ export function getSocTable(chemistry: BatteryChemistry): SocPoint[] {
   return chemistry === "lithium" ? LITHIUM_TABLE : AGM_GEL_TABLE;
 }
 
+/** SoC minimum recommandé avant risque de coupure/dommage — le
+ * complément des profondeurs de décharge déjà établies ailleurs sur le
+ * site (USABLE_CAPACITY_RATIO : 90% LiFePO4, 50% AGM/Gel). En dessous, le
+ * BMS lithium peut couper pour protéger les cellules ; le plomb perd
+ * rapidement en durée de vie. */
+export const RECOMMENDED_MIN_SOC: Record<BatteryChemistry, number> = {
+  lithium: 10,
+  "agm-gel": 50,
+};
+
 export type SocResult = {
   /** État de charge estimé, 0-100, arrondi à l'entier. */
   soc: number;
@@ -58,7 +68,7 @@ export type SocResult = {
  */
 export function estimateSoc(
   chemistry: BatteryChemistry,
-  nominalVoltage: 12 | 24,
+  nominalVoltage: 12 | 24 | 48,
   measuredVoltage: number
 ): SocResult {
   const scale = nominalVoltage / 12;
@@ -79,4 +89,24 @@ export function estimateSoc(
     }
   }
   return { soc: 0, outOfRange: true };
+}
+
+/**
+ * Sens inverse : tension à vide attendue pour un SoC (%) donné, par
+ * interpolation linéaire sur la même table.
+ */
+export function estimateVoltageForSoc(chemistry: BatteryChemistry, nominalVoltage: 12 | 24 | 48, targetSoc: number): number {
+  const scale = nominalVoltage / 12;
+  const table = getSocTable(chemistry).map((p) => ({ soc: p.soc, voltage: p.voltage12V * scale }));
+
+  const clampedSoc = Math.max(0, Math.min(100, targetSoc));
+  for (let i = 0; i < table.length - 1; i++) {
+    const hi = table[i];
+    const lo = table[i + 1];
+    if (clampedSoc <= hi.soc && clampedSoc >= lo.soc) {
+      const ratio = hi.soc === lo.soc ? 0 : (clampedSoc - lo.soc) / (hi.soc - lo.soc);
+      return lo.voltage + ratio * (hi.voltage - lo.voltage);
+    }
+  }
+  return table[table.length - 1].voltage;
 }

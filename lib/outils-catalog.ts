@@ -6,15 +6,14 @@ export type OutilMeta = {
   id:
     | "section-cable"
     | "bilan-consommation"
-    | "autonomie-batterie"
     | "mppt"
-    | "awg"
     | "schema"
     | "soc-batterie"
     | "charge-secteur"
     | "fusible"
     | "onduleur"
-    | "dcdc-alternateur";
+    | "dcdc-alternateur"
+    | "batterie";
   /** Illustration technique réelle (UI-10 correctif final §4 : "composante
    * principale de l'identité SaaS de cette page") — jamais un emoji, une
    * icône générique ou un placeholder. */
@@ -28,11 +27,15 @@ export type OutilMeta = {
 };
 
 export const OUTILS_CALCULATEURS: OutilMeta[] = [
+  // Fusionné avec l'ancien "AWG ↔ mm²" (retour utilisateur : "je pense
+  // qu'on peux fusionner mm awg aussi avec") + vérification d'ampacité
+  // ajoutée (gap confirmé après audit Wireframe : l'ancienne version ne
+  // vérifiait que la chute de tension, jamais le risque de surchauffe).
   {
     id: "section-cable",
     image: "/outils/section-cable.webp",
     title: "Section de câble",
-    description: "Dimensionnez vos câbles 12/24 V selon l'intensité, la longueur et la chute de tension.",
+    description: "Dimensionnez vos câbles 12/24/48V selon l'ampacité et la chute de tension, avec l'équivalent AWG.",
     tag: "Le plus utilisé",
     cta: "Calculer",
   },
@@ -40,16 +43,8 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     id: "bilan-consommation",
     image: "/outils/bilan-consommation.webp",
     title: "Bilan de consommation",
-    description: "Listez vos appareils et estimez votre consommation quotidienne.",
+    description: "Listez vos appareils, votre banque de batteries et vos sources de charge pour estimer votre autonomie.",
     tag: "Essentiel",
-    cta: "Ouvrir",
-  },
-  {
-    id: "autonomie-batterie",
-    image: "/outils/autonomie-batterie.webp",
-    title: "Autonomie batterie",
-    description: "Estimez combien de temps votre installation peut fonctionner sur batterie.",
-    tag: "Avec solaire",
     cta: "Ouvrir",
   },
   {
@@ -59,14 +54,6 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     description: "Dimensionnez la puissance MPPT adaptée à vos panneaux et à votre batterie.",
     tag: "Solaire",
     cta: "Ouvrir",
-  },
-  {
-    id: "awg",
-    image: "/outils/awg.webp",
-    title: "AWG ↔ mm²",
-    description: "Convertissez rapidement les sections de câble entre standards AWG et métrique.",
-    tag: "Référence",
-    cta: "Convertir",
   },
   {
     id: "schema",
@@ -88,7 +75,7 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     id: "charge-secteur",
     image: "/outils/charge-secteur.webp",
     title: "Chargeur secteur",
-    description: "Dimensionnez votre chargeur secteur et vérifiez la compatibilité avec la borne 230V.",
+    description: "Estimez le temps de charge depuis une borne secteur 230V et vérifiez la compatibilité du chargeur.",
     tag: "Nouveau",
     cta: "Calculer",
   },
@@ -118,6 +105,20 @@ export const OUTILS_CALCULATEURS: OutilMeta[] = [
     image: "/outils/dcdc-alternateur.webp",
     title: "Chargeur DC-DC / alternateur",
     description: "Dimensionnez votre chargeur batterie à batterie selon l'alternateur et la batterie servitude.",
+    tag: "Nouveau",
+    cta: "Calculer",
+  },
+  // Gap confirmé après audit comparatif Wireframe ("Battery Bank
+  // Calculator") : aucun outil du site ne dimensionnait une banque de
+  // plusieurs batteries (câblage série/parallèle, câbles, fusible
+  // principal) — image réutilisée de l'ancien outil "Autonomie batterie",
+  // fusionné dans bilan-consommation (redirection /outils/autonomie-
+  // batterie → /outils/bilan-consommation, voir next.config.ts).
+  {
+    id: "batterie",
+    image: "/outils/autonomie-batterie.webp",
+    title: "Banque de batteries",
+    description: "Dimensionnez votre banque de batteries : nombre d'unités, câblage série/parallèle et protections.",
     tag: "Nouveau",
     cta: "Calculer",
   },

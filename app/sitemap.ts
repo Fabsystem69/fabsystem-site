@@ -15,12 +15,14 @@ export const dynamic = "force-dynamic";
 const OUTILS_SLUGS = [
   "section-cable",
   "bilan-consommation",
-  "autonomie-batterie",
   "mppt",
-  "awg",
   "schema",
   "soc-batterie",
   "charge-secteur",
+  "fusible",
+  "onduleur",
+  "dcdc-alternateur",
+  "batterie",
 ];
 const FORMATIONS_SLUGS = [
   "bases-12v",

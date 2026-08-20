@@ -10,11 +10,20 @@ import { Section } from "@/components/layout/Section";
 export function CalculatorPageShell({
   title,
   description,
+  intro,
   children,
   relatedTools,
 }: {
   title: string;
   description: string;
+  /** Paragraphes pédagogiques optionnels, affichés entre la description
+   * courte et le calculateur — retour utilisateur : "tu reflechi pas
+   * comment un debutant va apprehende" — un débutant a besoin de
+   * comprendre le POURQUOI (ex. charge continue vs pointe de démarrage)
+   * avant d'être mis face à des champs techniques, pas seulement une
+   * phrase de description SEO. Optionnel pour ne pas alourdir les
+   * calculateurs déjà suffisamment explicites par eux-mêmes. */
+  intro?: ReactNode;
   children: ReactNode;
   /** Passerelles contextuelles vers 1-2 outils complémentaires (ex. Bilan →
    * Autonomie). Volontairement limité — jamais un mur de cartes "autres
@@ -37,6 +46,7 @@ export function CalculatorPageShell({
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-600 sm:text-base">
           {description}
         </p>
+        {intro ? <div className="mt-3 max-w-2xl space-y-2 text-sm leading-relaxed text-neutral-600">{intro}</div> : null}
       </Section>
 
       <Section tone="light" size="wide" className="pt-0">

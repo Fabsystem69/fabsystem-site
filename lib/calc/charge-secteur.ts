@@ -64,3 +64,55 @@ export function computeChargeSecteur(
     dcFuseA: dcFuse ? `${dcFuse} A` : "> 125 A — prévoir un disjoncteur",
   };
 }
+
+// Modèle de temps de charge en deux phases — retour utilisateur (comparatif
+// Wireframe, "How Long to Charge from Shore Power?") : notre calculateur
+// dimensionnait un chargeur mais ne répondait jamais à la question posée
+// par son propre nom, "combien de temps pour charger". Un chargeur ne
+// débite pas son courant nominal jusqu'à 100% : phase bulk à courant
+// constant, puis phase absorption où le courant diminue progressivement en
+// approchant la pleine charge — le lithium garde un courant quasi plein
+// plus longtemps que le plomb (courbe plus plate), d'où un seuil bulk plus
+// haut et une absorption plus rapide.
+const BULK_THRESHOLD_PCT: Record<ChargeChemistry, number> = {
+  lithium: 90,
+  "agm-gel": 80,
+};
+
+/** Taux d'efficacité moyen de la phase absorption par rapport au courant
+ * bulk — plus haut pour le lithium (tapering plus rapide, courbe plus
+ * plate), plus bas pour le plomb (tapering long et progressif). */
+const ABSORPTION_RATE_RATIO: Record<ChargeChemistry, number> = {
+  lithium: 0.6,
+  "agm-gel": 0.35,
+};
+
+export type ChargeTimeResult = {
+  bulkHours: number;
+  absorptionHours: number;
+  totalHours: number;
+  bulkThresholdPct: number;
+};
+
+/**
+ * @param chargeCurrentA Courant de charge effectif (bulk), en A.
+ * @param capacityAh Capacité totale de la banque, en Ah.
+ * @param startingSocPct État de charge de départ, en %.
+ * @param chemistry Chimie de la banque.
+ */
+export function computeChargeTime(chargeCurrentA: number, capacityAh: number, startingSocPct: number, chemistry: ChargeChemistry): ChargeTimeResult {
+  const bulkThresholdPct = BULK_THRESHOLD_PCT[chemistry];
+  const bulkAh = chargeCurrentA > 0 ? (capacityAh * Math.max(0, bulkThresholdPct - startingSocPct)) / 100 : 0;
+  const absorptionAh = (capacityAh * Math.max(0, 100 - Math.max(startingSocPct, bulkThresholdPct))) / 100;
+
+  const bulkHours = chargeCurrentA > 0 ? bulkAh / chargeCurrentA : 0;
+  const absorptionCurrentA = chargeCurrentA * ABSORPTION_RATE_RATIO[chemistry];
+  const absorptionHours = absorptionCurrentA > 0 ? absorptionAh / absorptionCurrentA : 0;
+
+  return {
+    bulkHours,
+    absorptionHours,
+    totalHours: bulkHours + absorptionHours,
+    bulkThresholdPct,
+  };
+}

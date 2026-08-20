@@ -15,14 +15,13 @@ import { RibbonButton, RibbonPanel } from "./RibbonControls";
 const CALCULATOR_COMPONENTS: Partial<Record<OutilMeta["id"], ReturnType<typeof dynamic>>> = {
   "section-cable": dynamic(() => import("@/components/outils/calculators/SectionCableCalculator")),
   "bilan-consommation": dynamic(() => import("@/components/outils/calculators/BilanConsommationCalculator")),
-  "autonomie-batterie": dynamic(() => import("@/components/outils/calculators/AutonomieBatterieCalculator")),
   mppt: dynamic(() => import("@/components/outils/calculators/MpptCalculator")),
-  awg: dynamic(() => import("@/components/outils/calculators/AwgCalculator")),
   "soc-batterie": dynamic(() => import("@/components/outils/calculators/SocBatterieCalculator")),
   "charge-secteur": dynamic(() => import("@/components/outils/calculators/ChargeSecteurCalculator")),
   fusible: dynamic(() => import("@/components/outils/calculators/FuseSizeCalculator")),
   onduleur: dynamic(() => import("@/components/outils/calculators/InverterSizeCalculator")),
   "dcdc-alternateur": dynamic(() => import("@/components/outils/calculators/DcdcChargerSizeCalculator")),
+  batterie: dynamic(() => import("@/components/outils/calculators/BatteryBankCalculator")),
 };
 
 const MENU_TOOLS = OUTILS_CALCULATEURS.filter((o) => o.id !== "schema");

@@ -21,12 +21,12 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Outils & Calculateurs électricité embarquée — bateau, van, camping-car",
   description:
-    "Calculateurs gratuits : section de câble 12V, bilan de consommation, autonomie batterie, régulateur MPPT, table AWG/mm² avec usages typiques bateau. Dimensionnez votre installation électrique embarquée.",
+    "Calculateurs gratuits : section de câble 12V, bilan de consommation et autonomie, banque de batteries, régulateur MPPT, table AWG/mm² avec usages typiques bateau. Dimensionnez votre installation électrique embarquée.",
   alternates: { canonical: "/outils" },
   openGraph: {
     title: "Calculateurs électricité embarquée | FabSystem",
     description:
-      "Calculez la section de câble, le bilan de consommation et l'autonomie batterie pour votre bateau, van ou camping-car.",
+      "Calculez la section de câble, le bilan de consommation et l'autonomie, et votre banque de batteries pour votre bateau, van ou camping-car.",
     url: "https://www.fabsystem.fr/outils",
   },
 };

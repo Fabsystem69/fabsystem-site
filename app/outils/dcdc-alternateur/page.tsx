@@ -14,7 +14,7 @@ export default function DcdcChargerSizePage() {
     <CalculatorPageShell
       title="Chargeur DC-DC / alternateur"
       description="Dimensionnez le chargeur DC-DC adapté à votre alternateur et à votre batterie servitude, et estimez la recharge obtenue par trajet."
-      relatedTools={[{ href: "/outils/autonomie-batterie", label: "Estimer l'autonomie batterie" }]}
+      relatedTools={[{ href: "/outils/bilan-consommation", label: "Estimer l'autonomie batterie" }]}
     >
       <DcdcChargerSizeCalculator />
     </CalculatorPageShell>

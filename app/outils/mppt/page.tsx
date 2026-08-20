@@ -16,7 +16,7 @@ export default function MpptPage() {
       description="Calculez la puissance MPPT nécessaire selon vos panneaux solaires et votre batterie."
       relatedTools={[
         { href: "/outils/section-cable", label: "Vérifier une section de câble" },
-        { href: "/outils/autonomie-batterie", label: "Vérifier mon autonomie batterie" },
+        { href: "/outils/bilan-consommation", label: "Vérifier mon autonomie batterie" },
       ]}
     >
       <MpptCalculator />

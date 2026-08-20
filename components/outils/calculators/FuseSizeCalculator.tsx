@@ -1,92 +1,73 @@
 "use client";
 
 import { useState } from "react";
-import { computeFuseSize } from "@/lib/calc/fuse-size";
+import { computeFuseSize, FUSE_FORMAT_DESCRIPTIONS } from "@/lib/calc/fuse-size";
 import { OpenProjectLink } from "@/components/outils/project-bridge/OpenProjectLink";
+import { ToggleGroup } from "@/components/outils/calc-ui/ToggleGroup";
+import { CalcSlider } from "@/components/outils/calc-ui/CalcSlider";
+import { CalcSafetyNotice } from "@/components/outils/calc-ui/CalcSafetyNotice";
+import { CalcGuidesLink } from "@/components/outils/calc-ui/CalcGuidesLink";
 
 export default function FuseSizeCalculator() {
   const [mode, setMode] = useState<"amps" | "watts">("amps");
-  const [amps, setAmps] = useState("");
-  const [watts, setWatts] = useState("");
+  const [amps, setAmps] = useState(0);
+  const [watts, setWatts] = useState(0);
   const [tension, setTension] = useState<"12" | "24" | "48">("12");
   const [continuous, setContinuous] = useState(true);
   const [mainCircuit, setMainCircuit] = useState(false);
 
   const t = parseFloat(tension);
-  const loadCurrentA = mode === "amps" ? parseFloat(amps) || 0 : (parseFloat(watts) || 0) / t;
+  const loadCurrentA = mode === "amps" ? amps : watts / t;
   const hasResult = loadCurrentA > 0;
   const result = hasResult ? computeFuseSize(loadCurrentA, continuous, mainCircuit) : null;
 
-  const inputClass = "w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20";
   const labelClass = "block text-xs font-semibold text-neutral-700 mb-1.5";
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
-      {/* ── Inputs ── */}
-      <div className="space-y-5">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
+    <div>
+      <div className="grid gap-8 lg:grid-cols-2">
+        {/* ── Inputs ── */}
+        <div className="space-y-5">
+          <div>
             <span className={labelClass}>Je connais…</span>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setMode("amps")}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${mode === "amps" ? "border-brand-500 bg-brand-50 text-brand-700" : "border-neutral-300 text-neutral-600"}`}
-              >
-                Le courant (A)
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("watts")}
-                className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${mode === "watts" ? "border-brand-500 bg-brand-50 text-brand-700" : "border-neutral-300 text-neutral-600"}`}
-              >
-                La puissance (W)
-              </button>
-            </div>
+            <ToggleGroup
+              value={mode}
+              onChange={setMode}
+              options={[
+                { value: "amps", label: "Le courant (A)" },
+                { value: "watts", label: "La puissance (W)" },
+              ]}
+            />
           </div>
 
           {mode === "amps" ? (
-            <div className="sm:col-span-2">
-              <label className={labelClass}>Courant du circuit (A)</label>
-              <input type="number" min="0" placeholder="ex : 16,7" value={amps} onChange={(e) => setAmps(e.target.value)} className={inputClass} />
-            </div>
+            <CalcSlider label="Courant du circuit" value={amps} onChange={setAmps} min={0} max={400} step={1} unit="A" />
           ) : (
-            <>
-              <div>
-                <label className={labelClass}>Puissance de l&apos;appareil (W)</label>
-                <input type="number" min="0" placeholder="ex : 200" value={watts} onChange={(e) => setWatts(e.target.value)} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>Tension du circuit</label>
-                <select value={tension} onChange={(e) => setTension(e.target.value as "12" | "24" | "48")} className={inputClass}>
-                  <option value="12">12 V</option>
-                  <option value="24">24 V</option>
-                  <option value="48">48 V</option>
-                </select>
-              </div>
-            </>
+            <CalcSlider label="Puissance de l'appareil" value={watts} onChange={setWatts} min={0} max={3000} step={10} unit="W" />
           )}
 
-          {mode === "amps" ? (
-            <div className="sm:col-span-2">
-              <label className={labelClass}>Tension du circuit</label>
-              <select value={tension} onChange={(e) => setTension(e.target.value as "12" | "24" | "48")} className={inputClass}>
-                <option value="12">12 V</option>
-                <option value="24">24 V</option>
-                <option value="48">48 V</option>
-              </select>
-            </div>
-          ) : null}
+          <div>
+            <span className={labelClass}>Tension du circuit</span>
+            <ToggleGroup
+              value={tension}
+              onChange={setTension}
+              options={[
+                { value: "12", label: "12 V" },
+                { value: "24", label: "24 V" },
+                { value: "48", label: "48 V" },
+              ]}
+            />
+          </div>
 
-          <label className="sm:col-span-2 flex items-start gap-2 text-sm text-neutral-700">
+          <label className="flex items-start gap-2 text-sm text-neutral-700">
             <input type="checkbox" checked={continuous} onChange={(e) => setContinuous(e.target.checked)} className="mt-0.5" />
             <span>
               Circuit continu (≥ 3h sans coupure) — solaire, frigo, chargeur…
-              <span className="block text-xs text-neutral-400">Applique la marge de sécurité standard de 25 % sur le calibre.</span>
+              <span className="block text-xs text-neutral-400">Applique la marge réglementaire de 25 % au lieu des 10 % de base.</span>
             </span>
           </label>
 
-          <label className="sm:col-span-2 flex items-start gap-2 text-sm text-neutral-700">
+          <label className="flex items-start gap-2 text-sm text-neutral-700">
             <input type="checkbox" checked={mainCircuit} onChange={(e) => setMainCircuit(e.target.checked)} className="mt-0.5" />
             <span>
               Circuit batterie principale ou onduleur
@@ -94,52 +75,70 @@ export default function FuseSizeCalculator() {
             </span>
           </label>
         </div>
-      </div>
 
-      {/* ── Résultat ── */}
-      <div>
-        {hasResult && result ? (
-          <div className="rounded-2xl border-2 border-brand-400 bg-brand-50 p-6 space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">Résultat</p>
+        {/* ── Résultat ── */}
+        <div>
+          {hasResult && result ? (
+            <div className="rounded-2xl border-2 border-brand-400 bg-brand-50 p-6 space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">Résultat</p>
 
-            <div>
-              <p className="text-xs text-neutral-500">Fusible recommandé</p>
-              <p className="text-4xl font-bold text-neutral-950">
-                {result.recommendedFuseA !== null ? `${result.recommendedFuseA} A` : "> 400 A"}
+              <div>
+                <p className="text-xs text-neutral-500">Fusible recommandé</p>
+                <p className="text-4xl font-bold text-neutral-950">
+                  {result.recommendedFuseA !== null ? `${result.recommendedFuseA} A` : "> 400 A"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-brand-700">Format {result.formatLabel}</p>
+              </div>
+
+              <p className="border-t border-brand-200 pt-4 text-sm text-neutral-700">
+                Courant du circuit : {result.loadCurrentA.toFixed(1)} A × {result.marginFactor.toFixed(2).replace(".", ",")} ({continuous ? "continu" : "non continu"}) ={" "}
+                <span className="font-semibold text-neutral-950">{result.designCurrentA.toFixed(1)} A</span> courant de dimensionnement
               </p>
-              <p className="mt-1 text-sm font-semibold text-brand-700">Format {result.formatLabel}</p>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3 border-t border-brand-200 pt-4">
-              <div>
-                <p className="text-xs text-neutral-500">Courant réel du circuit</p>
-                <p className="text-lg font-bold text-neutral-900">{result.loadCurrentA.toFixed(1)} A</p>
+              <p className="text-xs italic text-neutral-500">{FUSE_FORMAT_DESCRIPTIONS[result.recommendedFormat]}</p>
+
+              {result.recommendedFormat === "mega" ? (
+                <div className="rounded-lg bg-neutral-100 border border-neutral-200 px-3 py-2 text-xs text-neutral-600">
+                  ℹ️ Le format ANL (ovale) est un équivalent électrique courant dans cette plage, au choix selon le porte-fusible déjà en place.
+                </div>
+              ) : null}
+
+              <div className="rounded-lg bg-neutral-100 border border-neutral-200 px-3 py-2 text-xs text-neutral-600">
+                ℹ️ Le fusible protège le câble, pas seulement l&apos;appareil — vérifiez avec le{" "}
+                <a href="/outils/section-cable" className="font-semibold underline underline-offset-2">
+                  calculateur de section de câble
+                </a>{" "}
+                que le calibre choisi reste inférieur à l&apos;ampacité du câble utilisé.
               </div>
-              <div>
-                <p className="text-xs text-neutral-500">Courant de dimensionnement</p>
-                <p className="text-lg font-bold text-neutral-900">{result.designCurrentA.toFixed(1)} A</p>
-              </div>
-            </div>
 
-            <div className="rounded-lg bg-neutral-100 border border-neutral-200 px-3 py-2 text-xs text-neutral-600">
-              ℹ️ Le fusible protège le câble, pas seulement l&apos;appareil — vérifiez avec le{" "}
-              <a href="/outils/section-cable" className="font-semibold underline underline-offset-2">
-                calculateur de section de câble
-              </a>{" "}
-              que le calibre choisi reste inférieur à l&apos;ampacité du câble utilisé.
+              <p className="text-xs text-neutral-500">
+                Placez toujours la protection au plus près possible de la source (idéalement à moins de 20 cm de la borne + de la batterie).
+              </p>
+              <OpenProjectLink label="Continuer dans mon projet" />
             </div>
-
-            <p className="text-xs text-neutral-500">
-              Placez toujours la protection au plus près possible de la source (idéalement à moins de 20 cm de la borne + de la batterie).
-            </p>
-            <OpenProjectLink label="Continuer dans mon projet" />
-          </div>
-        ) : (
-          <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 p-8">
-            <p className="text-center text-sm text-neutral-400">Renseignez le courant ou la puissance du circuit pour obtenir un calibre de fusible.</p>
-          </div>
-        )}
+          ) : (
+            <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50 p-8">
+              <p className="text-center text-sm text-neutral-400">Renseignez le courant ou la puissance du circuit pour obtenir un calibre de fusible.</p>
+            </div>
+          )}
+        </div>
       </div>
+
+      <CalcGuidesLink
+        examples={[
+          { slug: "schema-bateau-complet-lynx", title: "Schéma bateau complet avec bus Lynx" },
+          { slug: "schema-solaire-12v-simple", title: "Schéma solaire 12V simple" },
+          { slug: "schema-electrique-van-complet", title: "Schéma électrique van complet 12V" },
+        ]}
+      />
+
+      <CalcSafetyNotice
+        standards={[
+          "EN 1648-2 — Installations électriques 12V des véhicules de loisir",
+          "NF C 15-100 — Installations électriques basse tension (partie fixe)",
+          "Règle des 125% pour un circuit continu — pratique standard reprise de la NEC 210.19(A)(1)",
+        ]}
+      />
     </div>
   );
 }
