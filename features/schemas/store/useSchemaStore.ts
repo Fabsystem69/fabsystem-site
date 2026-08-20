@@ -10,12 +10,14 @@ import {
   type Connection,
 } from "@xyflow/react";
 import { getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS } from "@/lib/electrical-components/definitions";
-import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps } from "@/lib/electrical-components/auto-size";
+import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps, formatSectionLabel } from "@/lib/electrical-components/auto-size";
+import { calcSection } from "@/lib/calc/section-cable";
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { getSchemaTemplate } from "@/features/schemas/templates";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import { computeAutoLayout } from "@/lib/schema-editor/auto-layout";
+import type { SolarInstallPlan } from "@/lib/schema-editor/guided-install/solar";
 import type { CustomCatalogItem } from "@/features/schemas/customCatalogApi";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
 
@@ -381,6 +383,14 @@ interface SchemaState {
   // GuidedTutorial.tsx. Les étapes "task" avancent automatiquement (voir
   // l'effet qui appelle `advanceGuidedStep` dans ce composant).
   guidedStepIndex: number;
+  // Retour utilisateur : "un module débutant guidé genre chat box... je
+  // veux installer des panneaux solaires sur mon van, tu lui demande ce
+  // qu'il a et tu viens rajouter les panneaux dans un autre zone" — état
+  // d'ouverture pur (même famille que guidedMode), consommé par
+  // InstallAssistant.tsx. Distinct de guidedMode (qui enseigne l'usage de
+  // l'éditeur) : celui-ci construit une vraie installation à la demande,
+  // à tout moment, sur un schéma déjà en cours.
+  installAssistantOpen: boolean;
   // v2.1 : nombre de composants "consommateurs" déjà présents au moment du
   // dernier chargement (newProject/loadTemplate/hydrate/startGuidedMode) —
   // un starter de guide (P280, Victron) en a souvent plus de 3 à l'ouverture,
@@ -487,6 +497,14 @@ interface SchemaState {
   exitGuidedMode: () => void;
   advanceGuidedStep: () => void;
   retreatGuidedStep: () => void;
+  openInstallAssistant: () => void;
+  closeInstallAssistant: () => void;
+  // Retour utilisateur : assistant débutant guidé — pose une zone + les
+  // composants du plan (voir lib/schema-editor/guided-install/solar.ts)
+  // dans une zone vide du canvas, en un seul pas d'historique. Retourne
+  // l'id de la zone créée pour que l'UI puisse la sélectionner/centrer la
+  // vue dessus.
+  insertGuidedInstall: (plan: SolarInstallPlan) => string;
   setHasUnlimitedConsumers: (value: boolean) => void;
   setIsLoggedIn: (value: boolean) => void;
   dismissFreemiumLimitPopup: () => void;
@@ -547,6 +565,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   pendingBatteryPairPrompt: null,
   guidedMode: false,
   guidedStepIndex: 0,
+  installAssistantOpen: false,
   consumerBaseline: 0,
   hasUnlimitedConsumers: false,
   isLoggedIn: false,
@@ -1251,6 +1270,100 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   // supprime rien du schéma déjà construit, se contente de rouvrir
   // l'instruction précédente.
   retreatGuidedStep: () => set((state) => ({ guidedStepIndex: Math.max(0, state.guidedStepIndex - 1) })),
+
+  openInstallAssistant: () => set({ installAssistantOpen: true }),
+  closeInstallAssistant: () => set({ installAssistantOpen: false }),
+
+  // Retour utilisateur : "un module débutant guidé genre chat box... tu
+  // viens rajouter les panneaux dans un autre zone" — pose une zone neuve
+  // à droite de tout ce qui existe déjà (jamais par-dessus), puis les
+  // composants du plan dedans, entièrement câblés et dimensionnés (section
+  // de câble + calibre déjà corrects, pas besoin d'un second passage de
+  // "Recalculer les sections"). Un seul commit d'historique : un "Annuler"
+  // retire toute l'installation d'un coup, pas composant par composant.
+  insertGuidedInstall: (plan) => {
+    let zoneId = "";
+    set((state) => {
+      const maxX = state.nodes.length > 0 ? Math.max(...state.nodes.map((n) => n.position.x + (n.width ?? 220))) : 0;
+      const minY = state.nodes.length > 0 ? Math.min(...state.nodes.map((n) => n.position.y)) : 0;
+      const anchor = { x: state.nodes.length > 0 ? maxX + 120 : 40, y: state.nodes.length > 0 ? minY : 40 };
+
+      const zoneNode: SchemaNode = {
+        id: nextId("zone"),
+        type: "zone",
+        position: anchor,
+        zIndex: -1,
+        width: plan.zoneWidth,
+        height: plan.zoneHeight,
+        data: {
+          componentType: "zone",
+          label: "Panneaux solaires",
+          color: ZONE_COLORS[state.nodes.filter((n) => n.type === "zone").length % ZONE_COLORS.length],
+        },
+      };
+      zoneId = zoneNode.id;
+
+      const keyToId = new Map<string, string>();
+      const newNodes: SchemaNode[] = [zoneNode];
+      for (const comp of plan.components) {
+        const def = getComponentDefinition(comp.type);
+        if (!def) continue;
+        const id = nextId(comp.type);
+        keyToId.set(comp.key, id);
+        newNodes.push({
+          id,
+          type: "electrical",
+          position: { x: anchor.x + comp.offsetX, y: anchor.y + comp.offsetY },
+          data: { componentType: comp.type, label: comp.label, ...def.defaultData, ...comp.dataOverride },
+        });
+      }
+
+      // Section de câble + longueur par défaut au fil à fil (panneau→MPPT :
+      // 2m, run de toit plausible ; MPPT→fusible : 0,3m, cavalier court) —
+      // mêmes formules que le reste de l'app (calcSection, chute 3%).
+      const newEdges: SchemaEdge[] = plan.edges.map((e) => {
+        const sourceId = keyToId.get(e.sourceKey) ?? "";
+        const targetId = keyToId.get(e.targetKey) ?? "";
+        const sourceNode = newNodes.find((n) => n.id === sourceId);
+        const def = sourceNode ? getComponentDefinition(sourceNode.data.componentType) : undefined;
+        const handleDef = def && sourceNode ? getEffectiveHandles(def, sourceNode.data).find((h) => h.id === e.sourceHandle) : undefined;
+        const kind = handleDef && def ? (def.resolveHandleKind ? def.resolveHandleKind(sourceNode!.data, handleDef) : handleDef.kind) : undefined;
+        // Câble panneau→MPPT : ne porte QUE le courant de CE panneau (branches
+        // parallèles indépendantes), pas le total du champ — sinon toutes les
+        // sections seraient surdimensionnées d'un facteur = nombre de panneaux.
+        const isPanelLeg = e.sourceKey.startsWith("panel-");
+        const amps = isPanelLeg ? (sourceNode ? Number(sourceNode.data.powerW ?? 0) : 0) / plan.systemVoltage : plan.mpptAmperage;
+        const length = isPanelLeg ? 2 : 0.3;
+        const { section } = calcSection(amps, length, 3, plan.systemVoltage);
+        return {
+          id: nextId("edge"),
+          source: sourceId,
+          sourceHandle: e.sourceHandle,
+          target: targetId,
+          targetHandle: e.targetHandle,
+          type: "cable",
+          data: {
+            color: kind ? HANDLE_COLORS[kind] : HANDLE_COLORS.neutral,
+            cableType: kind ? DEFAULT_CABLE_TYPE_BY_KIND[kind] : "other",
+            section: formatSectionLabel(section),
+            length,
+          },
+        };
+      });
+
+      return {
+        nodes: [...state.nodes, ...newNodes],
+        edges: [...state.edges, ...newEdges],
+        selectedNodeId: zoneNode.id,
+        selectedEdgeId: null,
+        installAssistantOpen: false,
+        lastMeaningfulActionAt: Date.now(),
+        pickerCancelStreak: 0,
+        ...commit(state),
+      };
+    });
+    return zoneId;
+  },
 }));
 
 export function selectComponentDefinition(node: SchemaNode) {

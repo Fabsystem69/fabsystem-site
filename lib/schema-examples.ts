@@ -1,4 +1,6 @@
 import { getSchemaTemplate } from "@/features/schemas/templates";
+import { getComponentDefinition } from "@/lib/electrical-components/definitions";
+import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 
 const BASE_URL = "https://www.fabsystem.fr";
 
@@ -211,6 +213,45 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
       "Les schémas AFERIY et les compatibilités de charge doivent toujours être recoupés avec la documentation constructeur.",
     ],
   },
+  {
+    slug: "schema-bateau-complet-lynx",
+    templateId: "bateau-premium",
+    title: "Schéma bateau complet avec bus Lynx",
+    metaTitle: "Schéma bateau complet : bus Lynx, MultiPlus-II, Cerbo GX",
+    metaDescription:
+      "Exemple de schéma électrique bateau complet avec solaire, éolien, alternateur/DC-DC et quai/groupe électrogène, batterie Lithium NG sur bus Lynx complet, MultiPlus-II, Cerbo GX et deux tableaux 12V distincts.",
+    description:
+      "Le schéma le plus complet du catalogue, pensé pour un bateau habité ou parti en grande croisière : quatre sources de charge, un vrai bus de distribution Lynx et deux tableaux 12V séparés pour garder de la lisibilité malgré la taille du système.",
+    thumbnailSrc: "/schema-examples/schema-bateau-complet-lynx-card-v2.webp",
+    thumbnailAlt: "Aperçu réduit du schéma bateau complet avec bus Lynx",
+    audience: "Intermédiaire à avancé, bateau habité ou grande unité",
+    level: "Système complet, à lire avec méthode",
+    context:
+      "Voilier ou bateau à moteur équipé pour la grande croisière ou l'habitation à l'année, avec plusieurs sources de charge à faire cohabiter et un vrai besoin de séparer confort et sécurité.",
+    flow: [
+      "Solaire + éolien + alternateur/DC-DC",
+      "Quai / groupe électrogène",
+      "Bus Lynx (Power In, Smart BMS, Distributor, Shunt)",
+      "MultiPlus-II + Cerbo GX",
+      "Tableau confort",
+      "Tableau pont & sécurité",
+    ],
+    highlights: [
+      "Voir comment quatre sources de charge différentes (solaire, éolien, alternateur/DC-DC, quai ou groupe) se rejoignent proprement sur un seul bus Lynx.",
+      "Comprendre pourquoi certaines sources tapent directement sur la borne SYS+ du Lynx Smart BMS plutôt que de passer par les sorties du Lynx Distributor.",
+      "Repérer la logique des deux tableaux 12V séparés (confort à l'intérieur, pont et sécurité), chacun avec son propre bus négatif.",
+    ],
+    includes: [
+      "Un bus Lynx complet : Power In, Smart BMS, Distributor et Shunt, pensé pour une batterie Lithium NG.",
+      "Un MultiPlus-II en onduleur-chargeur et un Cerbo GX pour la supervision de l'ensemble.",
+      "Deux tableaux de distribution 12V distincts, l'un pour le confort (frigo, eau, éclairage), l'autre pour le pont et la sécurité (feux de navigation, guindeau, pompe de cale, pilote automatique).",
+    ],
+    watchouts: [
+      "C'est un système volontairement dense : ne le prenez pas comme point de départ si votre besoin réel est plus simple, les autres exemples de cette page conviendront mieux.",
+      "Le calibrage exact (fusibles, sections, capacité batterie) dépend de votre puissance installée réelle et doit être recalculé, pas recopié.",
+      "L'inverseur de source quai/groupe électrogène et l'isolateur galvanique demandent une installation sérieuse : ce n'est pas un point à improviser sur un bateau.",
+    ],
+  },
 ];
 
 export const SCHEMA_EXAMPLE_COUNT = SCHEMA_EXAMPLES.length;
@@ -245,4 +286,144 @@ export function getSchemaExampleTemplate(slug: string) {
   const example = getSchemaExampleBySlug(slug);
   if (!example) return null;
   return getSchemaTemplate(example.templateId) ?? null;
+}
+
+// --- Données dérivées du vrai gabarit (jamais tapées à la main) ---------
+//
+// Contrairement au reste de `SchemaExample` (texte éditorial), ce qui suit
+// est recalculé à chaque appel à partir de `template.build()` : la liste des
+// composants et le tableau de câblage restent donc toujours synchronisés
+// avec le vrai gabarit de `features/schemas/templates.ts`, même s'il évolue
+// plus tard. Voir `lib/electrical-components/checks.ts` et `auto-size.ts`
+// pour le même style de parcours nodes/edges déjà utilisé ailleurs dans le
+// projet.
+
+export interface SchemaExampleComponentSummary {
+  key: string;
+  /** Libellé affiché : "Marque Modèle" si connu, sinon le type générique. */
+  label: string;
+  /** Libellé du type de composant (ex. "MPPT", "Batterie"). */
+  typeLabel: string;
+  brand?: string;
+  model?: string;
+  count: number;
+}
+
+// Un node de gabarit est un vrai composant électrique dès lors que ce n'est
+// pas une zone de regroupement purement visuelle (voir `buildZone` dans
+// templates.ts, toujours `componentType: "zone"`).
+function isRealComponentNode(data: ElectricalNodeData | undefined): data is ElectricalNodeData {
+  return Boolean(data) && data!.componentType !== "zone";
+}
+
+export function getSchemaExampleComponents(slug: string): SchemaExampleComponentSummary[] {
+  const template = getSchemaExampleTemplate(slug);
+  if (!template) return [];
+
+  const { nodes } = template.build();
+  const grouped = new Map<string, SchemaExampleComponentSummary>();
+
+  for (const node of nodes) {
+    const data = node.data as ElectricalNodeData | undefined;
+    if (!isRealComponentNode(data)) continue;
+
+    const def = getComponentDefinition(data.componentType);
+    const typeLabel = def?.label ?? data.componentType;
+    const brand = typeof data.brand === "string" && data.brand.trim() ? data.brand.trim() : undefined;
+    const model = typeof data.model === "string" && data.model.trim() ? data.model.trim() : undefined;
+    const hasKnownBrand = Boolean(data.brandModelId) || Boolean(brand && model);
+
+    const label = hasKnownBrand && brand && model ? `${brand} ${model}` : typeLabel;
+    const key = hasKnownBrand && brand && model ? `brand:${data.componentType}:${brand}:${model}` : `generic:${data.componentType}`;
+
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      grouped.set(key, { key, label, typeLabel, brand, model, count: 1 });
+    }
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    return a.label.localeCompare(b.label, "fr");
+  });
+}
+
+export interface SchemaExampleWiringRow {
+  id: string;
+  fromLabel: string;
+  toLabel: string;
+  section: string;
+  length: number | null;
+  polarity: "positif" | "négatif";
+}
+
+const MAX_WIRING_ROWS = 12;
+
+function parseSectionMm2(section: string): number {
+  const matches = section.match(/\d+(?:[.,]\d+)?/g);
+  const raw = matches?.[matches.length - 1];
+  if (!raw) return 0;
+  const value = Number(raw.replace(",", "."));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function nodeLabel(nodes: { id: string; data: ElectricalNodeData }[], nodeId: string): string {
+  const node = nodes.find((n) => n.id === nodeId);
+  if (!node) return nodeId;
+  const def = getComponentDefinition(node.data.componentType);
+  return String(node.data.label ?? def?.label ?? node.data.componentType);
+}
+
+// Câbles de puissance (+ et −) les plus significatifs du gabarit : triés par
+// section décroissante (les câbles principaux batterie/protection/sources
+// ont les plus grosses sections) et limités à `MAX_WIRING_ROWS` pour rester
+// lisibles — un gabarit complet comme "bateau-premium" a une centaine de
+// câbles, la majorité étant du petit consommateur peu utile en tableau.
+export function getSchemaExampleWiring(slug: string): SchemaExampleWiringRow[] {
+  const template = getSchemaExampleTemplate(slug);
+  if (!template) return [];
+
+  const { nodes, edges } = template.build();
+  const typedNodes = nodes as { id: string; data: ElectricalNodeData }[];
+
+  const rows: (SchemaExampleWiringRow & { sortSection: number })[] = [];
+  const seen = new Set<string>();
+
+  for (const edge of edges) {
+    const data = edge.data as CableEdgeData | undefined;
+    const cableType = data?.cableType;
+    const section = data?.section;
+    if (!data || !section) continue;
+    if (cableType !== "power-positive" && cableType !== "power-negative") continue;
+
+    const fromLabel = nodeLabel(typedNodes, edge.source);
+    const toLabel = nodeLabel(typedNodes, edge.target);
+    const dedupeKey = `${fromLabel}→${toLabel}:${section}:${cableType}`;
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+
+    rows.push({
+      id: edge.id,
+      fromLabel,
+      toLabel,
+      section,
+      length: typeof data.length === "number" ? data.length : null,
+      polarity: cableType === "power-positive" ? "positif" : "négatif",
+      sortSection: parseSectionMm2(section),
+    });
+  }
+
+  return rows
+    .sort((a, b) => b.sortSection - a.sortSection)
+    .slice(0, MAX_WIRING_ROWS)
+    .map((row) => ({
+      id: row.id,
+      fromLabel: row.fromLabel,
+      toLabel: row.toLabel,
+      section: row.section,
+      length: row.length,
+      polarity: row.polarity,
+    }));
 }

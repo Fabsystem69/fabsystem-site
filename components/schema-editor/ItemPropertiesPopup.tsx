@@ -1,26 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSchemaStore, ZONE_COLORS } from "@/features/schemas/store/useSchemaStore";
-import { getComponentDefinition, getConsumerPreset } from "@/lib/electrical-components/definitions";
+import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { getConsumerPreset } from "@/lib/electrical-components/definitions";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
-import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
 import { calcSection, fusibleRecommande } from "@/lib/calc/section-cable";
 import { estimateConnectedAmps, estimateEdgeAmps, evaluateEdgeSection, findBatteryVoltage } from "@/lib/electrical-components/auto-size";
-import { CABLE_SECTIONS } from "@/types/schema";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
 import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaStore";
 
 // v2.2, retour utilisateur : "intègre le bandeau droit propriété avec les
-// mêmes fonctions mais dans le bandeau supérieur, toujours même principe,
-// c'est pour l'autre reste réduit" — remplace le popup plein écran par un
-// onglet contextuel du ruban (voir PropertiesTab.tsx + Ribbon.tsx), sur le
-// même principe que Fichier/Export déjà fusionnés. Les trois cartes
-// ci-dessous (Node/Edge/Zone) sont inchangées dans leur logique métier —
-// seul `CardShell` a changé de contenant (dropdown du ruban au lieu d'un
-// panneau plein écran, voir son commentaire).
-export { NodePropertiesCard, EdgePropertiesCard, ZonePropertiesCard, useBrandModelSelector };
+// mêmes fonctions mais dans le bandeau supérieur" — remplace le popup plein
+// écran par un onglet contextuel du ruban (voir PropertiesTab.tsx +
+// Ribbon.tsx). v2.3, retour utilisateur : "intégre dans le bandeau du haut
+// les spécificités directement sans avoir à cliquer dessus" — le panneau
+// déroulant "Spécificité" (NodePropertiesCard/EdgePropertiesCard/
+// ZonePropertiesCard/CardShell) a été retiré entièrement : PropertiesTab.tsx
+// affiche maintenant TOUS les champs directement dans la rangée du ruban, en
+// réutilisant seulement la logique métier ci-dessous (hooks + widgets
+// conseil Volta), plus aucun conteneur "carte".
+export { useBrandModelSelector, useNodeFieldChange, FuseSuggestion, SectionSuggestion, FuseBlockOutputs };
 
 // Extrait de NodePropertiesCard (retour utilisateur : "rajoute marque
 // modèle juste après le nom" dans le ruban) — réutilisé tel quel par
@@ -87,79 +87,19 @@ function useBrandModelSelector(node: SchemaNode | undefined) {
   return { brandModels, brandModelsByBrand, handleBrandModelChange };
 }
 
-function CardShell({
-  title,
-  subtitle,
-  darkMode,
-  onClose,
-  children,
-  footer,
-}: {
-  title: string;
-  subtitle: string;
-  darkMode: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) {
-  // Plus de `h-full` (retour utilisateur : bandeau propriétés déplacé dans
-  // le ruban) : hauteur naturelle, plafonnée + défilante pour rester dans
-  // un RibbonPanel plutôt que dans un panneau plein écran.
-  return (
-    <div className={`flex max-h-[75vh] flex-col overflow-hidden rounded-md border ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
-      <div className={`flex items-start justify-between gap-2 border-b px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
-        <div>
-          <h2 className={`text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{title}</h2>
-          <p className={`text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>{subtitle}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          title="Fermer"
-          className={`shrink-0 rounded-md border p-1.5 text-xs transition-base ${darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"}`}
-        >
-          ✕
-        </button>
-      </div>
-      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">{children}</div>
-      {footer ? <div className={`border-t px-4 py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>{footer}</div> : null}
-    </div>
-  );
-}
-
-function NodePropertiesCard({
-  node,
-  nodes,
-  edges,
-  darkMode,
-  onClose,
-}: {
-  node: SchemaNode;
-  nodes: SchemaNode[];
-  edges: SchemaEdge[];
-  darkMode: boolean;
-  onClose: () => void;
-}) {
+// Extrait de l'ancien NodePropertiesCard — gère les cas spéciaux où changer
+// un champ doit aussi affecter autre chose qu'une simple écriture directe
+// (préréglage consommateur, nombre de sorties, changement de technologie
+// batterie). `node` optionnel pour la même raison que `useBrandModelSelector`
+// ci-dessus (règle des Hooks, jamais d'appel conditionnel dans
+// PropertiesTab.tsx).
+function useNodeFieldChange(node: SchemaNode | undefined) {
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const setOutputCount = useSchemaStore((s) => s.setOutputCount);
-  const deleteSelected = useSchemaStore((s) => s.deleteSelected);
-  const duplicateNode = useSchemaStore((s) => s.duplicateNode);
-  const rotateNode = useSchemaStore((s) => s.rotateNode);
   const customCatalogItems = useSchemaStore((s) => s.customCatalogItems);
-  // Marque/modèle (V2) : le composant reste générique dans la bibliothèque —
-  // choisir un modèle ici ne fait que pré-remplir les champs déjà existants
-  // avec les valeurs réelles du datasheet. Les items personnalisés du
-  // compte (préfixe "custom:", retour utilisateur : widget de création
-  // d'item) se mélangent à la liste sans jamais toucher au catalogue
-  // officiel. Logique partagée avec PropertiesTab.tsx via
-  // `useBrandModelSelector` — appelé avant le `return null` ci-dessous
-  // (règle des Hooks : jamais d'appel conditionnel).
-  const { brandModels, brandModelsByBrand, handleBrandModelChange } = useBrandModelSelector(node);
 
-  const def = getComponentDefinition(node.data.componentType);
-  if (!def) return null;
-
-  function handleFieldChange(key: string, value: string | number) {
+  return function handleFieldChange(key: string, value: string | number) {
+    if (!node) return;
     // Cas spécial : le type d'appareil d'un consommateur préremplit nom +
     // puissance typique (retour utilisateur : liste déroulante de
     // consommateurs basiques) — reste modifiable ensuite comme un champ
@@ -197,261 +137,7 @@ function NodePropertiesCard({
       }
     }
     updateNodeData(node.id, { [key]: value });
-  }
-
-  const inputClass = `w-full rounded-md border px-2.5 py-1.5 text-sm focus:outline-none ${
-    darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 focus:border-neutral-900"
-  }`;
-  const buttonClass = `rounded-md border px-2.5 py-1.5 text-sm font-medium transition-base ${
-    darkMode ? "border-neutral-700 text-neutral-200 hover:bg-neutral-800" : "border-neutral-300 text-neutral-700 hover:bg-neutral-100"
-  }`;
-
-  return (
-    <CardShell
-      title={def.label}
-      subtitle="Propriétés du composant"
-      darkMode={darkMode}
-      onClose={onClose}
-      footer={
-        <div className="space-y-2">
-          <button type="button" onClick={() => rotateNode(node.id)} title="Pivoter (raccourci : R)" className={`w-full ${buttonClass}`}>
-            ↻ Pivoter 90°
-          </button>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => duplicateNode(node.id)} className={`flex-1 ${buttonClass}`}>
-              Dupliquer
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                deleteSelected();
-                onClose();
-              }}
-              className={`flex-1 rounded-md border px-2.5 py-1.5 text-sm font-medium transition-base ${
-                darkMode ? "border-red-900 text-red-400 hover:bg-red-950" : "border-red-200 text-red-600 hover:bg-red-50"
-              }`}
-            >
-              Supprimer
-            </button>
-          </div>
-        </div>
-      }
-    >
-      {def.description ? (
-        <p className={`rounded-md px-2.5 py-2 text-xs leading-snug ${darkMode ? "bg-neutral-800 text-neutral-300" : "bg-neutral-100 text-neutral-600"}`}>
-          {def.description}
-        </p>
-      ) : null}
-      <label className="block">
-        <span className={`mb-1 flex items-center justify-between text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>
-          <span>Taille d&apos;affichage</span>
-          <span>×{Number(node.data.displayScale) || 1}</span>
-        </span>
-        <input
-          type="range"
-          min={1}
-          max={5}
-          step={1}
-          value={Number(node.data.displayScale) || 1}
-          onChange={(e) => updateNodeData(node.id, { displayScale: Number(e.target.value) })}
-          className="w-full"
-        />
-        <span className={`mt-1 block text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-          Agrandit uniquement cette vignette sur le schéma, pour la mettre en valeur.
-        </span>
-      </label>
-      {brandModels.length > 0 ? (
-        <label className="block">
-          <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Marque / modèle</span>
-          <select value={String(node.data.brandModelId ?? "")} onChange={(e) => handleBrandModelChange(e.target.value)} className={inputClass}>
-            <option value="">Générique</option>
-            {Array.from(brandModelsByBrand.entries())
-              .sort(([a], [b]) => a.localeCompare(b, "fr"))
-              .map(([brand, models]) => (
-              <optgroup key={brand} label={brand}>
-                {models.map((m) => (
-                  <option key={m.id} value={m.id}>{m.model}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <span className={`mt-1 block text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-            Pré-remplit les champs ci-dessous avec les valeurs du modèle — reste modifiable ensuite.
-          </span>
-        </label>
-      ) : null}
-      {def.fields.map((field) => (
-        <label key={field.key} className="block">
-          <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>{field.label}</span>
-          {field.type === "select" ? (
-            <select value={String(node.data[field.key] ?? "")} onChange={(e) => handleFieldChange(field.key, e.target.value)} className={inputClass}>
-              {field.options.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          ) : field.type === "number" ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                value={Number(node.data[field.key] ?? 0)}
-                onChange={(e) => handleFieldChange(field.key, Number(e.target.value))}
-                min={field.min}
-                max={field.max}
-                step={field.step}
-                className={inputClass}
-              />
-              {field.unit ? <span className={`text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{field.unit}</span> : null}
-            </div>
-          ) : (
-            <input type="text" value={String(node.data[field.key] ?? "")} onChange={(e) => handleFieldChange(field.key, e.target.value)} className={inputClass} />
-          )}
-          {field.help ? (
-            <span className={`mt-1 block text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{field.help}</span>
-          ) : null}
-        </label>
-      ))}
-
-      {def.type === "fuse" ? <FuseSuggestion nodeId={node.id} nodes={nodes} edges={edges} darkMode={darkMode} /> : null}
-      {def.type === "fuse-block" ? <FuseBlockOutputs node={node} onChange={updateNodeData} darkMode={darkMode} /> : null}
-    </CardShell>
-  );
-}
-
-function EdgePropertiesCard({
-  edge,
-  nodes,
-  edges,
-  darkMode,
-  onClose,
-}: {
-  edge: SchemaEdge;
-  nodes: SchemaNode[];
-  edges: SchemaEdge[];
-  darkMode: boolean;
-  onClose: () => void;
-}) {
-  const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
-  const deleteSelected = useSchemaStore((s) => s.deleteSelected);
-
-  const inputClass = `w-full rounded-md border px-2.5 py-1.5 text-sm focus:outline-none ${
-    darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 focus:border-neutral-900"
-  }`;
-
-  // Préremplit la longueur avec une moyenne plausible dès qu'une section est
-  // choisie, sans écraser une longueur déjà saisie (retour utilisateur :
-  // éviter à un débutant d'avoir à la renseigner lui-même).
-  function applySection(section: string) {
-    const patch: Record<string, unknown> = { section };
-    if (edge.data?.length === undefined) {
-      const sourceType = nodes.find((n) => n.id === edge.source)?.data.componentType;
-      const targetType = nodes.find((n) => n.id === edge.target)?.data.componentType;
-      const avg = getEdgeDefaultLength(sourceType, targetType, section, edge.data?.cableType);
-      if (avg !== undefined) patch.length = avg;
-    }
-    updateEdgeData(edge.id, patch);
-  }
-
-  return (
-    <CardShell
-      title="Câble"
-      subtitle="Propriétés de la connexion"
-      darkMode={darkMode}
-      onClose={onClose}
-      footer={
-        <button
-          type="button"
-          onClick={() => {
-            deleteSelected();
-            onClose();
-          }}
-          className={`w-full rounded-md border px-2.5 py-1.5 text-sm font-medium transition-base ${
-            darkMode ? "border-red-900 text-red-400 hover:bg-red-950" : "border-red-200 text-red-600 hover:bg-red-50"
-          }`}
-        >
-          Supprimer le câble
-        </button>
-      }
-    >
-      <label className="block">
-        <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Nom (facultatif)</span>
-        <input
-          type="text"
-          value={String(edge.data?.label ?? "")}
-          onChange={(e) => updateEdgeData(edge.id, { label: e.target.value })}
-          placeholder="ex : VE.Direct, NMEA2000…"
-          className={inputClass}
-        />
-      </label>
-
-      <label className="block">
-        <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Type de câble</span>
-        <select
-          value={String(edge.data?.cableType ?? "other")}
-          onChange={(e) => {
-            const type = getCableType(e.target.value);
-            updateEdgeData(edge.id, { cableType: e.target.value, color: type?.color });
-          }}
-          className={inputClass}
-        >
-          {CABLE_TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
-            </option>
-          ))}
-        </select>
-        <span className={`mt-1 block text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-          Un câble de commande ou de bus (VE.Direct, NMEA2000…) peut avoir sa propre couleur.
-        </span>
-      </label>
-
-      <label className="block">
-        <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Section</span>
-        <select value={String(edge.data?.section ?? "")} onChange={(e) => applySection(e.target.value)} className={inputClass}>
-          <option value="">—</option>
-          {CABLE_SECTIONS.map((section) => (
-            <option key={section} value={section}>
-              {section}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <SectionSuggestion edge={edge} nodes={nodes} edges={edges} onApply={applySection} darkMode={darkMode} />
-
-      <label className="block">
-        <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Longueur (facultatif)</span>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min={0}
-            step={0.5}
-            value={edge.data?.length ?? ""}
-            onChange={(e) => updateEdgeData(edge.id, { length: e.target.value === "" ? undefined : Number(e.target.value) })}
-            className={inputClass}
-          />
-          <span className={`text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>m</span>
-        </div>
-        <span className={`mt-1 block text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-          Sert à calculer les métrages du récapitulatif matériel.
-        </span>
-      </label>
-
-      <label className="block">
-        <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Couleur</span>
-        <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={String(edge.data?.color ?? "#6b7280")}
-            onChange={(e) => updateEdgeData(edge.id, { color: e.target.value })}
-            className={`h-8 w-10 cursor-pointer rounded border ${darkMode ? "border-neutral-700" : "border-neutral-300"}`}
-          />
-          <span className={`text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Modifiable librement, sans contrainte normative</span>
-        </div>
-      </label>
-    </CardShell>
-  );
+  };
 }
 
 // Un champ de calibre par sortie (retour utilisateur : "possibilité de
@@ -643,74 +329,5 @@ function SectionSuggestion({
         </button>
       ) : null}
     </div>
-  );
-}
-
-// Panneau dédié à une zone colorée (retour utilisateur : "créer des carrés
-// de couleur pour créer des zones de schéma") — pas de `ComponentDefinition`
-// pour ce type, donc un panneau à part plutôt que de forcer l'écran
-// générique des composants électriques (champs/marque-modèle n'ont aucun
-// sens ici).
-function ZonePropertiesCard({ node, darkMode, onClose }: { node: SchemaNode; darkMode: boolean; onClose: () => void }) {
-  const updateNodeData = useSchemaStore((s) => s.updateNodeData);
-  const deleteSelected = useSchemaStore((s) => s.deleteSelected);
-  const color = String(node.data.color ?? ZONE_COLORS[0]);
-
-  const inputClass = `w-full rounded-md border px-2.5 py-1.5 text-sm focus:outline-none ${
-    darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 focus:border-neutral-900"
-  }`;
-
-  return (
-    <CardShell
-      title="Zone"
-      subtitle="Regroupement visuel"
-      darkMode={darkMode}
-      onClose={onClose}
-      footer={
-        <button
-          type="button"
-          onClick={() => {
-            deleteSelected();
-            onClose();
-          }}
-          className={`w-full rounded-md border px-2.5 py-1.5 text-sm font-medium transition-base ${
-            darkMode ? "border-red-900 text-red-400 hover:bg-red-950" : "border-red-200 text-red-600 hover:bg-red-50"
-          }`}
-        >
-          Supprimer la zone
-        </button>
-      }
-    >
-      <label className="block">
-        <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Nom</span>
-        <input
-          type="text"
-          value={String(node.data.label ?? "")}
-          onChange={(e) => updateNodeData(node.id, { label: e.target.value })}
-          className={inputClass}
-        />
-      </label>
-
-      <div>
-        <span className={`mb-1.5 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>Couleur</span>
-        <div className="flex flex-wrap gap-2">
-          {ZONE_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => updateNodeData(node.id, { color: c })}
-              title={c}
-              className="h-7 w-7 rounded-full border-2 transition-base"
-              style={{ backgroundColor: c, borderColor: c === color ? (darkMode ? "#fff" : "#111827") : "transparent" }}
-            />
-          ))}
-        </div>
-      </div>
-
-      <p className={`text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-        Glisse des composants à l&apos;intérieur pour les regrouper visuellement — aucun lien n&apos;est créé automatiquement, la zone sert
-        uniquement de repère. Redimensionnable par les poignées quand elle est sélectionnée.
-      </p>
-    </CardShell>
   );
 }

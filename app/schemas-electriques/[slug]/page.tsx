@@ -12,9 +12,11 @@ import {
   getSchemaEditorTemplateHref,
   getSchemaExampleAbsoluteUrl,
   getSchemaExampleBySlug,
+  getSchemaExampleComponents,
   getSchemaExampleHref,
   getSchemaExampleTemplate,
   getSchemaExampleThumbnailAbsoluteUrl,
+  getSchemaExampleWiring,
 } from "@/lib/schema-examples";
 
 type PageProps = {
@@ -58,6 +60,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+const faqItems = (exampleTitle: string) => [
+  {
+    question: "Puis-je adapter ce schéma à une tension différente (24V, 48V) ?",
+    answer:
+      "Oui dans l'esprit, mais pas en changeant juste un chiffre. La logique d'ensemble (sources, protections, distribution) reste valable, mais les sections de câble, les calibres de fusible et souvent les modèles de composants doivent être recalculés pour la tension réelle visée.",
+  },
+  {
+    question: "Les sections de câble et calibres affichés sont-ils garantis pour mon installation ?",
+    answer:
+      "Non. Ils correspondent au dimensionnement retenu pour ce gabarit précis (puissance, longueurs de câble et matériel choisis pour cet exemple), pas à une règle universelle. Vos distances réelles, votre puissance installée et votre matériel doivent toujours être vérifiés avant de câbler quoi que ce soit.",
+  },
+  {
+    question: "Comment imprimer ce schéma ou l'enregistrer en PDF ?",
+    answer:
+      "Utilisez le bouton « Imprimer » en haut de cette page : il ouvre la boîte de dialogue d'impression de votre navigateur, dans laquelle vous pouvez choisir « Enregistrer en PDF » comme destination.",
+  },
+  {
+    question: `Puis-je modifier « ${exampleTitle} » avant de l'imprimer ?`,
+    answer:
+      "Oui : ouvrez-le dans l'éditeur avec le bouton « Ouvrir dans l'éditeur », modifiez les composants, valeurs ou branchements selon votre projet, puis revenez imprimer votre propre version depuis l'éditeur.",
+  },
+];
+
 export default async function SchemaExamplePage({ params }: PageProps) {
   const { slug } = await params;
   const example = getSchemaExampleBySlug(slug);
@@ -66,6 +91,23 @@ export default async function SchemaExamplePage({ params }: PageProps) {
   if (!example || !template) {
     notFound();
   }
+
+  const components = getSchemaExampleComponents(slug);
+  const wiring = getSchemaExampleWiring(slug);
+  const faq = faqItems(example.title);
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
 
   const webPageJsonLd = {
     "@context": "https://schema.org",
@@ -109,6 +151,10 @@ export default async function SchemaExamplePage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       <PageIntro
@@ -197,6 +243,83 @@ export default async function SchemaExamplePage({ params }: PageProps) {
                 ))}
               </ul>
             </div>
+
+            {components.length > 0 ? (
+              <div>
+                <h2 className="text-lg font-bold tracking-tight text-neutral-950">
+                  Composants utilisés
+                </h2>
+                <div className="mt-4 overflow-x-auto rounded-[26px] border border-neutral-200 bg-neutral-50 p-5">
+                  <table className="w-full min-w-[420px] border-collapse text-sm">
+                    <thead>
+                      <tr className="text-left text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                        <th className="pb-3 pr-4">Composant</th>
+                        <th className="pb-3 pr-4">Type</th>
+                        <th className="pb-3">Quantité</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {components.map((component) => (
+                        <tr key={component.key} className="border-t border-neutral-200">
+                          <td className="py-2.5 pr-4 font-medium text-neutral-900">{component.label}</td>
+                          <td className="py-2.5 pr-4 text-neutral-600">{component.typeLabel}</td>
+                          <td className="py-2.5 text-neutral-600">
+                            {component.count > 1 ? `${component.count}×` : "1"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="mt-4 text-xs text-neutral-500">
+                    Liste générée directement depuis le vrai schéma (pas une fiche saisie à la
+                    main) : toujours à jour avec le gabarit ouvert dans l&apos;éditeur.
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            {wiring.length > 0 ? (
+              <div>
+                <h2 className="text-lg font-bold tracking-tight text-neutral-950">
+                  Câbles et protections
+                </h2>
+                <p className="mt-2 text-sm text-neutral-600">
+                  Les câbles de puissance les plus significatifs de ce schéma (batterie, sources,
+                  protections principales), avec leur section et leur longueur réelle telles que
+                  définies dans le gabarit.
+                </p>
+                <div className="mt-4 overflow-x-auto rounded-[26px] border border-neutral-200 bg-neutral-50 p-5">
+                  <table className="w-full min-w-[520px] border-collapse text-sm">
+                    <thead>
+                      <tr className="text-left text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                        <th className="pb-3 pr-4">De</th>
+                        <th className="pb-3 pr-4">Vers</th>
+                        <th className="pb-3 pr-4">Section</th>
+                        <th className="pb-3 pr-4">Longueur</th>
+                        <th className="pb-3">Polarité</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {wiring.map((row) => (
+                        <tr key={row.id} className="border-t border-neutral-200">
+                          <td className="py-2.5 pr-4 font-medium text-neutral-900">{row.fromLabel}</td>
+                          <td className="py-2.5 pr-4 font-medium text-neutral-900">{row.toLabel}</td>
+                          <td className="py-2.5 pr-4 text-neutral-600">{row.section}</td>
+                          <td className="py-2.5 pr-4 text-neutral-600">
+                            {row.length !== null ? `${row.length} m` : "—"}
+                          </td>
+                          <td className="py-2.5 text-neutral-600">{row.polarity}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="mt-4 text-xs text-neutral-500">
+                    Tableau généré directement depuis le vrai schéma, toujours à jour — ce n&apos;est
+                    pas une fiche de dimensionnement figée.
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </article>
 
           <aside className="space-y-4">
@@ -266,6 +389,18 @@ export default async function SchemaExamplePage({ params }: PageProps) {
               </div>
             </div>
           </aside>
+        </div>
+      </Section>
+
+      <Section tone="light" className="border-t border-neutral-200 py-8 sm:py-10">
+        <h2 className="text-lg font-bold tracking-tight text-neutral-950">Questions fréquentes</h2>
+        <div className="mt-4 space-y-3">
+          {faq.map((item) => (
+            <div key={item.question} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+              <h3 className="text-sm font-semibold text-neutral-950">{item.question}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-neutral-700">{item.answer}</p>
+            </div>
+          ))}
         </div>
       </Section>
 

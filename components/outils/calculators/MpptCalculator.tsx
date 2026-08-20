@@ -4,8 +4,16 @@ import { useState } from "react";
 import { calcSection } from "@/lib/calc/section-cable";
 import { OpenProjectLink } from "@/components/outils/project-bridge/OpenProjectLink";
 
-// Extrait tel quel de components/CalcSection.tsx (UI-7.1) — aucun
-// changement de comportement.
+// Extrait tel quel de components/CalcSection.tsx (UI-7.1), puis retour
+// utilisateur : "il serait pas utile de check si il manque pas des
+// outils" → comparaison avec le calculateur Solar & MPPT de Wireframe (leur
+// concurrent direct) qui applique une marge de +15% sur le Voc pour le
+// froid avant de comparer à la tension max du régulateur — un panneau Voc
+// plus élevé par temps froid, non pris en compte jusqu'ici, ni ici ni dans
+// le contrôle équivalent de l'éditeur (lib/electrical-components/checks.ts,
+// computeSeriesVoltageIssues). Ajouté ici + un vrai champ "tension max
+// régulateur" pour comparer au lieu de seuils génériques fixes (100V/150V,
+// conservés seulement en repli si ce champ est laissé vide).
 export default function MpptCalculator() {
   const [tensionBat, setTensionBat] = useState("12");
   const [puissanceWc, setPuissanceWc] = useState("");
@@ -14,6 +22,7 @@ export default function MpptCalculator() {
   const [nbSerie, setNbSerie] = useState("1");
   const [nbParallele, setNbParallele] = useState("1");
   const [longueurMPPT, setLongueurMPPT] = useState("2");
+  const [maxPvVoltage, setMaxPvVoltage] = useState("");
 
   const wc = parseFloat(puissanceWc) || 0;
   const vocN = parseFloat(voc) || 0;
@@ -21,8 +30,15 @@ export default function MpptCalculator() {
   const serie = parseInt(nbSerie) || 1;
   const parallele = parseInt(nbParallele) || 1;
   const t = parseFloat(tensionBat);
+  const maxPv = parseFloat(maxPvVoltage) || 0;
 
   const vocString = vocN * serie;
+  // Marge froid : la Voc réelle d'un panneau augmente quand il fait froid
+  // (coefficient de température négatif) — un régulateur dimensionné pile
+  // sur la Voc "fiche technique" (mesurée à 25°C) peut être détruit par une
+  // matinée d'hiver. +15% est la marge standard du secteur (même valeur que
+  // Wireframe).
+  const vocStringCold = vocString * 1.15;
   const vmpString = vmpN * serie;
   const iscTotal = vmpN > 0 ? (wc / vmpN) * parallele : 0;
   const iSortieMPPT = t > 0 ? wc / t : 0;
@@ -39,8 +55,20 @@ export default function MpptCalculator() {
 
   type Alert = { color: "red" | "orange" | "yellow"; msg: string };
   const alerts: Alert[] = [];
-  if (vocString > 150) alerts.push({ color: "red", msg: "Tension Voc trop élevée pour un MPPT standard — vérifiez la fiche technique de votre régulateur" });
-  else if (vocString > 100) alerts.push({ color: "orange", msg: "Tension élevée — vérifiez la limite Voc max de votre MPPT" });
+  if (maxPv > 0) {
+    if (vocStringCold > maxPv) {
+      alerts.push({
+        color: "red",
+        msg: `Voc à froid (${vocStringCold.toFixed(1)} V, +15%) dépasse la tension max de votre régulateur (${maxPv} V) — risque de destruction du MPPT, réduisez le nombre de panneaux en série`,
+      });
+    } else if (vocStringCold > maxPv * 0.9) {
+      alerts.push({ color: "orange", msg: `Marge faible : Voc à froid (${vocStringCold.toFixed(1)} V) proche de la limite de votre régulateur (${maxPv} V)` });
+    }
+  } else if (vocStringCold > 150) {
+    alerts.push({ color: "red", msg: "Tension Voc à froid trop élevée pour un MPPT standard — vérifiez la fiche technique de votre régulateur" });
+  } else if (vocStringCold > 100) {
+    alerts.push({ color: "orange", msg: "Tension élevée à froid — vérifiez la limite Voc max de votre MPPT" });
+  }
   if (iSortieMPPT > 60) alerts.push({ color: "orange", msg: "Courant de sortie élevé — envisagez deux régulateurs MPPT en parallèle" });
   if (serie > 1 && tensionBat === "12") alerts.push({ color: "orange", msg: "Panneaux en série sur batterie 12V — assurez-vous que Vmp_string reste compatible avec votre MPPT" });
 
@@ -95,11 +123,18 @@ export default function MpptCalculator() {
               value={nbParallele} onChange={(e) => setNbParallele(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
           </div>
-          <div className="sm:col-span-2">
+          <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Longueur câble MPPT → batterie (m)</label>
             <input type="number" min="0" placeholder="ex : 2"
               value={longueurMPPT} onChange={(e) => setLongueurMPPT(e.target.value)}
               className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Tension max entrée PV du régulateur (V)</label>
+            <input type="number" min="0" placeholder="ex : 100"
+              value={maxPvVoltage} onChange={(e) => setMaxPvVoltage(e.target.value)}
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20" />
+            <p className="mt-1 text-xs text-neutral-400">Facultatif — fiche technique du régulateur (ex. 100 pour un MPPT &laquo;&nbsp;100/20&nbsp;&raquo;)</p>
           </div>
         </div>
       </div>
@@ -122,8 +157,12 @@ export default function MpptCalculator() {
             <div className="grid grid-cols-2 gap-3 border-t border-brand-200 pt-4">
               <div>
                 <p className="text-xs text-neutral-500">Voc string</p>
-                <p className={`text-lg font-bold ${vocString > 150 ? "text-red-600" : vocString > 100 ? "text-orange-600" : "text-neutral-900"}`}>
-                  {vocString.toFixed(1)} V
+                <p className="text-lg font-bold text-neutral-900">{vocString.toFixed(1)} V</p>
+              </div>
+              <div>
+                <p className="text-xs text-neutral-500">Voc à froid (+15%)</p>
+                <p className={`text-lg font-bold ${maxPv > 0 ? (vocStringCold > maxPv ? "text-red-600" : vocStringCold > maxPv * 0.9 ? "text-orange-600" : "text-neutral-900") : vocStringCold > 150 ? "text-red-600" : vocStringCold > 100 ? "text-orange-600" : "text-neutral-900"}`}>
+                  {vocStringCold.toFixed(1)} V
                 </p>
               </div>
               <div>
@@ -165,7 +204,7 @@ export default function MpptCalculator() {
             )}
 
             <p className="text-xs text-neutral-500">
-              Marge sécurité 25% appliquée sur la puissance MPPT. Sections câbles calculées avec chute de tension 3%.
+              Marge sécurité 25% appliquée sur la puissance MPPT, +15% sur le Voc pour le froid. Sections câbles calculées avec chute de tension 3%.
             </p>
             <OpenProjectLink label="Continuer dans mon projet" />
           </div>

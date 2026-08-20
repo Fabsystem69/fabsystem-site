@@ -42,7 +42,7 @@ function isPowerCableType(value: string | undefined): value is PowerCableType {
   return value === "power-positive" || value === "power-negative";
 }
 
-function formatSectionLabel(sectionMm2: number): string {
+export function formatSectionLabel(sectionMm2: number): string {
   return `${String(sectionMm2).replace(".", ",")} mm²`;
 }
 

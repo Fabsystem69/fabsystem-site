@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { useSchemaStore, ZONE_COLORS } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
-import { NodePropertiesCard, EdgePropertiesCard, ZonePropertiesCard, useBrandModelSelector } from "./ItemPropertiesPopup";
-import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
+import { useBrandModelSelector, useNodeFieldChange, FuseSuggestion, SectionSuggestion, FuseBlockOutputs } from "./ItemPropertiesPopup";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { CABLE_SECTIONS } from "@/types/schema";
+import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
 import { RibbonButton, RibbonDivider } from "./RibbonControls";
 
 // Onglet contextuel "Propriétés" (retour utilisateur : "intègre le bandeau
@@ -17,19 +16,42 @@ import { RibbonButton, RibbonDivider } from "./RibbonControls";
 // des onglets contextuels "Format" de Word/Excel qui n'apparaissent que
 // pour une image/un tableau sélectionné.
 //
-// Retour utilisateur : "réfléchis à comment intégrer les informations du
-// bouton Modifier dans la barre supérieure, au moins le principal" — le nom
-// (tous types) et le champ le plus significatif (le champ affiché en
-// pastille sur la vignette pour un composant, la section pour un câble)
-// sont maintenant des champs directs dans la rangée, pas seulement
-// accessibles via le panneau déroulant. Le reste (tous les autres champs,
-// trop nombreux et variés par type pour tenir dans 56px) reste dans ce
-// panneau, renommé "Spécificité" (retour utilisateur) — voir
-// ItemPropertiesPopup.tsx, logique métier inchangée.
+// v2.3, retour utilisateur : "intègre dans le bandeau du haut les
+// spécificités directement sans avoir à cliquer dessus" — le bouton
+// "Spécificité" (panneau déroulant avec tous les champs) a été retiré
+// entièrement : TOUS les champs de l'élément sélectionné sont maintenant
+// des champs directs dans la rangée, chacun dans son propre petit groupe
+// séparé par une mini-barre ("vraiment aéré", retour utilisateur précédent)
+// — plus aucun clic nécessaire pour atteindre un champ, quel qu'il soit.
 const inlineInputClass = (darkMode: boolean) =>
   `rounded border px-1.5 py-1 text-xs focus:outline-none ${
     darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 bg-white focus:border-neutral-900"
   }`;
+
+// Petit champ générique réutilisé pour chaque entrée de `def.fields` restant
+// après Nom/Marque-modèle — un seul rendu pour text/number/select plutôt que
+// de dupliquer la logique par type d'entrée à chaque appel.
+function InlineField({
+  darkMode,
+  label,
+  unit,
+  children,
+}: {
+  darkMode: boolean;
+  label: string;
+  unit?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex flex-col gap-0.5 px-2">
+      <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>{label}</span>
+      <div className="flex items-center gap-1">
+        {children}
+        {unit ? <span className={`text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{unit}</span> : null}
+      </div>
+    </label>
+  );
+}
 
 export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
   const nodes = useSchemaStore((s) => s.nodes);
@@ -42,28 +64,13 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
 
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  useEscapeToClose(() => setDetailsOpen(false));
-
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : undefined;
   const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) : undefined;
   // Retour utilisateur : "rajoute marque modèle juste après le nom" —
-  // appelé sans condition (règle des Hooks), no-op tant qu'il n'y a pas de
-  // composant sélectionné (voir la signature `node | undefined` du Hook).
+  // appelés sans condition (règle des Hooks), no-op tant qu'il n'y a pas de
+  // composant sélectionné (voir la signature `node | undefined` des Hooks).
   const { brandModels, brandModelsByBrand, handleBrandModelChange } = useBrandModelSelector(selectedNode);
-
-  // Pas besoin de refermer "Spécificité" au changement de sélection : le
-  // panneau est dérivé de selectedNode/selectedEdge au rendu, il affiche
-  // donc déjà les champs du nouvel élément sans action supplémentaire.
-  useEffect(() => {
-    if (!detailsOpen) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) setDetailsOpen(false);
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [detailsOpen]);
+  const handleFieldChange = useNodeFieldChange(selectedNode);
 
   if (!selectedNode && !selectedEdge) return null;
 
@@ -71,12 +78,11 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
   const def = selectedNode && !isZone ? getComponentDefinition(selectedNode.data.componentType) : undefined;
   const title = isZone ? "Zone" : def ? def.label : selectedEdge ? "Câble" : "";
   const mirrored = selectedNode ? Boolean(selectedNode.data.mirrored) : false;
+  const zoneColor = isZone && selectedNode ? String(selectedNode.data.color ?? ZONE_COLORS[0]) : null;
 
-  // Champ principal d'un composant : celui affiché en pastille sur la
-  // vignette (def.badge.field), le repère le plus utile pour dimensionner
-  // sans ouvrir "Spécificité" (ampérage d'un fusible, puissance d'un
-  // panneau…). Absent pour les composants sans pastille (busbar…).
-  const badgeField = def?.badge ? def.fields.find((f) => f.key === def.badge!.field && f.type === "number") : undefined;
+  // Tous les champs du composant sauf "label" (Nom, déjà son propre bloc
+  // dédié en tête de rangée).
+  const remainingFields = def ? def.fields.filter((f) => f.key !== "label") : [];
 
   function applySection(section: string) {
     if (!selectedEdge) return;
@@ -91,7 +97,8 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
   }
 
   return (
-    <div className="flex items-center gap-1" ref={containerRef}>
+    <>
+      <div className="flex items-center gap-1 overflow-x-auto">
       <div className="flex w-20 shrink-0 flex-col items-center gap-0.5 px-1.5 py-1.5 text-center">
         <span className="text-lg leading-none">{isZone ? "▭" : selectedEdge ? "⏤" : "🔧"}</span>
         <span className={`truncate text-[10px] font-medium leading-tight ${darkMode ? "text-neutral-300" : "text-neutral-600"}`} title={title}>
@@ -103,21 +110,18 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
 
       {/* Retour utilisateur : "pareil pour nom et capacité, pense à
           vraiment aérer" — chaque champ dans son propre groupe séparé par
-          une mini-barre, plutôt qu'un seul bloc tassé (gap-1.5 seul,
-          version précédente). */}
+          une mini-barre, plutôt qu'un seul bloc tassé. */}
       {selectedNode ? (
-        <label className="flex flex-col gap-0.5 px-2">
-          <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>Nom</span>
+        <InlineField darkMode={darkMode} label="Nom">
           <input
             type="text"
             value={String(selectedNode.data.label ?? "")}
             onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
             className={`${inlineInputClass(darkMode)} w-28`}
           />
-        </label>
+        </InlineField>
       ) : selectedEdge ? (
-        <label className="flex flex-col gap-0.5 px-2">
-          <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>Nom</span>
+        <InlineField darkMode={darkMode} label="Nom">
           <input
             type="text"
             value={String(selectedEdge.data?.label ?? "")}
@@ -125,66 +129,140 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
             placeholder="Facultatif"
             className={`${inlineInputClass(darkMode)} w-28`}
           />
-        </label>
+        </InlineField>
       ) : null}
 
       {/* Retour utilisateur : "rajoute marque modèle juste après le nom" —
-          même sélecteur que dans "Spécificité" (voir useBrandModelSelector),
-          absent pour les composants sans modèle catalogué (busbar…) ou pour
-          une zone. */}
+          même sélecteur que l'ancien panneau "Spécificité", absent pour les
+          composants sans modèle catalogué (busbar…) ou pour une zone. */}
       {selectedNode && !isZone && brandModels.length > 0 ? (
         <>
           <RibbonDivider darkMode={darkMode} />
-          <label className="flex flex-col gap-0.5 px-2">
-            <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>Marque / modèle</span>
+          <InlineField darkMode={darkMode} label="Marque / modèle">
             <select
               value={String(selectedNode.data.brandModelId ?? "")}
               onChange={(e) => handleBrandModelChange(e.target.value)}
               className={`${inlineInputClass(darkMode)} w-40`}
             >
               <option value="">Générique</option>
-              {Array.from(brandModelsByBrand.entries()).map(([brand, models]) => (
-                <optgroup key={brand} label={brand}>
-                  {models.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.model}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
+              {Array.from(brandModelsByBrand.entries())
+                .sort(([a], [b]) => a.localeCompare(b, "fr"))
+                .map(([brand, models]) => (
+                  <optgroup key={brand} label={brand}>
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.model}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
             </select>
-          </label>
+          </InlineField>
         </>
       ) : null}
 
-      {selectedNode && badgeField ? (
+      {/* Tous les autres champs du composant, un par un — plus de bouton
+          "Spécificité" à cliquer pour les atteindre. */}
+      {selectedNode && !isZone
+        ? remainingFields.map((field) => (
+            <>
+              <RibbonDivider darkMode={darkMode} key={`${field.key}-divider`} />
+              <InlineField key={field.key} darkMode={darkMode} label={field.label} unit={field.type === "number" ? field.unit : undefined}>
+                {field.type === "select" ? (
+                  <select
+                    value={String(selectedNode.data[field.key] ?? "")}
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    className={`${inlineInputClass(darkMode)} w-32`}
+                  >
+                    {field.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : field.type === "number" ? (
+                  <input
+                    type="number"
+                    value={Number(selectedNode.data[field.key] ?? 0)}
+                    onChange={(e) => handleFieldChange(field.key, Number(e.target.value))}
+                    min={field.min}
+                    max={field.max}
+                    step={field.step}
+                    className={`${inlineInputClass(darkMode)} w-16`}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={String(selectedNode.data[field.key] ?? "")}
+                    onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                    className={`${inlineInputClass(darkMode)} w-28`}
+                  />
+                )}
+              </InlineField>
+            </>
+          ))
+        : null}
+
+      {/* Retour utilisateur : "bug de volta" — le conseil (avatar + texte +
+          formulaire dépliable) était bien trop haut pour tenir dans une
+          rangée de ruban de 56px, il débordait par-dessus le reste de
+          l'interface. Déplacé en bulle flottante bas de l'écran (voir plus
+          bas dans ce composant), même style que GuidedTutorial.tsx —
+          "fait apparaître le message en bulle en bas avec volta déjà en
+          place". */}
+      {selectedNode && def?.type === "fuse-block" ? (
         <>
           <RibbonDivider darkMode={darkMode} />
-          <label className="flex flex-col gap-0.5 px-2">
-            <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>{badgeField.label}</span>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                value={Number(selectedNode.data[badgeField.key] ?? 0)}
-                onChange={(e) => updateNodeData(selectedNode.id, { [badgeField.key]: Number(e.target.value) })}
-                min={badgeField.type === "number" ? badgeField.min : undefined}
-                max={badgeField.type === "number" ? badgeField.max : undefined}
-                step={badgeField.type === "number" ? badgeField.step : undefined}
-                className={`${inlineInputClass(darkMode)} w-16`}
-              />
-              {badgeField.type === "number" && badgeField.unit ? (
-                <span className={`text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{badgeField.unit}</span>
-              ) : null}
-            </div>
-          </label>
+          <div className="px-2">
+            <FuseBlockOutputs node={selectedNode} onChange={updateNodeData} darkMode={darkMode} />
+          </div>
         </>
       ) : null}
 
+      {/* Zone : Nom déjà couvert ci-dessus, seule la couleur reste. */}
+      {isZone && selectedNode && zoneColor ? (
+        <>
+          <RibbonDivider darkMode={darkMode} />
+          <InlineField darkMode={darkMode} label="Couleur">
+            <div className="flex items-center gap-1">
+              {ZONE_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => updateNodeData(selectedNode.id, { color: c })}
+                  title={c}
+                  className="h-5 w-5 rounded-full border-2 transition-base"
+                  style={{ backgroundColor: c, borderColor: c === zoneColor ? (darkMode ? "#fff" : "#111827") : "transparent" }}
+                />
+              ))}
+            </div>
+          </InlineField>
+        </>
+      ) : null}
+
+      {/* Câble : type + section + longueur + couleur, tous en direct. */}
       {selectedEdge ? (
         <>
           <RibbonDivider darkMode={darkMode} />
-          <label className="flex flex-col gap-0.5 px-2">
-            <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>Section</span>
+          <InlineField darkMode={darkMode} label="Type de câble">
+            <select
+              value={String(selectedEdge.data?.cableType ?? "other")}
+              onChange={(e) => {
+                const type = getCableType(e.target.value);
+                updateEdgeData(selectedEdge.id, { cableType: e.target.value, color: type?.color });
+              }}
+              className={`${inlineInputClass(darkMode)} w-32`}
+            >
+              {CABLE_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </InlineField>
+
+          <RibbonDivider darkMode={darkMode} />
+          <InlineField darkMode={darkMode} label="Section">
             <select value={String(selectedEdge.data?.section ?? "")} onChange={(e) => applySection(e.target.value)} className={`${inlineInputClass(darkMode)} w-24`}>
               <option value="">—</option>
               {CABLE_SECTIONS.map((section) => (
@@ -193,22 +271,40 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
                 </option>
               ))}
             </select>
-          </label>
+          </InlineField>
+
+          <RibbonDivider darkMode={darkMode} />
+          <InlineField darkMode={darkMode} label="Longueur" unit="m">
+            <input
+              type="number"
+              min={0}
+              step={0.5}
+              value={selectedEdge.data?.length ?? ""}
+              onChange={(e) => updateEdgeData(selectedEdge.id, { length: e.target.value === "" ? undefined : Number(e.target.value) })}
+              className={`${inlineInputClass(darkMode)} w-16`}
+            />
+          </InlineField>
+
+          <RibbonDivider darkMode={darkMode} />
+          <InlineField darkMode={darkMode} label="Couleur">
+            <input
+              type="color"
+              value={String(selectedEdge.data?.color ?? "#6b7280")}
+              onChange={(e) => updateEdgeData(selectedEdge.id, { color: e.target.value })}
+              className={`h-6 w-8 cursor-pointer rounded border ${darkMode ? "border-neutral-700" : "border-neutral-300"}`}
+            />
+          </InlineField>
         </>
       ) : null}
 
       {/* Retour utilisateur : "intègre le zoom aussi" puis "sépare avec
           mini barre et zoom renomme en taille" — "Taille d'affichage"
-          (agrandit uniquement cette vignette, ×1 à ×5), jusqu'ici
-          accessible seulement via "Spécificité". */}
+          (agrandit uniquement cette vignette, ×1 à ×5), pas un champ de
+          `def.fields` (réglage d'affichage, pas une donnée du composant). */}
       {selectedNode && !isZone ? (
         <>
           <RibbonDivider darkMode={darkMode} />
-          <label className="flex flex-col gap-0.5 px-2">
-            <span className={`flex items-center justify-between gap-2 text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>
-              <span>Taille</span>
-              <span>×{Number(selectedNode.data.displayScale) || 1}</span>
-            </span>
+          <InlineField darkMode={darkMode} label={`Taille ×${Number(selectedNode.data.displayScale) || 1}`}>
             <input
               type="range"
               min={1}
@@ -219,7 +315,7 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
               title="Taille d'affichage de cette vignette"
               className="w-20"
             />
-          </label>
+          </InlineField>
         </>
       ) : null}
 
@@ -228,9 +324,6 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
       {selectedNode && !isZone ? (
         <>
           <RibbonButton darkMode={darkMode} onClick={() => rotateNode(selectedNode.id)} icon="↻" label="Pivoter" title="Pivoter 90° (raccourci : R)" />
-          {/* Retour utilisateur : "il manque le bouton miroir également" —
-              existait déjà en accès rapide flottant sur la vignette
-              sélectionnée (ElectricalNode.tsx), mais pas ici dans le ruban. */}
           <RibbonButton
             darkMode={darkMode}
             onClick={() => updateNodeData(selectedNode.id, { mirrored: !mirrored })}
@@ -251,23 +344,34 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
         label="Supprimer"
         title={selectedEdge ? "Supprimer le câble" : isZone ? "Supprimer la zone" : "Supprimer"}
       />
-
-      <RibbonDivider darkMode={darkMode} />
-
-      <div className="relative">
-        <RibbonButton darkMode={darkMode} onClick={() => setDetailsOpen((v) => !v)} active={detailsOpen} icon="⚙️" label="Spécificité" title="Tous les champs de cet élément" />
-        {detailsOpen ? (
-          <div className="absolute left-0 top-full z-10 mt-1 w-96">
-            {isZone && selectedNode ? (
-              <ZonePropertiesCard node={selectedNode} darkMode={darkMode} onClose={() => setDetailsOpen(false)} />
-            ) : selectedNode ? (
-              <NodePropertiesCard node={selectedNode} nodes={nodes} edges={edges} darkMode={darkMode} onClose={() => setDetailsOpen(false)} />
-            ) : selectedEdge ? (
-              <EdgePropertiesCard edge={selectedEdge} nodes={nodes} edges={edges} darkMode={darkMode} onClose={() => setDetailsOpen(false)} />
-            ) : null}
-          </div>
-        ) : null}
       </div>
-    </div>
+
+      {/* Conseil Volta (calibre fusible / section câble) — bulle flottante
+          bas d'écran plutôt qu'inline dans le ruban (retour utilisateur :
+          "bug de volta", le widget avatar+texte+formulaire dépliable était
+          trop haut pour une rangée de 56px et débordait par-dessus le reste
+          de l'interface ; "fait apparaître le message en bulle en bas avec
+          volta déjà en place" — même style que GuidedTutorial.tsx). Toujours
+          visible dès qu'un fusible ou un câble de puissance est sélectionné,
+          aucun clic requis.
+          `pointer-events-none` sur le conteneur pour ne jamais bloquer un
+          clic sur le canvas en dessous, `pointer-events-auto` sur la bulle
+          elle-même pour rester utilisable (bouton "Appliquer cette
+          section", détails dépliables). */}
+      {selectedNode && def?.type === "fuse" ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
+          <div className="pointer-events-auto w-full max-w-lg">
+            <FuseSuggestion nodeId={selectedNode.id} nodes={nodes} edges={edges} darkMode={darkMode} />
+          </div>
+        </div>
+      ) : null}
+      {selectedEdge ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
+          <div className="pointer-events-auto w-full max-w-lg">
+            <SectionSuggestion edge={selectedEdge} nodes={nodes} edges={edges} onApply={applySection} darkMode={darkMode} />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

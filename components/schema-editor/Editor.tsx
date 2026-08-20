@@ -29,6 +29,7 @@ import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
 import { BatteryPairPopup } from "./BatteryPairPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
+import { InstallAssistant } from "./InstallAssistant";
 import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 
 const AUTOSAVE_DELAY_MS = 700;
@@ -353,6 +354,7 @@ export function Editor() {
       <SizingPopup />
       <BatteryPairPopup />
       <GuidedTutorial />
+      <InstallAssistant />
       <SchemaIssuesWidget />
       <CoachingOfferWidget />
     </ReactFlowProvider>

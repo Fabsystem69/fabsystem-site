@@ -41,7 +41,7 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // distincts plutôt qu'un seul préréglage fourre-tout, "Éclairage LED"
   // conservé comme choix générique pour qui ne veut pas se soucier du détail.
   { value: "eclairage-led", label: "Éclairage LED (générique)", typicalPowerW: 5, iconPro: "/schema-icons/pro/eclairage-led.webp", group: "Éclairage" },
-  { value: "spot-led", label: "Spot LED encastré", typicalPowerW: 3, group: "Éclairage" },
+  { value: "spot-led", label: "Spot LED encastré", typicalPowerW: 3, iconPro: "/schema-icons/pro/spot-led.jpg", group: "Éclairage" },
   { value: "ruban-led", label: "Ruban LED", typicalPowerW: 10, iconPro: "/schema-icons/pro/ruban-led.jpg", group: "Éclairage" },
   // Photo récupérée de l'ancienne icône générique "Consommateur" (retour
   // utilisateur : elle prêtait à confusion en tant qu'illustration
@@ -66,6 +66,10 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "pompe-eau-immergee-25l", label: "Pompe à eau immergée 25L/min (type Reich Powerjet)", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau-immergee-25l.jpg", group: "Eau" },
   { value: "pompe-eau-immergee-10l", label: "Pompe à eau immergée 10L/min (type Comet)", typicalPowerW: 20, iconPro: "/schema-icons/pro/pompe-eau-immergee-10l.jpg", group: "Eau" },
   { value: "prise-usb-12v", label: "Prise USB / 12 V", typicalPowerW: 15, iconPro: "/schema-icons/pro/prise-usb-12v.webp", group: "Électronique & confort" },
+  // Retour utilisateur (2e bêta-testeur) : distincte de la prise USB/12V
+  // ci-dessus — la douille allume-cigare 12V classique, format et usage
+  // différents (accessoires auto/nautiques existants).
+  { value: "prise-allume-cigare", label: "Prise allume-cigare", typicalPowerW: 15, group: "Électronique & confort" },
   { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp", group: "Électronique & confort" },
   { value: "alarme", label: "Système d'alarme", typicalPowerW: 5, group: "Sécurité" },
   { value: "tele-12v", label: "Télé 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/tele-12v.jpg", group: "Électronique & confort" },
@@ -78,9 +82,18 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
 
   { value: "guindeau", label: "Guindeau", typicalPowerW: 800, iconPro: "/schema-icons/pro/guindeau.webp", group: "Manœuvre & pont" },
   { value: "pilote-automatique", label: "Pilote automatique", typicalPowerW: 30, iconPro: "/schema-icons/pro/pilote-automatique.webp", group: "Manœuvre & pont" },
+  // Retour utilisateur (2e bêta-testeur) : marche-pied électrique
+  // automatique (van/camping-car) — appel moteur ponctuel à l'ouverture de
+  // porte, comme le guindeau ci-dessus.
+  { value: "marche-pied-automatique", label: "Marche-pied automatique", typicalPowerW: 100, group: "Manœuvre & pont" },
   { value: "chargeur-telephone", label: "Chargeur téléphone / ordinateur", typicalPowerW: 25, iconPro: "/schema-icons/pro/chargeur-telephone.webp", group: "Électronique & confort" },
   { value: "chauffe-eau", label: "Chauffe-eau 220V", typicalPowerW: 300, iconPro: "/schema-icons/pro/chauffe-eau.webp", group: "Eau" },
   { value: "chauffe-eau-12v", label: "Chauffe-eau 12V (résistance)", typicalPowerW: 120, iconPro: "/schema-icons/pro/chauffe-eau-12v.jpeg", group: "Eau" },
+  // Retour utilisateur (2e bêta-testeur, cas réel) : distinct des deux
+  // ci-dessus — une seule résistance combinée 12V/220V utilisable sur les
+  // deux alimentations en même temps, pas juste l'une ou l'autre.
+  // Puissance typique = somme des deux résistances.
+  { value: "chauffe-eau-mixte-12-220", label: "Chauffe-eau 12V/220V (usage simultané)", typicalPowerW: 420, group: "Eau" },
   { value: "convertisseur-12-19v", label: "Convertisseur 12V/19V (chargeur PC portable)", typicalPowerW: 90, group: "Électronique & confort" },
   { value: "chauffage-appoint", label: "Chauffage d'appoint (soufflant 12V)", typicalPowerW: 150, group: "Chauffage & ventilation" },
   { value: "chauffage-diesel", label: "Chauffage diesel/air 12V (type Webasto, Eberspächer…)", typicalPowerW: 40, iconPro: "/schema-icons/pro/chauffage-diesel.webp", group: "Chauffage & ventilation" },
@@ -89,11 +102,19 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // le même combustible ni la même alimentation).
   { value: "chauffage-truma", label: "Chauffage d'appoint 12V/230V (type Truma)", typicalPowerW: 900, iconPro: "/schema-icons/pro/chauffage-truma.webp", group: "Chauffage & ventilation" },
   { value: "climatisation", label: "Climatisation de toit", typicalPowerW: 1500, iconPro: "/schema-icons/pro/climatisation.webp", group: "Chauffage & ventilation" },
+  // Retour utilisateur (2e bêta-testeur) : distinct de la climatisation de
+  // toit ci-dessus — unité portable posée au sol, pas fixée, puissance
+  // typique plus faible.
+  { value: "climatiseur-portable", label: "Climatiseur portable", typicalPowerW: 650, group: "Chauffage & ventilation" },
   { value: "ventilateur", label: "Ventilateur de toit", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur.webp", group: "Chauffage & ventilation" },
   // Retour utilisateur : "ventilateur sans toit, certains font leur propre
   // système" — montage DIY mural/façade, distinct du ventilateur de toit
-  // ci-dessus.
-  { value: "ventilateur-diy", label: "Ventilateur 12V (DIY, sans toit)", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur-diy.webp", group: "Chauffage & ventilation" },
+  // ci-dessus. "Sans toit" retiré du libellé (retour utilisateur : "retire
+  // sans toit, ça laisse la possibilité de l'utiliser dans d'autres
+  // configurations, pour les toilettes par exemple") — le préréglage reste
+  // le même montage DIY, juste un nom qui n'enferme plus son usage à un
+  // seul cas.
+  { value: "ventilateur-diy", label: "Ventilateur 12V (DIY)", typicalPowerW: 15, iconPro: "/schema-icons/pro/ventilateur-diy.webp", group: "Chauffage & ventilation" },
   { value: "blower-12v", label: "Blower / turbine 12V", typicalPowerW: 25, iconPro: "/schema-icons/pro/blower-12v.jpg", group: "Chauffage & ventilation" },
   { value: "prise-220v", label: "Prise 220V", typicalPowerW: 500, iconPro: "/schema-icons/pro/prise-220v.jpg", group: "Électronique & confort" },
 

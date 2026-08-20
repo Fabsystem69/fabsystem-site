@@ -166,7 +166,9 @@ export const BRAND_MODELS: BrandModel[] = [
   // DC-DC
   { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png" },
   { id: "victron-orion-tr-18a", brand: "Victron", model: "Orion-Tr Smart 12/12-18A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 18 } , iconPro: "/schema-icons/pro/brand/victron-orion-tr-18a.webp" },
-  { id: "victron-orion-tr-30a", brand: "Victron", model: "Orion-Tr Smart 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-30a.png" },
+  // Photo précédente cassée (rendu quasi blanc, produit illisible) — retour
+  // utilisateur : "l'autre est une image blanche".
+  { id: "victron-orion-tr-30a", brand: "Victron", model: "Orion-Tr Smart 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-30a.jpg" },
   // Non isolé (masse commune, une seule borne −) — sérigraphie du boîtier
   // "IN / GND / OUT", à la différence de l'Orion-Tr Smart (isolé, IN/OUT
   // chacun avec son propre −).

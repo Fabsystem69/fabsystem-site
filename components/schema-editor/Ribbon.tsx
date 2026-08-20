@@ -7,6 +7,7 @@ import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
 import { SaveMenu } from "./SaveMenu";
 import { AddComponentMenu } from "./AddComponentMenu";
+import { CalculatorMenu } from "./CalculatorMenu";
 import { PropertiesTab } from "./PropertiesTab";
 import { DarkModeToggle } from "./DisplayMenu";
 import { RibbonButton, RibbonDivider, RibbonGroup, RibbonPanel } from "./RibbonControls";
@@ -182,6 +183,7 @@ function AccueilGroup({
   setShowGrid: (value: boolean) => void;
 }) {
   const nodesCount = useSchemaStore((s) => s.nodes.length);
+  const openInstallAssistant = useSchemaStore((s) => s.openInstallAssistant);
   const newProject = useSchemaStore((s) => s.newProject);
   const loadTemplate = useSchemaStore((s) => s.loadTemplate);
   const past = useSchemaStore((s) => s.past);
@@ -250,6 +252,20 @@ function AccueilGroup({
     // Options dès qu'on cliquait DEDANS (bug réel trouvé en ajoutant Options
     // ici).
     <div className="contents" ref={panelsRef}>
+      {/* Retour utilisateur : "un module débutant guidé genre chat box où
+          il dit ce qu'il veut... tu viens rajouter les panneaux dans un
+          autre zone" — voir InstallAssistant.tsx. Groupe séparé et placé en
+          premier : c'est le point d'entrée pensé pour un débutant qui ne
+          sait pas par où commencer. */}
+      <RibbonGroup darkMode={darkMode} label="Assistant">
+        <RibbonButton darkMode={darkMode} onClick={openInstallAssistant} icon="💬" label="Débutant" title="Assistant guidé pour ajouter un équipement à ton schéma" />
+        {/* Retour utilisateur : "un menu outils/calculateur et ça ouvre en
+            popup l'outil sélectionné" — voir CalculatorMenu.tsx. */}
+        <CalculatorMenu darkMode={darkMode} />
+      </RibbonGroup>
+
+      <RibbonDivider darkMode={darkMode} />
+
       <RibbonGroup darkMode={darkMode} label="Fichier">
         <RibbonButton darkMode={darkMode} onClick={handleNewProject} icon="📄" label="Nouveau" title="Nouveau schéma vierge" />
         <SaveMenu darkMode={darkMode} />

@@ -358,13 +358,25 @@ function collectPvStrings(
   return strings;
 }
 
+// Marge froid : la Voc réelle d'un panneau augmente par temps froid
+// (coefficient de température négatif) — un régulateur dimensionné pile sur
+// la Voc "fiche technique" (mesurée à 25°C) peut être détruit par une
+// matinée d'hiver. +15% est la marge standard du secteur — retour
+// utilisateur : "il serait pas utile de check si il manque pas des
+// outils", comparaison avec le calculateur Solar & MPPT du concurrent
+// Wireframe qui applique cette même marge avant de comparer à la tension
+// max du régulateur (jusqu'ici absente ici, voir aussi
+// components/outils/calculators/MpptCalculator.tsx pour le même correctif
+// côté calculateur public).
+const VOC_COLD_MARGIN = 1.15;
+
 // Tension d'une string série = somme des Voc de ses panneaux (Voc, pas la
 // tension nominale "voltage" — c'est la tension réelle à vide, la plus
 // pénalisante, celle qui peut dépasser la tension d'entrée max du régulateur
-// par temps froid). Ignore une string dont un panneau n'a pas de Voc
-// renseigné (0 = "non connue", même convention que les autres champs
-// facultatifs) : mieux vaut ne pas signaler que signaler à partir d'une
-// tension sous-évaluée.
+// par temps froid, d'où VOC_COLD_MARGIN). Ignore une string dont un panneau
+// n'a pas de Voc renseigné (0 = "non connue", même convention que les
+// autres champs facultatifs) : mieux vaut ne pas signaler que signaler à
+// partir d'une tension sous-évaluée.
 function computeSeriesVoltageIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
   const issues: SchemaIssue[] = [];
 
@@ -382,7 +394,9 @@ function computeSeriesVoltageIssues(nodes: SchemaNodeInternal[], edges: SchemaEd
       const stringVoltage = string.reduce((sum, p) => sum + Number(p.data.vocVoltage), 0);
       if (stringVoltage > worstStringVoltage) worstStringVoltage = stringVoltage;
     }
-    if (worstStringVoltage <= maxPvVoltage) continue;
+    if (worstStringVoltage <= 0) continue;
+    const worstStringVoltageCold = worstStringVoltage * VOC_COLD_MARGIN;
+    if (worstStringVoltageCold <= maxPvVoltage) continue;
 
     const label = String(node.data.label ?? getComponentDefinition(type)?.label ?? type);
     const regulatorKind = type === "mppt" ? "MPPT" : "PWM";
@@ -390,7 +404,7 @@ function computeSeriesVoltageIssues(nodes: SchemaNodeInternal[], edges: SchemaEd
       id: `${node.id}-series-overvoltage`,
       targetKind: "node",
       targetId: node.id,
-      message: `« ${label} » (régulateur ${regulatorKind}, ${maxPvVoltage} V max en entrée) reçoit une chaîne de panneaux en série à ${formatAmps(worstStringVoltage)} V en circuit ouvert (Voc) : trop élevé, risque de destruction du régulateur — réduisez le nombre de panneaux en série ou câblez-les en parallèle.`,
+      message: `« ${label} » (régulateur ${regulatorKind}, ${maxPvVoltage} V max en entrée) reçoit une chaîne de panneaux en série à ${formatAmps(worstStringVoltage)} V en circuit ouvert (Voc), ${formatAmps(worstStringVoltageCold)} V à froid (+15%) : trop élevé, risque de destruction du régulateur — réduisez le nombre de panneaux en série ou câblez-les en parallèle.`,
     });
   }
 
