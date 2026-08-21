@@ -420,6 +420,50 @@ test("createCheckoutSessionForOrder refuses a missing order", async () => {
   );
 });
 
+test("createCheckoutSessionForOrder refuses a cartId that does not belong to the order", async () => {
+  const order = createOrderRecord({ cartId: "cart_owner" });
+  const { db } = createMockCheckoutDb({
+    orders: [order],
+    orderItems: [createOrderItemRecord({ orderId: order.id })],
+    payments: [createPaymentRecord({ orderId: order.id })],
+  });
+  const stripe = createStripeClientMock();
+  const service = createCheckoutService(db, {
+    stripeClient: stripe.client,
+    getBaseUrl: () => "https://fabsystem.test",
+  });
+
+  await assert.rejects(
+    () =>
+      service.createCheckoutSessionForOrder({
+        orderId: order.id,
+        cartId: "cart_attacker",
+      }),
+    (error: unknown) => error instanceof HttpError && error.status === 403
+  );
+});
+
+test("createCheckoutSessionForOrder succeeds when cartId matches the order's cart", async () => {
+  const order = createOrderRecord({ cartId: "cart_owner" });
+  const { db } = createMockCheckoutDb({
+    orders: [order],
+    orderItems: [createOrderItemRecord({ orderId: order.id })],
+    payments: [createPaymentRecord({ orderId: order.id })],
+  });
+  const stripe = createStripeClientMock();
+  const service = createCheckoutService(db, {
+    stripeClient: stripe.client,
+    getBaseUrl: () => "https://fabsystem.test",
+  });
+
+  const result = await service.createCheckoutSessionForOrder({
+    orderId: order.id,
+    cartId: "cart_owner",
+  });
+
+  assert.ok(result.url);
+});
+
 test("createCheckoutSessionForOrder refuses an order not in PENDING_PAYMENT", async () => {
   const order = createOrderRecord({ status: "PAID" });
   const { db } = createMockCheckoutDb({

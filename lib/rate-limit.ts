@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { Redis } from "@upstash/redis";
 import { tooManyRequests } from "@/lib/http-errors";
 import { logServerEvent } from "@/lib/server-log";
@@ -62,6 +63,20 @@ function getRedis(): Redis | null {
 }
 
 export function getClientIp(request: Request) {
+  // x-vercel-forwarded-for est posé par l'edge Vercel lui-même et ne peut
+  // pas être falsifié par le client (contrairement à x-forwarded-for, que
+  // n'importe quel appelant peut définir librement s'il n'y a pas de proxy
+  // de confiance devant l'app) — priorité absolue quand présent.
+  const vercelIp = request.headers.get("x-vercel-forwarded-for")?.trim();
+  if (vercelIp) {
+    const first = vercelIp.split(",")[0]?.trim();
+    if (first) {
+      return first;
+    }
+  }
+
+  // Hors Vercel (dev local, tests, autre hébergeur derrière un proxy de
+  // confiance connu), on retombe sur x-forwarded-for / x-real-ip.
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
     const first = forwardedFor.split(",")[0]?.trim();
@@ -73,11 +88,6 @@ export function getClientIp(request: Request) {
   const realIp = request.headers.get("x-real-ip")?.trim();
   if (realIp) {
     return realIp;
-  }
-
-  const vercelIp = request.headers.get("x-vercel-forwarded-for")?.trim();
-  if (vercelIp) {
-    return vercelIp;
   }
 
   return "unknown";
@@ -123,41 +133,101 @@ export async function tryAcquireCooldown(key: string, cooldownMs: number) {
 }
 
 export function createRateLimitKeyPart(value: string) {
-  let hash = 0;
-
-  for (const char of value.trim().toLowerCase()) {
-    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  }
-
-  return hash.toString(16).padStart(8, "0");
+  // SHA-256 tronqué plutôt qu'un hash maison 32 bits : l'ancien hash rendait
+  // triviale la génération d'une valeur (ex. email) qui entre en collision
+  // avec la clé d'un tiers, permettant de le bloquer (DoS) depuis la même IP.
+  return crypto
+    .createHash("sha256")
+    .update(value.trim().toLowerCase())
+    .digest("hex")
+    .slice(0, 16);
 }
 
-async function readBucket(
-  redis: Redis | null,
-  memoryStore: Map<string, RateLimitBucket>,
-  key: string
-): Promise<RateLimitBucket | null> {
-  if (redis) {
-    const value = await redis.get<RateLimitBucket>(key);
-    return value ?? null;
+type RateLimitCheck =
+  | { state: "ok" }
+  | { state: "already-blocked"; retryAfterSeconds: number }
+  | { state: "newly-blocked"; retryAfterSeconds: number; count: number };
+
+// Redis path: INCR est atomique côté serveur Redis, donc N requêtes
+// parallèles ne peuvent plus toutes lire count=1 avant d'écrire — chacune
+// obtient un compteur distinct et une seule franchit le seuil. L'ancien
+// GET-puis-SET laissait une fenêtre de course exploitable en envoyant des
+// requêtes en rafale (ex. brute force login au-delà de la limite affichée).
+async function checkRedisRateLimit(
+  redis: Redis,
+  key: string,
+  options: RateLimitOptions,
+  now: number
+): Promise<RateLimitCheck> {
+  const blockedKey = `${key}:blocked`;
+
+  const blockedTtlMs = await redis.pttl(blockedKey);
+  if (typeof blockedTtlMs === "number" && blockedTtlMs > 0) {
+    return {
+      state: "already-blocked",
+      retryAfterSeconds: Math.max(1, Math.ceil(blockedTtlMs / 1000)),
+    };
   }
 
-  return memoryStore.get(key) ?? null;
+  const count = await redis.incr(key);
+  if (count === 1) {
+    await redis.pexpire(key, Math.max(options.windowMs, 1000));
+  }
+
+  if (count <= options.limit) {
+    return { state: "ok" };
+  }
+
+  const blockDurationMs = options.blockDurationMs ?? options.windowMs;
+  await redis.set(blockedKey, now, { px: Math.max(blockDurationMs, 1000) });
+
+  return {
+    state: "newly-blocked",
+    retryAfterSeconds: Math.max(1, Math.ceil(blockDurationMs / 1000)),
+    count,
+  };
 }
 
-async function writeBucket(
-  redis: Redis | null,
+// Memory path (dev/tests, single process): no network round-trip happens
+// between the read and the write below, so nothing else can interleave on
+// the same event-loop tick — this bucket-swap is effectively atomic without
+// needing INCR semantics.
+function checkMemoryRateLimit(
   memoryStore: Map<string, RateLimitBucket>,
   key: string,
-  bucket: RateLimitBucket,
-  ttlMs: number
-) {
-  if (redis) {
-    await redis.set(key, bucket, { px: Math.max(ttlMs, 1000) });
-    return;
+  options: RateLimitOptions,
+  now: number
+): RateLimitCheck {
+  const existing = memoryStore.get(key) ?? null;
+
+  if (existing?.blockedUntil && existing.blockedUntil > now) {
+    return {
+      state: "already-blocked",
+      retryAfterSeconds: Math.max(1, Math.ceil((existing.blockedUntil - now) / 1000)),
+    };
   }
 
+  if (!existing || existing.resetAt <= now) {
+    memoryStore.set(key, { count: 1, resetAt: now + options.windowMs, blockedUntil: null });
+    return { state: "ok" };
+  }
+
+  const bucket: RateLimitBucket = { ...existing, count: existing.count + 1 };
+
+  if (bucket.count <= options.limit) {
+    memoryStore.set(key, bucket);
+    return { state: "ok" };
+  }
+
+  const blockDurationMs = options.blockDurationMs ?? options.windowMs;
+  bucket.blockedUntil = now + blockDurationMs;
   memoryStore.set(key, bucket);
+
+  return {
+    state: "newly-blocked",
+    retryAfterSeconds: Math.max(1, Math.ceil(blockDurationMs / 1000)),
+    count: bucket.count,
+  };
 }
 
 export async function enforceRateLimit(
@@ -166,70 +236,50 @@ export async function enforceRateLimit(
 ) {
   const now = Date.now();
   const redis = getRedis();
-  const memoryStore = getMemoryStore();
-  if (!redis) {
-    pruneMemoryStore(now);
-  }
 
   const ip = getClientIp(request);
   const extraKey = options.keyParts?.filter(Boolean).join(":");
   const key = [options.name, ip, extraKey].filter(Boolean).join(":");
-  const existing = await readBucket(redis, memoryStore, key);
 
-  if (existing?.blockedUntil && existing.blockedUntil > now) {
-    const retryAfterSeconds = Math.max(
-      1,
-      Math.ceil((existing.blockedUntil - now) / 1000)
-    );
+  const result = redis
+    ? await checkRedisRateLimit(redis, key, options, now)
+    : (() => {
+        const memoryStore = getMemoryStore();
+        pruneMemoryStore(now);
+        return checkMemoryRateLimit(memoryStore, key, options, now);
+      })();
+
+  if (result.state === "ok") {
+    return;
+  }
+
+  if (result.state === "already-blocked") {
     logServerEvent("warn", "rate limit blocked request", {
       limiter: options.name,
       ip,
-      retryAfterSeconds,
+      retryAfterSeconds: result.retryAfterSeconds,
     });
-    throw tooManyRequests("Too many requests", retryAfterSeconds, {
+    throw tooManyRequests("Too many requests", result.retryAfterSeconds, {
       limiter: options.name,
     });
   }
 
-  if (!existing || existing.resetAt <= now) {
-    await writeBucket(
-      redis,
-      memoryStore,
-      key,
-      { count: 1, resetAt: now + options.windowMs, blockedUntil: null },
-      options.windowMs
-    );
-    return;
-  }
-
-  const bucket: RateLimitBucket = { ...existing, count: existing.count + 1 };
-
-  if (bucket.count <= options.limit) {
-    await writeBucket(redis, memoryStore, key, bucket, bucket.resetAt - now);
-    return;
-  }
-
-  const blockDurationMs = options.blockDurationMs ?? options.windowMs;
-  bucket.blockedUntil = now + blockDurationMs;
-  await writeBucket(redis, memoryStore, key, bucket, blockDurationMs);
-
-  const retryAfterSeconds = Math.max(1, Math.ceil(blockDurationMs / 1000));
   logServerEvent("warn", "rate limit exceeded", {
     limiter: options.name,
     ip,
-    count: bucket.count,
-    retryAfterSeconds,
+    count: result.count,
+    retryAfterSeconds: result.retryAfterSeconds,
   });
 
   const { sendRateLimitAlert } = await import("@/lib/services/security-alerts");
   await sendRateLimitAlert({
     limiter: options.name,
     ip,
-    count: bucket.count,
-    retryAfterSeconds,
+    count: result.count,
+    retryAfterSeconds: result.retryAfterSeconds,
   });
 
-  throw tooManyRequests("Too many requests", retryAfterSeconds, {
+  throw tooManyRequests("Too many requests", result.retryAfterSeconds, {
     limiter: options.name,
   });
 }

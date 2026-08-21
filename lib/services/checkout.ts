@@ -8,7 +8,14 @@ import type {
   PaymentProvider,
   PrismaClient,
 } from "@/lib/generated/prisma/client";
-import { HttpError, badRequest, conflict, internalServerError, notFound } from "@/lib/http-errors";
+import {
+  HttpError,
+  badRequest,
+  conflict,
+  forbidden,
+  internalServerError,
+  notFound,
+} from "@/lib/http-errors";
 import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 import {
   PRESTATIONS_NEEDS_PROGRESS_LABELS,
@@ -21,6 +28,11 @@ type PrismaClientLike = PrismaClient;
 
 const createCheckoutSessionInputSchema = z.object({
   orderId: z.string().trim().min(1),
+  // Optionnel pour ne pas casser les appelants internes/tests qui exercent
+  // la logique de checkout hors du flow panier public ; le seul appelant
+  // HTTP (app/api/checkout/route.ts) le fournit toujours, dérivé du cookie
+  // de session panier — jamais du corps de la requête.
+  cartId: z.string().trim().min(1).optional(),
   baseUrl: z.string().trim().min(1).optional(),
   needsAnswers: prestationsNeedsAnswersInputSchema,
 });
@@ -373,6 +385,11 @@ export function createCheckoutService(db: CheckoutDb, deps: CheckoutServiceDeps)
 
       return db.transaction(async (tx) => {
         const order = assertOrderIsReadyForCheckout(await tx.findOrderById(parsed.orderId));
+
+        if (parsed.cartId && order.cartId !== parsed.cartId) {
+          throw forbidden("Order does not belong to this cart session");
+        }
+
         const payment = assertPaymentCanCreateCheckout(getLatestPendingStripePayment(order.payments));
         assertOrderSnapshotsAreValid(order);
         assertNeedsAnswersProvidedIfRequired(order, needsAnswers);

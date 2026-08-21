@@ -1,7 +1,14 @@
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { hashSignatureToken, isSignatureTokenExpired } from "@/lib/signature-link";
 import { prisma } from "@/lib/prisma";
 import { databaseErrorResponse } from "@/lib/prisma-errors";
+
+function tokenHashMatches(storedHash: string, providedToken: string) {
+  const provided = Buffer.from(hashSignatureToken(providedToken));
+  const stored = Buffer.from(storedHash);
+  return provided.length === stored.length && crypto.timingSafeEqual(provided, stored);
+}
 
 export async function findQuoteForSignature(id: string, token: string) {
   const quote = await prisma.quote.findUnique({
@@ -28,16 +35,19 @@ export async function findQuoteForSignature(id: string, token: string) {
     return null;
   }
 
+  // Le token doit correspondre avant de révéler quoi que ce soit sur l'état
+  // du devis (signé/expiré) : sinon un id de devis connu suffit à sonder son
+  // statut sans jamais prouver la possession du lien de signature.
+  if (!tokenHashMatches(quote.signatureTokenHash, token)) {
+    return null;
+  }
+
   if (quote.signedAt) {
     return "signed" as const;
   }
 
   if (isSignatureTokenExpired(quote.signatureTokenExpiresAt)) {
     return "expired" as const;
-  }
-
-  if (quote.signatureTokenHash !== hashSignatureToken(token)) {
-    return null;
   }
 
   return quote;

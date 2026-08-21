@@ -25,6 +25,19 @@ test("getClientIp reads the first forwarded IP", () => {
   assert.equal(getClientIp(request), "203.0.113.10");
 });
 
+test("getClientIp trusts x-vercel-forwarded-for over a client-supplied x-forwarded-for", () => {
+  const request = new Request("https://example.com", {
+    headers: {
+      // Un client malveillant peut poser n'importe quelle valeur ici pour
+      // changer de clé de rate limit à chaque requête.
+      "x-forwarded-for": "1.2.3.4",
+      "x-vercel-forwarded-for": "203.0.113.10",
+    },
+  });
+
+  assert.equal(getClientIp(request), "203.0.113.10");
+});
+
 test("createRateLimitKeyPart normalizes values without exposing the raw input", () => {
   const first = createRateLimitKeyPart(" Buyer@Example.com ");
   const second = createRateLimitKeyPart("buyer@example.com");
