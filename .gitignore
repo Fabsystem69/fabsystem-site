@@ -49,8 +49,14 @@ scripts/.tmp-*
 /local-only/
 /outputs/
 /tmp/
-lib/generated/prisma/* [0-9].ts
 .claude/settings.json
+
+# client Prisma généré : régénéré à chaque `npm run build` (voir script
+# "build": "prisma generate && next build") et à chaque `npm install` via
+# le hook postinstall — jamais une source de vérité, committer ce dossier
+# ne faisait que produire des diffs de dizaines de milliers de lignes à
+# chaque changement de schéma ou de version de Prisma.
+/lib/generated/
 
 # typescript
 *.tsbuildinfo
