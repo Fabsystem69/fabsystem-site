@@ -9,13 +9,16 @@
 // par le moteur réel, qui reste seul responsable du calcul (appelé via
 // /api/projects/[projectId]/engines/[engineId]/run, jamais dupliqué ici).
 //
-// Périmètre volontairement limité à 2 outils (voir docs/audits/
-// UI-13-GUIDED-PROJECT-TOOLS-BRIDGE.md, "Mapping outils → moteurs") :
-// Bilan de consommation → Energy et Section de câble → Circuit/Cable sont
-// les deux seuls outils dont les champs correspondent réellement à un
-// moteur existant sans inventer de correspondance. Autonomie batterie et
-// MPPT n'ont pas d'équivalent fiable (logique inversée / domaine
-// différent) — voir le rapport pour la justification détaillée.
+// Périmètre volontairement limité aux outils dont les champs correspondent
+// réellement à un moteur existant sans inventer de correspondance (voir
+// docs/audits/UI-13-GUIDED-PROJECT-TOOLS-BRIDGE.md, "Mapping outils →
+// moteurs") : Bilan de consommation → Energy, Section de câble → Cable, et
+// MPPT/solaire → Solar (panelPowerWp/equivalentSunHours/systemEfficiencyRatio
+// se déduisent directement des champs de MpptCalculator). Batterie, DC-DC/
+// alternateur et Charge secteur restent hors périmètre : leurs calculateurs
+// publics résolvent le problème inverse de leur moteur de projet respectif
+// (équipement choisi → ce qu'il donne, plutôt que besoin → équipement à
+// choisir) — voir le rapport pour la justification détaillée.
 import { COPPER_RESISTIVITY_OHM_MM2_PER_M, AVAILABLE_SECTIONS_MM2 } from "@/lib/calc/section-cable";
 
 export type BilanConsoAppareil = { id: number; nom: string; puissance: string; heures: string };
@@ -86,5 +89,37 @@ export function translateSectionCableToCableInput(
         availableSectionsMm2: AVAILABLE_SECTIONS_MM2,
       },
     ],
+  };
+}
+
+// Perte réelle moyenne (angle des panneaux, température, ombre partielle,
+// salissure) entre puissance crête théorique et production réelle — même
+// valeur que SOLAR_DERATING dans MpptCalculator.tsx, dupliquée ici pour
+// rester un module pur sans dépendre d'un composant client.
+export const SOLAR_SYSTEM_EFFICIENCY_RATIO = 0.75;
+
+export type MpptSolarForm = {
+  nbPanneaux: number;
+  wattsParPanneau: number;
+  peakSunHours: number;
+};
+
+export type SolarEngineInputPreview = {
+  panelPowerWp: number;
+  equivalentSunHours: number;
+  systemEfficiencyRatio: number;
+};
+
+/**
+ * MPPT/solaire (outil public) → moteur solar.production. `panelPowerWp` est
+ * la puissance crête totale du champ de panneaux (nombre × Wc unitaire),
+ * `equivalentSunHours` reprend directement l'ensoleillement équivalent déjà
+ * choisi dans l'outil.
+ */
+export function translateMpptToSolarInput(form: MpptSolarForm): SolarEngineInputPreview {
+  return {
+    panelPowerWp: Math.max(0, form.nbPanneaux) * Math.max(0, form.wattsParPanneau),
+    equivalentSunHours: form.peakSunHours,
+    systemEfficiencyRatio: SOLAR_SYSTEM_EFFICIENCY_RATIO,
   };
 }

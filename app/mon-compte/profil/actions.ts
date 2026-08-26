@@ -53,6 +53,7 @@ export async function updateOwnProfileAction(formData: FormData) {
         getString(formData, "electricalSkillLevel") === "AVANCE"
           ? (getString(formData, "electricalSkillLevel") as "DEBUTANT" | "INTERMEDIAIRE" | "AVANCE")
           : undefined,
+      driveLinkUrl: getString(formData, "driveLinkUrl"),
     });
   } catch (error) {
     redirect(buildProfileRedirect({ error: getErrorMessage(error) }));

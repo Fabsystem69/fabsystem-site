@@ -19,6 +19,9 @@ export const customerProfileInputSchema = z.object({
   // v2.1 : permet de cibler le mailing par niveau (contenus debutant vs
   // guides avances) — jamais bloquant, laisse vide si non renseigne.
   electricalSkillLevel: z.enum(["DEBUTANT", "INTERMEDIAIRE", "AVANCE", ""]).optional(),
+  // Lien vers un espace de partage externe (Google Drive, Dropbox...) —
+  // simple URL, jamais de stockage de fichiers cote FabSystem.
+  driveLinkUrl: z.union([z.string().trim().url(), z.literal("")]).optional(),
 });
 
 export type CustomerProfileInput = z.infer<typeof customerProfileInputSchema>;
@@ -40,5 +43,6 @@ export function normalizeCustomerProfileData(data: CustomerProfileInput) {
     assetModel: data.assetModel || null,
     registration: data.registration ? data.registration.trim().toUpperCase() : null,
     electricalSkillLevel: data.electricalSkillLevel || null,
+    driveLinkUrl: data.driveLinkUrl || null,
   };
 }

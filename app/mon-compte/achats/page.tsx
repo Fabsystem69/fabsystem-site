@@ -113,13 +113,44 @@ export default async function MesAchatsPage({
         ) : null}
       </div>
 
+      {overview.offeredResources.length > 0 ? (
+        <section>
+          <h2 className="text-base font-semibold text-neutral-950">Ressources offertes</h2>
+          <div className="mt-4 space-y-4">
+            {overview.offeredResources.map((resource) => (
+              <Card key={resource.grantId} className="p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-neutral-950">{resource.productName}</h3>
+                    <p className="mt-1 text-sm text-neutral-600">Offert le {formatDate(resource.grantedAt)}</p>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:items-end">
+                    <Button href={`/api/customer-resources/${resource.grantId}`} variant="primary">
+                      Télécharger
+                    </Button>
+                    <p className="mt-1.5 text-xs text-neutral-500">
+                      {resource.remainingDownloads}/{resource.maxDownloads} téléchargement
+                      {resource.maxDownloads > 1 ? "s" : ""} restant
+                      {resource.remainingDownloads > 1 ? "s" : ""}
+                      {resource.expiresAt ? ` · expire le ${formatDate(resource.expiresAt)}` : ""}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {overview.orders.length === 0 ? (
-        <Card className="p-6">
-          <p className="text-sm font-medium text-neutral-950">Aucun achat pour le moment</p>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-            Vos guides et vos téléchargements apparaîtront ici dès votre premier achat numérique.
-          </p>
-        </Card>
+        overview.offeredResources.length === 0 ? (
+          <Card className="p-6">
+            <p className="text-sm font-medium text-neutral-950">Aucun achat pour le moment</p>
+            <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+              Vos guides et vos téléchargements apparaîtront ici dès votre premier achat numérique.
+            </p>
+          </Card>
+        ) : null
       ) : (
         <>
           <section>

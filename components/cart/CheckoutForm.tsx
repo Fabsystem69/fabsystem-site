@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCheckoutFromCart } from "@/lib/checkout-flow";
 import {
@@ -10,6 +10,9 @@ import {
 } from "@/lib/client/prestations-needs-storage";
 import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 import type { CartSummary } from "@/lib/services/cart";
+import { CartAccountForm } from "@/components/cart/CartAccountForm";
+
+type CustomerSessionSummary = { email: string; name: string | null };
 
 type CheckoutSummaryState = {
   subtotalCents: number;
@@ -22,6 +25,11 @@ type CheckoutSummaryState = {
 type CheckoutFormProps = {
   cart: CartSummary;
   disabled?: boolean;
+  // Résolue côté serveur par /panier (SSR) — `undefined` quand l'appelant
+  // n'a pas cette info à disposition (ex. CartDrawer, client pur) : le
+  // formulaire la résout alors lui-même via /api/client-auth/me. `null`
+  // signifie explicitement "résolu, pas de session".
+  customerSession?: CustomerSessionSummary | null;
 };
 
 function formatAmount(value: number, currency: string) {
@@ -38,10 +46,11 @@ function formatAmount(value: number, currency: string) {
   }).format(value / 100);
 }
 
-export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
+export function CheckoutForm({ cart, disabled = false, customerSession }: CheckoutFormProps) {
   const router = useRouter();
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [customerName, setCustomerName] = useState("");
+  const [resolvedSession, setResolvedSession] = useState<CustomerSessionSummary | null | undefined>(
+    customerSession
+  );
   const [orderId, setOrderId] = useState<string | null>(null);
   const [discountCode, setDiscountCode] = useState("");
   const [summary, setSummary] = useState<CheckoutSummaryState>({
@@ -56,9 +65,40 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [discountError, setDiscountError] = useState<string | null>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  // /panier (SSR) repasse par ici après router.refresh() (ex. juste après la
+  // création de compte) avec un `customerSession` à jour — on resynchronise
+  // l'état local dessus plutôt que de ne garder que la valeur initiale.
+  useEffect(() => {
+    if (customerSession !== undefined) {
+      setResolvedSession(customerSession);
+      return;
+    }
+
+    // CartDrawer (client pur, pas de rendu serveur) ne connaît pas la
+    // session à l'avance : on la résout ici.
+    let cancelled = false;
+    fetch("/api/client-auth/me")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((body: { customer?: CustomerSessionSummary } | null) => {
+        if (!cancelled) setResolvedSession(body?.customer ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setResolvedSession(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customerSession]);
+
+  async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
     setError(null);
+
+    if (!resolvedSession) {
+      setError("Créez votre compte ci-dessus avant de valider la commande.");
+      return;
+    }
 
     const hasPack = cart.lines.some((line) => isPrestationsPackSlug(line.slug));
 
@@ -70,8 +110,8 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
         // pas encore été rempli pour ce panier : on garde email/nom/code en
         // session le temps du détour, puis on redirige vers l'étape dédiée.
         storePendingCheckoutInputs(cart.cartId, {
-          customerEmail,
-          customerName: customerName || undefined,
+          customerEmail: resolvedSession.email,
+          customerName: resolvedSession.name ?? undefined,
           discountCode: summary.appliedCode ?? undefined,
         });
         setPending(true);
@@ -84,8 +124,8 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
 
     try {
       const result = await createCheckoutFromCart(fetch, {
-        customerEmail,
-        customerName,
+        customerEmail: resolvedSession.email,
+        customerName: resolvedSession.name ?? undefined,
         existingOrderId: orderId ?? undefined,
         discountCode: summary.appliedCode ?? undefined,
         needsAnswers: hasPack ? readStoredNeedsAnswers(cart.cartId) ?? undefined : undefined,
@@ -126,7 +166,7 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
           "content-type": "application/json",
         },
         body: JSON.stringify({
-          customerEmail: customerEmail.trim() || undefined,
+          customerEmail: resolvedSession?.email,
           code: discountCode,
         }),
       });
@@ -161,10 +201,11 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
   }
 
   return (
-    <form
-      className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white"
-      onSubmit={handleSubmit}
-    >
+    // Un <div>, pas un <form> : CartAccountForm rend son propre <form>
+    // (création de compte) plus bas dans l'arbre — un <form> ne peut pas en
+    // contenir un autre en HTML valide. handleSubmit reste appelable sans
+    // événement (bouton "Payer maintenant" en type="button").
+    <div className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
       {/* Totaux */}
       <div className="p-4">
         <h3 className="text-sm font-semibold text-neutral-950">Récapitulatif</h3>
@@ -235,50 +276,27 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
         {discountError ? <p className="mt-2 text-sm text-red-600">{discountError}</p> : null}
       </div>
 
-      {/* Coordonnées */}
-      <div className="space-y-4 p-4">
-        <div>
-          <label htmlFor="checkout-email" className="block text-sm font-medium text-neutral-900">
-            Email
-          </label>
-          <input
-            id="checkout-email"
-            name="customerEmail"
-            type="email"
-            autoComplete="email"
-            required
-            value={customerEmail}
-            onChange={(event) => setCustomerEmail(event.target.value)}
-            disabled={disabled || pending}
-            className="mt-2 block h-11 w-full rounded-md border border-neutral-300 px-3 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
-            placeholder="client@example.com"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="checkout-name" className="block text-sm font-medium text-neutral-900">
-            Nom
-            <span className="ml-2 text-neutral-500">(optionnel)</span>
-          </label>
-          <input
-            id="checkout-name"
-            name="customerName"
-            type="text"
-            autoComplete="name"
-            value={customerName}
-            onChange={(event) => setCustomerName(event.target.value)}
-            disabled={disabled || pending}
-            className="mt-2 block h-11 w-full rounded-md border border-neutral-300 px-3 text-sm text-neutral-950 shadow-sm outline-none placeholder:text-neutral-400 focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
-            placeholder="Votre nom"
-          />
-        </div>
+      {/* Compte — obligatoire pour commander (retour utilisateur : trop
+          ambigu pour le SAV en guest checkout). resolvedSession === undefined
+          = résolution encore en cours (CartDrawer). */}
+      <div className="p-4">
+        {resolvedSession === undefined ? (
+          <p className="text-sm text-neutral-500">Vérification de votre compte…</p>
+        ) : resolvedSession ? (
+          <p className="text-sm text-neutral-700">
+            Connecté en tant que <strong className="text-neutral-950">{resolvedSession.email}</strong>
+          </p>
+        ) : (
+          <CartAccountForm onAccountCreated={() => router.refresh()} />
+        )}
       </div>
 
       {/* Validation */}
       <div className="p-4">
         <button
-          type="submit"
-          disabled={disabled || pending}
+          type="button"
+          onClick={() => handleSubmit()}
+          disabled={disabled || pending || !resolvedSession}
           className="inline-flex h-11 w-full items-center justify-center rounded-md bg-brand-400 px-4 text-sm font-bold text-neutral-900 hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending
@@ -292,6 +310,6 @@ export function CheckoutForm({ cart, disabled = false }: CheckoutFormProps) {
 
         {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
       </div>
-    </form>
+    </div>
   );
 }

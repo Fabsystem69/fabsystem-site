@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { EngineActionBar } from "@/components/customer/dashboard/engines/EngineActionBar";
 import { useEngineRun } from "@/components/customer/dashboard/engines/useEngineRun";
+import { PRESETS_APPAREILS, type EnergyPresetItem } from "@/lib/outils/energy-presets";
 
 type ConsumerRow = {
   name: string;
@@ -35,6 +36,7 @@ function emptyRow(): ConsumerRow {
 export function EnergyModule({ projectId }: { projectId: string }) {
   const [rows, setRows] = useState<ConsumerRow[]>([emptyRow()]);
   const [editingIndex, setEditingIndex] = useState<number | null>(0);
+  const [showPicker, setShowPicker] = useState(false);
   const { output, warnings, notices, error, pending, justRetained, run } = useEngineRun(
     projectId,
     "energy.consumption"
@@ -57,6 +59,17 @@ export function EnergyModule({ projectId }: { projectId: string }) {
   function addRow() {
     setRows((current) => [...current, emptyRow()]);
     setEditingIndex(rows.length);
+  }
+
+  // Appareil déjà complet (nom + puissance + heures connus) : ajouté replié
+  // directement, pas besoin de repasser par le mode édition — même logique
+  // que addPresetAppareil sur l'outil public /outils/bilan-consommation.
+  function addPresetRow(preset: EnergyPresetItem) {
+    setRows((current) => [
+      ...current,
+      { name: preset.nom, powerW: preset.puissance, dailyUsageHours: String(preset.heures), quantity: "1" },
+    ]);
+    setEditingIndex(null);
   }
 
   function buildInput() {
@@ -158,7 +171,7 @@ export function EnergyModule({ projectId }: { projectId: string }) {
             </div>
           );
         })}
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={addRow}
@@ -166,7 +179,36 @@ export function EnergyModule({ projectId }: { projectId: string }) {
           >
             + Ajouter un appareil
           </button>
+          <button
+            type="button"
+            onClick={() => setShowPicker((v) => !v)}
+            className="rounded-lg border border-brand-300 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:border-brand-400"
+          >
+            {showPicker ? "Masquer" : "+"} Appareils courants
+          </button>
         </div>
+
+        {showPicker ? (
+          <div className="mt-3 space-y-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+            {PRESETS_APPAREILS.map((cat) => (
+              <div key={cat.groupe}>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400">{cat.groupe}</p>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {cat.items.map((item) => (
+                    <button
+                      key={item.nom}
+                      type="button"
+                      onClick={() => addPresetRow(item)}
+                      className="rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs text-neutral-700 hover:border-brand-400 hover:text-brand-700"
+                    >
+                      {item.nom} <span className="text-neutral-400">{item.puissance}W · {item.heures}h/j</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {result ? (

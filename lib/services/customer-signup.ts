@@ -41,10 +41,20 @@ export async function signUpCustomer(input: {
   // Contrôlé aussi côté serveur (pas seulement `required` côté client),
   // jamais présumé `true` par défaut.
   marketingConsent: boolean;
+  // Collectes au checkout (retour utilisateur : trop ambigu pour le SAV
+  // sans ces infos) — optionnelles ici pour ne pas casser les autres
+  // formulaires d'inscription (InlineSignupForm, SignupForm) qui ne les
+  // demandent pas.
+  phone?: string;
+  assetType?: "VEHICLE" | "BOAT" | "OTHER";
+  // Consentement distinct du marketing : autorise l'admin a consulter le
+  // dossier projet du client depuis le dashboard (voir Customer.dataShareConsent).
+  dataShareConsent?: boolean;
 }): Promise<SignUpCustomerResult> {
   const normalizedEmail = normalizeCustomerEmail(input.email);
   const firstName = input.firstName.trim();
   const lastName = input.lastName.trim();
+  const phone = input.phone?.trim() || null;
 
   if (input.password.length < 8) {
     throw badRequest("Le mot de passe doit contenir au moins 8 caractères");
@@ -80,8 +90,12 @@ export async function signUpCustomer(input: {
       status: "ACTIVE",
       origin: "SIGNUP",
       passwordHash,
+      phone,
+      assetType: input.assetType ?? "OTHER",
       marketingConsent: true,
       marketingConsentAt: now,
+      dataShareConsent: Boolean(input.dataShareConsent),
+      dataShareConsentAt: input.dataShareConsent ? now : null,
     },
   });
 

@@ -7,7 +7,7 @@
 // serveur tant que l'utilisateur n'a pas explicitement validé l'import
 // (mission §16, le flux d'import reste identique une fois connecté).
 export type PendingImportPayload = {
-  kind: "energy" | "cable";
+  kind: "energy" | "cable" | "solar";
   sourceTool: string;
   createdAt: string;
   // Payload déjà traduit dans le vocabulaire du moteur cible (jamais les
@@ -23,7 +23,7 @@ export function readPendingImport(): PendingImportPayload | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<PendingImportPayload>;
     if (
-      (parsed.kind !== "energy" && parsed.kind !== "cable") ||
+      (parsed.kind !== "energy" && parsed.kind !== "cable" && parsed.kind !== "solar") ||
       typeof parsed.sourceTool !== "string" ||
       typeof parsed.createdAt !== "string"
     ) {

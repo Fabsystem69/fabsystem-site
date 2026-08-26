@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { readPendingImport, clearPendingImport, type PendingImportPayload } from "@/lib/client/pending-import-storage";
 import { EnergyImportModal } from "@/components/outils/project-bridge/EnergyImportModal";
 import { CableImportModal } from "@/components/outils/project-bridge/CableImportModal";
-import type { BilanConsoAppareil, SectionCableForm } from "@/lib/outils-project-bridge";
+import { SolarImportModal } from "@/components/outils/project-bridge/SolarImportModal";
+import type { BilanConsoAppareil, SectionCableForm, MpptSolarForm } from "@/lib/outils-project-bridge";
 
 // UI-13 §15 — "Après connexion réussie : restaurer le contexte du calcul
 // si possible." Plutôt que de brancher un `returnTo` dans la chaîne
@@ -61,6 +62,15 @@ export function PendingImportBanner() {
       {modalOpen && pending.kind === "cable" ? (
         <CableImportModal
           form={pending.data as SectionCableForm}
+          onClose={() => {
+            setModalOpen(false);
+            dismiss();
+          }}
+        />
+      ) : null}
+      {modalOpen && pending.kind === "solar" ? (
+        <SolarImportModal
+          form={pending.data as MpptSolarForm}
           onClose={() => {
             setModalOpen(false);
             dismiss();

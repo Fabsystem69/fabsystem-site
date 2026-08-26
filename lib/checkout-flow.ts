@@ -1,8 +1,11 @@
-import { badRequest, internalServerError } from "@/lib/http-errors";
+import { internalServerError } from "@/lib/http-errors";
 import type { PrestationsNeedsAnswers } from "@/lib/prestations-needs";
 
 export type CheckoutFlowInput = {
-  customerEmail: string;
+  // L'identite reelle de la commande vient de la session client cote
+  // serveur (app/api/orders/route.ts) — ce champ ne sert plus qu'a
+  // pre-remplir customerName au besoin, jamais l'identite.
+  customerEmail?: string;
   customerName?: string;
   existingOrderId?: string;
   discountCode?: string;
@@ -33,14 +36,10 @@ export async function createCheckoutFromCart(
   fetchImpl: FetchLike,
   input: CheckoutFlowInput
 ) {
-  const customerEmail = input.customerEmail.trim();
+  const customerEmail = input.customerEmail?.trim();
   const customerName = input.customerName?.trim();
   const existingOrderId = input.existingOrderId?.trim();
   const discountCode = input.discountCode?.trim();
-
-  if (!customerEmail) {
-    throw badRequest("Customer email is required");
-  }
 
   let orderId = existingOrderId;
   let orderNumber: string | undefined;

@@ -192,53 +192,66 @@ enum CustomerSessionStatus {
 }
 
 model Customer {
-  id               String            @id @default(cuid())
+  id                         String                      @id @default(cuid())
   // `name` reste la source lue par tout le code existant (commandes, emails,
   // dashboard admin) — jamais retire pour ne pas casser ces usages. Les
   // nouveaux champs firstName/lastName sont la vraie fiche client editable
   // par le client lui-meme (lib/services/customer-profile.ts) ; chaque
   // mise a jour y resynchronise `name` = "firstName lastName".
-  name             String?
-  firstName        String?
-  lastName         String?
-  email            String            @unique
+  name                       String?
+  firstName                  String?
+  lastName                   String?
+  email                      String                      @unique
   // v2.1 : bascule email+mot de passe (retour utilisateur : le lien magique
   // seul n'est pas assez conventionnel). Nullable — les comptes existants
   // n'en ont pas tant qu'ils ne l'ont pas defini via le lien magique reconverti
   // en flux "definir mon mot de passe" (voir app/api/client-auth/verify).
-  passwordHash     String?
-  phone            String?
-  address          String?
-  electricalSkillLevel ElectricalSkillLevel?
-  assetType        AssetType         @default(OTHER)
-  assetBrand       String?
-  assetModel       String?
-  registration     String?
-  odometerKm       Int?
-  engineHours      Int?
-  status           CustomerStatus    @default(ACTIVE)
-  origin           CustomerOrigin    @default(PURCHASE)
+  passwordHash               String?
+  phone                      String?
+  address                    String?
+  electricalSkillLevel       ElectricalSkillLevel?
+  assetType                  AssetType                   @default(OTHER)
+  assetBrand                 String?
+  assetModel                 String?
+  registration               String?
+  odometerKm                 Int?
+  engineHours                Int?
+  status                     CustomerStatus              @default(ACTIVE)
+  origin                     CustomerOrigin              @default(PURCHASE)
   // RGPD : consentement explicite et horodaté, jamais présumé — la case à
   // cocher (voir InlineSignupForm.tsx) part toujours décochée, cocher est
   // un geste actif de l'utilisateur. `marketingConsentAt` sert de preuve de
   // consentement (date + le fait qu'il ait été donné, pas juste un booléen
   // muet) et se réinitialise à `null` si jamais retiré plus tard.
-  marketingConsent   Boolean         @default(false)
-  marketingConsentAt DateTime?
-  lastLoginAt      DateTime?
-  quotes           Quote[]
-  invoices         Invoice[]
-  remises          Remise[]
-  orders           Order[]
-  magicLoginTokens MagicLoginToken[]
-  sessions         CustomerSession[]
-  capabilities     CustomerCapability[]
-  projects         Project[]
+  marketingConsent           Boolean                     @default(false)
+  marketingConsentAt         DateTime?
+  // Consentement distinct du marketing : autorise l'admin à consulter le
+  // dossier projet du client depuis le dashboard (retour utilisateur —
+  // accès au "dossier" pour accompagner un client sans re-demander ses
+  // infos à chaque échange). Même logique de preuve horodatée que
+  // marketingConsent ci-dessus.
+  dataShareConsent           Boolean                     @default(false)
+  dataShareConsentAt         DateTime?
+  // Lien vers un espace de partage externe (Google Drive, Dropbox...) où le
+  // client dépose ses schémas/calculs — retour utilisateur : simple champ
+  // lien, pas de stockage de fichiers à construire côté FabSystem. Visible
+  // par l'admin sur la fiche client, éditable par le client sur son profil.
+  driveLinkUrl               String?
+  lastLoginAt                DateTime?
+  quotes                     Quote[]
+  invoices                   Invoice[]
+  remises                    Remise[]
+  orders                     Order[]
+  magicLoginTokens           MagicLoginToken[]
+  sessions                   CustomerSession[]
+  capabilities               CustomerCapability[]
+  projects                   Project[]
   trialAccessCodeRedemptions TrialAccessCodeRedemption[]
-  customCatalogItems CustomCatalogItem[]
-  errorReports     ErrorReport[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  customCatalogItems         CustomCatalogItem[]
+  errorReports               ErrorReport[]
+  resourceGrants             CustomerResourceGrant[]
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
 
   @@index([email])
   @@index([status])
@@ -275,19 +288,19 @@ model ErrorReport {
 // `scopeId` permettent de rattacher plus tard une capacité à une ressource
 // précise (ex. Project) sans dépendre d'un modèle qui n'existe pas encore.
 model CustomerCapability {
-  id         String                    @id @default(cuid())
+  id         String                   @id @default(cuid())
   customerId String
-  customer   Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer   Customer                 @relation(fields: [customerId], references: [id], onDelete: Cascade)
   capability String
-  scope      CapabilityScope           @default(CUSTOMER)
+  scope      CapabilityScope          @default(CUSTOMER)
   scopeId    String?
-  status     CustomerCapabilityStatus  @default(ACTIVE)
+  status     CustomerCapabilityStatus @default(ACTIVE)
   source     String?
-  startsAt   DateTime                  @default(now())
+  startsAt   DateTime                 @default(now())
   expiresAt  DateTime?
   revokedAt  DateTime?
-  createdAt  DateTime                  @default(now())
-  updatedAt  DateTime                  @updatedAt
+  createdAt  DateTime                 @default(now())
+  updatedAt  DateTime                 @updatedAt
 
   @@index([customerId])
   @@index([capability])
@@ -583,26 +596,27 @@ model DocumentSequence {
 }
 
 model Product {
-  id                String          @id @default(cuid())
-  slug              String          @unique
-  name              String
-  shortDescription  String?
-  description       String?
-  status            ProductStatus   @default(DRAFT)
-  productType       ProductType
-  purchaseMode      PurchaseMode    @default(BUY_NOW)
-  featuredImage     String?
-  prices            ProductPrice[]
-  assets            ProductAsset[]
-  cartItems         CartItem[]
-  orderItems        OrderItem[]
-  downloadGrants    DownloadGrant[]
-  discountCodes     DiscountCode[]
+  id                  String                  @id @default(cuid())
+  slug                String                  @unique
+  name                String
+  shortDescription    String?
+  description         String?
+  status              ProductStatus           @default(DRAFT)
+  productType         ProductType
+  purchaseMode        PurchaseMode            @default(BUY_NOW)
+  featuredImage       String?
+  prices              ProductPrice[]
+  assets              ProductAsset[]
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+  downloadGrants      DownloadGrant[]
+  resourceGrants      CustomerResourceGrant[]
+  discountCodes       DiscountCode[]
   discountRedemptions DiscountRedemption[]
-  bundleItems       BundleItem[]    @relation("BundleProductItems")
-  includedInBundles BundleItem[]    @relation("IncludedProductItems")
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  bundleItems         BundleItem[]            @relation("BundleProductItems")
+  includedInBundles   BundleItem[]            @relation("IncludedProductItems")
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
 
   @@index([status])
   @@index([productType])
@@ -625,19 +639,20 @@ model ProductPrice {
 }
 
 model DigitalAsset {
-  id             String               @id @default(cuid())
-  provider       DigitalAssetProvider @default(SUPABASE)
+  id             String                  @id @default(cuid())
+  provider       DigitalAssetProvider    @default(SUPABASE)
   bucket         String
   path           String
   filename       String
   contentType    String
   sizeBytes      Int
   version        String?
-  status         DigitalAssetStatus   @default(DRAFT)
+  status         DigitalAssetStatus      @default(DRAFT)
   products       ProductAsset[]
   downloadGrants DownloadGrant[]
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
+  resourceGrants CustomerResourceGrant[]
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
 
   @@unique([bucket, path])
   @@index([status])
@@ -698,36 +713,36 @@ model CartItem {
 }
 
 model Order {
-  id             String          @id @default(cuid())
-  orderNumber    String          @unique
-  status         OrderStatus     @default(DRAFT)
-  customerId     String?
-  discountCodeId String?
-  customerEmail  String
-  customerName   String?
-  currency       String          @default("EUR")
-  subtotalCents  Int
-  discountTotalCents Int         @default(0)
-  totalCents     Int
-  cartId         String?         @unique
+  id                  String               @id @default(cuid())
+  orderNumber         String               @unique
+  status              OrderStatus          @default(DRAFT)
+  customerId          String?
+  discountCodeId      String?
+  customerEmail       String
+  customerName        String?
+  currency            String               @default("EUR")
+  subtotalCents       Int
+  discountTotalCents  Int                  @default(0)
+  totalCents          Int
+  cartId              String?              @unique
   // v2.1 : renseigne uniquement pour un Order dont l'item est un produit
   // SCHEMA_UNLOCK — permet au webhook Stripe de savoir quel Project
   // deverrouiller a la confirmation du paiement (les metadata Stripe ne sont
   // jamais persistees, voir stripe-webhook-commerce.ts).
-  projectId      String?
-  project        Project?        @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  cart           Cart?           @relation(fields: [cartId], references: [id], onDelete: SetNull)
-  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  discountCode   DiscountCode?   @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
-  items          OrderItem[]
-  payments       Payment[]
-  downloadGrants DownloadGrant[]
+  projectId           String?
+  project             Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  cart                Cart?                @relation(fields: [cartId], references: [id], onDelete: SetNull)
+  customer            Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  discountCode        DiscountCode?        @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
+  items               OrderItem[]
+  payments            Payment[]
+  downloadGrants      DownloadGrant[]
   discountRedemptions DiscountRedemption[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  paidAt         DateTime?
-  cancelledAt    DateTime?
-  refundedAt     DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  paidAt              DateTime?
+  cancelledAt         DateTime?
+  refundedAt          DateTime?
 
   @@index([status])
   @@index([customerId])
@@ -811,26 +826,56 @@ model DownloadGrant {
   @@index([expiresAt])
 }
 
+// Octroi manuel d'une ressource numérique par l'admin (ex. ebook offert
+// pour un SAV) — délibérément indépendant d'Order/OrderItem (contrairement
+// à DownloadGrant ci-dessus) car il n'y a pas de commande réelle : les FK
+// pointent directement sur Customer, sans transiter par un Order fictif à
+// 0€ qui polluerait les stats de commandes.
+model CustomerResourceGrant {
+  id               String              @id @default(cuid())
+  customerId       String
+  productId        String
+  assetId          String
+  note             String?
+  status           DownloadGrantStatus @default(ACTIVE)
+  downloadCount    Int                 @default(0)
+  maxDownloads     Int                 @default(10)
+  expiresAt        DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  revokedAt        DateTime?
+  lastDownloadedAt DateTime?
+  customer         Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product          Product             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  asset            DigitalAsset        @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@index([customerId])
+  @@index([productId])
+  @@index([assetId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
 model DiscountCode {
-  id              String               @id @default(cuid())
-  code            String               @unique
-  status          DiscountCodeStatus   @default(ACTIVE)
-  type            DiscountCodeType
-  amountOffCents  Int?
-  percentOff      Int?
-  currency        String               @default("EUR")
-  maxRedemptions  Int                  @default(1)
-  redeemedCount   Int                  @default(0)
-  startsAt        DateTime?
-  expiresAt       DateTime?
-  productId       String?
-  customerEmail   String?
-  reason          String?
-  product         Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
-  orders          Order[]
-  redemptions     DiscountRedemption[]
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  id             String               @id @default(cuid())
+  code           String               @unique
+  status         DiscountCodeStatus   @default(ACTIVE)
+  type           DiscountCodeType
+  amountOffCents Int?
+  percentOff     Int?
+  currency       String               @default("EUR")
+  maxRedemptions Int                  @default(1)
+  redeemedCount  Int                  @default(0)
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  productId      String?
+  customerEmail  String?
+  reason         String?
+  product        Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
+  orders         Order[]
+  redemptions    DiscountRedemption[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 
   @@index([status])
   @@index([productId])

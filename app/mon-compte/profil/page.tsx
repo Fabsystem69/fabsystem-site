@@ -174,6 +174,26 @@ export default async function MonProfilPage({
             </div>
           </div>
 
+          <div className="border-t border-neutral-100 pt-5">
+            <label className={labelClass}>
+              <span className={labelTextClass}>
+                Lien vers mon drive
+                <span className="ml-2 font-normal text-neutral-400">(optionnel)</span>
+              </span>
+              <input
+                name="driveLinkUrl"
+                type="url"
+                defaultValue={customer.driveLinkUrl ?? ""}
+                className={inputClass}
+                placeholder="https://drive.google.com/..."
+              />
+              <span className="block text-xs text-neutral-500">
+                Un lien vers un dossier partagé (Google Drive, Dropbox...) où vous déposez vos schémas
+                et calculs — FabSystem pourra y accéder pour vous accompagner.
+              </span>
+            </label>
+          </div>
+
           <button
             type="submit"
             className="h-11 w-full rounded-lg bg-neutral-950 px-4 text-sm font-semibold text-white transition-colors duration-150 hover:bg-neutral-800"

@@ -5,8 +5,11 @@ import { ClearCartButton } from "@/components/cart/ClearCartButton";
 import { CheckoutForm } from "@/components/cart/CheckoutForm";
 import { RemoveCartItemButton } from "@/components/cart/RemoveCartItemButton";
 
+type CustomerSessionSummary = { email: string; name: string | null };
+
 type CartViewProps = {
   cart: CartSummary;
+  customerSession: CustomerSessionSummary | null;
 };
 
 function formatCartAmount(value: number, currency: string) {
@@ -20,7 +23,7 @@ function formatCartAmount(value: number, currency: string) {
   }).format(value / 100);
 }
 
-export function CartView({ cart }: CartViewProps) {
+export function CartView({ cart, customerSession }: CartViewProps) {
   const isEmpty = cart.lines.length === 0;
 
   return (
@@ -97,7 +100,7 @@ export function CartView({ cart }: CartViewProps) {
             </div>
 
             <aside>
-              <CheckoutForm cart={cart} />
+              <CheckoutForm cart={cart} customerSession={customerSession} />
             </aside>
           </div>
         )}

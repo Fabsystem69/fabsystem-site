@@ -485,6 +485,14 @@ function RechargeStep({
   );
 }
 
+// Accordéon replié par défaut quand le statut est déjà « Retenu » — les
+// étapes Recharge/Distribution empilent jusqu'à 3 sous-modules toujours
+// dépliés, ce qui allonge inutilement la page une fois qu'une section est
+// déjà complète (retour utilisateur : la mise en page mode guidé). Ouvert
+// par défaut sinon, pour ne pas cacher ce qui reste à faire. Initialisé une
+// seule fois (pas resynchronisé si le statut change ensuite) : un
+// utilisateur qui rouvre volontairement une section déjà retenue ne doit
+// pas se la voir refermer sous les pieds après un recalcul.
 function RechargeSubModule({
   icon,
   title,
@@ -496,9 +504,16 @@ function RechargeSubModule({
   status: string;
   children: React.ReactNode;
 }) {
+  const [open, setOpen] = useState(() => status !== "Retenu");
+
   return (
     <div>
-      <div className="mb-3 flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="mb-3 flex w-full items-center gap-2 text-left"
+        aria-expanded={open}
+      >
         <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-neutral-700">
           {icon}
         </span>
@@ -506,8 +521,20 @@ function RechargeSubModule({
         <Badge tone={status === "Retenu" ? "success" : status === "À recalculer" ? "warning" : "neutral"}>
           {status}
         </Badge>
-      </div>
-      {children}
+        <svg
+          className={`ml-auto h-4 w-4 shrink-0 text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`}
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+      {open ? children : null}
     </div>
   );
 }

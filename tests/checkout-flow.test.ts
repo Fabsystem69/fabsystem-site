@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { HttpError } from "@/lib/http-errors";
 import { createCheckoutFromCart } from "@/lib/checkout-flow";
 
 function createJsonResponse(body: unknown, status = 200) {
@@ -63,18 +62,6 @@ test("createCheckoutFromCart orchestrates order then checkout and returns the St
     requiresPayment: true,
     redirectUrl: "https://checkout.stripe.com/c/pay/cs_test_123",
   });
-});
-
-test("createCheckoutFromCart rejects an empty customer email", async () => {
-  await assert.rejects(
-    () =>
-      createCheckoutFromCart(async () => {
-        throw new Error("Should not fetch");
-      }, {
-        customerEmail: "   ",
-      }),
-    (error: unknown) => error instanceof HttpError && error.status === 400
-  );
 });
 
 test("createCheckoutFromCart surfaces order creation errors", async () => {

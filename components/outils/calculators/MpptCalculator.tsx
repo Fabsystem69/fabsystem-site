@@ -6,6 +6,7 @@ import { computeFuseSize } from "@/lib/calc/fuse-size";
 import { findCompatibleMppt } from "@/lib/calc/mppt-match";
 import { getArrayConfigs } from "@/lib/calc/array-config";
 import { OpenProjectLink } from "@/components/outils/project-bridge/OpenProjectLink";
+import { AddSolarToProjectButton } from "@/components/outils/project-bridge/AddSolarToProjectButton";
 import { Stepper } from "@/components/outils/calc-ui/Stepper";
 import { ToggleGroup } from "@/components/outils/calc-ui/ToggleGroup";
 import { CalcSlider } from "@/components/outils/calc-ui/CalcSlider";
@@ -395,6 +396,10 @@ export default function MpptCalculator() {
                 Basé sur {recommendedMppt ? `le régulateur ${recommendedMppt.brand} ${recommendedMppt.model} recommandé ci-dessus` : "le courant de sortie MPPT calculé ci-dessus"}, avec un abattement de {Math.round((1 - SOLAR_DERATING) * 100)}% (angle des panneaux, température, ombre partielle). Résultat réel variable selon localisation, saison et météo.
               </p>
             </div>
+          </div>
+
+          <div className="mt-4">
+            <AddSolarToProjectButton form={{ nbPanneaux, wattsParPanneau, peakSunHours }} />
           </div>
         </div>
       )}

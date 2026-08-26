@@ -21,6 +21,11 @@ const bodySchema = z.object({
   firstName: z.string().trim().min(1),
   lastName: z.string().trim().min(1),
   marketingConsent: z.literal(true),
+  // Collectes au checkout uniquement (CartAccountForm) — optionnelles pour
+  // ne pas casser les autres formulaires d'inscription existants.
+  phone: z.string().trim().min(1).optional(),
+  assetType: z.enum(["VEHICLE", "BOAT", "OTHER"]).optional(),
+  dataShareConsent: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {

@@ -1,10 +1,12 @@
 import type {
   Customer,
+  CustomerResourceGrant,
   DigitalAsset,
   DownloadGrant,
   Order,
   OrderItem,
   PrismaClient,
+  Product,
 } from "@/lib/generated/prisma/client";
 import { notFound } from "@/lib/http-errors";
 
@@ -22,9 +24,15 @@ type OrderWithRelations = Order & {
   downloadGrants: DownloadGrantWithRelations[];
 };
 
+type ResourceGrantWithRelations = CustomerResourceGrant & {
+  product: Product;
+  asset: DigitalAsset;
+};
+
 type CustomerAccountDb = {
   findCustomerById(customerId: string): Promise<Customer | null>;
   findOrdersForCustomer(customerId: string, customerEmail: string): Promise<OrderWithRelations[]>;
+  findResourceGrantsForCustomer(customerId: string): Promise<ResourceGrantWithRelations[]>;
 };
 
 export type CustomerAccountOverview = {
@@ -64,6 +72,17 @@ export type CustomerAccountOverview = {
       expiresAt: Date | null;
     }>;
   }>;
+  // Ressources offertes par l'admin hors commande (lib/services/customer-resource-grants.ts) —
+  // distinctes des achats, affichées à part côté mon-compte/achats.
+  offeredResources: Array<{
+    grantId: string;
+    productName: string;
+    filename: string;
+    remainingDownloads: number;
+    maxDownloads: number;
+    expiresAt: Date | null;
+    grantedAt: Date;
+  }>;
 };
 
 type CustomerAccountDeps = {
@@ -98,6 +117,13 @@ function createPrismaCustomerAccountDb(client: PrismaClientLike): CustomerAccoun
         orderBy: { createdAt: "desc" },
       }) as Promise<OrderWithRelations[]>;
     },
+    async findResourceGrantsForCustomer(customerId) {
+      return client.customerResourceGrant.findMany({
+        where: { customerId },
+        include: { product: true, asset: true },
+        orderBy: { createdAt: "desc" },
+      }) as Promise<ResourceGrantWithRelations[]>;
+    },
   };
 }
 
@@ -106,7 +132,10 @@ async function getDefaultCustomerAccountService() {
   return createCustomerAccountService(createPrismaCustomerAccountDb(prisma));
 }
 
-function isVisibleGrant(grant: DownloadGrantWithRelations, currentTime: Date) {
+function isVisibleGrant(
+  grant: DownloadGrantWithRelations | ResourceGrantWithRelations,
+  currentTime: Date
+) {
   if (grant.status !== "ACTIVE") {
     return false;
   }
@@ -133,7 +162,10 @@ export function createCustomerAccountService(
       }
 
       const currentTime = now();
-      const orders = await db.findOrdersForCustomer(customer.id, customer.email);
+      const [orders, resourceGrants] = await Promise.all([
+        db.findOrdersForCustomer(customer.id, customer.email),
+        db.findResourceGrantsForCustomer(customer.id),
+      ]);
 
       return {
         customer: {
@@ -177,6 +209,17 @@ export function createCustomerAccountService(
               expiresAt: grant.expiresAt,
             })),
         })),
+        offeredResources: resourceGrants
+          .filter((grant) => isVisibleGrant(grant, currentTime))
+          .map((grant) => ({
+            grantId: grant.id,
+            productName: grant.product.name,
+            filename: grant.asset.filename,
+            remainingDownloads: Math.max(grant.maxDownloads - grant.downloadCount, 0),
+            maxDownloads: grant.maxDownloads,
+            expiresAt: grant.expiresAt,
+            grantedAt: grant.createdAt,
+          })),
       };
     },
   };

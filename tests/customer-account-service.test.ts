@@ -33,6 +33,9 @@ function createCustomerRecord(overrides: Partial<Customer> = {}): Customer {
     electricalSkillLevel: overrides.electricalSkillLevel ?? null,
     marketingConsent: overrides.marketingConsent ?? false,
     marketingConsentAt: overrides.marketingConsentAt ?? null,
+    dataShareConsent: overrides.dataShareConsent ?? false,
+    dataShareConsentAt: overrides.dataShareConsentAt ?? null,
+    driveLinkUrl: overrides.driveLinkUrl ?? null,
     phone: overrides.phone ?? null,
     address: overrides.address ?? null,
     assetType: overrides.assetType ?? "OTHER",
@@ -170,6 +173,9 @@ function createMockCustomerAccountDb(seed?: {
       return orders.filter(
         (order) => order.customerId === customerId || order.customerEmail === customerEmail
       );
+    },
+    async findResourceGrantsForCustomer() {
+      return [];
     },
   };
 }
