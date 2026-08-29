@@ -43,6 +43,10 @@ scripts/.tmp-*
 
 # contenu source des ebooks (HTML/EPUB volumineux), jamais commite
 /ebook/
+# Brouillons premium : gardes localement pendant leur conception. Ils ne
+# doivent jamais creer une route ou une image publique en production.
+/app/outils/ebook-schema-fabsystem/
+/public/ebook/ebook-schema-fabsystem-images/
 
 # dossiers de travail locaux / nettoyage manuel
 /dash/

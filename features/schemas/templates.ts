@@ -5,6 +5,7 @@ import { buildExampleSchema } from "@/features/schemas/example";
 import campingCar7mDefault from "@/features/schemas/camping-car-7m-default.json";
 import vitoMarcoPolo280AhDefault from "@/features/schemas/vito-marco-polo-280ah-default.json";
 import vwT6AferiyP280Default from "@/features/schemas/vw-t6-aferiy-p280-default.json";
+import voilier10mRefitD260Default from "@/features/schemas/voilier-10m-refit-d2-60-default.json";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 
 // Galerie de schémas de départ (V2 — inspirée des "pre-built wiring
@@ -44,6 +45,10 @@ function buildVitoMarcoPolo280AhDefault(): { projectName: string; nodes: SchemaN
 
 function buildVwT6AferiyP280Default(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
   return structuredClone(vwT6AferiyP280Default) as { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] };
+}
+
+function buildVoilier10mRefitD260Default(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  return structuredClone(voilier10mRefitD260Default) as { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] };
 }
 
 export type SchemaTemplateVehicleGroup = "van" | "boat" | "workshop" | "starter";
@@ -1176,7 +1181,7 @@ export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
     id: "reference-v3-voilier-10m",
     label: "Voilier 10 m",
     description: "Base A2 pour le refit D2-60 : solaire, alternateur/DC-DC, quai, Lynx, MultiPlus et circuits de bord. Les éléments physiques non encore disponibles restent à compléter.",
-    build: () => ({ ...buildPremiumBoatTemplate(), projectName: "Voilier 10 m - Refit D2-60" }),
+    build: buildVoilier10mRefitD260Default,
   },
   {
     id: "reference-v3-vito-280ah",

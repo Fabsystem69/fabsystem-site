@@ -1,0 +1,2552 @@
+{
+  "format": "fabsystem-schema-draft",
+  "version": 1,
+  "projectName": "Voilier 10 m - Refit D2-60",
+  "nodes": [
+    {
+      "id": "pb-zone-solar",
+      "type": "zone",
+      "position": {
+        "x": -20,
+        "y": -80
+      },
+      "width": 700,
+      "height": 300,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Solaire",
+        "color": "#f59e0b"
+      },
+      "measured": {
+        "width": 700,
+        "height": 300
+      }
+    },
+    {
+      "id": "pb-zone-wind",
+      "type": "zone",
+      "position": {
+        "x": -20,
+        "y": 300
+      },
+      "width": 700,
+      "height": 120,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Éolien",
+        "color": "#0ea5e9"
+      },
+      "measured": {
+        "width": 700,
+        "height": 120
+      }
+    },
+    {
+      "id": "pb-zone-alt",
+      "type": "zone",
+      "position": {
+        "x": -20,
+        "y": 460
+      },
+      "width": 900,
+      "height": 320,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Alternateur / DC-DC",
+        "color": "#10b981"
+      },
+      "measured": {
+        "width": 900,
+        "height": 320
+      },
+      "selected": true
+    },
+    {
+      "id": "pb-zone-ac",
+      "type": "zone",
+      "position": {
+        "x": 600,
+        "y": -340
+      },
+      "width": 1460,
+      "height": 380,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Quai, groupe électrogène & 230V",
+        "color": "#7c3aed"
+      },
+      "measured": {
+        "width": 1460,
+        "height": 380
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-zone-lynx",
+      "type": "zone",
+      "position": {
+        "x": 880,
+        "y": 340
+      },
+      "width": 1320,
+      "height": 700,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Batterie & bus Lynx",
+        "color": "#6366f1"
+      },
+      "measured": {
+        "width": 1320,
+        "height": 700
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-zone-confort",
+      "type": "zone",
+      "position": {
+        "x": 2220,
+        "y": 680
+      },
+      "width": 900,
+      "height": 700,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Distribution & confort",
+        "color": "#14b8a6"
+      },
+      "measured": {
+        "width": 900,
+        "height": 700
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-zone-pont",
+      "type": "zone",
+      "position": {
+        "x": 1900,
+        "y": 1420
+      },
+      "width": 900,
+      "height": 900,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Pont & sécurité",
+        "color": "#ec4899"
+      },
+      "measured": {
+        "width": 900,
+        "height": 900
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-solar-1",
+      "type": "electrical",
+      "position": {
+        "x": 40,
+        "y": -40
+      },
+      "data": {
+        "componentType": "solar-panel",
+        "label": "Panneau solaire 1",
+        "powerW": 285,
+        "voltage": 33.4,
+        "brandModelId": "victron-bluesolar-285w-mono",
+        "brand": "Victron",
+        "model": "BlueSolar 285W monocristallin (SPM042855603)",
+        "operatingCurrentA": 8.63,
+        "shortCircuitCurrentA": 9.08,
+        "vocVoltage": 38.9,
+        "vocTemperatureCoeffPctPerC": -0.35,
+        "communicationPorts": ""
+      },
+      "measured": {
+        "width": 91,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-solar-2",
+      "type": "electrical",
+      "position": {
+        "x": 40,
+        "y": 140
+      },
+      "data": {
+        "componentType": "solar-panel",
+        "label": "Panneau solaire 2",
+        "powerW": 285,
+        "voltage": 33.4,
+        "brandModelId": "victron-bluesolar-285w-mono",
+        "brand": "Victron",
+        "model": "BlueSolar 285W monocristallin (SPM042855603)",
+        "operatingCurrentA": 8.63,
+        "shortCircuitCurrentA": 9.08,
+        "vocVoltage": 38.9,
+        "vocTemperatureCoeffPctPerC": -0.35,
+        "communicationPorts": ""
+      },
+      "measured": {
+        "width": 92,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-mppt",
+      "type": "electrical",
+      "position": {
+        "x": 340,
+        "y": 40
+      },
+      "data": {
+        "componentType": "mppt",
+        "amperage": 50,
+        "systemVoltage": 12,
+        "maxPvVoltage": 100,
+        "maxPvInputCurrentA": 60,
+        "maxPvPower12V": 700,
+        "communicationPorts": "ve-direct",
+        "brandModelId": "victron-smartsolar-100-50",
+        "brand": "Victron",
+        "model": "SmartSolar MPPT 100/50",
+        "label": "SmartSolar MPPT 100/50"
+      },
+      "measured": {
+        "width": 126,
+        "height": 95
+      }
+    },
+    {
+      "id": "pb-fuse-mppt",
+      "type": "electrical",
+      "position": {
+        "x": 620,
+        "y": 40
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible MPPT",
+        "fuseType": "midi",
+        "amperage": 60
+      },
+      "measured": {
+        "width": 71,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-wind",
+      "type": "electrical",
+      "position": {
+        "x": 40,
+        "y": 340
+      },
+      "data": {
+        "componentType": "wind-turbine",
+        "powerW": 420,
+        "voltage": 12,
+        "brandModelId": "silentwind-pro-420w",
+        "brand": "Silent Wind",
+        "model": "Wind Generator Pro 12V/420W",
+        "label": "Éolienne Silent Wind Pro"
+      },
+      "measured": {
+        "width": 124,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-fuse-wind",
+      "type": "electrical",
+      "position": {
+        "x": 340,
+        "y": 340
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible éolienne",
+        "fuseType": "midi",
+        "amperage": 35
+      },
+      "measured": {
+        "width": 86,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-battery-start",
+      "type": "electrical",
+      "position": {
+        "x": 40,
+        "y": 520
+      },
+      "data": {
+        "componentType": "battery",
+        "technology": "agm",
+        "voltage": 12,
+        "capacityAh": 100,
+        "brandModelId": "renogy-agm-100ah",
+        "brand": "Renogy",
+        "model": "Deep Cycle AGM 12V/100Ah",
+        "label": "Batterie moteur 12V"
+      },
+      "measured": {
+        "width": 103,
+        "height": 84
+      }
+    },
+    {
+      "id": "pb-alternator",
+      "type": "electrical",
+      "position": {
+        "x": 40,
+        "y": 700
+      },
+      "data": {
+        "componentType": "alternator",
+        "label": "Alternateur",
+        "voltage": 12,
+        "amperage": 100
+      },
+      "measured": {
+        "width": 63,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-fuse-alt",
+      "type": "electrical",
+      "position": {
+        "x": 280,
+        "y": 660
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible alternateur",
+        "fuseType": "anl",
+        "amperage": 120
+      },
+      "measured": {
+        "width": 99,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-fuse-dcdc-in",
+      "type": "electrical",
+      "position": {
+        "x": 280,
+        "y": 480
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible DC-DC entrée",
+        "fuseType": "midi",
+        "amperage": 40
+      },
+      "measured": {
+        "width": 110,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-dcdc",
+      "type": "electrical",
+      "position": {
+        "x": 600,
+        "y": 600
+      },
+      "data": {
+        "componentType": "dcdc",
+        "voltageIn": 12,
+        "voltageOut": 12,
+        "amperage": 30,
+        "brandModelId": "victron-orion-tr-30a",
+        "brand": "Victron",
+        "model": "Orion-Tr Smart 12/12-30A",
+        "label": "Orion-Tr Smart 12/12-30A",
+        "topology": "non-isolated",
+        "communicationPorts": "",
+        "rotation": 90
+      },
+      "measured": {
+        "width": 128,
+        "height": 108
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-fuse-dcdc-out",
+      "type": "electrical",
+      "position": {
+        "x": 740,
+        "y": 500
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible DC-DC sortie",
+        "fuseType": "midi",
+        "amperage": 30
+      },
+      "measured": {
+        "width": 106,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-shore",
+      "type": "electrical",
+      "position": {
+        "x": 640,
+        "y": -260
+      },
+      "data": {
+        "componentType": "shore-power",
+        "brandModelId": "p17-16a",
+        "brand": "Générique",
+        "model": "Prise P17 16A/230V",
+        "label": "Prise de quai"
+      },
+      "measured": {
+        "width": 70,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-generator",
+      "type": "electrical",
+      "position": {
+        "x": 640,
+        "y": -140
+      },
+      "data": {
+        "componentType": "shore-power",
+        "brandModelId": "honda-eu32i-generator",
+        "brand": "Honda",
+        "model": "EU32i 3200W",
+        "label": "Groupe électrogène"
+      },
+      "measured": {
+        "width": 104,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-galvanic",
+      "type": "electrical",
+      "position": {
+        "x": 900,
+        "y": -260
+      },
+      "data": {
+        "componentType": "galvanic-isolator",
+        "brandModelId": "sterling-zincsaver-ii",
+        "brand": "Sterling",
+        "model": "Zinc Saver II",
+        "label": "Isolateur galvanique"
+      },
+      "measured": {
+        "width": 106,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-transfer",
+      "type": "electrical",
+      "position": {
+        "x": 900,
+        "y": -140
+      },
+      "data": {
+        "componentType": "ac-transfer-switch",
+        "label": "Inverseur de source secteur"
+      },
+      "measured": {
+        "width": 147,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-multiplus",
+      "type": "electrical",
+      "position": {
+        "x": 1420,
+        "y": -140
+      },
+      "data": {
+        "componentType": "inverter-charger",
+        "powerW": 3000,
+        "voltageDC": 12,
+        "chargeAmperage": 120,
+        "communicationPorts": "ve-bus",
+        "brandModelId": "victron-multiplus-ii-12-3000-120",
+        "brand": "Victron",
+        "model": "MultiPlus-II 12/3000/120-32",
+        "label": "MultiPlus-II 12/3000/120"
+      },
+      "measured": {
+        "width": 127,
+        "height": 108
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-ac-panel",
+      "type": "electrical",
+      "position": {
+        "x": 1680,
+        "y": -220
+      },
+      "data": {
+        "componentType": "ac-panel",
+        "label": "Tableau 220V"
+      },
+      "measured": {
+        "width": 123,
+        "height": 75
+      }
+    },
+    {
+      "id": "pb-ground",
+      "type": "electrical",
+      "position": {
+        "x": 1680,
+        "y": -60
+      },
+      "data": {
+        "componentType": "ground",
+        "label": "Point de masse"
+      },
+      "measured": {
+        "width": 81,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-socket-1",
+      "type": "electrical",
+      "position": {
+        "x": 1940,
+        "y": -300
+      },
+      "data": {
+        "componentType": "socket-220v",
+        "label": "Prise 230V 1",
+        "powerW": 500
+      },
+      "measured": {
+        "width": 66,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-socket-2",
+      "type": "electrical",
+      "position": {
+        "x": 1940,
+        "y": -160
+      },
+      "data": {
+        "componentType": "socket-220v",
+        "label": "Prise 230V 2",
+        "powerW": 500
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-battery-house",
+      "type": "electrical",
+      "position": {
+        "x": 920,
+        "y": 700
+      },
+      "data": {
+        "componentType": "battery",
+        "technology": "lifepo4",
+        "voltage": 12,
+        "capacityAh": 300,
+        "brandModelId": "victron-lithium-ng-300ah",
+        "brand": "Victron",
+        "model": "Lithium NG 12,8V/300Ah",
+        "label": "Batterie servitude LiFePO4 300Ah"
+      },
+      "measured": {
+        "width": 170,
+        "height": 84
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-lynx-power-in",
+      "type": "electrical",
+      "position": {
+        "x": 1180,
+        "y": 660
+      },
+      "data": {
+        "componentType": "lynx-power-in",
+        "label": "Lynx Power In",
+        "amperage": 400
+      },
+      "measured": {
+        "width": 75,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-lynx-bms",
+      "type": "electrical",
+      "position": {
+        "x": 1340,
+        "y": 640
+      },
+      "data": {
+        "componentType": "lynx-smart-bms",
+        "label": "Lynx Smart BMS",
+        "amperage": 500,
+        "rotation": 270
+      },
+      "measured": {
+        "width": 126,
+        "height": 108
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-lynx-distributor",
+      "type": "electrical",
+      "position": {
+        "x": 1580,
+        "y": 460
+      },
+      "data": {
+        "componentType": "lynx-distributor",
+        "label": "Lynx Distributor",
+        "outAmp3": 150,
+        "outAmp5": 15
+      },
+      "measured": {
+        "width": 119,
+        "height": 90
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-lynx-shunt",
+      "type": "electrical",
+      "position": {
+        "x": 1180,
+        "y": 860
+      },
+      "data": {
+        "componentType": "lynx-shunt",
+        "label": "Lynx Shunt VE.Can",
+        "amperage": 1000
+      },
+      "measured": {
+        "width": 130,
+        "height": 75
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-busbar-neg-main",
+      "type": "electrical",
+      "position": {
+        "x": 1660,
+        "y": 760
+      },
+      "data": {
+        "componentType": "busbar",
+        "label": "Busbar − principal",
+        "polarity": "negative",
+        "outputCount": 8
+      },
+      "measured": {
+        "width": 97,
+        "height": 111
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-breaker-guindeau",
+      "type": "electrical",
+      "position": {
+        "x": 1900,
+        "y": 380
+      },
+      "data": {
+        "componentType": "circuit-breaker",
+        "label": "Disjoncteur guindeau",
+        "amperage": 80
+      },
+      "measured": {
+        "width": 111,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-guindeau",
+      "type": "electrical",
+      "position": {
+        "x": 2140,
+        "y": 380
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Guindeau",
+        "presetType": "guindeau",
+        "powerW": 800
+      },
+      "measured": {
+        "width": 53,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-panel-confort",
+      "type": "electrical",
+      "position": {
+        "x": 2300,
+        "y": 880
+      },
+      "data": {
+        "componentType": "fuse-block",
+        "label": "Tableau fusibles confort",
+        "outputCount": 9,
+        "layout": "positive-negative"
+      },
+      "measured": {
+        "width": 158,
+        "height": 128
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-frigo",
+      "type": "electrical",
+      "position": {
+        "x": 2920,
+        "y": 720
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Réfrigérateur à compression",
+        "presetType": "refrigerateur",
+        "powerW": 45,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 145,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-wc",
+      "type": "electrical",
+      "position": {
+        "x": 2800,
+        "y": 820
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "WC électrique marin",
+        "presetType": "wc-electrique",
+        "powerW": 30,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 105,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-chauffe-eau",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 760
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Chauffe-eau 12V",
+        "presetType": "chauffe-eau-12v",
+        "powerW": 120
+      },
+      "measured": {
+        "width": 87,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-pompe-eau",
+      "type": "electrical",
+      "position": {
+        "x": 2720,
+        "y": 960
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Pompe à eau",
+        "presetType": "pompe-eau",
+        "powerW": 60
+      },
+      "measured": {
+        "width": 69,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-switch-eclairage",
+      "type": "electrical",
+      "position": {
+        "x": 2580,
+        "y": 1040
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-eclairage-led",
+      "type": "electrical",
+      "position": {
+        "x": 2820,
+        "y": 1040
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Éclairage LED",
+        "presetType": "eclairage-led",
+        "powerW": 5,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 72,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-switch-ruban",
+      "type": "electrical",
+      "position": {
+        "x": 2580,
+        "y": 1110
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-ruban-led",
+      "type": "electrical",
+      "position": {
+        "x": 2820,
+        "y": 1110
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Ruban LED",
+        "presetType": "ruban-led",
+        "powerW": 10,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 59,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-switch-plafonnier",
+      "type": "electrical",
+      "position": {
+        "x": 2580,
+        "y": 1180
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-plafonnier-led",
+      "type": "electrical",
+      "position": {
+        "x": 2820,
+        "y": 1180
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Plafonnier LED",
+        "presetType": "plafonnier-led",
+        "powerW": 5,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 77,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-usb",
+      "type": "electrical",
+      "position": {
+        "x": 2580,
+        "y": 1250
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Prise USB / 12V",
+        "presetType": "prise-usb-12v",
+        "powerW": 15
+      },
+      "measured": {
+        "width": 79,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-electronique-bord",
+      "type": "electrical",
+      "position": {
+        "x": 2900,
+        "y": 1300
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Électronique de bord (GPS, VHF…)",
+        "presetType": "electronique-bord",
+        "powerW": 20
+      },
+      "measured": {
+        "width": 168,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-panel-pont",
+      "type": "electrical",
+      "position": {
+        "x": 1980,
+        "y": 1620
+      },
+      "data": {
+        "componentType": "fuse-block",
+        "label": "Tableau fusibles pont",
+        "outputCount": 7,
+        "layout": "positive-negative"
+      },
+      "measured": {
+        "width": 137,
+        "height": 128
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-switch-nav",
+      "type": "electrical",
+      "position": {
+        "x": 2340,
+        "y": 1460
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur feux de navigation",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 160,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "pb-feu-babord",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 1420
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Feu de navigation bâbord",
+        "presetType": "feu-babord",
+        "powerW": 3
+      },
+      "measured": {
+        "width": 131,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-feu-tribord",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 1510
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Feu de navigation tribord",
+        "presetType": "feu-tribord",
+        "powerW": 3
+      },
+      "measured": {
+        "width": 130,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-feu-mat",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 1600
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Feu de tête de mât",
+        "presetType": "feu-tete-de-mat",
+        "powerW": 5
+      },
+      "measured": {
+        "width": 99,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-switch-mouillage",
+      "type": "electrical",
+      "position": {
+        "x": 2260,
+        "y": 1700
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur feu de mouillage",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 150,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-feu-mouillage",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 1700
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Feu de mouillage",
+        "presetType": "feu-mouillage",
+        "powerW": 5,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 89,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-switch-floodlight",
+      "type": "electrical",
+      "position": {
+        "x": 2260,
+        "y": 1800
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-projecteur-pont",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 1800
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Projecteur de pont",
+        "presetType": "projecteur-pont",
+        "powerW": 20,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 99,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-switch-marche",
+      "type": "electrical",
+      "position": {
+        "x": 2260,
+        "y": 1900
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-eclairage-marche",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 1900
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Éclairage de marche",
+        "presetType": "eclairage-marche",
+        "powerW": 2,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 105,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-switch-klaxon",
+      "type": "electrical",
+      "position": {
+        "x": 2260,
+        "y": 2000
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur klaxon",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 101,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-klaxon",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 2000
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Klaxon",
+        "presetType": "klaxon",
+        "powerW": 15,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 47,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-pilote",
+      "type": "electrical",
+      "position": {
+        "x": 2260,
+        "y": 2100
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Pilote automatique",
+        "presetType": "pilote-automatique",
+        "powerW": 30
+      },
+      "measured": {
+        "width": 100,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-switch-bilge-manual",
+      "type": "electrical",
+      "position": {
+        "x": 2260,
+        "y": 2200
+      },
+      "data": {
+        "componentType": "switch",
+        "label": "Interrupteur",
+        "amperage": 0
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      }
+    },
+    {
+      "id": "pb-pompe-cale",
+      "type": "electrical",
+      "position": {
+        "x": 2500,
+        "y": 2150
+      },
+      "data": {
+        "componentType": "bilge-pump",
+        "label": "Pompe de cale",
+        "powerW": 40
+      },
+      "measured": {
+        "width": 121,
+        "height": 64
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "pb-e1",
+      "source": "pb-solar-1",
+      "sourceHandle": "positive",
+      "target": "pb-mppt",
+      "targetHandle": "pv-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e2",
+      "source": "pb-solar-1",
+      "sourceHandle": "negative",
+      "target": "pb-mppt",
+      "targetHandle": "pv-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "16 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e3",
+      "source": "pb-solar-2",
+      "sourceHandle": "positive",
+      "target": "pb-mppt",
+      "targetHandle": "pv-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e4",
+      "source": "pb-solar-2",
+      "sourceHandle": "negative",
+      "target": "pb-mppt",
+      "targetHandle": "pv-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "16 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e5",
+      "source": "pb-mppt",
+      "sourceHandle": "bat-positive",
+      "target": "pb-fuse-mppt",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e6",
+      "source": "pb-fuse-mppt",
+      "sourceHandle": "output",
+      "target": "pb-lynx-bms",
+      "targetHandle": "sys-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e7",
+      "source": "pb-mppt",
+      "sourceHandle": "bat-negative",
+      "target": "pb-busbar-neg-main",
+      "targetHandle": "out-1",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "16 mm²",
+        "length": 2.5
+      }
+    },
+    {
+      "id": "pb-e8",
+      "source": "pb-wind",
+      "sourceHandle": "positive",
+      "target": "pb-fuse-wind",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "6 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e9",
+      "source": "pb-fuse-wind",
+      "sourceHandle": "output",
+      "target": "pb-lynx-bms",
+      "targetHandle": "sys-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 2.5
+      },
+      "selected": false
+    },
+    {
+      "id": "pb-e10",
+      "source": "pb-wind",
+      "sourceHandle": "negative",
+      "target": "pb-busbar-neg-main",
+      "targetHandle": "out-2",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "6 mm²",
+        "length": 2.5
+      }
+    },
+    {
+      "id": "pb-e11",
+      "source": "pb-alternator",
+      "sourceHandle": "positive",
+      "target": "pb-fuse-alt",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "25 mm²",
+        "length": 0.5
+      }
+    },
+    {
+      "id": "pb-e12",
+      "source": "pb-fuse-alt",
+      "sourceHandle": "output",
+      "target": "pb-battery-start",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "25 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e13",
+      "source": "pb-alternator",
+      "sourceHandle": "negative",
+      "target": "pb-battery-start",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "25 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e14",
+      "source": "pb-battery-start",
+      "sourceHandle": "positive",
+      "target": "pb-fuse-dcdc-in",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e15",
+      "source": "pb-fuse-dcdc-in",
+      "sourceHandle": "output",
+      "target": "pb-dcdc",
+      "targetHandle": "in-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e17",
+      "source": "pb-dcdc",
+      "sourceHandle": "out-positive",
+      "target": "pb-fuse-dcdc-out",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e18",
+      "source": "pb-fuse-dcdc-out",
+      "sourceHandle": "output",
+      "target": "pb-lynx-bms",
+      "targetHandle": "sys-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 2.5
+      }
+    },
+    {
+      "id": "pb-e20",
+      "source": "pb-shore",
+      "sourceHandle": "ac",
+      "target": "pb-transfer",
+      "targetHandle": "in-1",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e21",
+      "source": "pb-generator",
+      "sourceHandle": "ac",
+      "target": "pb-transfer",
+      "targetHandle": "in-2",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e22",
+      "source": "pb-transfer",
+      "sourceHandle": "out",
+      "target": "pb-multiplus",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e23",
+      "source": "pb-shore",
+      "sourceHandle": "earth",
+      "target": "pb-galvanic",
+      "targetHandle": "earth-in",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "2,5 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e24",
+      "source": "pb-galvanic",
+      "sourceHandle": "earth-out",
+      "target": "pb-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e25",
+      "source": "pb-multiplus",
+      "sourceHandle": "ac-out",
+      "target": "pb-ac-panel",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e26",
+      "source": "pb-ac-panel",
+      "sourceHandle": "ac-out",
+      "target": "pb-socket-1",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e27",
+      "source": "pb-ac-panel",
+      "sourceHandle": "ac-out",
+      "target": "pb-socket-2",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e28",
+      "source": "pb-ac-panel",
+      "sourceHandle": "earth",
+      "target": "pb-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e29",
+      "source": "pb-socket-1",
+      "sourceHandle": "earth",
+      "target": "pb-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e30",
+      "source": "pb-socket-2",
+      "sourceHandle": "earth",
+      "target": "pb-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e33",
+      "source": "pb-multiplus",
+      "sourceHandle": "dc-negative",
+      "target": "pb-busbar-neg-main",
+      "targetHandle": "out-4",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "50 mm²",
+        "length": 1.5
+      }
+    },
+    {
+      "id": "pb-e34",
+      "source": "pb-battery-house",
+      "sourceHandle": "positive",
+      "target": "pb-lynx-power-in",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "50 mm²",
+        "length": 0.3
+      }
+    },
+    {
+      "id": "pb-e35",
+      "source": "pb-lynx-power-in",
+      "sourceHandle": "output",
+      "target": "pb-lynx-bms",
+      "targetHandle": "batt-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "50 mm²",
+        "length": 0.3
+      }
+    },
+    {
+      "id": "pb-e36",
+      "source": "pb-lynx-bms",
+      "sourceHandle": "sys-positive",
+      "target": "pb-lynx-distributor",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "35 mm²",
+        "length": 0.3
+      }
+    },
+    {
+      "id": "pb-e37",
+      "source": "pb-battery-house",
+      "sourceHandle": "negative",
+      "target": "pb-lynx-bms",
+      "targetHandle": "batt-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "50 mm²",
+        "length": 0.3
+      }
+    },
+    {
+      "id": "pb-e38",
+      "source": "pb-lynx-bms",
+      "sourceHandle": "sys-negative",
+      "target": "pb-lynx-shunt",
+      "targetHandle": "battery",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "50 mm²",
+        "length": 0.3
+      }
+    },
+    {
+      "id": "pb-e39",
+      "source": "pb-lynx-shunt",
+      "sourceHandle": "system",
+      "target": "pb-busbar-neg-main",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "35 mm²",
+        "length": 0.3
+      }
+    },
+    {
+      "id": "pb-e44",
+      "source": "pb-lynx-distributor",
+      "sourceHandle": "out-4",
+      "target": "pb-breaker-guindeau",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e45",
+      "source": "pb-breaker-guindeau",
+      "sourceHandle": "output",
+      "target": "pb-guindeau",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e46",
+      "source": "pb-busbar-neg-main",
+      "sourceHandle": "out-5",
+      "target": "pb-guindeau",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "25 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e49",
+      "source": "pb-busbar-neg-main",
+      "sourceHandle": "out-6",
+      "target": "pb-pompe-cale",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "pb-e50",
+      "source": "pb-lynx-distributor",
+      "sourceHandle": "out-1",
+      "target": "pb-panel-confort",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e51",
+      "source": "pb-lynx-distributor",
+      "sourceHandle": "out-2",
+      "target": "pb-panel-pont",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 2.5
+      }
+    },
+    {
+      "id": "pb-e54",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-1",
+      "target": "pb-frigo",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "pb-e55",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-2",
+      "target": "pb-wc",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 2.5
+      }
+    },
+    {
+      "id": "pb-e56",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-3",
+      "target": "pb-chauffe-eau",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "4 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e57",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-4",
+      "target": "pb-pompe-eau",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 3.5
+      }
+    },
+    {
+      "id": "pb-e58",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-5",
+      "target": "pb-switch-eclairage",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "pb-e59",
+      "source": "pb-switch-eclairage",
+      "sourceHandle": "output",
+      "target": "pb-eclairage-led",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e60",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-6",
+      "target": "pb-switch-ruban",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 4.5
+      }
+    },
+    {
+      "id": "pb-e61",
+      "source": "pb-switch-ruban",
+      "sourceHandle": "output",
+      "target": "pb-ruban-led",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e62",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-7",
+      "target": "pb-switch-plafonnier",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "pb-e63",
+      "source": "pb-switch-plafonnier",
+      "sourceHandle": "output",
+      "target": "pb-plafonnier-led",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "pb-e64",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-8",
+      "target": "pb-usb",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 5.5
+      }
+    },
+    {
+      "id": "pb-e65",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-9",
+      "target": "pb-electronique-bord",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1 mm²",
+        "length": 6
+      }
+    },
+    {
+      "id": "pb-e75",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-1",
+      "target": "pb-switch-nav",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "pb-e76",
+      "source": "pb-switch-nav",
+      "sourceHandle": "output",
+      "target": "pb-feu-babord",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e77",
+      "source": "pb-switch-nav",
+      "sourceHandle": "output",
+      "target": "pb-feu-tribord",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "pb-e78",
+      "source": "pb-switch-nav",
+      "sourceHandle": "output",
+      "target": "pb-feu-mat",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "pb-e79",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-2",
+      "target": "pb-switch-mouillage",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "pb-e80",
+      "source": "pb-switch-mouillage",
+      "sourceHandle": "output",
+      "target": "pb-feu-mouillage",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "pb-e81",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-3",
+      "target": "pb-switch-floodlight",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "pb-e82",
+      "source": "pb-switch-floodlight",
+      "sourceHandle": "output",
+      "target": "pb-projecteur-pont",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "pb-e83",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-4",
+      "target": "pb-switch-marche",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "pb-e84",
+      "source": "pb-switch-marche",
+      "sourceHandle": "output",
+      "target": "pb-eclairage-marche",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "pb-e85",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-5",
+      "target": "pb-switch-klaxon",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "pb-e86",
+      "source": "pb-switch-klaxon",
+      "sourceHandle": "output",
+      "target": "pb-klaxon",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "pb-e87",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-6",
+      "target": "pb-pilote",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "pb-e88",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-7",
+      "target": "pb-switch-bilge-manual",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 5.5
+      }
+    },
+    {
+      "id": "pb-e89",
+      "source": "pb-switch-bilge-manual",
+      "sourceHandle": "output",
+      "target": "pb-pompe-cale",
+      "targetHandle": "positive-manual",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 5
+      }
+    },
+    {
+      "id": "edge_mtf01cv8_1",
+      "source": "pb-multiplus",
+      "sourceHandle": "dc-positive",
+      "target": "pb-lynx-distributor",
+      "targetHandle": "out-3",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "50 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf02skv_2",
+      "source": "pb-lynx-distributor",
+      "sourceHandle": "out-5",
+      "target": "pb-pompe-cale",
+      "targetHandle": "positive-auto",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf071b2_3",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-9-neg",
+      "target": "pb-frigo",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf07q45_4",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-8-neg",
+      "target": "pb-wc",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "4 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "edge_mtf08a9k_5",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-7-neg",
+      "target": "pb-chauffe-eau",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "6 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "edge_mtf08n5y_6",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-6-neg",
+      "target": "pb-pompe-eau",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf09fzw_7",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-5-neg",
+      "target": "pb-eclairage-led",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf09nfy_8",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-4-neg",
+      "target": "pb-ruban-led",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf09v06_9",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-3-neg",
+      "target": "pb-plafonnier-led",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0a1ws_10",
+      "source": "pb-panel-confort",
+      "sourceHandle": "out-2-neg",
+      "target": "pb-usb",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,75 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0app9_12",
+      "source": "pb-electronique-bord",
+      "sourceHandle": "negative",
+      "target": "pb-panel-confort",
+      "targetHandle": "out-1-neg",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,75 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0bw2q_13",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-1-neg",
+      "target": "pb-pilote",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0c4tz_14",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-2-neg",
+      "target": "pb-klaxon",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0cift_15",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-3-neg",
+      "target": "pb-eclairage-marche",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0cz72_16",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-4-neg",
+      "target": "pb-projecteur-pont",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0da3n_17",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-5-neg",
+      "target": "pb-feu-mouillage",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0dj2d_18",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-6-neg",
+      "target": "pb-feu-mat",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0dpus_19",
+      "source": "pb-panel-pont",
+      "sourceHandle": "out-7-neg",
+      "target": "pb-feu-tribord",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0e0lt_20",
+      "source": "pb-feu-babord",
+      "sourceHandle": "negative",
+      "target": "pb-feu-tribord",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtf0ejnh_21",
+      "source": "pb-panel-confort",
+      "sourceHandle": "in-negative",
+      "target": "pb-busbar-neg-main",
+      "targetHandle": "out-7",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "10 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "edge_mtf0f0b0_22",
+      "source": "pb-busbar-neg-main",
+      "sourceHandle": "out-8",
+      "target": "pb-panel-pont",
+      "targetHandle": "in-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "10 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "edge_mtf0fskn_23",
+      "source": "pb-generator",
+      "sourceHandle": "earth",
+      "target": "pb-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth"
+      }
+    },
+    {
+      "id": "edge_mtf0i6p3_24",
+      "source": "pb-dcdc",
+      "sourceHandle": "ground",
+      "target": "pb-battery-start",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "16 mm²",
+        "length": 4
+      }
+    }
+  ],
+  "updatedAt": "2026-08-29T23:30:38.331Z"
+}
