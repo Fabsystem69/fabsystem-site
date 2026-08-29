@@ -26,9 +26,9 @@ export function ZoneNode({ id, data }: NodeProps) {
 
   return (
     <>
-      {/* Redimensionnement aussi bloqué tant qu'épinglée — pas seulement le
-          déplacement (voir Canvas.tsx pour `draggable: false`). */}
-      <NodeResizer minWidth={160} minHeight={120} color={color} isVisible={isSelected && !locked} />
+      {/* Le verrou protège uniquement le déplacement. Ajuster les limites
+          d'une zone reste possible sans risquer de déplacer son contenu. */}
+      <NodeResizer minWidth={160} minHeight={120} color={color} isVisible={isSelected} />
       <div
         className="h-full w-full rounded-xl border-2"
         style={{ borderColor: color, backgroundColor: `${color}14` }}
@@ -63,7 +63,7 @@ export function ZoneNode({ id, data }: NodeProps) {
                   e.stopPropagation();
                   toggleZoneLock(id);
                 }}
-                title={locked ? "Déplacer la zone (déverrouiller)" : "Épingler la zone (empêcher tout déplacement accidentel)"}
+                title={locked ? "Déverrouiller le déplacement de la zone" : "Verrouiller le déplacement de la zone"}
               >
                 {locked ? "🔒" : "🔓"}
               </button>

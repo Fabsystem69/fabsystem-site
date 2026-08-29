@@ -76,6 +76,63 @@ export const BUNDLING_FACTOR: Record<CableBundling, number> = {
   large: 0.7,
 };
 
+/**
+ * Norme de référence affichée à l'utilisateur — pas un moteur de calcul
+ * séparé (la table WIRE_TABLE et les facteurs ci-dessus restent la seule
+ * source de vérité, déjà validés ailleurs sur le site). Ajout suite à
+ * l'audit du concurrent Wireframe (US/UK, citations ABYC E-11 / BS 7671) :
+ * même principe de traçabilité, adapté au public France/UE de ce site.
+ * Aucune norme "camping-car CC" dédiée n'existe en France — pratique
+ * courante = ISO 10133 (petits navires) pour le circuit CC véhicule/bateau,
+ * NF C 15-100 pour la partie secteur 230V (chargeur, prises). Valeurs
+ * volontairement limitées aux conventions larges et bien établies (seuils
+ * de chute de tension, marge circuit continu) plutôt qu'une reproduction
+ * chiffrée exacte d'une table de norme payante non vérifiable ici.
+ */
+export type CableStandardId = "iso10133" | "nfc15100";
+
+export type CableStandard = {
+  id: CableStandardId;
+  label: string;
+  shortLabel: string;
+  region: string;
+  description: string;
+  /** Chute de tension max recommandée, circuit critique (navigation, sécurité, pompe de cale). */
+  voltageDropCriticalPct: number;
+  /** Chute de tension max recommandée, circuit non critique (éclairage confort, USB...). */
+  voltageDropNonCriticalPct: number;
+  /** Marge appliquée au courant de dimensionnement d'un circuit continu (≥3h). */
+  continuousLoadFactor: number;
+  citation: string;
+};
+
+export const CABLE_STANDARDS: Record<CableStandardId, CableStandard> = {
+  iso10133: {
+    id: "iso10133",
+    label: "ISO 10133 — petits navires, installations CC très basse tension",
+    shortLabel: "ISO 10133",
+    region: "Europe / international — circuit CC (batterie, solaire, 12/24/48V)",
+    description:
+      "Norme internationale de référence pour le câblage continu très basse tension à bord des petits navires. En l'absence de norme française dédiée au camping-car/van aménagé, c'est la référence la plus proche et la plus largement utilisée par les fabricants de matériel vendus en France (Victron, Renogy...) pour le circuit CC.",
+    voltageDropCriticalPct: 3,
+    voltageDropNonCriticalPct: 10,
+    continuousLoadFactor: 1.25,
+    citation: "ISO 10133 — Small craft — Electrical systems — Extra-low-voltage d.c. installations",
+  },
+  nfc15100: {
+    id: "nfc15100",
+    label: "NF C 15-100 — installations basse tension (secteur 230V)",
+    shortLabel: "NF C 15-100",
+    region: "France — circuit secteur (chargeur, prises 230V)",
+    description:
+      "Norme française d'installation électrique basse tension (transposition de la norme européenne CENELEC HD 60364 / IEC 60364). Pertinente pour la partie 230V d'une installation (raccordement secteur, chargeur), pas pour le circuit CC véhicule/bateau.",
+    voltageDropCriticalPct: 3,
+    voltageDropNonCriticalPct: 5,
+    continuousLoadFactor: 1,
+    citation: "NF C 15-100 §512.1.1 / §525 — chute de tension ; IEC 60364-5-52",
+  },
+};
+
 /** Trouve la ligne du plus petit câble dont l'ampacité dérated couvre le courant demandé. */
 export function findMinimumSectionForAmpacity(
   designCurrentA: number,

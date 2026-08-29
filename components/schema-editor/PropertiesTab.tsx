@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { useSchemaStore, ZONE_COLORS } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { useBrandModelSelector, useNodeFieldChange, FuseSuggestion, SectionSuggestion, FuseBlockOutputs } from "./ItemPropertiesPopup";
@@ -165,9 +166,9 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
           "Spécificité" à cliquer pour les atteindre. */}
       {selectedNode && !isZone
         ? remainingFields.map((field) => (
-            <>
-              <RibbonDivider darkMode={darkMode} key={`${field.key}-divider`} />
-              <InlineField key={field.key} darkMode={darkMode} label={field.label} unit={field.type === "number" ? field.unit : undefined}>
+            <Fragment key={field.key}>
+              <RibbonDivider darkMode={darkMode} />
+              <InlineField darkMode={darkMode} label={field.label} unit={field.type === "number" ? field.unit : undefined}>
                 {field.type === "select" ? (
                   <select
                     value={String(selectedNode.data[field.key] ?? "")}
@@ -199,7 +200,7 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
                   />
                 )}
               </InlineField>
-            </>
+            </Fragment>
           ))
         : null}
 
@@ -210,12 +211,10 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
           bas dans ce composant), même style que GuidedTutorial.tsx —
           "fait apparaître le message en bulle en bas avec volta déjà en
           place". */}
-      {selectedNode && def?.type === "fuse-block" ? (
+      {selectedNode && (def?.type === "fuse-block" || (def?.type === "distribution-panel" && selectedNode.data.layout === "with-fuses")) ? (
         <>
           <RibbonDivider darkMode={darkMode} />
-          <div className="px-2">
-            <FuseBlockOutputs node={selectedNode} onChange={updateNodeData} darkMode={darkMode} />
-          </div>
+          <FuseBlockOutputs node={selectedNode} onChange={updateNodeData} darkMode={darkMode} compact />
         </>
       ) : null}
 

@@ -70,6 +70,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const def = getComponentDefinition(data.componentType);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  const isIssueHighlighted = useSchemaStore((s) => s.highlightedIssueTarget?.kind === "node" && s.highlightedIssueTarget.id === id);
   // Retour utilisateur : seules les bornes réellement polarisées (+/−)
   // gardent une couleur fixe (rouge/noir) — une borne non polarisée
   // (communication, terre, bus de données…) reste noire tant que rien n'est
@@ -83,6 +84,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const rotation = Number(data.rotation) || 0;
   const mirrored = Boolean(data.mirrored);
   const outputCount = Number(data.outputCount) || 0;
+  const busbarFaceLayout = `${String(data.leftPoints ?? "")}:${String(data.topPoints ?? "")}:${String(data.rightPoints ?? "")}:${String(data.bottomPoints ?? "")}`;
 
   // React Flow met en cache la position de chaque borne pour tracer les
   // câbles ; changer le côté effectif d'une borne (pivot) ou leur nombre
@@ -91,7 +93,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   // pivotent pas".
   useEffect(() => {
     updateNodeInternals(id);
-  }, [id, rotation, mirrored, outputCount, updateNodeInternals]);
+  }, [id, rotation, mirrored, outputCount, busbarFaceLayout, updateNodeInternals]);
 
   // Calculs sûrs même si `def` est introuvable (repli sur des tableaux
   // vides) : les Hooks ci-dessous doivent s'exécuter dans le même ordre à
@@ -104,6 +106,20 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   }));
   const bySide: Record<Side, typeof handlesWithSide> = { left: [], top: [], right: [], bottom: [] };
   for (const entry of handlesWithSide) bySide[entry.side].push(entry);
+
+  // Le nom du composant est un obstacle de lecture, pas une vignette qui
+  // doit masquer un câble. Il se place donc du côté vertical le moins chargé
+  // par les bornes réellement câblées. Un MPPT câblé par le bas garde par
+  // exemple son nom au-dessus; un composant alimenté par le haut le garde
+  // dessous. Les bornes intégrées restent le seul texte dans le boîtier.
+  const connectedHandles = new Set(
+    edges
+      .filter((edge) => edge.source === id || edge.target === id)
+      .map((edge) => (edge.source === id ? edge.sourceHandle : edge.targetHandle))
+      .filter((handleId): handleId is string => Boolean(handleId)),
+  );
+  const connectedOnSide = (side: Side) => bySide[side].filter(({ handle }) => connectedHandles.has(handle.id)).length;
+  const componentLabelSide: "top" | "bottom" = connectedOnSide("bottom") > connectedOnSide("top") ? "top" : "bottom";
 
   // Bornes dont la polarité dépend d'une propriété du composant (ex.
   // busbar) plutôt que d'être fixe dans la définition.
@@ -186,6 +202,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
 
   if (!def) return null;
   const icon = getNodeIcon(def, data, iconStyle);
+  const isGroundSymbol = def.type === "ground";
 
   // Retour utilisateur : "un bouton zoom +- et aussi un bouton rotation"
   // directement sur la vignette — plus rapide que d'ouvrir le panneau de
@@ -196,8 +213,22 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
     darkMode ? "text-neutral-300 hover:bg-neutral-700" : "text-neutral-600 hover:bg-neutral-200"
   }`;
 
+  const componentLabel = (
+    <div
+      data-schema-component-label={id}
+      className={`max-w-full truncate px-1 font-medium leading-tight ${
+        selected ? "text-neutral-700" : darkMode ? "text-neutral-300" : "text-neutral-700"
+      }`}
+      style={{ fontSize: 10 + (displayScale - 1) * 1.5 }}
+      title={String(data.label ?? def.label)}
+    >
+      {String(data.label ?? def.label)}
+    </div>
+  );
+
   return (
     <div className="relative flex w-fit flex-col items-center gap-1">
+      {componentLabelSide === "top" ? componentLabel : null}
       {selected ? (
         <div
           className={`nodrag nopan absolute -top-7 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-md border px-1 py-0.5 shadow-sm ${
@@ -257,9 +288,11 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
         </div>
       ) : null}
       <div
-        className={`relative grid rounded-lg border-2 bg-white shadow-sm transition-shadow ${
-          dynamicAccent ? "" : (CATEGORY_ACCENT[def.category] ?? "border-neutral-400")
-        } ${selected ? "ring-2 ring-brand-400 ring-offset-1" : ""}`}
+        className={`relative grid rounded-lg border-2 transition-shadow ${
+          isGroundSymbol
+            ? "border-transparent bg-transparent shadow-none"
+            : `bg-white shadow-sm ${dynamicAccent ? "" : (CATEGORY_ACCENT[def.category] ?? "border-neutral-400")}`
+        } ${isIssueHighlighted ? "animate-pulse ring-4 ring-white ring-offset-2 ring-offset-brand-500" : selected ? "ring-2 ring-brand-400 ring-offset-1" : ""}`}
         style={{
           ...dynamicAccent,
           gridTemplateColumns: "auto auto auto",
@@ -293,7 +326,11 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
         <div style={{ gridArea: "icon", width: boxSize, height: boxSize }} className="relative flex items-center justify-center">
           {icon ? (
             // eslint-disable-next-line @next/next/no-img-element -- icônes de bibliothèque à chemin dynamique, pas des images de contenu
-            <img src={icon} alt="" className="h-[70%] w-[70%] object-contain" />
+            <img
+              src={icon}
+              alt=""
+              className="h-[76%] w-[76%] object-contain mix-blend-multiply"
+            />
           ) : (
             <span className="px-1 text-center text-[9px] font-semibold uppercase leading-tight text-neutral-400">{def.label}</span>
           )}
@@ -379,18 +416,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
         })}
       </div>
 
-      <div
-        // Fond opaque même hors sélection (retour utilisateur : les câbles
-        // qui passent sous un nœud traversaient visuellement son nom) —
-        // même logique que le fond ajouté aux étiquettes de bornes.
-        className={`max-w-full truncate rounded px-1 font-medium leading-tight ${
-          selected ? "bg-brand-100 text-neutral-700" : darkMode ? "bg-neutral-950 text-neutral-300" : "bg-white text-neutral-700"
-        }`}
-        style={{ fontSize: 10 + (displayScale - 1) * 1.5 }}
-        title={String(data.label ?? def.label)}
-      >
-        {String(data.label ?? def.label)}
-      </div>
+      {componentLabelSide === "bottom" ? componentLabel : null}
     </div>
   );
 }

@@ -822,6 +822,7 @@ const PRINT_STYLE = `
   th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid #e5e7eb; }
   th { color: #6b7280; font-weight: 600; font-size: 10px; text-transform: uppercase; }
   footer { margin-top: 20px; font-size: 10px; color: #9ca3af; }
+  .schema-print { break-inside: avoid; page-break-inside: avoid; }
 `;
 
 // Format de page (retour utilisateur : "ne pas hésiter à changer les formats
@@ -882,15 +883,28 @@ export function openPrintablePdf(capture: SchemaCapture, projectName: string): v
 <style>
   @page { size: ${page.name} landscape; margin: 10mm; }
   ${PRINT_STYLE}
-  img { max-width: 100%; max-height: ${imgMaxHeightMm}mm; width: auto; height: auto; object-fit: contain; }
+  /* La feuille de schéma ne doit jamais dépendre des marges par défaut du
+     navigateur: sinon l'image peut être rognée ou repoussée sur une seconde
+     page malgré le calcul de format A4/A3/A2. */
+  body { margin: 0; padding: 0; }
+  .schema-print { display: flex; flex-direction: column; height: ${page.heightMm - PAGE_MARGIN_MM * 2}mm; overflow: hidden; }
+  .schema-header { flex: 0 0 auto; }
+  .schema-disclaimer { margin: 4mm 0; }
+  .schema-image-wrap { min-height: 0; flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
+  .schema-image-wrap img { display: block; max-width: 100%; max-height: ${imgMaxHeightMm}mm; width: auto; height: auto; object-fit: contain; }
+  .schema-print footer { flex: 0 0 auto; margin-top: 3mm; }
 </style>
 </head>
 <body>
-  <h1>${title}</h1>
-  <div class="meta">Généré le ${dateStr} · format ${page.name} paysage</div>
-  <div class="disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)}</div>
-  <img src="${capture.dataUrl}" alt="${title}" />
-  <footer>Généré par FabSystem pour ${title} — fabsystem.fr</footer>
+  <main class="schema-print">
+    <div class="schema-header">
+      <h1>${title}</h1>
+      <div class="meta">Généré le ${dateStr} · format ${page.name} paysage</div>
+    </div>
+    <div class="disclaimer schema-disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)}</div>
+    <div class="schema-image-wrap"><img src="${capture.dataUrl}" alt="${title}" /></div>
+    <footer>Généré par FabSystem pour ${title} — fabsystem.fr</footer>
+  </main>
 </body>
 </html>`);
   win.document.close();

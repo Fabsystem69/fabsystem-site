@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { ViewportPortal } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { DARK_MODE_COLOR_OVERRIDE, THREE_CONDUCTOR_SECTIONS, parseSectionMm2, strokeWidthForSection } from "@/components/schema-editor/edges/CableEdge";
@@ -25,6 +25,11 @@ const BUMP_HEIGHT = 6;
 // large s'y désolidariserait visiblement des 3 traits parallèles réels).
 const BUMP_HEIGHT_LARGE = 10;
 const SAMPLE_STEP = 8;
+// Un sursaut doit rester lisible et ne jamais sembler sortir d'une borne.
+// Ces distances sont mesurées à l'écran : le résultat reste cohérent quel
+// que soit le niveau de zoom du canvas.
+const NODE_CLEARANCE_PX = 30;
+const MIN_BUMP_SEPARATION_PX = 44;
 // Retour utilisateur : "empêche-les dans les courbes, le fil donne
 // l'impression d'être coupé" — le sursaut suppose une portion de câble
 // localement DROITE de chaque côté du croisement (une jambe rectiligne
@@ -113,13 +118,38 @@ function straightLegPath(point: Point, tangent: Point): string {
   return `M${start.x} ${start.y}L${end.x} ${end.y}`;
 }
 
-export function CableCrossingOverlay() {
-  const edges = useSchemaStore((s) => s.edges);
-  const nodes = useSchemaStore((s) => s.nodes);
+function distanceToRect(point: Point, rect: DOMRect): number {
+  const dx = Math.max(rect.left - point.x, 0, point.x - rect.right);
+  const dy = Math.max(rect.top - point.y, 0, point.y - rect.bottom);
+  return Math.hypot(dx, dy);
+}
+
+function pointOnScreen(path: SVGPathElement, point: Point): Point | null {
+  const matrix = path.ownerSVGElement?.getScreenCTM();
+  if (!matrix) return null;
+  const screenPoint = new DOMPoint(point.x, point.y).matrixTransform(matrix);
+  return { x: screenPoint.x, y: screenPoint.y };
+}
+
+export function CableCrossingOverlay({ suspended = false }: { suspended?: boolean }) {
+  const currentEdges = useSchemaStore((s) => s.edges);
+  const currentNodes = useSchemaStore((s) => s.nodes);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  // Le déplacement reste prioritaire. Les rebonds se mettent à jour dès que
+  // le navigateur a un moment libre, puis après un court silence ci-dessous.
+  const edges = useDeferredValue(currentEdges);
+  const nodes = useDeferredValue(currentNodes);
   const [crossings, setCrossings] = useState<Crossing[]>([]);
 
   useEffect(() => {
+    // La détection compare chaque câble aux autres et échantillonne leurs
+    // tracés dans le DOM. Elle n'a aucune valeur pendant un glisser : le
+    // résultat serait périmé dès l'image suivante. On la reprend au dépôt.
+    if (suspended) {
+      setCrossings([]);
+      return;
+    }
+
     // Un léger différé (après paint + un court silence) plutôt qu'un
     // recalcul à chaque frame de glisser : cette détection lit le DOM déjà
     // rendu, donc doit attendre le prochain paint, et un débounce évite de
@@ -135,6 +165,9 @@ export function CableCrossingOverlay() {
 
       const relevant = edges.filter((e) => edgeEls.has(e.id));
       const found: Crossing[] = [];
+      const acceptedScreenPoints: Point[] = [];
+      const nodeRects = Array.from(document.querySelectorAll<HTMLElement>(".react-flow__node:not(.react-flow__node-cableWaypoint)"))
+        .map((node) => node.getBoundingClientRect());
 
       for (let i = 0; i < relevant.length; i++) {
         const a = relevant[i];
@@ -174,6 +207,14 @@ export function CableCrossingOverlay() {
           }
           if (!hit) continue;
 
+          const screenPoint = pointOnScreen(pathA, hit.point);
+          if (!screenPoint) continue;
+          // Pas de rebond à proximité d'une vignette : il serait confondu
+          // avec une borne ou un câble qui entre dans le composant.
+          if (nodeRects.some((rect) => distanceToRect(screenPoint, rect) < NODE_CLEARANCE_PX)) continue;
+          // Deux rebonds voisins forment visuellement une boucle parasite.
+          if (acceptedScreenPoints.some((point) => Math.hypot(point.x - screenPoint.x, point.y - screenPoint.y) < MIN_BUMP_SEPARATION_PX)) continue;
+
           // Règle stable (déterministe, sans signification électrique) pour
           // décider lequel des deux câbles fait le sursaut : celui dont
           // l'id est le plus grand — reste cohérent d'un rendu à l'autre.
@@ -209,14 +250,15 @@ export function CableCrossingOverlay() {
             },
             maskColor: darkMode ? "#0a0a0a" : "#ffffff",
           });
+          acceptedScreenPoints.push(screenPoint);
         }
       }
 
       setCrossings(found);
-    }, 120);
+    }, 300);
 
     return () => clearTimeout(timeout);
-  }, [nodes, edges, darkMode]);
+  }, [nodes, edges, darkMode, suspended]);
 
   if (crossings.length === 0) return null;
 

@@ -2,6 +2,7 @@ import type { Node, Edge } from "@xyflow/react";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 import { calcSection, AVAILABLE_FUSES_A, AVAILABLE_SECTIONS_MM2 } from "@/lib/calc/section-cable";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
+import { getBrandModel } from "@/lib/electrical-components/brand-models";
 
 // Moteur de recalcul en masse (V2 — inspiré de "Recalculate All Wire
 // Sizes"/"Recalculate All Fuse Ratings" chez Wireframe, un concurrent
@@ -23,7 +24,7 @@ export interface EdgeSectionDiagnostic {
   loadAmps: number | null;
   protectionAmps: number | null;
   sourceAmps: number | null;
-  ampsSource: "load" | "protection" | "charger";
+  ampsSource: "load" | "protection" | "charger" | "solar";
   voltage: number;
   length: number;
   recommendedSectionMm2: number;
@@ -65,6 +66,104 @@ function getProtectionAmperage(node: SchemaNode | undefined): number | null {
   if (node.data.componentType !== "fuse" && node.data.componentType !== "circuit-breaker") return null;
   const amperage = Number(node.data.amperage) || 0;
   return amperage > 0 ? amperage : null;
+}
+
+const PV_PASSTHROUGH_TYPES = new Set(["solar-panel", "fuse", "circuit-breaker", "busbar"]);
+const PV_REGULATOR_TYPES = new Set(["mppt", "pwm", "easysolar"]);
+// Isc est le courant maximal du module. Une marge de conception de 25 %
+// évite de dimensionner un conducteur PV exactement à sa valeur STC.
+const PV_DESIGN_CURRENT_FACTOR = 1.25;
+
+function isPvTerminal(node: SchemaNode | undefined, handle: string | null | undefined): boolean {
+  if (!node) return false;
+  return node.data.componentType === "solar-panel" || (PV_REGULATOR_TYPES.has(node.data.componentType) && Boolean(handle?.startsWith("pv-")));
+}
+
+function isPvCircuitEdge(edge: SchemaEdge, nodes: SchemaNode[]): boolean {
+  const source = nodes.find((node) => node.id === edge.source);
+  const target = nodes.find((node) => node.id === edge.target);
+  return isPvTerminal(source, edge.sourceHandle) || isPvTerminal(target, edge.targetHandle);
+}
+
+// Remonte le sous-réseau PV autour du câble sans traverser le MPPT : un
+// fusible ou un busbar PV est traversé, mais jamais le régulateur vers la
+// batterie. Cela permet de distinguer une chaîne série d'un vrai parallèle.
+function collectPvPanelsForEdge(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): SchemaNode[] {
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const visited = new Set<string>();
+  const queue = [edge.source, edge.target].filter((id) => PV_PASSTHROUGH_TYPES.has(nodeById.get(id)?.data.componentType ?? ""));
+
+  while (queue.length > 0) {
+    const id = queue.shift()!;
+    if (visited.has(id)) continue;
+    visited.add(id);
+    for (const candidate of edges) {
+      const otherId = candidate.source === id ? candidate.target : candidate.target === id ? candidate.source : null;
+      if (!otherId || visited.has(otherId)) continue;
+      const other = nodeById.get(otherId);
+      if (other && PV_PASSTHROUGH_TYPES.has(other.data.componentType)) queue.push(otherId);
+    }
+  }
+
+  return nodes.filter((node) => visited.has(node.id) && node.data.componentType === "solar-panel");
+}
+
+function collectSolarStrings(panels: SchemaNode[], edges: SchemaEdge[]): SchemaNode[][] {
+  const panelIds = new Set(panels.map((panel) => panel.id));
+  const strings: SchemaNode[][] = [];
+  const visited = new Set<string>();
+
+  for (const panel of panels) {
+    if (visited.has(panel.id)) continue;
+    const string: SchemaNode[] = [];
+    const queue = [panel.id];
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const current = panels.find((candidate) => candidate.id === id);
+      if (current) string.push(current);
+      for (const edge of edges) {
+        const otherId = edge.source === id ? edge.target : edge.target === id ? edge.source : null;
+        if (otherId && panelIds.has(otherId) && !visited.has(otherId)) queue.push(otherId);
+      }
+    }
+    if (string.length > 0) strings.push(string);
+  }
+  return strings;
+}
+
+function evaluatePvEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): EdgeSectionDiagnostic | null {
+  if (!isPowerCableType(edge.data?.cableType) || !isPvCircuitEdge(edge, nodes)) return null;
+  const strings = collectSolarStrings(collectPvPanelsForEdge(edge, nodes, edges), edges);
+  if (strings.length === 0) return null;
+
+  const details = strings.map((string) => ({
+    isc: Math.min(...string.map((panel) => Number(panel.data.shortCircuitCurrentA) || 0)),
+    vmp: string.reduce((sum, panel) => sum + (Number(panel.data.voltage) || 0), 0),
+  }));
+  if (details.some((detail) => detail.isc <= 0 || detail.vmp <= 0)) return null;
+
+  const amps = details.reduce((sum, detail) => sum + detail.isc, 0) * PV_DESIGN_CURRENT_FACTOR;
+  const voltage = Math.min(...details.map((detail) => detail.vmp));
+  const length = getEdgeSizingLength(edge, nodes);
+  const { section } = calcSection(amps, length, 3, voltage);
+  const currentSectionMm2 = parseSectionMm2(edge.data?.section);
+
+  return {
+    amps,
+    loadAmps: null,
+    protectionAmps: null,
+    sourceAmps: null,
+    ampsSource: "solar",
+    voltage,
+    length,
+    recommendedSectionMm2: section,
+    recommendedSectionLabel: formatSectionLabel(section),
+    currentSectionMm2,
+    currentSectionLabel: edge.data?.section ? String(edge.data.section) : null,
+    status: currentSectionMm2 === null ? "missing" : currentSectionMm2 < section ? "undersized" : "ok",
+  };
 }
 
 // Ampérage nominal propre d'une source/chargeur (bug critique retour bêta :
@@ -150,10 +249,24 @@ function reachableSameCableType(startId: string, excludeEdgeId: string, cableTyp
   return visited;
 }
 
+// Les centrales ont une alimentation DC propre, au même titre qu'un
+// consommateur. Les autres appareils actifs (MPPT, chargeurs, onduleurs)
+// gardent volontairement leur traitement spécialisé: leur `powerW` décrit
+// une capacité de conversion, pas leur consommation à vide.
+function getLoadPowerW(node: SchemaNode): number {
+  if (node.data.componentType !== "consumer" && node.data.componentType !== "system-controller") return 0;
+
+  const declaredPower = Number(node.data.powerW) || 0;
+  if (declaredPower > 0) return declaredPower;
+
+  const modelId = typeof node.data.brandModelId === "string" ? node.data.brandModelId : "";
+  return Number(getBrandModel(modelId)?.defaults.powerW) || 0;
+}
+
 function sumConsumerWattage(ids: Set<string>, nodes: SchemaNode[]): number {
   let total = 0;
   for (const node of nodes) {
-    if (ids.has(node.id) && node.data.componentType === "consumer") total += Number(node.data.powerW) || 0;
+    if (ids.has(node.id)) total += getLoadPowerW(node);
   }
   return total;
 }
@@ -231,7 +344,16 @@ export function estimateEdgeAmps(edge: SchemaEdge, nodes: SchemaNode[], edges: S
   if (!isPowerCableType(cableType)) return null;
 
   const loadSide = getEdgeLoadSide(edge, nodes, edges);
-  if (!loadSide) return null;
+  if (!loadSide) {
+    // Un départ consommateur peut être dimensionné dès le début du dessin,
+    // avant que la batterie ou le reste du réseau soit ajouté. Le calcul
+    // utilise alors la tension 12 V par défaut, comme partout ailleurs.
+    const directConsumer = nodes.find(
+      (node) => (node.id === edge.source || node.id === edge.target) && getLoadPowerW(node) > 0,
+    );
+    const powerW = directConsumer ? getLoadPowerW(directConsumer) : 0;
+    return powerW > 0 ? powerW / findBatteryVoltage(nodes) : null;
+  }
 
   const totalW = sumConsumerWattage(loadSide, nodes);
   if (totalW <= 0) return null;
@@ -246,6 +368,9 @@ export function estimateEdgeAmps(edge: SchemaEdge, nodes: SchemaNode[], edges: S
 // actuellement connue.
 export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): EdgeSectionDiagnostic | null {
   if (!isPowerCableType(edge.data?.cableType)) return null;
+
+  const pvDiagnostic = evaluatePvEdgeSection(edge, nodes, edges);
+  if (pvDiagnostic) return pvDiagnostic;
 
   const loadSide = getEdgeLoadSide(edge, nodes, edges);
   const loadAmps = estimateEdgeAmps(edge, nodes, edges);

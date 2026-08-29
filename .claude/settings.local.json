@@ -4,7 +4,25 @@
       "Bash(npm list:*)",
       "Bash(npx vercel *)",
       "Read(//tmp/**)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "WebFetch(domain:vanconfig.fr)",
+      "Bash(node --env-file=/tmp/.env.prod-readonly -e ' *)",
+      "Bash(find ~/Desktop ~/Downloads -iname \"*couverture*livre*\" -o -iname \"*FabSystem_Couverture*\" 2>/dev/null | grep -v node_modules | head -20)",
+      "Read(//Users/fabienlages/Desktop/**)",
+      "Bash(cp \"/Users/fabienlages/Downloads/FabSystem_Couverture_livre.jpg\" /Users/fabienlages/Desktop/fabsystem-site/public/ebook/couverture.jpg)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/fabienlages/Desktop/fabsystem-site/public/ebook/couverture.jpg)",
+      "Bash(npx eslint *)",
+      "Bash(xargs -r kill -9)",
+      "Bash(disown)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -s \"http://localhost:3000/_next/image?url=%2Febook%2Fcouverture.jpg&w=1080&q=75\" -o /tmp/cover_check.jpg -w \"%{http_code} %{content_type} size=%{size_download}\\\\n\")",
+      "Bash(curl -s http://localhost:3000/ebook)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Read(//private/tmp/claude-501/bundled-skills/2.1.220/**)",
+      "Bash(find / -maxdepth 6 -iname \"chromium-cli*\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/ebook)",
+      "Bash(node --import tsx \"/private/tmp/claude-501/-Users-fabienlages-Desktop-fabsystem-site/7d3df241-d155-423d-8613-ffd84fa84a6a/scratchpad/check-order-state.ts\" cmshv7xfk0006qrxurc09gcrp)",
+      "Bash(node --conditions=react-server --import tsx scripts/.tmp-recette-check-order.ts cmshv7xfk0006qrxurc09gcrp)"
     ]
   }
 }

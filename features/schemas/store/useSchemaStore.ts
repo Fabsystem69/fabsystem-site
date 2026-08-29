@@ -9,14 +9,17 @@ import {
   type EdgeChange,
   type Connection,
 } from "@xyflow/react";
-import { getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS } from "@/lib/electrical-components/definitions";
+import { getBusbarConnectionPointLimit, getBusbarFacePointCounts, getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS } from "@/lib/electrical-components/definitions";
 import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps, formatSectionLabel } from "@/lib/electrical-components/auto-size";
 import { calcSection } from "@/lib/calc/section-cable";
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { getSchemaTemplate } from "@/features/schemas/templates";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
+import { movePointWithZones, moveZoneContents } from "@/lib/schema-editor/zone-contents";
+import { optimizeBusbarHandleLayout } from "@/lib/schema-editor/busbar-layout";
 import { computeAutoLayout } from "@/lib/schema-editor/auto-layout";
+import { applyGuidedPlan } from "@/lib/schema-editor/guided-plan";
 import type { SolarInstallPlan } from "@/lib/schema-editor/guided-install/solar";
 import type { CustomCatalogItem } from "@/features/schemas/customCatalogApi";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
@@ -24,6 +27,8 @@ import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@
 const ICON_STYLE_STORAGE_KEY = "fabsystem-schema:icon-style";
 const DARK_MODE_STORAGE_KEY = "fabsystem-schema:dark-mode";
 const LEFT_PANEL_COLLAPSED_KEY = "fabsystem-schema:left-panel-collapsed";
+let issueHighlightTimeout: ReturnType<typeof setTimeout> | null = null;
+const DEFAULT_GUIDED_PLAN = applyGuidedPlan([], []);
 
 // Retour v2.1 : le mode illustration ("pro") est plus vendeur/lisible pour
 // un nouvel utilisateur que les symboles électriques. Devient le défaut pour
@@ -155,7 +160,7 @@ function buildPairedShuntMonitor(shuntNode: SchemaNode, edges: SchemaEdge[]): { 
 const GX_TOUCH_MODEL_IDS = new Set(["victron-gx-touch-70", "victron-gx-touch-50"]);
 const CERBO_GX_MODEL_ID = "victron-cerbo-gx";
 
-// Construit le Cerbo GX jumeau + le câble GX (VE.Direct) qui l'alimente en
+// Construit le Cerbo GX jumeau + son câble GX dédié qui l'alimente en
 // données — jamais si ce GX Touch a déjà un Cerbo relié (même garde-fou que
 // buildPairedShuntMonitor : évite d'en empiler un second si l'utilisateur
 // rechoisit GX Touch 70 plusieurs fois).
@@ -165,18 +170,18 @@ function buildPairedCerboForGxTouch(touchNode: SchemaNode, edges: SchemaEdge[]):
   );
   if (alreadyPaired) return null;
 
-  const monitorDef = getComponentDefinition("system-monitor");
+  const controllerDef = getComponentDefinition("system-controller");
   const cerboModel = getBrandModel(CERBO_GX_MODEL_ID);
-  if (!monitorDef || !cerboModel) return null;
+  if (!controllerDef || !cerboModel) return null;
 
   const cerboNode: SchemaNode = {
-    id: nextId("system-monitor"),
+    id: nextId("system-controller"),
     type: "electrical",
     position: { x: touchNode.position.x + 170, y: touchNode.position.y },
     data: {
-      componentType: "system-monitor",
+      componentType: "system-controller",
       label: cerboModel.model,
-      ...monitorDef.defaultData,
+      ...controllerDef.defaultData,
       brandModelId: cerboModel.id,
       brand: cerboModel.brand,
       model: cerboModel.model,
@@ -185,9 +190,9 @@ function buildPairedCerboForGxTouch(touchNode: SchemaNode, edges: SchemaEdge[]):
   };
   const edge: SchemaEdge = {
     id: nextId("edge"),
-    source: touchNode.id,
-    sourceHandle: "ve-direct",
-    target: cerboNode.id,
+    source: cerboNode.id,
+    sourceHandle: "gx-display",
+    target: touchNode.id,
     targetHandle: "ve-direct",
     type: "cable",
     data: { color: "#16a34a", cableType: "data-bus" },
@@ -276,6 +281,9 @@ interface SchemaState {
   // pas) ; levé au store pour que Canvas.tsx (affichage réel) ET les
   // captures d'export lisent la même valeur.
   showGrid: boolean;
+  // Actif pour les nouveaux schémas seulement. Le plan libre désactive les
+  // suggestions de placement, sans jamais déplacer un composant existant.
+  guidedPlanMode: boolean;
   leftPanelCollapsed: boolean;
   // v2.1, retour utilisateur : "le bandeau de droite... si celui est réduit
   // on ne sait même pas qu'on peut modifier, on refait un montage avec un
@@ -296,8 +304,12 @@ interface SchemaState {
   // rendre l'insertion sur câble plus "fluide", donc visible avant même de
   // lâcher le clic).
   spliceHoverEdgeId: string | null;
+  // Cible temporairement mise en blanc apres un clic dans Volta. Cet etat est
+  // uniquement visuel : ni sauvegarde, ni historique.
+  highlightedIssueTarget: { kind: "node" | "edge"; id: string } | null;
   setDraggingComponentType: (type: string | null) => void;
   setSpliceHoverEdgeId: (edgeId: string | null) => void;
+  highlightIssueTarget: (kind: "node" | "edge", id: string) => void;
   // Guide d'alignement magnétique pendant le glisser d'un composant (retour
   // utilisateur : "pas toujours possible de laisser un fil conducteur
   // droit, il y a souvent un décalage") — coordonnée(s) sur laquelle le
@@ -423,6 +435,7 @@ interface SchemaState {
   setIconStyle: (style: IconStyle) => void;
   setDarkMode: (value: boolean) => void;
   setShowGrid: (value: boolean) => void;
+  setGuidedPlanMode: (value: boolean) => void;
   toggleLeftPanel: () => void;
   openItemPropertiesPopup: () => void;
   closeItemPropertiesPopup: () => void;
@@ -451,6 +464,9 @@ interface SchemaState {
    * automatique. */
   removeEdgeWaypoint: (edgeId: string, index: number) => void;
   setOutputCount: (id: string, count: number) => void;
+  setBusbarFacePointCount: (id: string, face: "left" | "top" | "right" | "bottom", count: number) => void;
+  /** Place chaque plot connecté du busbar sur la face la plus proche de son câble. */
+  optimizeBusbarLayouts: () => void;
   reconnectEdge: (oldEdge: SchemaEdge, newConnection: Connection) => void;
   spliceNodeOnEdge: (edgeId: string, type: string, position: { x: number; y: number }) => void;
   duplicateNode: (id: string) => void;
@@ -461,6 +477,8 @@ interface SchemaState {
    * généreux — retour utilisateur : "widget qui calcule le placement le
    * plus optimisé... bien aéré dans chaque zone et entre les zones". */
   autoLayout: () => void;
+  /** Applique explicitement le tableau de câblage A2. Action annulable. */
+  applyGuidedPlanLayout: () => void;
   setCustomCatalogItems: (items: CustomCatalogItem[]) => void;
   /** Verrouille/déverrouille le déplacement et le redimensionnement d'une
    * zone (retour utilisateur : "épingler les zones pour éviter qu'un clic
@@ -535,8 +553,8 @@ function defaultSaveMessage(status: SchemaState["saveStatus"], scope: SchemaSave
 
 export const useSchemaStore = create<SchemaState>((set) => ({
   projectName: "Nouveau schéma",
-  nodes: [],
-  edges: [],
+  nodes: DEFAULT_GUIDED_PLAN.nodes,
+  edges: DEFAULT_GUIDED_PLAN.edges,
   selectedNodeId: null,
   selectedEdgeId: null,
   past: [],
@@ -549,10 +567,12 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   iconStyle: loadIconStyle(),
   darkMode: loadDarkMode(),
   showGrid: true,
+  guidedPlanMode: true,
   leftPanelCollapsed: loadPanelCollapsed(LEFT_PANEL_COLLAPSED_KEY),
   itemPropertiesPopupOpen: false,
   draggingComponentType: null,
   spliceHoverEdgeId: null,
+  highlightedIssueTarget: null,
   alignmentGuides: { x: null, y: null },
   lastMeaningfulActionAt: Date.now(),
   pickerCancelStreak: 0,
@@ -578,6 +598,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   setCustomCatalogItems: (items) => set({ customCatalogItems: items }),
   dismissFreemiumLimitPopup: () => set({ freemiumLimitPopupOpen: false }),
   setProjectId: (id) => set({ projectId: id }),
+  setGuidedPlanMode: (value) => set({ guidedPlanMode: value }),
 
   toggleCategoryVisibility: (category) =>
     set((state) => ({
@@ -616,17 +637,63 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   closeItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: false }),
   setDraggingComponentType: (type) => set({ draggingComponentType: type }),
   setSpliceHoverEdgeId: (edgeId) => set({ spliceHoverEdgeId: edgeId }),
-  setAlignmentGuides: (guides) => set({ alignmentGuides: guides }),
+  highlightIssueTarget: (kind, id) => {
+    if (issueHighlightTimeout) clearTimeout(issueHighlightTimeout);
+    set({ highlightedIssueTarget: { kind, id } });
+    issueHighlightTimeout = setTimeout(() => {
+      issueHighlightTimeout = null;
+      set({ highlightedIssueTarget: null });
+    }, 1600);
+  },
+  setAlignmentGuides: (guides) =>
+    set((state) => {
+      // Cette action est appelée pendant chaque image d'un glisser. Ne pas
+      // notifier tout l'éditeur quand le guide reste identique (cas courant
+      // hors zone d'aimantation).
+      if (state.alignmentGuides.x === guides.x && state.alignmentGuides.y === guides.y) return state;
+      return { alignmentGuides: guides };
+    }),
+  optimizeBusbarLayouts: () =>
+    set((state) => {
+      const updates = optimizeBusbarHandleLayout(state.nodes, state.edges);
+      if (updates.length === 0) return state;
+      const updatesByNodeId = new Map(updates.map((update) => [update.nodeId, update]));
+      const nodes = state.nodes.map((node) => {
+        const update = updatesByNodeId.get(node.id);
+        if (!update) return node;
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            busbarHandleSides: update.handleSides,
+            ...update.faceCounts,
+          },
+        };
+      });
+      return { nodes, ...commit(state) };
+    }),
   touchMeaningfulAction: () => set({ lastMeaningfulActionAt: Date.now(), pickerCancelStreak: 0 }),
 
   onNodesChange: (changes) =>
     set((state) => {
       const removed = changes.some((c) => c.type === "remove");
       const dragEnd = changes.some((c) => c.type === "position" && c.dragging === false);
-      const nodes = applyNodeChanges(changes, state.nodes);
+      const resizeEnd = changes.some((c) => c.type === "dimensions" && c.resizing === false);
+      const zoneMove = moveZoneContents(state.nodes, changes);
+      const nodes = applyNodeChanges(changes, zoneMove.nodes);
+      const edges =
+        zoneMove.moves.length === 0
+          ? state.edges
+          : state.edges.map((edge) => {
+              const points = getBendPoints(edge.data);
+              const movedPoints = points.map((point) => movePointWithZones(point, zoneMove.moves));
+              const changed = movedPoints.some((point, index) => point.x !== points[index].x || point.y !== points[index].y);
+              return changed ? { ...edge, data: { ...edge.data, bendPoints: movedPoints } } : edge;
+            });
       return {
         nodes,
-        ...(removed || dragEnd ? commit(state) : null),
+        edges,
+        ...(removed || dragEnd || resizeEnd ? commit(state) : null),
       };
     }),
 
@@ -871,11 +938,32 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       const brandModel = getBrandModel(brandModelId);
       if (!node || !brandModel) return {};
 
-      const updatedNode: SchemaNode = {
-        ...node,
-        data: { ...node.data, brandModelId: brandModel.id, brand: brandModel.brand, model: brandModel.model, ...brandModel.defaults },
+      const rawData = {
+        ...node.data,
+        brandModelId: brandModel.id,
+        brand: brandModel.brand,
+        model: brandModel.model,
+        ...brandModel.defaults,
+        communicationPorts: brandModel.defaults.communicationPorts ?? "",
       };
+      const data = node.data.componentType === "busbar"
+        ? (() => {
+            const counts = getBusbarFacePointCounts(rawData);
+            const total = counts.left + counts.top + counts.right + counts.bottom;
+            return { ...rawData, leftPoints: counts.left, topPoints: counts.top, rightPoints: counts.right, bottomPoints: counts.bottom, outputCount: total - 1 };
+          })()
+        : rawData;
+      const updatedNode: SchemaNode = { ...node, data };
       const nodes = state.nodes.map((n) => (n.id === id ? updatedNode : n));
+      const definition = getComponentDefinition(node.data.componentType);
+      const allowedHandles = new Set(definition ? getEffectiveHandles(definition, data).map((handle) => handle.id) : []);
+      const edges = node.data.componentType === "busbar"
+        ? state.edges.filter((edge) => {
+            if (edge.source === id && edge.sourceHandle && !allowedHandles.has(edge.sourceHandle)) return false;
+            if (edge.target === id && edge.targetHandle && !allowedHandles.has(edge.targetHandle)) return false;
+            return true;
+          })
+        : state.edges;
 
       const pairedMonitor =
         node.data.componentType === "shunt" && BMV_DISPLAY_SHUNT_IDS.has(brandModel.id)
@@ -886,7 +974,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
 
       return {
         nodes: pairedMonitor ? [...nodes, pairedMonitor.node] : nodes,
-        edges: pairedMonitor ? [...state.edges, pairedMonitor.edge] : state.edges,
+        edges: pairedMonitor ? [...edges, pairedMonitor.edge] : edges,
         ...commit(state),
       };
     }),
@@ -941,6 +1029,47 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       const edges = state.edges.filter((e) => {
         if (e.source === id && e.sourceHandle && !newHandleIds.has(e.sourceHandle)) return false;
         if (e.target === id && e.targetHandle && !newHandleIds.has(e.targetHandle)) return false;
+        return true;
+      });
+      return { nodes, edges, ...commit(state) };
+    }),
+
+  setBusbarFacePointCount: (id, face, count) =>
+    set((state) => {
+      const node = state.nodes.find((n) => n.id === id);
+      const def = node ? getComponentDefinition(node.data.componentType) : undefined;
+      if (!node || node.data.componentType !== "busbar" || !def?.getHandles) return {};
+
+      const limit = getBusbarConnectionPointLimit(node.data);
+      const current = getBusbarFacePointCounts(node.data);
+      const next = { ...current, [face]: Math.max(0, Math.min(limit, Math.round(count) || 0)) };
+      const faces = ["left", "top", "right", "bottom"] as const;
+      let total = faces.reduce((sum, currentFace) => sum + next[currentFace], 0);
+      // La capacité du produit est une limite matérielle : on conserve les
+      // autres faces et borne la face que l'utilisateur vient de modifier.
+      if (total > limit) {
+        next[face] = Math.max(0, next[face] - (total - limit));
+        total = limit;
+      }
+      // Un busbar doit conserver au moins deux plots raccordables.
+      if (total < MIN_OUTPUTS + 1) {
+        next[face] = Math.min(limit, next[face] + MIN_OUTPUTS + 1 - total);
+        total = faces.reduce((sum, currentFace) => sum + next[currentFace], 0);
+      }
+
+      const data = {
+        ...node.data,
+        leftPoints: next.left,
+        topPoints: next.top,
+        rightPoints: next.right,
+        bottomPoints: next.bottom,
+        outputCount: total - 1,
+      };
+      const newHandleIds = new Set(def.getHandles(data).map((handle) => handle.id));
+      const nodes = state.nodes.map((currentNode) => (currentNode.id === id ? { ...currentNode, data } : currentNode));
+      const edges = state.edges.filter((edge) => {
+        if (edge.source === id && edge.sourceHandle && !newHandleIds.has(edge.sourceHandle)) return false;
+        if (edge.target === id && edge.targetHandle && !newHandleIds.has(edge.targetHandle)) return false;
         return true;
       });
       return { nodes, edges, ...commit(state) };
@@ -1054,6 +1183,12 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       return { nodes, edges, ...commit(state) };
     }),
 
+  applyGuidedPlanLayout: () =>
+    set((state) => {
+      const { nodes, edges } = applyGuidedPlan(state.nodes, state.edges);
+      return { nodes, edges, guidedPlanMode: true, ...commit(state) };
+    }),
+
   toggleZoneLock: (id) =>
     set((state) => {
       const nodes = state.nodes.map((n) => (n.id === id ? { ...n, data: { ...n.data, locked: !n.data.locked } } : n));
@@ -1152,10 +1287,12 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     }),
 
   newProject: () =>
-    set({
+    set(() => {
+      const plan = applyGuidedPlan([], []);
+      return {
       projectName: "Nouveau schéma",
-      nodes: [],
-      edges: [],
+      nodes: plan.nodes,
+      edges: plan.edges,
       selectedNodeId: null,
       selectedEdgeId: null,
       past: [],
@@ -1170,7 +1307,9 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       saveAssistant: null,
       guidedMode: false,
       guidedStepIndex: 0,
+      guidedPlanMode: true,
       consumerBaseline: 0,
+      };
     }),
 
   loadTemplate: (id) => {
@@ -1195,6 +1334,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       saveAssistant: null,
       guidedMode: false,
       guidedStepIndex: 0,
+      guidedPlanMode: false,
       // v2.1 : les starters de guides (P280, Victron...) partent souvent
       // avec plus de 3 consommateurs — exemptés à l'ouverture, seuls les
       // ajouts au-delà comptent contre la limite gratuite.
@@ -1229,6 +1369,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       hiddenCategories: [],
       guidedMode: false,
       guidedStepIndex: 0,
+      guidedPlanMode: false,
       // v2.1 : reprise d'un projet déjà sauvegardé (cloud ou brouillon local)
       // — ce qui est déjà là ne redevient jamais bloquant rétroactivement,
       // seuls les ajouts au-delà comptent contre la limite gratuite.

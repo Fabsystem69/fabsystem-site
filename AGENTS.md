@@ -124,6 +124,13 @@ Rule: `REQUEST_ONLY` offers keep using the current contact, quote, or reservatio
 5. Do not turn the MVP into a universal commerce abstraction.
 6. Any critical payment or fulfillment flow must be durable and replayable.
 
+## Draft Premium Content Safety
+
+- Any draft ebook, paid guide, premium HTML page, or private customer content must remain local-only during conception unless the user explicitly asks to publish it.
+- Do not commit, push, or deploy draft premium content without explicit user approval in the current conversation.
+- This rule applies in particular to draft routes such as `/app/outils/ebook-schema-fabsystem/` and to any future paid-guide equivalent.
+- `noindex` is not an access-control mechanism. Any premium content published on the site must be protected by authentication and verified purchase access before customers can read it.
+
 ## Current Stack
 
 - Next.js 16.2.1

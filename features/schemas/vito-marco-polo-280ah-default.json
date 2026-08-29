@@ -1,0 +1,1230 @@
+{
+  "format": "fabsystem-schema-draft",
+  "version": 1,
+  "projectName": "Vito Marco Polo - 280 Ah",
+  "nodes": [
+    {
+      "id": "vl-zone-solar",
+      "type": "zone",
+      "position": {
+        "x": -160,
+        "y": 40
+      },
+      "width": 880,
+      "height": 210,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Solaire",
+        "color": "#f59e0b"
+      },
+      "measured": {
+        "width": 880,
+        "height": 210
+      },
+      "selected": false,
+      "resizing": false
+    },
+    {
+      "id": "vl-zone-drive",
+      "type": "zone",
+      "position": {
+        "x": 20,
+        "y": 330
+      },
+      "width": 680,
+      "height": 250,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Charge alternateur / DC-DC",
+        "color": "#10b981"
+      },
+      "measured": {
+        "width": 680,
+        "height": 250
+      },
+      "selected": false
+    },
+    {
+      "id": "vl-zone-battery",
+      "type": "zone",
+      "position": {
+        "x": 780,
+        "y": 60
+      },
+      "width": 760,
+      "height": 560,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Coeur DC",
+        "color": "#3b82f6"
+      },
+      "measured": {
+        "width": 760,
+        "height": 560
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-zone-ac",
+      "type": "zone",
+      "position": {
+        "x": 1560,
+        "y": -380
+      },
+      "width": 910,
+      "height": 460,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "230 V / quai",
+        "color": "#7c3aed"
+      },
+      "measured": {
+        "width": 910,
+        "height": 460
+      },
+      "selected": false,
+      "resizing": false
+    },
+    {
+      "id": "vl-zone-dc",
+      "type": "zone",
+      "position": {
+        "x": 1560,
+        "y": 120
+      },
+      "width": 880,
+      "height": 670,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Distribution 12 V",
+        "color": "#14b8a6"
+      },
+      "measured": {
+        "width": 880,
+        "height": 670
+      },
+      "selected": true,
+      "dragging": false
+    },
+    {
+      "id": "vl-solar",
+      "type": "electrical",
+      "position": {
+        "x": -80,
+        "y": 120
+      },
+      "data": {
+        "componentType": "solar-panel",
+        "powerW": 200,
+        "voltage": 31.03,
+        "operatingCurrentA": 6.46,
+        "shortCircuitCurrentA": 6.85,
+        "vocVoltage": 37.44,
+        "brandModelId": "renogy-200w-ntype",
+        "brand": "Renogy",
+        "model": "200W N-Type 16BB",
+        "label": "Panneau solaire 200W",
+        "displayScale": 3
+      },
+      "measured": {
+        "width": 130,
+        "height": 110
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-mppt",
+      "type": "electrical",
+      "position": {
+        "x": 320,
+        "y": 100
+      },
+      "data": {
+        "componentType": "mppt",
+        "amperage": 15,
+        "systemVoltage": 12,
+        "maxPvVoltage": 75,
+        "maxPvInputCurrentA": 15,
+        "maxPvPower12V": 220,
+        "communicationPorts": "ve-direct",
+        "brandModelId": "victron-smartsolar-75-15",
+        "brand": "Victron",
+        "model": "SmartSolar MPPT 75/15",
+        "label": "SmartSolar MPPT 75/15",
+        "displayScale": 2
+      },
+      "measured": {
+        "width": 145,
+        "height": 128
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-mppt-fuse",
+      "type": "electrical",
+      "position": {
+        "x": 580,
+        "y": 100
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible MPPT",
+        "fuseType": "midi",
+        "amperage": 20
+      },
+      "measured": {
+        "width": 71,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-start-battery",
+      "type": "electrical",
+      "position": {
+        "x": 60,
+        "y": 380
+      },
+      "data": {
+        "componentType": "battery",
+        "technology": "agm",
+        "voltage": 12,
+        "capacityAh": 100,
+        "brandModelId": "renogy-agm-100ah",
+        "brand": "Véhicule",
+        "model": "Batterie moteur",
+        "label": "Batterie véhicule 12V"
+      },
+      "measured": {
+        "width": 108,
+        "height": 84
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-dcdc-fuse",
+      "type": "electrical",
+      "position": {
+        "x": 200,
+        "y": 360
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible Orion",
+        "fuseType": "midi",
+        "amperage": 25
+      },
+      "measured": {
+        "width": 70,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-dcdc",
+      "type": "electrical",
+      "position": {
+        "x": 320,
+        "y": 420
+      },
+      "data": {
+        "componentType": "dcdc",
+        "voltageIn": 12,
+        "voltageOut": 12,
+        "amperage": 18,
+        "brandModelId": "victron-orion-tr-18a",
+        "brand": "Victron",
+        "model": "Orion-Tr Smart 12/12-18A",
+        "label": "Orion-Tr Smart 12/12-18A",
+        "communicationPorts": "",
+        "displayScale": 2
+      },
+      "measured": {
+        "width": 147,
+        "height": 117
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-service-battery",
+      "type": "electrical",
+      "position": {
+        "x": 1020,
+        "y": 240
+      },
+      "data": {
+        "componentType": "battery",
+        "label": "Batterie LiFePO4 150Ah",
+        "voltage": 12,
+        "capacityAh": 280,
+        "technology": "lifepo4",
+        "brand": "PowerQueen",
+        "model": "12,8V/280Ah LiFePO4",
+        "rotation": 180,
+        "brandModelId": "powerqueen-lifepo4-280ah",
+        "communicationPorts": "",
+        "displayScale": 3
+      },
+      "measured": {
+        "width": 136,
+        "height": 150
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-main-fuse",
+      "type": "electrical",
+      "position": {
+        "x": 880,
+        "y": 340
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible principal 100A",
+        "fuseType": "anl",
+        "amperage": 100
+      },
+      "measured": {
+        "width": 113,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-switch",
+      "type": "electrical",
+      "position": {
+        "x": 1160,
+        "y": 180
+      },
+      "data": {
+        "componentType": "battery-switch",
+        "label": "Coupe-batterie 275A",
+        "amperage": 275
+      },
+      "measured": {
+        "width": 108,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-busbar-pos",
+      "type": "electrical",
+      "position": {
+        "x": 1300,
+        "y": 100
+      },
+      "data": {
+        "componentType": "busbar",
+        "label": "Busbar + 12V",
+        "polarity": "positive",
+        "outputCount": 2,
+        "busbarHandleSides": {
+          "input": "left",
+          "out-1": "right",
+          "out-2": "right",
+          "out-3": "top"
+        },
+        "leftPoints": 1,
+        "topPoints": 1,
+        "rightPoints": 1,
+        "bottomPoints": 0,
+        "displayScale": 2
+      },
+      "measured": {
+        "width": 89,
+        "height": 87
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-shunt",
+      "type": "electrical",
+      "position": {
+        "x": 1220,
+        "y": 320
+      },
+      "data": {
+        "componentType": "shunt",
+        "amperage": 500,
+        "communicationPorts": "ve-direct",
+        "brandModelId": "victron-smartshunt-500a",
+        "brand": "Victron",
+        "model": "SmartShunt 500A",
+        "label": "SmartShunt 500A"
+      },
+      "measured": {
+        "width": 109,
+        "height": 75
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-distribution",
+      "type": "electrical",
+      "position": {
+        "x": 1640,
+        "y": 220
+      },
+      "data": {
+        "componentType": "distribution-panel",
+        "label": "Blue Sea WeatherDeck 6 positions",
+        "layout": "with-fuses",
+        "outputCount": 4,
+        "outAmp1": 20,
+        "outAmp2": 10,
+        "outAmp3": 5,
+        "outAmp4": 20
+      },
+      "measured": {
+        "width": 173,
+        "height": 88
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-frigo",
+      "type": "electrical",
+      "position": {
+        "x": 2260,
+        "y": 340
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Frigo 12V",
+        "presetType": "refrigerateur",
+        "powerW": 45
+      },
+      "measured": {
+        "width": 51,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-pompe",
+      "type": "electrical",
+      "position": {
+        "x": 2020,
+        "y": 520
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Pompe a eau",
+        "presetType": "pompe-eau",
+        "powerW": 60
+      },
+      "measured": {
+        "width": 69,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-usb",
+      "type": "electrical",
+      "position": {
+        "x": 1720,
+        "y": 660
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Ports USB",
+        "presetType": "prise-usb-12v",
+        "powerW": 15,
+        "rotation": 0
+      },
+      "measured": {
+        "width": 56,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-led",
+      "type": "electrical",
+      "position": {
+        "x": 2300,
+        "y": 160
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Eclairage LED",
+        "presetType": "eclairage-led",
+        "powerW": 10,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 72,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-multiplus-breaker",
+      "type": "electrical",
+      "position": {
+        "x": 1600,
+        "y": -60
+      },
+      "data": {
+        "componentType": "circuit-breaker",
+        "label": "Protection MultiPlus",
+        "amperage": 100
+      },
+      "measured": {
+        "width": 106,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-multiplus",
+      "type": "electrical",
+      "position": {
+        "x": 1820,
+        "y": -220
+      },
+      "data": {
+        "componentType": "inverter-charger",
+        "powerW": 430,
+        "voltageDC": 12,
+        "chargeAmperage": 20,
+        "communicationPorts": "ve-bus",
+        "brandModelId": "victron-multiplus-500-20",
+        "brand": "Victron",
+        "model": "MultiPlus 12/500 VA/20A",
+        "label": "MultiPlus Compact 12/800/35-16"
+      },
+      "measured": {
+        "width": 165,
+        "height": 108
+      },
+      "selected": false
+    },
+    {
+      "id": "vl-shore",
+      "type": "electrical",
+      "position": {
+        "x": 1940,
+        "y": -60
+      },
+      "data": {
+        "componentType": "shore-power",
+        "brandModelId": "p17-16a",
+        "brand": "Générique",
+        "model": "Prise P17 16A/230V",
+        "label": "Prise de quai"
+      },
+      "measured": {
+        "width": 70,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-ac-panel",
+      "type": "electrical",
+      "position": {
+        "x": 2140,
+        "y": -300
+      },
+      "data": {
+        "componentType": "ac-panel",
+        "label": "Coffret diff + disj 230V"
+      },
+      "measured": {
+        "width": 123,
+        "height": 75
+      }
+    },
+    {
+      "id": "vl-socket-1",
+      "type": "electrical",
+      "position": {
+        "x": 2380,
+        "y": -200
+      },
+      "data": {
+        "componentType": "socket-220v",
+        "label": "Prise 230V 1",
+        "powerW": 300
+      },
+      "measured": {
+        "width": 66,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-socket-2",
+      "type": "electrical",
+      "position": {
+        "x": 2380,
+        "y": -60
+      },
+      "data": {
+        "componentType": "socket-220v",
+        "label": "Prise 230V 2",
+        "powerW": 300
+      },
+      "measured": {
+        "width": 67,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "vl-ground",
+      "type": "electrical",
+      "position": {
+        "x": 2140,
+        "y": -60
+      },
+      "data": {
+        "componentType": "ground",
+        "label": "Point de masse"
+      },
+      "measured": {
+        "width": 81,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "fuse_msw6xsvo_2",
+      "type": "electrical",
+      "position": {
+        "x": 600,
+        "y": 460
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible Orion",
+        "fuseType": "midi",
+        "amperage": 25
+      },
+      "measured": {
+        "width": 70,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "busbar_mtey2c9v_1",
+      "type": "electrical",
+      "position": {
+        "x": 820,
+        "y": 160
+      },
+      "data": {
+        "componentType": "busbar",
+        "label": "Busbar",
+        "polarity": "positive",
+        "outputCount": 3,
+        "leftPoints": 1,
+        "topPoints": 1,
+        "rightPoints": 1,
+        "bottomPoints": 1,
+        "brandModelId": "",
+        "brand": "",
+        "model": "",
+        "maxConnectionPoints": 4,
+        "displayScale": 2
+      },
+      "measured": {
+        "width": 89,
+        "height": 111
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "busbar_mteybdua_12",
+      "type": "electrical",
+      "position": {
+        "x": 1380,
+        "y": 380
+      },
+      "data": {
+        "componentType": "busbar",
+        "label": "Busbar",
+        "polarity": "negative",
+        "outputCount": 9,
+        "leftPoints": 2,
+        "topPoints": 2,
+        "rightPoints": 4,
+        "bottomPoints": 2
+      },
+      "measured": {
+        "width": 95,
+        "height": 116
+      },
+      "selected": false,
+      "dragging": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "vl-e1",
+      "source": "vl-solar",
+      "sourceHandle": "positive",
+      "target": "vl-mppt",
+      "targetHandle": "pv-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "6 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "vl-e2",
+      "source": "vl-solar",
+      "sourceHandle": "negative",
+      "target": "vl-mppt",
+      "targetHandle": "pv-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "6 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "vl-e3",
+      "source": "vl-mppt",
+      "sourceHandle": "bat-positive",
+      "target": "vl-mppt-fuse",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "6 mm²",
+        "length": 1.2
+      }
+    },
+    {
+      "id": "vl-e6",
+      "source": "vl-start-battery",
+      "sourceHandle": "positive",
+      "target": "vl-dcdc-fuse",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 1.5
+      }
+    },
+    {
+      "id": "vl-e7",
+      "source": "vl-dcdc-fuse",
+      "sourceHandle": "output",
+      "target": "vl-dcdc",
+      "targetHandle": "in-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "vl-e8",
+      "source": "vl-start-battery",
+      "sourceHandle": "negative",
+      "target": "vl-dcdc",
+      "targetHandle": "in-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "16 mm²",
+        "length": 1.5
+      }
+    },
+    {
+      "id": "vl-e13",
+      "source": "vl-switch",
+      "sourceHandle": "output",
+      "target": "vl-busbar-pos",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "35 mm²",
+        "length": 0.6
+      }
+    },
+    {
+      "id": "vl-e14",
+      "source": "vl-service-battery",
+      "sourceHandle": "negative",
+      "target": "vl-shunt",
+      "targetHandle": "battery",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "35 mm²",
+        "length": 0.6
+      }
+    },
+    {
+      "id": "vl-e16",
+      "source": "vl-busbar-pos",
+      "sourceHandle": "out-1",
+      "target": "vl-distribution",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 1.5
+      }
+    },
+    {
+      "id": "vl-e32",
+      "source": "vl-shore",
+      "sourceHandle": "ac",
+      "target": "vl-multiplus",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "vl-e33",
+      "source": "vl-multiplus",
+      "sourceHandle": "ac-out",
+      "target": "vl-ac-panel",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "vl-e35",
+      "source": "vl-ac-panel",
+      "sourceHandle": "ac-out",
+      "target": "vl-socket-2",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      },
+      "selected": false
+    },
+    {
+      "id": "vl-e36",
+      "source": "vl-ac-panel",
+      "sourceHandle": "earth",
+      "target": "vl-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "vl-e37",
+      "source": "vl-socket-1",
+      "sourceHandle": "earth",
+      "target": "vl-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 1,
+        "bendPoint": {
+          "x": 2236,
+          "y": -90
+        },
+        "bendPoints": []
+      },
+      "selected": false
+    },
+    {
+      "id": "vl-e38",
+      "source": "vl-socket-2",
+      "sourceHandle": "earth",
+      "target": "vl-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "2,5 mm²",
+        "length": 1
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_msw6yit0_3",
+      "source": "vl-dcdc",
+      "sourceHandle": "out-positive",
+      "target": "fuse_msw6xsvo_2",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "edge_mtey3qzb_2",
+      "source": "fuse_msw6xsvo_2",
+      "sourceHandle": "output",
+      "target": "busbar_mtey2c9v_1",
+      "targetHandle": "out-3",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "edge_mtey4ytz_4",
+      "source": "vl-service-battery",
+      "sourceHandle": "positive",
+      "target": "vl-main-fuse",
+      "targetHandle": "output",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "25 mm²",
+        "length": 0.5
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_mtey52jr_5",
+      "source": "vl-main-fuse",
+      "sourceHandle": "input",
+      "target": "busbar_mtey2c9v_1",
+      "targetHandle": "out-2",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "25 mm²",
+        "length": 0.5
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_mtey5tqz_6",
+      "source": "vl-mppt-fuse",
+      "sourceHandle": "output",
+      "target": "busbar_mtey2c9v_1",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "edge_mtey652d_7",
+      "source": "busbar_mtey2c9v_1",
+      "sourceHandle": "out-1",
+      "target": "vl-switch",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "25 mm²",
+        "length": 1
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_mtey76z6_9",
+      "source": "vl-multiplus-breaker",
+      "sourceHandle": "output",
+      "target": "vl-multiplus",
+      "targetHandle": "dc-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "25 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "edge_mteyc2zt_13",
+      "source": "vl-led",
+      "sourceHandle": "negative",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "out-5",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteyce8g_14",
+      "source": "vl-usb",
+      "sourceHandle": "negative",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "out-6",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,75 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteyci49_15",
+      "source": "vl-pompe",
+      "sourceHandle": "negative",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "out-4",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteycqkw_16",
+      "source": "vl-frigo",
+      "sourceHandle": "negative",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "out-3",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteycyzo_17",
+      "source": "vl-multiplus",
+      "sourceHandle": "dc-negative",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "out-2",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "25 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteyd7xx_18",
+      "source": "vl-shunt",
+      "sourceHandle": "system",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "25 mm²",
+        "length": 1
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_mteydxgg_19",
+      "source": "vl-shore",
+      "sourceHandle": "earth",
+      "target": "vl-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth"
+      }
+    },
+    {
+      "id": "edge_mteyf39j_20",
+      "source": "vl-dcdc",
+      "sourceHandle": "out-negative",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "out-1",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "10 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteyfiv4_21",
+      "source": "vl-mppt",
+      "sourceHandle": "bat-negative",
+      "target": "busbar_mteybdua_12",
+      "targetHandle": "out-8",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "6 mm²",
+        "length": 4
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_mteyp15g_22",
+      "source": "vl-busbar-pos",
+      "sourceHandle": "out-2",
+      "target": "vl-multiplus-breaker",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "25 mm²",
+        "length": 1
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_mteyrbfh_23",
+      "source": "vl-socket-1",
+      "sourceHandle": "ac-in",
+      "target": "vl-ac-panel",
+      "targetHandle": "ac-out",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      },
+      "selected": false
+    },
+    {
+      "id": "edge_mteyvs64_24",
+      "source": "vl-distribution",
+      "sourceHandle": "out-1",
+      "target": "vl-frigo",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteyw7df_26",
+      "source": "vl-distribution",
+      "sourceHandle": "out-2",
+      "target": "vl-usb",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteywiy0_28",
+      "source": "vl-distribution",
+      "sourceHandle": "out-3",
+      "target": "vl-led",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,5 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mteyywgw_1",
+      "source": "vl-distribution",
+      "sourceHandle": "out-4",
+      "target": "vl-pompe",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    }
+  ],
+  "updatedAt": "2026-08-29T22:46:57.320Z"
+}

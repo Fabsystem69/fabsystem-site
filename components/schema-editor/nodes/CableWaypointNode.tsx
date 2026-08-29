@@ -2,6 +2,7 @@
 
 import { type NodeProps } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { useCableLabelCollision } from "../edges/useCableLabelCollision";
 
 // Point de coude d'un câble déplacé, matérialisé en vrai nœud React Flow
 // (retour utilisateur : "la vignette câble devrait avoir les mêmes
@@ -24,9 +25,13 @@ export function CableWaypointNode({ data }: NodeProps) {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const addEdgeWaypointAfter = useSchemaStore((s) => s.addEdgeWaypointAfter);
   const removeEdgeWaypoint = useSchemaStore((s) => s.removeEdgeWaypoint);
+  const selectedEdgeId = useSchemaStore((s) => s.selectedEdgeId);
+  const select = useSchemaStore((s) => s.select);
   const edgeId = data.edgeId as string;
   const index = data.index as number;
   const label = data.label as string | undefined;
+  const expanded = selectedEdgeId === edgeId;
+  const labelRef = useCableLabelCollision(`${edgeId}::${index}`, expanded ? String(data.labelLayoutKey ?? "") : "closed");
 
   const miniButtonClass = `nodrag nopan flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold leading-none transition-base ${
     darkMode ? "text-neutral-400 hover:bg-neutral-700 hover:text-neutral-100" : "text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
@@ -34,13 +39,20 @@ export function CableWaypointNode({ data }: NodeProps) {
 
   return (
     <div
-      title={label ? "Glisser pour réorganiser ce câble" : "Glisser pour dévier le câble à cet endroit"}
-      className={`flex cursor-grab items-center gap-1 whitespace-nowrap rounded border px-1.5 py-0.5 text-[10px] font-medium shadow-sm active:cursor-grabbing ${
+      ref={labelRef}
+      data-schema-cable-label={`${edgeId}::${index}`}
+      title={expanded ? "Glisser pour réorganiser ce câble" : "Cliquer pour afficher ce câble"}
+      style={{ transform: "translate(var(--cable-label-offset-x, 0px), var(--cable-label-offset-y, 0px))" }}
+      onClick={(event) => {
+        event.stopPropagation();
+        select("edge", edgeId);
+      }}
+      className={`flex ${expanded ? "cursor-grab gap-1 px-1.5 py-0.5" : "h-3 w-3 cursor-pointer p-0"} items-center whitespace-nowrap rounded border text-[10px] font-medium shadow-sm active:cursor-grabbing ${
         darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-300" : "border-neutral-200 bg-white text-neutral-600"
       }`}
     >
-      {label ? <span>{label}</span> : <span className={`h-1.5 w-1.5 rounded-full ${darkMode ? "bg-neutral-500" : "bg-neutral-400"}`} />}
-      <button
+      {expanded && label ? <span>{label}</span> : <span className={`m-auto h-1.5 w-1.5 rounded-full ${darkMode ? "bg-neutral-500" : "bg-neutral-400"}`} />}
+      {expanded ? <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
@@ -50,8 +62,8 @@ export function CableWaypointNode({ data }: NodeProps) {
         className={miniButtonClass}
       >
         +
-      </button>
-      <button
+      </button> : null}
+      {expanded ? <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
@@ -61,7 +73,7 @@ export function CableWaypointNode({ data }: NodeProps) {
         className={miniButtonClass}
       >
         ×
-      </button>
+      </button> : null}
     </div>
   );
 }

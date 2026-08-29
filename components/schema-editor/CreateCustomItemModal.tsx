@@ -42,7 +42,7 @@ export function CreateCustomItemModal({ onClose }: { onClose: () => void }) {
 
   const typeOptions = useMemo(
     () =>
-      COMPONENT_DEFINITIONS.filter((d) => !EXCLUDED_TYPES.has(d.type)).map((d) => ({ value: d.type, label: d.label })).sort((a, b) => a.label.localeCompare(b.label, "fr")),
+      COMPONENT_DEFINITIONS.filter((d) => d.libraryVisible !== false && !EXCLUDED_TYPES.has(d.type)).map((d) => ({ value: d.type, label: d.label })).sort((a, b) => a.label.localeCompare(b.label, "fr")),
     [],
   );
 

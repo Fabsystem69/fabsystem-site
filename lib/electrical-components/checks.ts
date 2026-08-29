@@ -1,20 +1,41 @@
 import { getComponentDefinition, getEffectiveHandles } from "./definitions";
-import { evaluateEdgeSection } from "./auto-size";
+import { estimateConnectedAmps, evaluateEdgeSection } from "./auto-size";
 import type { ElectricalNodeData, CableEdgeData, HandleKind } from "@/types/schema";
 import type { Node, Edge } from "@xyflow/react";
 
 export type SchemaIssueAction = "recalculate-all-cable-sections";
+export type SchemaIssueSeverity = "error" | "warning" | "info";
+export type SchemaIssueCategory = "topology" | "connection" | "protection" | "cabling" | "solar" | "ac-safety";
+
+export interface SchemaIssueReference {
+  label: string;
+  sourceUrl?: string;
+  edition?: string;
+  clause?: string;
+}
 
 export interface SchemaIssue {
   id: string;
   targetKind: "node" | "edge";
   targetId: string;
   message: string;
+  /** Les anciennes regles restent des avertissements tant qu'elles n'ont pas
+   * ete revalidees une a une avec leur source primaire. */
+  severity?: SchemaIssueSeverity;
+  category?: SchemaIssueCategory;
+  reference?: SchemaIssueReference;
   action?: SchemaIssueAction;
 }
 
 type SchemaNodeInternal = Node<ElectricalNodeData>;
 type SchemaEdgeInternal = Edge<CableEdgeData>;
+
+function classifyIssues(
+  issues: SchemaIssue[],
+  defaults: Pick<SchemaIssue, "severity" | "category">,
+): SchemaIssue[] {
+  return issues.map((issue) => ({ ...defaults, ...issue }));
+}
 
 // V2 — règles électriques indicatives (retour d'analyse concurrentielle :
 // Wireframe signale "pas de fusible principal", "MPPT sans protection",
@@ -28,7 +49,7 @@ type SchemaEdgeInternal = Edge<CableEdgeData>;
 // vraie analyse de circuit : assez pour attraper l'oubli évident montré en
 // démo concurrente, pas assez pour prétendre à une vérification complète.
 
-const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch"]);
+const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch", "battery-protect"]);
 // Lynx Smart BMS coupe automatiquement la batterie en cas de défaut : même
 // rôle protecteur qu'un fusible/disjoncteur pour cette détection.
 const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms"]);
@@ -84,13 +105,106 @@ function computePolarityIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInt
       (sourceKind === "positive" && targetKind === "negative") ||
       (sourceKind === "negative" && targetKind === "positive");
 
-    if (isPolarityMismatch) {
+    // Deux panneaux reliés + vers - forment une chaîne série valide. Le
+    // contrôle V2 signalait jusque-là ce cas réel comme un court-circuit.
+    const isSolarSeriesConnection =
+      sourceNode?.data.componentType === "solar-panel" && targetNode?.data.componentType === "solar-panel";
+
+    if (isPolarityMismatch && !isSolarSeriesConnection) {
       issues.push({
         id: `${edge.id}-polarity-mismatch`,
         targetKind: "edge",
         targetId: edge.id,
         message: "Ce câble relie directement un + à un − : c'est probablement un court-circuit, vérifiez le branchement.",
       });
+    }
+  }
+
+  return issues;
+}
+
+function isAcPowerHandle(node: SchemaNodeInternal | undefined, handleId: string | null | undefined): boolean {
+  if (!node || !handleId) return false;
+  const def = getComponentDefinition(node.data.componentType);
+  const handle = def && getEffectiveHandles(def, node.data).find((candidate) => candidate.id === handleId);
+  if (!handle || handle.kind !== "neutral") return false;
+  return /^ac-|^in-|^out$|230v/i.test(handle.id) || /230v|secteur|ac/i.test(handle.label);
+}
+
+function isDcPowerHandle(node: SchemaNodeInternal | undefined, handleId: string | null | undefined): boolean {
+  if (!node || !handleId) return false;
+  const def = getComponentDefinition(node.data.componentType);
+  const handle = def && getEffectiveHandles(def, node.data).find((candidate) => candidate.id === handleId);
+  if (!handle || (handle.kind !== "positive" && handle.kind !== "negative")) return false;
+  return !handle.id.startsWith("pv-");
+}
+
+// Règles V2.1 reprises de l'analyse V3, écrites directement sur le modèle
+// React Flow V2 : elles améliorent les contrôles sans créer de second moteur.
+function computeConnectionIntegrityIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const terminalCounts = new Map<string, number>();
+
+  for (const edge of edges) {
+    const source = nodeById.get(edge.source);
+    const target = nodeById.get(edge.target);
+    const sourceDef = source && getComponentDefinition(source.data.componentType);
+    const targetDef = target && getComponentDefinition(target.data.componentType);
+    const sourceExists = sourceDef && edge.sourceHandle && getEffectiveHandles(sourceDef, source.data).some((handle) => handle.id === edge.sourceHandle);
+    const targetExists = targetDef && edge.targetHandle && getEffectiveHandles(targetDef, target.data).some((handle) => handle.id === edge.targetHandle);
+
+    if (!sourceExists || !targetExists) {
+      issues.push({
+        id: `${edge.id}-invalid-endpoint`,
+        targetKind: "edge",
+        targetId: edge.id,
+        message: "Ce câble est relié à une borne qui n'existe plus : reconnectez-le ou supprimez-le.",
+      });
+      continue;
+    }
+
+    const sourceKey = `${source.id}:${edge.sourceHandle}`;
+    const targetKey = `${target.id}:${edge.targetHandle}`;
+    terminalCounts.set(sourceKey, (terminalCounts.get(sourceKey) ?? 0) + 1);
+    terminalCounts.set(targetKey, (terminalCounts.get(targetKey) ?? 0) + 1);
+
+    const acToDc = isAcPowerHandle(source, edge.sourceHandle) && isDcPowerHandle(target, edge.targetHandle);
+    const dcToAc = isDcPowerHandle(source, edge.sourceHandle) && isAcPowerHandle(target, edge.targetHandle);
+    if (acToDc || dcToAc) {
+      issues.push({
+        id: `${edge.id}-ac-dc-mismatch`,
+        targetKind: "edge",
+        targetId: edge.id,
+        message: "Ce câble relie directement un circuit 230 V et un circuit continu : utilisez un appareil de conversion adapté.",
+      });
+    }
+  }
+
+  for (const node of nodes) {
+    const def = getComponentDefinition(node.data.componentType);
+    if (!def) continue;
+    const handles = getEffectiveHandles(def, node.data);
+
+    for (const handle of handles) {
+      const terminalCount = terminalCounts.get(`${node.id}:${handle.id}`) ?? 0;
+      if (terminalCount > 4) {
+        issues.push({
+          id: `${node.id}-${handle.id}-too-many-terminals`,
+          targetKind: "node",
+          targetId: node.id,
+          message: `« ${String(node.data.label ?? def.label)} » a plus de 4 câbles sur une même borne : utilisez un busbar plutôt qu'un empilement de cosses.`,
+        });
+      }
+
+      if (handle.kind === "earth" && terminalCount === 0) {
+        issues.push({
+          id: `${node.id}-${handle.id}-earth-missing`,
+          targetKind: "node",
+          targetId: node.id,
+          message: `« ${String(node.data.label ?? def.label)} » a une borne de terre non raccordée.`,
+        });
+      }
     }
   }
 
@@ -250,6 +364,42 @@ function computeOversizedProtectionIssues(nodes: SchemaNodeInternal[], edges: Sc
         message: `« ${protectionLabel} » (${formatAmps(protectionAmps)} A) est largement surdimensionné par rapport à « ${sourceLabel} » (${formatAmps(sourceAmps)} A max) : il ne protège plus vraiment ce circuit, le courant réel ne pourra jamais le faire fondre. Rapprochez son calibre du courant nominal de la source.`,
       });
     }
+  }
+
+  return issues;
+}
+
+// Une protection trop faible ne protège pas mieux : elle déclenche en usage
+// normal. On compare le calibre au courant réellement attendu en aval et,
+// pour une source de charge placée juste avant elle, à son courant nominal.
+function computeUndersizedProtectionIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const protectionNode of nodes) {
+    const type = protectionNode.data.componentType;
+    if (type !== "fuse" && type !== "circuit-breaker") continue;
+
+    const rating = Number(protectionNode.data.amperage) || 0;
+    if (rating <= 0) continue;
+
+    const downstreamAmps = estimateConnectedAmps(protectionNode.id, nodes, edges) ?? 0;
+    const adjacentSourceAmps = Math.max(
+      0,
+      ...edges
+        .filter((edge) => edge.source === protectionNode.id || edge.target === protectionNode.id)
+        .map((edge) => nodes.find((node) => node.id === (edge.source === protectionNode.id ? edge.target : edge.source)))
+        .map((node) => (node ? SOURCE_AMPS_GETTERS[node.data.componentType]?.(node.data) ?? 0 : 0)),
+    );
+    const expectedAmps = Math.max(downstreamAmps, adjacentSourceAmps);
+    if (expectedAmps <= 0 || rating >= expectedAmps) continue;
+
+    const label = String(protectionNode.data.label ?? getComponentDefinition(type)?.label ?? type);
+    issues.push({
+      id: `${protectionNode.id}-undersized`,
+      targetKind: "node",
+      targetId: protectionNode.id,
+      message: `« ${label} » (${formatAmps(rating)} A) est sous-calibré pour le courant attendu (${formatAmps(expectedAmps)} A) : il risque de déclencher en fonctionnement normal. Choisissez un calibre au moins égal au courant calculé, puis vérifiez qu'il reste compatible avec le câble.`,
+    });
   }
 
   return issues;
@@ -458,6 +608,74 @@ function computeSolarSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdge
   return issues;
 }
 
+// Limite de courant de court-circuit côté PV : contrairement au courant de
+// charge batterie, elle dépend du montage réel des panneaux. Isc reste celle
+// d'un panneau en série, et s'additionne entre strings en parallèle.
+function computePvInputCurrentIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const node of nodes) {
+    if (!PV_REGULATOR_TYPES.has(node.data.componentType)) continue;
+    const maxPvInputCurrentA = Number(node.data.maxPvInputCurrentA) || 0;
+    if (maxPvInputCurrentA <= 0) continue;
+
+    const strings = collectPvStrings(node.id, PV_INPUT_HANDLES, nodes, edges);
+    if (strings.length === 0 || strings.some((string) => string.some((panel) => !(Number(panel.data.shortCircuitCurrentA) > 0)))) continue;
+
+    const arrayIsc = strings.reduce(
+      (sum, string) => sum + Math.min(...string.map((panel) => Number(panel.data.shortCircuitCurrentA))),
+      0,
+    );
+    if (arrayIsc <= maxPvInputCurrentA) continue;
+
+    const label = String(node.data.label ?? getComponentDefinition(node.data.componentType)?.label ?? node.data.componentType);
+    issues.push({
+      id: `${node.id}-pv-input-overcurrent`,
+      targetKind: "node",
+      targetId: node.id,
+      message: `« ${label} » accepte ${formatAmps(maxPvInputCurrentA)} A Isc maximum côté PV, mais l'array raccordé atteint ${formatAmps(arrayIsc)} A Isc : réduisez les strings en parallèle ou choisissez un régulateur compatible.`,
+    });
+  }
+
+  return issues;
+}
+
+// Alerte volontairement légère : sans les données de fiche technique, le
+// moteur refuse de deviner Isc/Vmp ou les limites de tension et puissance
+// du MPPT. Le courant Isc reste une donnée de panneau; une limite d'entrée
+// MPPT n'est contrôlée que lorsqu'elle est explicitement publiée.
+function computeSolarDataCompletenessIssues(nodes: SchemaNodeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+  const panelFields = [
+    ["powerW", "puissance"],
+    ["voltage", "Vmp"],
+    ["operatingCurrentA", "Imp"],
+    ["vocVoltage", "Voc"],
+    ["shortCircuitCurrentA", "Isc"],
+  ] as const;
+  const mpptFields = [
+    ["amperage", "courant de charge"],
+    ["maxPvVoltage", "tension PV maximale"],
+    ["maxPvPower12V", "puissance PV nominale 12 V"],
+  ] as const;
+
+  for (const node of nodes) {
+    const fields = node.data.componentType === "solar-panel" ? panelFields : node.data.componentType === "mppt" ? mpptFields : null;
+    if (!fields) continue;
+    const missing = fields.filter(([key]) => !(Number(node.data[key]) > 0)).map(([, label]) => label);
+    if (missing.length === 0) continue;
+    const label = String(node.data.label ?? getComponentDefinition(node.data.componentType)?.label ?? node.data.componentType);
+    issues.push({
+      id: `${node.id}-solar-data-incomplete`,
+      targetKind: "node",
+      targetId: node.id,
+      message: `« ${label} » a des caractéristiques solaires incomplètes (${missing.join(", ")}) : les calculs PV resteront partiels tant que la fiche technique n'est pas renseignée.`,
+    });
+  }
+
+  return issues;
+}
+
 function computeElectricalIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
   const issues: SchemaIssue[] = [];
 
@@ -598,9 +816,25 @@ export function computeSchemaIssues(
     return !structurallyBlockedNodeIds.has(edge.source) && !structurallyBlockedNodeIds.has(edge.target);
   });
   const polarityIssues = computePolarityIssues(nodes, edges);
+  const connectionIntegrityIssues = computeConnectionIntegrityIssues(nodes, edges);
   const solarSizingIssues = computeSolarSizingIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
+  const pvInputCurrentIssues = computePvInputCurrentIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
+  const solarDataCompletenessIssues = computeSolarDataCompletenessIssues(nodes);
   const seriesVoltageIssues = computeSeriesVoltageIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
   const oversizedProtectionIssues = computeOversizedProtectionIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
+  const undersizedProtectionIssues = computeUndersizedProtectionIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
 
-  return [...issues, ...electricalIssues, ...cableSizingIssues, ...polarityIssues, ...solarSizingIssues, ...seriesVoltageIssues, ...oversizedProtectionIssues];
+  return [
+    ...classifyIssues(issues, { severity: "warning", category: "topology" }),
+    ...classifyIssues(electricalIssues, { severity: "warning", category: "protection" }),
+    ...classifyIssues(cableSizingIssues, { severity: "warning", category: "cabling" }),
+    ...classifyIssues(polarityIssues, { severity: "error", category: "connection" }),
+    ...classifyIssues(connectionIntegrityIssues, { severity: "error", category: "connection" }),
+    ...classifyIssues(solarSizingIssues, { severity: "warning", category: "solar" }),
+    ...classifyIssues(pvInputCurrentIssues, { severity: "error", category: "solar" }),
+    ...classifyIssues(solarDataCompletenessIssues, { severity: "info", category: "solar" }),
+    ...classifyIssues(seriesVoltageIssues, { severity: "error", category: "solar" }),
+    ...classifyIssues(oversizedProtectionIssues, { severity: "warning", category: "protection" }),
+    ...classifyIssues(undersizedProtectionIssues, { severity: "warning", category: "protection" }),
+  ];
 }

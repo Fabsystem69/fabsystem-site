@@ -42,6 +42,9 @@ export interface ComponentDefinition {
    * expliquant la fonction des composants" pour un debutant qui ne sait pas
    * ce qu'est un MPPT ou un shunt. */
   description?: string;
+  /** Composant encore lisible dans les anciens schémas mais retiré des
+   * bibliothèques d'ajout. */
+  libraryVisible?: boolean;
   handles: ComponentHandleDef[];
   /**
    * Pour les composants à nombre de sorties variable (busbar, tableau de

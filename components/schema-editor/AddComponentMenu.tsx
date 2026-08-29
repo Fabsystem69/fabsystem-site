@@ -12,6 +12,8 @@ import {
   getNodeIcon,
 } from "@/lib/electrical-components/definitions";
 import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
+import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
+import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
 import { CategoryIcon } from "./icons/CategoryIcons";
 import { RibbonButton, RibbonDivider, RibbonPanel } from "./RibbonControls";
 
@@ -48,7 +50,10 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const nodes = useSchemaStore((s) => s.nodes);
+  const edges = useSchemaStore((s) => s.edges);
   const addComponent = useSchemaStore((s) => s.addComponent);
+  const spliceNodeOnEdge = useSchemaStore((s) => s.spliceNodeOnEdge);
+  const selectedEdgeId = useSchemaStore((s) => s.selectedEdgeId);
   const openLibraryPick = useSchemaStore((s) => s.openLibraryPick);
   const addZone = useSchemaStore((s) => s.addZone);
   const guidedMode = useSchemaStore((s) => s.guidedMode);
@@ -58,6 +63,7 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
   const byCategory = useMemo(() => {
     const map = new Map<string, Item[]>();
     for (const def of COMPONENT_DEFINITIONS) {
+      if (def.libraryVisible === false) continue;
       const list = map.get(def.category) ?? [];
       if (def.type === "consumer") {
         for (const preset of CONSUMER_LIBRARY_PRESETS) {
@@ -91,7 +97,20 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
   // Même cascade que ComponentLibrary.handleClickAdd : évite d'empiler
   // plusieurs composants ajoutés d'affilée exactement au même endroit.
   function handleAdd(type: string, presetValue?: string) {
-    const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    const center = screenToFlowPosition(getVisibleCanvasCenter());
+    const selectedEdge = selectedEdgeId ? edges.find((edge) => edge.id === selectedEdgeId) : undefined;
+    if (selectedEdge && SPLICEABLE_COMPONENT_TYPES.has(type)) {
+      const source = nodes.find((node) => node.id === selectedEdge.source);
+      const target = nodes.find((node) => node.id === selectedEdge.target);
+      if (source && target) {
+        spliceNodeOnEdge(selectedEdge.id, type, {
+          x: (source.position.x + target.position.x) / 2,
+          y: (source.position.y + target.position.y) / 2,
+        });
+        setActiveCategory(null);
+        return;
+      }
+    }
     const zoom = getZoom() || 1;
     const electricalCount = nodes.filter((n) => n.type === "electrical").length;
     const col = electricalCount % 5;
@@ -109,7 +128,7 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
   }
 
   function handleAddZone() {
-    const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    const center = screenToFlowPosition(getVisibleCanvasCenter());
     addZone({ x: center.x - 190, y: center.y - 130 });
   }
 

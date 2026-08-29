@@ -32,6 +32,7 @@ export { useBrandModelSelector, useNodeFieldChange, FuseSuggestion, SectionSugge
 // composant sélectionné.
 function useBrandModelSelector(node: SchemaNode | undefined) {
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
+  const applyBrandModelToNode = useSchemaStore((s) => s.applyBrandModelToNode);
   const customCatalogItems = useSchemaStore((s) => s.customCatalogItems);
 
   const componentType = node?.data.componentType;
@@ -75,13 +76,7 @@ function useBrandModelSelector(node: SchemaNode | undefined) {
     }
     const brandModel = getBrandModel(value);
     if (!brandModel) return;
-    updateNodeData(node.id, {
-      brandModelId: brandModel.id,
-      brand: brandModel.brand,
-      model: brandModel.model,
-      customItemIconDataUrl: undefined,
-      ...brandModel.defaults,
-    });
+    applyBrandModelToNode(node.id, brandModel.id);
   }
 
   return { brandModels, brandModelsByBrand, handleBrandModelChange };
@@ -96,6 +91,7 @@ function useBrandModelSelector(node: SchemaNode | undefined) {
 function useNodeFieldChange(node: SchemaNode | undefined) {
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const setOutputCount = useSchemaStore((s) => s.setOutputCount);
+  const setBusbarFacePointCount = useSchemaStore((s) => s.setBusbarFacePointCount);
   const customCatalogItems = useSchemaStore((s) => s.customCatalogItems);
 
   return function handleFieldChange(key: string, value: string | number) {
@@ -118,6 +114,11 @@ function useNodeFieldChange(node: SchemaNode | undefined) {
     // reliés aux sorties supprimées (voir setOutputCount).
     if (key === "outputCount") {
       setOutputCount(node.id, Number(value));
+      return;
+    }
+    if (node.data.componentType === "busbar" && ["leftPoints", "topPoints", "rightPoints", "bottomPoints"].includes(key)) {
+      const face = key.replace("Points", "") as "left" | "top" | "right" | "bottom";
+      setBusbarFacePointCount(node.id, face, Number(value));
       return;
     }
     // Retour utilisateur : "je veux que les batteries soient classées par
@@ -148,19 +149,65 @@ function FuseBlockOutputs({
   node,
   onChange,
   darkMode,
+  compact = false,
 }: {
   node: SchemaNode;
   onChange: (id: string, patch: Record<string, unknown>) => void;
   darkMode: boolean;
+  /** Version a une ligne pour le ruban superieur, jamais une carte haute. */
+  compact?: boolean;
 }) {
   const outputCount = Math.max(1, Number(node.data.outputCount) || 1);
   const outputs = Array.from({ length: outputCount }, (_, i) => i + 1);
+  const [selectedOutput, setSelectedOutput] = useState(1);
+  const activeOutput = Math.min(selectedOutput, outputCount);
+  const isDistributionPanel = node.data.componentType === "distribution-panel";
+  const protectionLabel = isDistributionPanel ? "disjoncteur" : "fusible";
+
+  if (compact) {
+    return (
+      <div className="flex shrink-0 items-end gap-2 px-2">
+        <label className="flex flex-col gap-0.5">
+          <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>Calibre sortie</span>
+          <select
+            value={activeOutput}
+            onChange={(event) => setSelectedOutput(Number(event.target.value))}
+            className={`h-7 w-20 rounded border px-1.5 text-xs focus:outline-none ${
+              darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 bg-white focus:border-neutral-900"
+            }`}
+            aria-label="Sortie à régler"
+          >
+            {outputs.map((output) => (
+              <option key={output} value={output}>Sortie {output}</option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-0.5">
+          <span className={`text-[9px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>Calibre</span>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={0}
+              step={5}
+              value={Number(node.data[`outAmp${activeOutput}`] ?? 0)}
+              onChange={(event) => onChange(node.id, { [`outAmp${activeOutput}`]: Number(event.target.value) })}
+              className={`h-7 w-14 rounded border px-1.5 text-xs focus:outline-none ${
+                darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 bg-white focus:border-neutral-900"
+              }`}
+              aria-label={`Calibre de la sortie ${activeOutput}`}
+            />
+            <span className={`text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>A</span>
+          </div>
+        </label>
+      </div>
+    );
+  }
 
   return (
     <div className={`rounded-md border p-3 ${darkMode ? "border-neutral-700 bg-neutral-800" : "border-neutral-200 bg-neutral-50"}`}>
       <p className={`text-xs font-semibold ${darkMode ? "text-neutral-200" : "text-neutral-700"}`}>Calibre par sortie</p>
       <p className={`mt-0.5 text-[11px] leading-snug ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-        Chaque fusible de la platine peut avoir son propre calibre.
+        Chaque {protectionLabel} du tableau peut avoir son propre calibre.
       </p>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {outputs.map((i) => (
@@ -170,6 +217,7 @@ function FuseBlockOutputs({
               <input
                 type="number"
                 min={0}
+                step={5}
                 value={Number(node.data[`outAmp${i}`] ?? 0)}
                 onChange={(e) => onChange(node.id, { [`outAmp${i}`]: Number(e.target.value) })}
                 className={`w-full rounded-md border px-2 py-1 text-sm focus:outline-none ${
@@ -249,8 +297,7 @@ function SectionSuggestion({
     const sourceType = nodes.find((n) => n.id === edge.source)?.data.componentType;
     const targetType = nodes.find((n) => n.id === edge.target)?.data.componentType;
     setLength(String(edge.data?.length ?? getEdgeDefaultLength(sourceType, targetType, edge.data?.section ?? "", edge.data?.cableType) ?? 4));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [edge.id]);
+  }, [edge, nodes, edges]);
 
   const i = parseFloat(amps);
   const l = parseFloat(length);

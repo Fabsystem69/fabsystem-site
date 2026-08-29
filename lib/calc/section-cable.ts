@@ -18,8 +18,11 @@ export const COPPER_RESISTIVITY_OHM_MM2_PER_M = 0.0175;
 /** Catalogue des sections de câble normalisées disponibles, en mm². */
 export const AVAILABLE_SECTIONS_MM2 = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
 
-/** Catalogue des calibres de fusible normalisés disponibles, en A. */
-export const AVAILABLE_FUSES_A = [5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 125];
+/**
+ * Catalogue de référence utilisé par les suggestions. Les paliers courants
+ * restent de 5 A en 5 A, avec 2 A conservé pour les très petits circuits.
+ */
+export const AVAILABLE_FUSES_A = [2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125];
 
 export type SectionCableResult = {
   /** Section minimale calculée (mm²), non normalisée — valeur brute. */

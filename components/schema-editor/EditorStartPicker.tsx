@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SCHEMA_TEMPLATES } from "@/features/schemas/templates";
+import { getSchemaTemplatesByVehicleGroup } from "@/features/schemas/templates";
 import type { DraftEnvelope } from "@/features/schemas/storage/localDraftStorage";
 import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
@@ -40,6 +40,7 @@ export function EditorStartPicker({
   onChooseGuided: () => void;
 }) {
   const [step, setStep] = useState<"signup" | "choose">(isLoggedIn ? "choose" : "signup");
+  const templateGroups = getSchemaTemplatesByVehicleGroup();
 
   // `isLoggedIn` vient d'un fetch async (voir Editor.tsx) qui n'a pas
   // forcément répondu au tout premier rendu — resynchronise si la réponse
@@ -154,12 +155,19 @@ export function EditorStartPicker({
             <p className={`mb-3 mt-8 text-xs font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
               Partir d&apos;un gabarit
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {SCHEMA_TEMPLATES.map((template) => (
-                <button key={template.id} type="button" onClick={() => onChooseTemplate(template.id)} className={cardClass}>
-                  <span className={`text-base font-bold ${darkMode ? "text-neutral-50" : "text-neutral-950"}`}>{template.label}</span>
-                  <span className={`mt-1 flex-1 text-sm leading-relaxed ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>{template.description}</span>
-                </button>
+            <div className="space-y-5">
+              {templateGroups.map((group) => (
+                <section key={group.id}>
+                  <h2 className={`mb-2 text-xs font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{group.label}</h2>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {group.templates.map((template) => (
+                      <button key={template.id} type="button" onClick={() => onChooseTemplate(template.id)} className={cardClass}>
+                        <span className={`text-base font-bold ${darkMode ? "text-neutral-50" : "text-neutral-950"}`}>{template.label}</span>
+                        <span className={`mt-1 flex-1 text-sm leading-relaxed ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>{template.description}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           </>

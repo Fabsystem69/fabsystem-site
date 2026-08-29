@@ -1,5 +1,5 @@
 import type { ComponentDefinition, ComponentHandleDef, IconStyle } from "@/types/schema";
-import { getBrandModel } from "@/lib/electrical-components/brand-models";
+import { getBrandFamilyIcon, getBrandModel } from "@/lib/electrical-components/brand-models";
 
 // Consommateurs courants à bord (CDC §13 : "peuvent techniquement utiliser
 // le même node de base avec une apparence différente" — ici, un préréglage
@@ -69,9 +69,9 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // Retour utilisateur (2e bêta-testeur) : distincte de la prise USB/12V
   // ci-dessus — la douille allume-cigare 12V classique, format et usage
   // différents (accessoires auto/nautiques existants).
-  { value: "prise-allume-cigare", label: "Prise allume-cigare", typicalPowerW: 15, group: "Électronique & confort" },
+  { value: "prise-allume-cigare", label: "Prise allume-cigare", typicalPowerW: 15, iconPro: "/schema-icons/pro/prise-allume-cigare.png", group: "Électronique & confort" },
   { value: "electronique-bord", label: "Électronique de bord (GPS, VHF…)", typicalPowerW: 20, iconPro: "/schema-icons/pro/electronique-bord.webp", group: "Électronique & confort" },
-  { value: "alarme", label: "Système d'alarme", typicalPowerW: 5, group: "Sécurité" },
+  { value: "alarme", label: "Système d'alarme", typicalPowerW: 5, iconPro: "/schema-icons/pro/alarme.jpg", group: "Sécurité" },
   { value: "tele-12v", label: "Télé 12V", typicalPowerW: 30, iconPro: "/schema-icons/pro/tele-12v.jpg", group: "Électronique & confort" },
   // Même visuel que la 12V (retour utilisateur) : une télé se ressemble
   // quelle que soit son alimentation, pas de photo dédiée à distinguer.
@@ -85,7 +85,7 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // Retour utilisateur (2e bêta-testeur) : marche-pied électrique
   // automatique (van/camping-car) — appel moteur ponctuel à l'ouverture de
   // porte, comme le guindeau ci-dessus.
-  { value: "marche-pied-automatique", label: "Marche-pied automatique", typicalPowerW: 100, group: "Manœuvre & pont" },
+  { value: "marche-pied-automatique", label: "Marche-pied automatique", typicalPowerW: 100, iconPro: "/schema-icons/pro/marche-pied-automatique.jpg", group: "Manœuvre & pont" },
   { value: "chargeur-telephone", label: "Chargeur téléphone / ordinateur", typicalPowerW: 25, iconPro: "/schema-icons/pro/chargeur-telephone.webp", group: "Électronique & confort" },
   { value: "chauffe-eau", label: "Chauffe-eau 220V", typicalPowerW: 300, iconPro: "/schema-icons/pro/chauffe-eau.webp", group: "Eau" },
   { value: "chauffe-eau-12v", label: "Chauffe-eau 12V (résistance)", typicalPowerW: 120, iconPro: "/schema-icons/pro/chauffe-eau-12v.jpeg", group: "Eau" },
@@ -94,8 +94,8 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // deux alimentations en même temps, pas juste l'une ou l'autre.
   // Puissance typique = somme des deux résistances.
   { value: "chauffe-eau-mixte-12-220", label: "Chauffe-eau 12V/220V (usage simultané)", typicalPowerW: 420, group: "Eau" },
-  { value: "convertisseur-12-19v", label: "Convertisseur 12V/19V (chargeur PC portable)", typicalPowerW: 90, group: "Électronique & confort" },
-  { value: "chauffage-appoint", label: "Chauffage d'appoint (soufflant 12V)", typicalPowerW: 150, group: "Chauffage & ventilation" },
+  { value: "convertisseur-12-19v", label: "Convertisseur 12V/19V (chargeur PC portable)", typicalPowerW: 90, iconPro: "/schema-icons/pro/convertisseur-12-19v.webp", group: "Électronique & confort" },
+  { value: "chauffage-appoint", label: "Chauffage d'appoint (soufflant 12V)", typicalPowerW: 150, iconPro: "/schema-icons/pro/chauffage-appoint.jpg", group: "Chauffage & ventilation" },
   { value: "chauffage-diesel", label: "Chauffage diesel/air 12V (type Webasto, Eberspächer…)", typicalPowerW: 40, iconPro: "/schema-icons/pro/chauffage-diesel.webp", group: "Chauffage & ventilation" },
   // Truma Eezy : chauffage d'appoint électrique, résistance sur secteur
   // 230V + soufflerie sur 12V — distinct du chauffage diesel ci-dessus (pas
@@ -125,6 +125,36 @@ export function getConsumerPreset(value: string): ConsumerPreset | undefined {
   return CONSUMER_PRESETS.find((p) => p.value === value);
 }
 
+// Seules les variantes de même nature partagent un visuel. Toute entrée qui
+// n'est pas ici conserve son illustration propre : un pilote automatique ne
+// doit pas ressembler à un guindeau, ni un macérateur à une pompe à eau.
+const CONSUMER_PRESET_FAMILY_ICONS: Record<string, string> = {
+  refrigerateur: "/schema-icons/pro/refrigerateur.webp",
+  "refrigerateur-trimix": "/schema-icons/pro/refrigerateur.webp",
+  "pompe-eau": "/schema-icons/pro/pompe-eau.webp",
+  "pompe-eau-immergee-25l": "/schema-icons/pro/pompe-eau.webp",
+  "pompe-eau-immergee-10l": "/schema-icons/pro/pompe-eau.webp",
+  "wc-electrique": "/schema-icons/pro/wc-electrique.webp",
+  electrovanne: "/schema-icons/pro/electrovanne.webp",
+  "chauffe-eau": "/schema-icons/pro/chauffe-eau.webp",
+  "chauffe-eau-12v": "/schema-icons/pro/chauffe-eau.webp",
+  "chauffe-eau-mixte-12-220": "/schema-icons/pro/chauffe-eau.webp",
+  "tele-12v": "/schema-icons/pro/tele-12v.jpg",
+  "tele-220v": "/schema-icons/pro/tele-12v.jpg",
+  climatisation: "/schema-icons/pro/climatisation.webp",
+  "climatiseur-portable": "/schema-icons/pro/climatisation.webp",
+};
+
+function consumerFamilyIcon(data: Record<string, unknown>, style: IconStyle): string | undefined {
+  if (style !== "pro" || typeof data.presetType !== "string") return undefined;
+  const preset = getConsumerPreset(data.presetType);
+  if (!preset) return undefined;
+
+  const specificFamilyIcon = CONSUMER_PRESET_FAMILY_ICONS[preset.value];
+  if (specificFamilyIcon) return specificFamilyIcon;
+  return preset.iconPro ?? preset.icon;
+}
+
 // Construit les variantes d'icône du composant "Consommateur" à partir de
 // CONSUMER_PRESETS, pour ne pas dupliquer les chemins à deux endroits.
 function consumerIconVariants(): Record<string, { icon?: string; iconPro?: string }> {
@@ -133,6 +163,54 @@ function consumerIconVariants(): Record<string, { icon?: string; iconPro?: strin
     if (preset.icon || preset.iconPro) variants[preset.value] = { icon: preset.icon, iconPro: preset.iconPro };
   }
   return variants;
+}
+
+// Les ports de communication ne sont pas une propriete generique d'une
+// famille: deux boitiers qui se ressemblent peuvent ne pas avoir la meme
+// interface. Le modele choisi est donc la seule source de verite. Cela evite
+// de dessiner une prise VE.Direct sur un Blue Smart IP22 ou un Orion-Tr Smart
+// qui n'en disposent pas.
+function victronCommunicationHandles(data: Record<string, unknown>): ComponentHandleDef[] {
+  // Les schémas antérieurs à la communication par modèle ne portaient pas
+  // cette clé, alors qu'ils pouvaient déjà avoir un câble sur l'ancienne
+  // borne générique. On la conserve pour ne jamais rendre ce câble invisible;
+  // les nouveaux nœuds reçoivent explicitement une chaîne vide.
+  if (!("communicationPorts" in data)) {
+    return [{ id: "ve-direct", label: "Communication (ancien schéma)", kind: "neutral", side: "bottom", optional: true }];
+  }
+  const modelId = typeof data.brandModelId === "string" ? data.brandModelId : "";
+  // Une chaîne vide vient des données génériques ajoutées récemment. Si un
+  // modèle réellement compatible est déjà sélectionné, sa fiche catalogue
+  // reprend prioritairement la main pour restaurer les schémas existants.
+  const modelPorts = getBrandModel(modelId)?.defaults.communicationPorts;
+  const configuredPorts = typeof data.communicationPorts === "string" && data.communicationPorts.length > 0 ? data.communicationPorts : modelPorts;
+  const ports = String(configuredPorts ?? "").split(",");
+  const handles: ComponentHandleDef[] = [];
+
+  for (const port of ports) {
+    const [protocol, countValue] = port.split(":");
+    const count = Math.max(1, Math.min(8, Number(countValue) || 1));
+    if (protocol !== "ve-direct" && protocol !== "ve-bus") continue;
+
+    for (let index = 1; index <= count; index++) {
+      const id = index === 1 ? protocol : `${protocol}-${index}`;
+      const label = count === 1 ? (protocol === "ve-direct" ? "VE.Direct" : "VE.Bus") : `${protocol === "ve-direct" ? "VE.Direct" : "VE.Bus"} ${index}`;
+      handles.push({ id, label, kind: "neutral", side: "bottom", optional: true });
+    }
+  }
+  return handles;
+}
+
+function systemControllerHandles(data: Record<string, unknown>): ComponentHandleDef[] {
+  const modelId = typeof data.brandModelId === "string" ? data.brandModelId : "";
+  const modelDisplayOutput = getBrandModel(modelId)?.defaults.displayOutput;
+  const displayOutput = data.displayOutput ?? modelDisplayOutput;
+  return [
+    { id: "positive", label: "+", kind: "positive", side: "right" as const },
+    { id: "negative", label: "−", kind: "negative", side: "left" as const },
+    ...victronCommunicationHandles(data),
+    ...(displayOutput === "gx-touch" ? [{ id: "gx-display", label: "Écran GX", kind: "neutral" as const, side: "top" as const }] : []),
+  ];
 }
 
 // Composants à nombre de sorties variable (busbar, tableau de distribution,
@@ -168,33 +246,79 @@ function variableOutputHandles(data: Record<string, unknown>): ComponentHandleDe
   return handles;
 }
 
-// Busbar réel : une simple barre métallique, tous les points de connexion
-// alignés sur la même face (retour utilisateur : "des points de jonction
-// tout sur la même face pas sur les quatre côtés" et "pas besoin de IN sur
-// un busbar" — contrairement à un tableau de distribution, une barre n'a
-// pas d'entrée dédiée, chaque point est équivalent). Les ids `input`/
-// `out-N` sont conservés pour ne pas casser les câbles déjà connectés sur
-// des schémas existants ; seuls le côté et le libellé changent.
-const BUSBAR_SIDE: "right" = "right";
+// Un busbar n'a pas d'entrée dédiée : tous ses plots sont équivalents. Les
+// anciens schémas ne stockent qu'un total (`outputCount`) et restent donc
+// alignés à droite. Les nouveaux schémas peuvent répartir les plots sur les
+// quatre faces pour réduire les croisements. Les ids historiques `input` et
+// `out-N` restent stables : déplacer une borne de face ne casse pas son câble.
+const BUSBAR_FACES = ["left", "top", "right", "bottom"] as const;
+export type BusbarFace = (typeof BUSBAR_FACES)[number];
+export const MAX_BUSBAR_CONNECTION_POINTS = 24;
 
-function busbarHandles(data: Record<string, unknown>): ComponentHandleDef[] {
-  const count = clampOutputCount(data.outputCount ?? DEFAULT_OUTPUTS);
-  const handles: ComponentHandleDef[] = [{ id: "input", label: "1", kind: "positive", side: BUSBAR_SIDE }];
-  for (let i = 1; i <= count; i++) {
-    handles.push({ id: `out-${i}`, label: String(i + 1), kind: "positive", side: BUSBAR_SIDE });
-  }
-  return handles;
+function clampBusbarPointCount(value: unknown, limit: number): number {
+  const count = Math.round(Number(value));
+  return Number.isFinite(count) ? Math.min(limit, Math.max(0, count)) : 0;
 }
 
-const busbarPointCountField = {
-  key: "outputCount",
-  label: "Nombre de points de connexion",
+/** Capacité physique renseignée par un modèle constructeur, ou capacité de
+ * compatibilité des busbars génériques historiques si aucun modèle n'est choisi. */
+export function getBusbarConnectionPointLimit(data: Record<string, unknown>): number {
+  const fallback = MAX_OUTPUTS + 1;
+  const value = Math.round(Number(data.maxConnectionPoints));
+  return Number.isFinite(value) ? Math.min(MAX_BUSBAR_CONNECTION_POINTS, Math.max(MIN_OUTPUTS + 1, value)) : fallback;
+}
+
+export function getBusbarFacePointCounts(data: Record<string, unknown>): Record<BusbarFace, number> {
+  const limit = getBusbarConnectionPointLimit(data);
+  const hasFaceLayout = BUSBAR_FACES.some((face) => data[`${face}Points`] !== undefined);
+  if (!hasFaceLayout) return { left: 0, top: 0, right: Math.min(limit, clampOutputCount(data.outputCount ?? DEFAULT_OUTPUTS) + 1), bottom: 0 };
+
+  const counts = Object.fromEntries(BUSBAR_FACES.map((face) => [face, clampBusbarPointCount(data[`${face}Points`], limit)])) as Record<BusbarFace, number>;
+  let remaining = limit;
+  for (const face of BUSBAR_FACES) {
+    counts[face] = Math.min(counts[face], remaining);
+    remaining -= counts[face];
+  }
+  const total = BUSBAR_FACES.reduce((sum, face) => sum + counts[face], 0);
+  if (total >= MIN_OUTPUTS + 1) return counts;
+  counts.right = Math.min(limit, counts.right + MIN_OUTPUTS + 1 - total);
+  return counts;
+}
+
+function busbarHandles(data: Record<string, unknown>): ComponentHandleDef[] {
+  const counts = getBusbarFacePointCounts(data);
+  const handles: ComponentHandleDef[] = [];
+  let pointIndex = 0;
+  for (const face of BUSBAR_FACES) {
+    for (let index = 0; index < counts[face]; index++) {
+      const id = pointIndex === 0 ? "input" : `out-${pointIndex}`;
+      handles.push({ id, label: String(pointIndex + 1), kind: "positive", side: face });
+      pointIndex += 1;
+    }
+  }
+  const storedSides = data.busbarHandleSides;
+  if (!storedSides || typeof storedSides !== "object" || Array.isArray(storedSides)) return handles;
+
+  // Le moteur d'optimisation conserve les ids (input, out-1...) et ne
+  // modifie que la face. Les réglages manuels historiques par nombre de
+  // plots restent le repli pour toute borne non optimisée.
+  return handles.map((handle) => {
+    const side = (storedSides as Record<string, unknown>)[handle.id];
+    return typeof side === "string" && (BUSBAR_FACES as readonly string[]).includes(side)
+      ? { ...handle, side: side as BusbarFace }
+      : handle;
+  });
+}
+
+const busbarFacePointFields = BUSBAR_FACES.map((face) => ({
+  key: `${face}Points`,
+  label: `Plots ${face === "left" ? "gauche" : face === "right" ? "droite" : face === "top" ? "haut" : "bas"}`,
   type: "number" as const,
-  min: MIN_OUTPUTS,
-  max: MAX_OUTPUTS,
+  min: 0,
+  max: MAX_BUSBAR_CONNECTION_POINTS,
   step: 1,
-  help: `De ${MIN_OUTPUTS + 1} à ${MAX_OUTPUTS + 1} points au total. Réduire ce nombre supprime les câbles reliés aux points retirés.`,
-};
+  help: "Le total est limité par la capacité du modèle constructeur sélectionné.",
+}));
 
 // Disposition d'une vraie platine de fusibles (retour utilisateur : "4
 // sorties de chaque côté et une entrée sur un autre côté", d'après la photo
@@ -216,6 +340,9 @@ function fuseBlockHandles(data: Record<string, unknown>): ComponentHandleDef[] {
   // pour câbler chaque circuit en +/− directement sur la platine. Côté bas,
   // pour ne jamais se mélanger visuellement aux sorties positives.
   if (data.layout === "positive-negative") {
+    // Le bornier négatif doit aussi pouvoir être alimenté depuis le retour
+    // commun de l'installation, pas uniquement redistribuer les départs.
+    handles.push({ id: "in-negative", label: "IN−", kind: "negative", side: "top" });
     for (let i = 1; i <= count; i++) {
       handles.push({ id: `out-${i}-neg`, label: `−${i}`, kind: "negative", side: "bottom" });
     }
@@ -287,7 +414,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "batteries",
     subtitle: "Source d'énergie",
     icon: "/schema-icons/battery.svg",
-    iconPro: "/schema-icons/pro/battery-lifepo.webp",
+    iconPro: "/schema-icons/pro/family/battery.png",
     iconVariantField: "technology",
     iconVariants: {
       agm: { iconPro: "/schema-icons/pro/battery-agm.webp" },
@@ -333,7 +460,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "panneaux",
     subtitle: "Production",
     icon: "/schema-icons/solar-panel.svg",
-    iconPro: "/schema-icons/pro/solar-panel.webp",
+    iconPro: "/schema-icons/pro/solar-panel-rigid.png",
     badge: { field: "powerW", unit: "W" },
     // Retour utilisateur : "rajouter les vignettes PV− et PV+ sur le
     // panneau solaire" — "PV" porte une info utile (photovoltaïque) au-delà
@@ -343,17 +470,29 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "negative", label: "PV−", kind: "negative", side: "left" },
       { id: "positive", label: "PV+", kind: "positive", side: "right" },
     ],
-    defaultData: { powerW: 100, voltage: 0, vocVoltage: 0 },
+    defaultData: { panelStyle: "rigid", powerW: 100, voltage: 0, operatingCurrentA: 0, shortCircuitCurrentA: 0, vocVoltage: 0, vocTemperatureCoeffPctPerC: 0 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
+      {
+        key: "panelStyle",
+        label: "Construction",
+        type: "select",
+        options: [
+          { value: "rigid", label: "Rigide" },
+          { value: "flexible", label: "Flexible" },
+        ],
+      },
       { key: "powerW", label: "Puissance", type: "number", unit: "W", help: "Puissance crête indiquée sur l'étiquette du panneau — détermine la vitesse de charge et le calibre du régulateur (MPPT/PWM) à choisir." },
-      { key: "voltage", label: "Tension", type: "number", unit: "V", help: "Facultatif : 0 si non connue." },
+      { key: "voltage", label: "Tension au MPP (Vmp)", type: "number", unit: "V", help: "Tension au point de puissance maximale, relevée sur la fiche constructeur. Elle sert au calcul de chute de tension du câble PV." },
+      { key: "operatingCurrentA", label: "Courant au MPP (Imp)", type: "number", unit: "A", help: "Courant au point de puissance maximale, relevé sur la fiche constructeur." },
+      { key: "shortCircuitCurrentA", label: "Courant court-circuit (Isc)", type: "number", unit: "A", help: "Courant maximal du panneau. Il sert au dimensionnement et au contrôle du câble PV." },
       // Retour utilisateur : "pour le série il faut que tu ai les données Voc
       // des panneaux et la donnée max des MPPT" — nécessaire pour vérifier
       // qu'un montage en série ne dépasse pas la tension d'entrée max du
       // régulateur (distinct du calibre en ampères, déjà vérifié via la
       // puissance totale).
       { key: "vocVoltage", label: "Tension circuit ouvert (Voc)", type: "number", unit: "V", help: "Indiquée sur l'étiquette du panneau (Voc). Facultatif : 0 si non connue — nécessaire pour vérifier un montage en série." },
+      { key: "vocTemperatureCoeffPctPerC", label: "Coef. température Voc", type: "number", unit: "%/°C", help: "Coefficient Voc du constructeur, généralement négatif. Facultatif : 0 si non connu ; le contrôle applique alors une marge prudente." },
     ],
   },
   {
@@ -364,7 +503,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "regulateurs",
     subtitle: "Charge",
     icon: "/schema-icons/mppt.svg",
-    iconPro: "/schema-icons/pro/mppt.webp",
+    iconPro: "/schema-icons/pro/family/mppt.cutout.png",
     badge: { field: "amperage", unit: "A" },
     // Retour utilisateur : "augmente la taille des différents boîtiers MPPT,
     // chargeur, DC-DC etc" — même logique que la batterie, plus visible que
@@ -375,14 +514,22 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
       { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
       { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
-      { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { amperage: 20, systemVoltage: 12, maxPvVoltage: 0 },
+    getHandles: (data) => [
+      { id: "pv-negative", label: "PV−", kind: "negative", side: "left" },
+      { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
+      { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
+      { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { amperage: 20, systemVoltage: 12, maxPvVoltage: 0, maxPvInputCurrentA: 0, maxPvPower12V: 0, communicationPorts: "" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Choisi selon la puissance des panneaux branchés (W ÷ tension système ≈ ampérage requis), pas selon les besoins de consommation." },
       { key: "systemVoltage", label: "Tension système", type: "number", unit: "V", help: "La tension de votre batterie (12V le plus souvent) — pas celle des panneaux." },
       { key: "maxPvVoltage", label: "Tension d'entrée PV max", type: "number", unit: "V", help: "Indiquée sur la fiche technique du régulateur. Facultatif : 0 si non connue — nécessaire pour vérifier qu'un montage de panneaux en série ne la dépasse pas." },
+      { key: "maxPvInputCurrentA", label: "Courant PV max (Isc)", type: "number", unit: "A", help: "Courant de court-circuit maximal admissible côté panneaux, distinct du courant de charge batterie." },
+      { key: "maxPvPower12V", label: "Puissance PV nominale 12 V", type: "number", unit: "W", help: "Puissance PV nominale constructeur pour un système 12 V. Facultatif : 0 si non connue." },
     ],
   },
   {
@@ -393,7 +540,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "regulateurs",
     subtitle: "Charge",
     icon: "/schema-icons/mppt.svg",
-    iconPro: "/schema-icons/pro/pwm.webp",
+    iconPro: "/schema-icons/pro/family/pwm.cutout.png",
     badge: { field: "amperage", unit: "A" },
     minIconBoxSize: 64,
     handles: [
@@ -401,12 +548,15 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
       { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
       { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
-      // Audit : les modèles Victron BlueSolar PWM-Pro déjà au catalogue
-      // (brand-models.ts) ont un port VE.Direct — absent à tort ici alors
-      // que le MPPT jumeau l'a.
-      { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { amperage: 10, systemVoltage: 12, maxPvVoltage: 0 },
+    getHandles: (data) => [
+      { id: "pv-negative", label: "PV−", kind: "negative", side: "left" },
+      { id: "pv-positive", label: "PV+", kind: "positive", side: "left" },
+      { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
+      { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { amperage: 10, systemVoltage: 12, maxPvVoltage: 0, communicationPorts: "" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Choisi selon la puissance des panneaux branchés (W ÷ tension système ≈ ampérage requis), pas selon les besoins de consommation." },
@@ -426,6 +576,9 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     category: "solar",
     subcategory: "regulateurs",
     subtitle: "Dérivation",
+    // Hors périmètre van/bateau : conservé seulement pour afficher sans
+    // perte un ancien schéma, jamais proposé à un nouvel utilisateur.
+    libraryVisible: false,
     icon: "/schema-icons/mppt.svg",
     // Icône réelle (Victron Smart BuckBoost, le "vrai routeur dédié" de ce
     // rôle) : sérigraphie du boîtier IN+ / GND / OUT+ — non isolé, une
@@ -453,7 +606,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "dcdc",
     subtitle: "Charge",
     icon: "/schema-icons/dcdc.svg",
-    iconPro: "/schema-icons/pro/dcdc.webp",
+    iconPro: "/schema-icons/pro/family/dcdc.cutout.png",
     badge: { field: "amperage", unit: "A" },
     minIconBoxSize: 64,
     handles: [
@@ -469,20 +622,22 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // à un modèle isolé (type Orion-Tr Smart) qui a un − séparé de chaque
     // côté. Bascule les bornes selon `topology`, réglé par défaut sur les
     // modèles concernés via `BrandModel.defaults` (voir brand-models.ts).
-    getHandles: (data) =>
-      data.topology === "non-isolated"
+    getHandles: (data) => [
+      ...(data.topology === "non-isolated"
         ? [
-            { id: "in-positive", label: "IN+", kind: "positive", side: "left" as const },
-            { id: "ground", label: "GND", kind: "negative", side: "bottom" as const },
-            { id: "out-positive", label: "OUT+", kind: "positive", side: "right" as const },
+            { id: "in-positive", label: "IN+", kind: "positive" as const, side: "left" as const },
+            { id: "ground", label: "GND", kind: "negative" as const, side: "bottom" as const },
+            { id: "out-positive", label: "OUT+", kind: "positive" as const, side: "right" as const },
           ]
         : [
-            { id: "in-negative", label: "IN−", kind: "negative", side: "left" as const },
-            { id: "in-positive", label: "IN+", kind: "positive", side: "left" as const },
-            { id: "out-negative", label: "OUT−", kind: "negative", side: "right" as const },
-            { id: "out-positive", label: "OUT+", kind: "positive", side: "right" as const },
-          ],
-    defaultData: { voltageIn: 12, voltageOut: 12, amperage: 20, topology: "isolated" },
+            { id: "in-negative", label: "IN−", kind: "negative" as const, side: "left" as const },
+            { id: "in-positive", label: "IN+", kind: "positive" as const, side: "left" as const },
+            { id: "out-negative", label: "OUT−", kind: "negative" as const, side: "right" as const },
+            { id: "out-positive", label: "OUT+", kind: "positive" as const, side: "right" as const },
+          ]),
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { voltageIn: 12, voltageOut: 12, amperage: 20, topology: "isolated", communicationPorts: "" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       {
@@ -508,7 +663,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "secteur",
     subtitle: "Charge",
     icon: "/schema-icons/ac-charger.svg",
-    iconPro: "/schema-icons/pro/ac-charger.webp",
+    iconPro: "/schema-icons/pro/family/ac-charger.cutout.png",
     badge: { field: "chargeAmperage", unit: "A" },
     minIconBoxSize: 64,
     handles: [
@@ -518,9 +673,18 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
       { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
     ],
-    defaultData: { chargeAmperage: 10 },
+    getHandles: (data) => [
+      { id: "ac-in", label: "230V IN", kind: "neutral", side: "left" },
+      { id: "ac-out", label: "230V OUT", kind: "neutral", side: "left", optional: true },
+      { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
+      { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
+      { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { voltageDC: 12, chargeAmperage: 10, communicationPorts: "" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
+      { key: "voltageDC", label: "Tension batterie", type: "number", unit: "V", help: "Tension nominale du parc batterie à charger: 12 V ou 24 V." },
       { key: "chargeAmperage", label: "Courant de charge", type: "number", unit: "A" },
     ],
   },
@@ -582,7 +746,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "repartiteurs",
     subtitle: "Isolateur multi-batteries",
     icon: "/schema-icons/dcdc.svg",
-    iconPro: "/schema-icons/pro/battery-isolator.webp",
+    iconPro: "/schema-icons/pro/family/battery-isolator-2.png",
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
       { id: "out-1", label: "1", kind: "positive", side: "right" },
@@ -617,7 +781,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "repartiteurs",
     subtitle: "Relais de couplage",
     icon: "/schema-icons/battery-switch.svg",
-    iconPro: "/schema-icons/pro/battery-combiner.webp",
+    iconPro: "/schema-icons/pro/family/battery-combiner.png",
     handles: [
       { id: "battery-a", label: "Batterie A", kind: "positive", side: "left" },
       { id: "battery-b", label: "Batterie B", kind: "positive", side: "right" },
@@ -636,7 +800,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "secteur",
     subtitle: "Source secteur",
     icon: "/schema-icons/ac-charger.svg",
-    iconPro: "/schema-icons/pro/shore-power.webp",
+    iconPro: "/schema-icons/pro/family/shore-power.png",
     // Audit : la prise P17 (2P+T) a une terre comme n'importe quelle prise
     // 230V — absente à tort jusqu'ici, contrairement au tableau 220V et à
     // la prise 220V qui l'ont déjà. Facultative pour ne pas signaler les
@@ -656,7 +820,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "protection",
     subtitle: "Protection",
     icon: "/schema-icons/fuse.svg",
-    iconPro: "/schema-icons/pro/fuse.webp",
+    iconPro: "/schema-icons/pro/family/fuse.png",
     // Retour bêta : "changer l'illustration avec le type de fusible, ça
     // aiderait à la compréhension et au choix du porte-fusible" — une photo
     // réelle par format physique plutôt que l'icône générique unique.
@@ -696,7 +860,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
           { value: "generique", label: "Générique" },
         ],
       },
-      { key: "amperage", label: "Calibre", type: "number", unit: "A", help: "L'ampérage inscrit sur le fusible." },
+      { key: "amperage", label: "Calibre", type: "number", unit: "A", min: 0, step: 5, help: "Réglage par pas de 5 A ; 2 A reste possible pour les très petits circuits." },
     ],
   },
   {
@@ -707,7 +871,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "protection",
     subtitle: "Protection",
     icon: "/schema-icons/circuit-breaker.svg",
-    iconPro: "/schema-icons/pro/circuit-breaker.webp",
+    iconPro: "/schema-icons/pro/family/circuit-breaker.png",
     badge: { field: "amperage", unit: "A" },
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
@@ -742,7 +906,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
           { value: "bipolar", label: "Bipolaire (+ et −)" },
         ],
       },
-      { key: "amperage", label: "Calibre", type: "number", unit: "A", help: "Doit être choisi selon la section du câble à protéger, pas selon l'appareil branché." },
+      { key: "amperage", label: "Calibre", type: "number", unit: "A", min: 0, step: 5, help: "Réglage par pas de 5 A ; 2 A reste possible pour les très petits circuits. Doit être choisi selon la section du câble à protéger, pas selon l'appareil branché." },
     ],
   },
   {
@@ -753,7 +917,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "coupure",
     subtitle: "Protection",
     icon: "/schema-icons/battery-switch.svg",
-    iconPro: "/schema-icons/pro/battery-switch.webp",
+    iconPro: "/schema-icons/pro/family/battery-switch.png",
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
       { id: "output", label: "OUT", kind: "positive", side: "right" },
@@ -762,6 +926,35 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Laissez 0 si vous ne connaissez pas la valeur." },
+    ],
+  },
+  {
+    // Une protection basse tension est un appareil electronique autonome :
+    // elle coupe automatiquement les consommateurs, a la difference d'un
+    // coupe-batterie qui reste une commande manuelle.
+    type: "battery-protect",
+    label: "BatteryProtect",
+    description: "Protège la batterie en coupant automatiquement une charge lorsque sa tension devient trop basse.",
+    category: "wiring",
+    subcategory: "coupure",
+    subtitle: "Protection basse tension",
+    icon: "/schema-icons/battery-switch.svg",
+    iconPro: "/schema-icons/pro/family/battery-protect.png",
+    handles: [
+      { id: "input", label: "BAT+", kind: "positive", side: "left" },
+      { id: "output", label: "LOAD+", kind: "positive", side: "right" },
+      { id: "negative", label: "GND / −", kind: "negative", side: "bottom" },
+    ],
+    getHandles: (data) => [
+      { id: "input", label: "BAT+", kind: "positive", side: "left" },
+      { id: "output", label: "LOAD+", kind: "positive", side: "right" },
+      { id: "negative", label: "GND / −", kind: "negative", side: "bottom" },
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { amperage: 0, communicationPorts: "" },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Courant maximal que la protection peut laisser passer vers les consommateurs." },
     ],
   },
   {
@@ -965,7 +1158,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "distribution",
     subtitle: "Distribution",
     icon: "/schema-icons/busbar.svg",
-    iconPro: "/schema-icons/pro/busbar-positive.webp",
+    iconPro: "/schema-icons/pro/family/busbar-positive.png",
     iconVariantField: "polarity",
     iconVariants: {
       positive: { iconPro: "/schema-icons/pro/busbar-positive.webp" },
@@ -979,7 +1172,9 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "out-4", label: "5", kind: "positive", side: "right" },
     ],
     getHandles: busbarHandles,
-    defaultData: { polarity: "positive", outputCount: DEFAULT_OUTPUTS },
+    // 5 plots à droite conserve exactement la lecture des busbars déjà
+    // présents, tout en donnant une disposition de départ simple.
+    defaultData: { polarity: "positive", outputCount: DEFAULT_OUTPUTS, leftPoints: 0, topPoints: 0, rightPoints: DEFAULT_OUTPUTS + 1, bottomPoints: 0 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       {
@@ -992,7 +1187,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
           { value: "negative", label: "Négatif" },
         ],
       },
-      busbarPointCountField,
+      ...busbarFacePointFields,
     ],
     // La polarité d'un busbar n'est pas fixe : elle dépend de la propriété
     // choisie par l'utilisateur, pas du type de composant — toutes ses
@@ -1053,7 +1248,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "distribution",
     subtitle: "Distribution",
     icon: "/schema-icons/busbar.svg",
-    iconPro: "/schema-icons/pro/distribution-panel.webp",
+    iconPro: "/schema-icons/pro/family/distribution-panel.png",
     // Deux photos produit fournies par l'utilisateur : le tableau à
     // interrupteurs seuls (par défaut) et une variante avec fusibles
     // intégrés en plus des interrupteurs — juste un choix d'apparence, la
@@ -1069,7 +1264,16 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "out-2", label: "OUT 2", kind: "positive", side: "right" },
     ],
     getHandles: distributionPanelHandles,
-    defaultData: { outputCount: DEFAULT_OUTPUTS, layout: "switches" },
+    getHandleLabel: (data, handle) => {
+      if (data.layout !== "with-fuses" || !handle.id.startsWith("out-")) return handle.label;
+      const amp = Number(data[`outAmp${handle.id.slice(4)}`]) || 0;
+      return `${handle.label} · ${amp}A`;
+    },
+    defaultData: {
+      outputCount: DEFAULT_OUTPUTS,
+      layout: "switches",
+      ...Object.fromEntries(Array.from({ length: MAX_OUTPUTS }, (_, i) => [`outAmp${i + 1}`, 15])),
+    },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       {
@@ -1120,7 +1324,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "distribution",
     subtitle: "Distribution AC",
     icon: "/schema-icons/busbar.svg",
-    iconPro: "/schema-icons/pro/ac-panel.webp",
+    iconPro: "/schema-icons/pro/family/ac-panel.cutout.png",
     handles: [
       { id: "ac-in", label: "230V IN", kind: "neutral", side: "left" },
       { id: "ac-out", label: "230V OUT", kind: "neutral", side: "right" },
@@ -1158,13 +1362,14 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "protection",
     subtitle: "Protection",
     icon: "/schema-icons/busbar.svg",
-    iconPro: "/schema-icons/pro/fuse-block.webp",
+    iconPro: "/schema-icons/pro/family/fuse-block.png",
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "top" },
       { id: "out-1", label: "1", kind: "positive", side: "right" },
       { id: "out-2", label: "2", kind: "positive", side: "right" },
       { id: "out-3", label: "3", kind: "positive", side: "left" },
       { id: "out-4", label: "4", kind: "positive", side: "left" },
+      { id: "in-negative", label: "IN−", kind: "negative", side: "top" },
     ],
     getHandles: fuseBlockHandles,
     // Retour utilisateur : "possibilité de modifier l'intensité de chaque
@@ -1240,7 +1445,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "lynx",
     subtitle: "Distribution Lynx",
     icon: "/schema-icons/busbar.svg",
-    iconPro: "/schema-icons/pro/brand/lynx-distributor-m10.webp",
+    iconPro: "/schema-icons/pro/family/lynx-distributor.png",
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "top" },
       { id: "out-1", label: "1", kind: "positive", side: "right" },
@@ -1311,7 +1516,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "lynx",
     subtitle: "Protection Lynx",
     icon: "/schema-icons/busbar.svg",
-    iconPro: "/schema-icons/pro/lynx-smart-bms.webp",
+    iconPro: "/schema-icons/pro/family/lynx-smart-bms.png",
     minIconBoxSize: 64,
     handles: [
       { id: "batt-negative", label: "BATT−", kind: "negative", side: "left" },
@@ -1337,7 +1542,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // `iconPro` réutilise le symbole faute de vraie photo (retour
     // utilisateur : audit des icônes génériques, "créer aussi en mode
     // illustration") — pas d'outil de génération d'image disponible ici.
-    iconPro: "/schema-icons/ground.svg",
+    iconPro: "/schema-icons/pro/family/ground.png",
     handles: [{ id: "ground", label: "Masse", kind: "negative", side: "left" }],
     defaultData: {},
     fields: [{ key: "label", label: "Nom", type: "text" }],
@@ -1372,7 +1577,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     category: "consumers",
     subtitle: "Prise secteur",
     icon: "/schema-icons/consumer.svg",
-    iconPro: "/schema-icons/pro/socket-220v.webp",
+    iconPro: "/schema-icons/pro/family/socket-220v.png",
     handles: [
       { id: "ac-in", label: "230V", kind: "neutral", side: "left" },
       { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
@@ -1391,7 +1596,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "shunts",
     subtitle: "Mesure",
     icon: "/schema-icons/shunt.svg",
-    iconPro: "/schema-icons/pro/shunt.webp",
+    iconPro: "/schema-icons/pro/family/shunt.cutout.png",
     // Bug corrigé (retour utilisateur : "les points de connexion sont
     // rouges donc le câble devient automatiquement rouge") : un shunt se
     // câble en série sur le retour négatif (convention BMV/SmartShunt), pas
@@ -1402,7 +1607,12 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "system", label: "System", kind: "negative", side: "right" },
       { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { amperage: 0 },
+    getHandles: (data) => [
+      { id: "battery", label: "Battery", kind: "negative", side: "left" },
+      { id: "system", label: "System", kind: "negative", side: "right" },
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { amperage: 0, communicationPorts: "" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Facultatif : 0 si non connu." },
@@ -1410,13 +1620,13 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   },
   {
     type: "system-monitor",
-    label: "Écran de contrôle",
-    description: "Affiche l'état de charge et les mesures du système (ex. BMV).",
+    label: "Écran / afficheur",
+    description: "Affiche les mesures du système sans en assurer la gestion (ex. BMV, GX Touch).",
     category: "measurement",
     subcategory: "ecrans",
-    subtitle: "Mesure",
-    icon: "/schema-icons/shunt.svg",
-    iconPro: "/schema-icons/pro/system-monitor.webp",
+    subtitle: "Affichage",
+    icon: "/schema-icons/system-display.svg",
+    iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp",
     handles: [
       { id: "positive", label: "+", kind: "positive", side: "right" },
       { id: "negative", label: "−", kind: "negative", side: "left" },
@@ -1431,14 +1641,35 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // concernés via `BrandModel.defaults`.
     getHandles: (data) =>
       data.connection === "communication-only"
-        ? [{ id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom" as const }]
+        ? [{ id: "ve-direct", label: "GX Touch", kind: "neutral", side: "bottom" as const }]
         : [
             { id: "positive", label: "+", kind: "positive", side: "right" as const },
             { id: "negative", label: "−", kind: "negative", side: "left" as const },
-            { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom" as const, optional: true },
+            ...victronCommunicationHandles(data),
           ],
-    defaultData: { connection: "power" },
+    defaultData: { connection: "power", communicationPorts: "" },
     fields: [{ key: "label", label: "Nom", type: "text" }],
+  },
+  {
+    type: "system-controller",
+    label: "Centrale de gestion",
+    description: "Centrale qui collecte les données et pilote le système (ex. Cerbo GX, Venus GX, Ekrano GX).",
+    category: "measurement",
+    subcategory: "centrales",
+    subtitle: "Gestion système",
+    icon: "/schema-icons/system-controller.svg",
+    iconPro: "/schema-icons/pro/family/system-monitor.png",
+    handles: [
+      { id: "positive", label: "+", kind: "positive", side: "right" },
+      { id: "negative", label: "−", kind: "negative", side: "left" },
+      { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
+    ],
+    getHandles: systemControllerHandles,
+    defaultData: { powerW: 5, communicationPorts: "", displayOutput: "" },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "powerW", label: "Consommation propre", type: "number", unit: "W", help: "Puissance réellement consommée par la centrale, utilisée pour proposer la section de ses câbles + et −." },
+    ],
   },
   {
     // Sonde de niveau (retour bêta : icône fournie, "il n'y a pas de niveau
@@ -1485,15 +1716,20 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     category: "converter",
     subtitle: "Conversion",
     icon: "/schema-icons/inverter.svg",
-    iconPro: "/schema-icons/pro/inverter-pure.webp",
+    iconPro: "/schema-icons/pro/family/inverter.png",
     minIconBoxSize: 64,
     handles: [
       { id: "dc-negative", label: "DC−", kind: "negative", side: "left" },
       { id: "dc-positive", label: "DC+", kind: "positive", side: "left" },
       { id: "ac-out", label: "230V", kind: "neutral", side: "right" },
-      { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { powerW: 500, voltageDC: 12 },
+    getHandles: (data) => [
+      { id: "dc-negative", label: "DC−", kind: "negative", side: "left" },
+      { id: "dc-positive", label: "DC+", kind: "positive", side: "left" },
+      { id: "ac-out", label: "230V", kind: "neutral", side: "right" },
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { powerW: 500, voltageDC: 12, communicationPorts: "" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "powerW", label: "Puissance", type: "number", unit: "W" },
@@ -1518,7 +1754,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subcategory: "stations",
     subtitle: "Batterie + MPPT + onduleur intégrés",
     icon: "/schema-icons/inverter.svg",
-    iconPro: "/schema-icons/pro/inverter.webp",
+    iconPro: "/schema-icons/pro/family/power-station.cutout.png",
     badge: { field: "capacityWh", unit: "Wh" },
     // Retour utilisateur : "agrandi l'icône de batterie tout en 1" — 84 est
     // le plafond de `boxSize` (voir ElectricalNode.tsx), donc la taille
@@ -1578,7 +1814,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     // autant qu'il convertit, contrairement au simple onduleur ("inverter")
     // qui ne fait que convertir.
     icon: "/schema-icons/inverter.svg",
-    iconPro: "/schema-icons/pro/inverter.webp",
+    iconPro: "/schema-icons/pro/family/inverter-charger.png",
     badge: { field: "chargeAmperage", unit: "A" },
     minIconBoxSize: 64,
     handles: [
@@ -1586,9 +1822,15 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "dc-positive", label: "DC+", kind: "positive", side: "left" },
       { id: "ac-in", label: "AC IN", kind: "neutral", side: "top" },
       { id: "ac-out", label: "AC OUT", kind: "neutral", side: "right" },
-      { id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true },
     ],
-    defaultData: { powerW: 1600, voltageDC: 12, chargeAmperage: 70 },
+    getHandles: (data) => [
+      { id: "dc-negative", label: "DC−", kind: "negative", side: "left" },
+      { id: "dc-positive", label: "DC+", kind: "positive", side: "left" },
+      { id: "ac-in", label: "AC IN", kind: "neutral", side: "top" },
+      { id: "ac-out", label: "AC OUT", kind: "neutral", side: "right" },
+      ...victronCommunicationHandles(data),
+    ],
+    defaultData: { powerW: 1600, voltageDC: 12, chargeAmperage: 70, communicationPorts: "" },
     fields: [
       { key: "label", label: "Nom", type: "text" },
       { key: "powerW", label: "Puissance", type: "number", unit: "W" },
@@ -1609,7 +1851,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     category: "charger-converter",
     subtitle: "Type EasySolar",
     icon: "/schema-icons/inverter.svg",
-    iconPro: "/schema-icons/pro/easysolar.webp",
+    iconPro: "/schema-icons/pro/family/easysolar.cutout.png",
     minIconBoxSize: 64,
     handles: [
       { id: "dc-negative", label: "DC−", kind: "negative", side: "left" },
@@ -1688,32 +1930,51 @@ export function getComponentIcon(def: ComponentDefinition, style: IconStyle): st
   return def.icon;
 }
 
-// Certains composants affichent une icône plus précise que leur icône
-// générique selon une propriété (ex. "réfrigérateur" pour un consommateur,
-// "AGM" vs "LiFePO4" pour une batterie) — voir `iconVariantField`. Priorité
-// au visuel du modèle de marque exact quand il en a un (retour
-// utilisateur : bibliothèque de rendus Victron, "agrémenter la
-// bibliothèque existante quand on choisit un modèle précis avoir l'icône")
-// — sinon (marque sans correspondance visuelle, ou générique) on retombe
-// sur la logique par variante existante.
-export function getNodeIcon(def: ComponentDefinition, data: Record<string, unknown>, style: IconStyle): string | undefined {
-  // Item de catalogue personnalisé (retour utilisateur : widget de création
-  // d'item) : sa photo (base64) est posée directement sur le node quand
-  // choisie dans le sélecteur marque/modèle (voir ItemPropertiesPopup.tsx),
-  // pas dans BRAND_MODELS (catalogue statique du code, jamais mélangé aux
-  // items privés d'un compte) — priorité sur tout le reste en mode "pro".
-  if (style === "pro" && typeof data.customItemIconDataUrl === "string" && data.customItemIconDataUrl) {
-    return data.customItemIconDataUrl;
+function solarPanelStyle(data: Record<string, unknown>): "rigid" | "flexible" {
+  if (data.panelStyle === "flexible") return "flexible";
+  if (data.panelStyle === "rigid") return "rigid";
+
+  // Les schémas existants n'ont pas encore `panelStyle`. Le modèle reste une
+  // source de caractéristiques, mais son nom permet de préserver les deux
+  // familles visuelles sans migrer les données sauvegardées.
+  const modelReference = `${String(data.brandModelId ?? "")} ${String(data.model ?? "")}`.toLowerCase();
+  return /flexible|yuma|arch-pro/.test(modelReference) ? "flexible" : "rigid";
+}
+
+// Le solaire reste volontairement limité a deux silhouettes utiles au
+// montage (rigide/flexible). Les autres familles affichent une illustration
+// representative de la marque choisie, avec Victron comme repli pour un
+// composant generique ou une marque sans visuel disponible.
+export function getNodeIcon(def: ComponentDefinition, _data: Record<string, unknown>, style: IconStyle): string | undefined {
+  if (def.type === "solar-panel" && style === "pro") {
+    return solarPanelStyle(_data) === "flexible"
+      ? "/schema-icons/pro/solar-panel-flexible.cutout.png"
+      : "/schema-icons/pro/solar-panel-rigid.png";
   }
-  if (style === "pro" && typeof data.brandModelId === "string") {
-    const brandIcon = getBrandModel(data.brandModelId)?.iconPro;
+  if (style === "pro") {
+    const selectedModel = typeof _data.brandModelId === "string" ? getBrandModel(_data.brandModelId) : undefined;
+    // Les écrans et centrales sont des appareils visuellement distincts :
+    // Cerbo, BMV, GX Touch ou Ekrano ne peuvent pas partager l'image de
+    // famille Victron sans induire l'utilisateur en erreur.
+    if ((def.type === "system-monitor" || def.type === "system-controller") && selectedModel?.iconPro) {
+      return selectedModel.iconPro;
+    }
+    const brand = selectedModel?.brand ?? (typeof _data.brand === "string" ? _data.brand : undefined);
+    const brandIcon = getBrandFamilyIcon(def.type, brand);
     if (brandIcon) return brandIcon;
   }
-  const variantKey = def.getIconVariantKey ? def.getIconVariantKey(data) : def.iconVariantField ? data[def.iconVariantField] : undefined;
-  if (typeof variantKey === "string") {
-    const variant = def.iconVariants?.[variantKey];
-    const variantIcon = style === "pro" ? (variant?.iconPro ?? variant?.icon) : variant?.icon;
-    if (variantIcon) return variantIcon;
+  if (def.type === "busbar" && style === "pro") {
+    return _data.polarity === "negative"
+      ? "/schema-icons/pro/family/busbar-negative.png"
+      : "/schema-icons/pro/family/busbar-positive.png";
+  }
+  if (def.type === "battery-isolator" && style === "pro") {
+    return Number(_data.outputCount) === 3
+      ? "/schema-icons/pro/family/battery-isolator-3.png"
+      : "/schema-icons/pro/family/battery-isolator-2.png";
+  }
+  if (def.type === "consumer") {
+    return consumerFamilyIcon(_data, style) ?? getComponentIcon(def, style);
   }
   return getComponentIcon(def, style);
 }
@@ -1761,6 +2022,7 @@ export const SUBCATEGORY_LABELS: Record<string, string> = {
   masse: "Masse",
   shunts: "Shunts",
   niveau: "Niveau de réservoir",
-  ecrans: "Écrans de contrôle",
+  ecrans: "Écrans / afficheurs",
+  centrales: "Centrales de gestion",
   coupure: "Coupe-batterie & BatteryProtect",
 };

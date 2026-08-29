@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import {
   ReactFlow,
   Background,
   BackgroundVariant,
-  Controls,
   ConnectionMode,
   PanOnScrollMode,
   useReactFlow,
@@ -18,17 +17,37 @@ import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { ElectricalNode } from "./nodes/ElectricalNode";
 import { CableEdge, cableCaption } from "./edges/CableEdge";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
+import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
 import { CableCrossingOverlay } from "./edges/CableCrossingOverlay";
 import { AlignmentGuideOverlay } from "./AlignmentGuideOverlay";
 import { WiringHintBanner } from "./WiringHintBanner";
 import { CableWaypointNode } from "./nodes/CableWaypointNode";
 import { ZoneNode } from "./nodes/ZoneNode";
-import { getConsumerPreset, getComponentDefinition } from "@/lib/electrical-components/definitions";
+import { getConsumerPreset, getComponentDefinition, getEffectiveHandles } from "@/lib/electrical-components/definitions";
 import { filterNodesByZone, filterEdgesForNodes } from "@/features/schemas/export";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 
 const nodeTypes = { electrical: ElectricalNode, cableWaypoint: CableWaypointNode, zone: ZoneNode };
 const edgeTypes = { cable: CableEdge };
+
+type CanvasIconName = "undo" | "redo" | "zoom-out" | "zoom-in" | "frame" | "selection" | "grid" | "busbar-layout";
+
+// Icônes SVG locales : aucune police de symboles à charger et un sens lisible
+// immédiatement sur le bandeau de pilotage du canvas.
+function CanvasIcon({ name }: { name: CanvasIconName }) {
+  const common = { fill: "none", stroke: "currentColor", strokeWidth: 2.1, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const paths: Record<CanvasIconName, ReactNode> = {
+    undo: <><path {...common} d="M9 7 5 11l4 4" /><path {...common} d="M5 11h8a5 5 0 0 1 5 5" /></>,
+    redo: <><path {...common} d="m15 7 4 4-4 4" /><path {...common} d="M19 11h-8a5 5 0 0 0-5 5" /></>,
+    "zoom-out": <><circle {...common} cx="10.5" cy="10.5" r="5.5" /><path {...common} d="m15 15 4 4M8 10.5h5" /></>,
+    "zoom-in": <><circle {...common} cx="10.5" cy="10.5" r="5.5" /><path {...common} d="m15 15 4 4M8 10.5h5M10.5 8v5" /></>,
+    frame: <><path {...common} d="M8 4H4v4m12-4h4v4m0 8v4h-4M8 20H4v-4" /></>,
+    selection: <><rect {...common} x="4.5" y="4.5" width="15" height="15" rx="1" strokeDasharray="2.5 2.5" /><path {...common} d="m10 9 4.5 4.5-2.5.6 1.2 2.5-1.5.7-1.2-2.5-1.8 1.8Z" fill="currentColor" stroke="none" /></>,
+    grid: <><rect {...common} x="4" y="4" width="16" height="16" rx="1" /><path {...common} d="M9.33 4v16M14.66 4v16M4 9.33h16M4 14.66h16" /></>,
+    "busbar-layout": <><path {...common} d="M12 4v16" /><circle cx="8" cy="7" r="1.5" fill="currentColor" /><circle cx="16" cy="11" r="1.5" fill="currentColor" /><circle cx="7" cy="16" r="1.5" fill="currentColor" /><path {...common} d="M9.5 7H12m0 4h2.5M8.5 16H12" /></>,
+  };
+  return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5">{paths[name]}</svg>;
+}
 
 // Préfixe des nœuds de coude de câble synthétiques (retour utilisateur : "la
 // vignette câble devrait avoir les mêmes propriétés qu'une vignette item…
@@ -66,8 +85,6 @@ function parseWaypointNodeId(id: string): { edgeId: string; index: number } | nu
 // (retour utilisateur : "insertion fluide de composants inline sur câble") —
 // exclut les composants à IN/OUT multiples (tableau de distribution,
 // platine de fusibles) où le point d'insertion serait ambigu.
-const SPLICEABLE_TYPES = new Set(["fuse", "circuit-breaker", "switch", "battery-switch", "relay", "busbar", "splice"]);
-
 // Repère l'edge React Flow sous un point écran donné, via l'attribut
 // data-testid="rf__edge-{id}" posé par la librairie sur chaque groupe SVG
 // d'edge (y compris son tracé interactif élargi, plus facile à viser).
@@ -151,6 +168,34 @@ function edgeIdAtPoint(clientX: number, clientY: number): string | null {
   return null;
 }
 
+// Un schéma ancien peut référencer une borne supprimée (changement de modèle,
+// moins de sorties, etc.). React Flow ne dessine alors plus du tout le câble.
+// On garde les données persistées intactes, mais on affiche provisoirement
+// l'extrémité absente au centre du boîtier : le câble rouge pointillé devient
+// sélectionnable, reconnectable ou supprimable depuis l'alerte.
+function renderOrphanEdges(
+  edges: Edge<CableEdgeData>[],
+  nodes: Node<ElectricalNodeData>[],
+): Edge<CableEdgeData>[] {
+  const nodesById = new Map(nodes.map((node) => [node.id, node]));
+  const hasHandle = (nodeId: string, handleId: string | null | undefined) => {
+    const node = nodesById.get(nodeId);
+    const definition = node && getComponentDefinition(node.data.componentType);
+    return Boolean(definition && handleId && getEffectiveHandles(definition, node.data).some((handle) => handle.id === handleId));
+  };
+
+  return edges.map((edge) => {
+    const sourceValid = hasHandle(edge.source, edge.sourceHandle);
+    const targetValid = hasHandle(edge.target, edge.targetHandle);
+    if (sourceValid && targetValid) return edge;
+    return {
+      ...edge,
+      sourceHandle: sourceValid ? edge.sourceHandle : null,
+      targetHandle: targetValid ? edge.targetHandle : null,
+    };
+  });
+}
+
 // Zone centrale (CDC §16-19) : grille discrète, snap 20px, sélection au clic,
 // drag & drop depuis la bibliothèque, écran vide guidé tant qu'aucun
 // composant n'est posé (§54).
@@ -173,7 +218,33 @@ export function Canvas() {
   const setAlignmentGuides = useSchemaStore((s) => s.setAlignmentGuides);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const showGrid = useSchemaStore((s) => s.showGrid);
-  const { screenToFlowPosition } = useReactFlow();
+  const setShowGrid = useSchemaStore((s) => s.setShowGrid);
+  const optimizeBusbarLayouts = useSchemaStore((s) => s.optimizeBusbarLayouts);
+  const undo = useSchemaStore((s) => s.undo);
+  const redo = useSchemaStore((s) => s.redo);
+  const canUndo = useSchemaStore((s) => s.past.length > 0);
+  const canRedo = useSchemaStore((s) => s.future.length > 0);
+  const { screenToFlowPosition, zoomTo, fitView, getZoom } = useReactFlow();
+  const [canvasZoom, setCanvasZoom] = useState(1);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [isDraggingNode, setIsDraggingNode] = useState(false);
+  const canvasControlButtonClass = `flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
+    darkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
+  }`;
+
+  const setZoom = useCallback(
+    (nextZoom: number) => {
+      const clamped = Math.max(0.2, Math.min(2, nextZoom));
+      setCanvasZoom(clamped);
+      void zoomTo(clamped, { duration: 150 });
+    },
+    [zoomTo],
+  );
+
+  const frameCanvas = useCallback(() => {
+    void fitView({ padding: 0.16, duration: 250 });
+    window.setTimeout(() => setCanvasZoom(getZoom()), 260);
+  }, [fitView, getZoom]);
 
   // Isolement par catégorie (retour utilisateur : "isoler le circuit MPPT ou
   // consommateur") : les nœuds masqués disparaissent du canvas — et par
@@ -206,6 +277,8 @@ export function Canvas() {
     return filterEdgesForNodes(allEdges, nodes);
   }, [allEdges, hiddenCategories, exportIsolatedZoneId, nodes]);
 
+  const renderedEdges = useMemo(() => renderOrphanEdges(edges, nodes), [edges, nodes]);
+
   // Nœuds de coude de câble (retour utilisateur : "la vignette câble
   // devrait avoir les mêmes propriétés qu'une vignette item… les câbles les
   // suivent parfaitement") — un vrai nœud React Flow par câble déplacé,
@@ -229,7 +302,13 @@ export function Canvas() {
           // Seul le premier point porte la légende (nom/section/longueur) —
           // avec plusieurs points, la répéter sur chacun serait redondant
           // et chargerait visuellement le câble.
-          data: { edgeId: e.id, index, label: index === 0 ? cableCaption(e.data) : undefined, isLast: index === points.length - 1 },
+          data: {
+            edgeId: e.id,
+            index,
+            label: index === 0 ? cableCaption(e.data) : undefined,
+            labelLayoutKey: `${point.x}:${point.y}`,
+            isLast: index === points.length - 1,
+          },
           draggable: true,
           selectable: false,
           zIndex: 1001,
@@ -310,7 +389,7 @@ export function Canvas() {
         ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW }
         : undefined;
 
-      if (SPLICEABLE_TYPES.has(type)) {
+      if (SPLICEABLE_COMPONENT_TYPES.has(type)) {
         const edgeId = edgeIdAtPoint(event.clientX, event.clientY);
         if (edgeId) {
           spliceNodeOnEdge(edgeId, type, position);
@@ -334,7 +413,7 @@ export function Canvas() {
     (event: React.DragEvent) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
-      if (!draggingComponentType || !SPLICEABLE_TYPES.has(draggingComponentType)) return;
+      if (!draggingComponentType || !SPLICEABLE_COMPONENT_TYPES.has(draggingComponentType)) return;
       setSpliceHoverEdgeId(edgeIdAtPoint(event.clientX, event.clientY));
     },
     [draggingComponentType, setSpliceHoverEdgeId],
@@ -372,7 +451,7 @@ export function Canvas() {
       <WiringHintBanner />
       <ReactFlow
         nodes={reactFlowNodes}
-        edges={edges}
+        edges={renderedEdges}
         onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -381,6 +460,11 @@ export function Canvas() {
         reconnectRadius={28}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        // Les câbles électriques peuvent traverser tout le canvas. Le
+        // filtrage des éléments hors viewport retirait temporairement une
+        // extrémité et faisait disparaître ces longs câbles au panoramique.
+        // On privilégie donc une lecture stable du schéma.
+        onlyRenderVisibleElements={false}
         connectionMode={ConnectionMode.Loose}
         // Retour utilisateur : "même verrouillée, si on clique sur la zone
         // on ne peut pas déplacer un élément dedans, il faut cliquer à
@@ -408,6 +492,7 @@ export function Canvas() {
         defaultViewport={{ x: 0, y: 0, zoom: 1 }}
         minZoom={0.2}
         maxZoom={2}
+        selectionOnDrag={selectionMode}
         // V2, retour utilisateur : le geste à deux doigts sur trackpad
         // zoomait au lieu de déplacer le canvas — comportement par défaut
         // de React Flow (zoomOnScroll=true, panOnScroll=false). On inverse
@@ -420,6 +505,9 @@ export function Canvas() {
         zoomOnScroll={false}
         zoomOnPinch
         proOptions={{ hideAttribution: true }}
+        onMoveEnd={(_, viewport) => setCanvasZoom(viewport.zoom)}
+        onNodeDragStart={() => setIsDraggingNode(true)}
+        onNodeDragStop={() => setIsDraggingNode(false)}
         onNodeClick={(_, node) => {
           if (node.id.startsWith(WAYPOINT_ID_PREFIX)) return;
           select("node", node.id);
@@ -433,10 +521,60 @@ export function Canvas() {
         onPaneClick={() => select(null, null)}
       >
         {showGrid ? <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} /> : null}
-        <Controls showInteractive={false} position="bottom-left" className={darkMode ? "!fill-white [&_button]:!border-neutral-700 [&_button]:!bg-neutral-800 [&_button]:!text-white [&_path]:!fill-white" : undefined} />
-        <CableCrossingOverlay />
+        <CableCrossingOverlay suspended={isDraggingNode} />
         <AlignmentGuideOverlay />
       </ReactFlow>
+
+      <div
+        className={`pointer-events-auto absolute bottom-4 left-1/2 z-30 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-1 rounded-[1.35rem] border p-2 shadow-xl backdrop-blur-md ${
+          darkMode ? "border-neutral-700/90 bg-neutral-900/95 text-neutral-100" : "border-neutral-200/90 bg-white/95 text-neutral-800"
+        }`}
+        aria-label="Commandes du canvas"
+      >
+        <div className="flex items-center gap-1 pr-2">
+          <button type="button" onClick={undo} disabled={!canUndo} title="Annuler" aria-label="Annuler" className={canvasControlButtonClass}><CanvasIcon name="undo" /></button>
+          <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" aria-label="Rétablir" className={canvasControlButtonClass}><CanvasIcon name="redo" /></button>
+        </div>
+        <span className={`h-7 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+        <button type="button" onClick={() => setZoom(canvasZoom - 0.1)} title="Réduire le zoom" aria-label="Réduire le zoom" className={canvasControlButtonClass}><CanvasIcon name="zoom-out" /></button>
+        <div className={`flex h-9 items-center gap-2 rounded-full px-2 ${darkMode ? "bg-neutral-800" : "bg-neutral-100"}`}>
+          <input
+            type="range"
+            min="0.2"
+            max="2"
+            step="0.05"
+            value={canvasZoom}
+            onChange={(event) => setZoom(Number(event.target.value))}
+            aria-label="Niveau de zoom"
+            className="h-1.5 w-20 cursor-pointer accent-amber-500 sm:w-28"
+          />
+          <span className="w-9 text-right text-xs font-semibold tabular-nums">{Math.round(canvasZoom * 100)}%</span>
+        </div>
+        <button type="button" onClick={() => setZoom(canvasZoom + 0.1)} title="Augmenter le zoom" aria-label="Augmenter le zoom" className={canvasControlButtonClass}><CanvasIcon name="zoom-in" /></button>
+        <span className={`h-7 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+        <button type="button" onClick={frameCanvas} title="Cadrer tout le schéma" aria-label="Cadrer tout le schéma" className={canvasControlButtonClass}><CanvasIcon name="frame" /></button>
+        <button type="button" onClick={optimizeBusbarLayouts} title="Optimiser les plots des busbars" aria-label="Optimiser les plots des busbars" className={canvasControlButtonClass}><CanvasIcon name="busbar-layout" /></button>
+        <button
+          type="button"
+          onClick={() => setSelectionMode((current) => !current)}
+          title="Sélection par zone"
+          aria-label="Sélection par zone"
+          aria-pressed={selectionMode}
+          className={`${canvasControlButtonClass} ${selectionMode ? (darkMode ? "bg-amber-500 text-neutral-950" : "bg-amber-400 text-neutral-950") : ""}`}
+        >
+          <CanvasIcon name="selection" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowGrid(!showGrid)}
+          title={showGrid ? "Masquer la grille" : "Afficher la grille"}
+          aria-label={showGrid ? "Masquer la grille" : "Afficher la grille"}
+          aria-pressed={showGrid}
+          className={`${canvasControlButtonClass} ${showGrid ? (darkMode ? "bg-neutral-700" : "bg-neutral-200") : ""}`}
+        >
+          <CanvasIcon name="grid" />
+        </button>
+      </div>
 
       {allNodes.length === 0 ? (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

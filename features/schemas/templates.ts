@@ -1,6 +1,10 @@
 import type { Node, Edge } from "@xyflow/react";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
+import { getBrandModel } from "@/lib/electrical-components/brand-models";
 import { buildExampleSchema } from "@/features/schemas/example";
+import campingCar7mDefault from "@/features/schemas/camping-car-7m-default.json";
+import vitoMarcoPolo280AhDefault from "@/features/schemas/vito-marco-polo-280ah-default.json";
+import vwT6AferiyP280Default from "@/features/schemas/vw-t6-aferiy-p280-default.json";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 
 // Galerie de schémas de départ (V2 — inspirée des "pre-built wiring
@@ -20,10 +24,97 @@ export interface SchemaTemplate {
   build: () => { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] };
 }
 
+// Référence enregistrée depuis le schéma réellement réglé par l'utilisateur.
+// Le clone évite que les modifications d'une ouverture de gabarit ne mutent
+// le JSON source utilisé par la prochaine ouverture.
+function buildCampingCar7mDefault(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  const snapshot = structuredClone(campingCar7mDefault) as { nodes: SchemaNode[]; edges: SchemaEdge[] };
+  return {
+    ...snapshot,
+    projectName: "Camping-car 7 m - lithium, solaire, DC-DC et clim 12 V",
+  };
+}
+
+// Le Vito est un gabarit finalisé par l'utilisateur. On le charge tel quel
+// plutôt que de le reconstruire afin de conserver son implantation et chacun
+// de ses raccordements lors de la création d'un nouveau projet.
+function buildVitoMarcoPolo280AhDefault(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  return structuredClone(vitoMarcoPolo280AhDefault) as { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] };
+}
+
+function buildVwT6AferiyP280Default(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  return structuredClone(vwT6AferiyP280Default) as { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] };
+}
+
+export type SchemaTemplateVehicleGroup = "van" | "boat" | "workshop" | "starter";
+
+export const SCHEMA_TEMPLATE_VEHICLE_GROUPS: { id: SchemaTemplateVehicleGroup; label: string }[] = [
+  { id: "van", label: "Vans & camping-cars" },
+  { id: "boat", label: "Bateaux" },
+  { id: "workshop", label: "Atelier & universel" },
+  { id: "starter", label: "Découverte" },
+];
+
+function preferredTemplateModelId(type: string, data: Record<string, unknown>): string | undefined {
+  if (typeof data.brandModelId === "string" && data.brandModelId) return data.brandModelId;
+
+  const amperage = Number(data.amperage);
+  const capacity = Number(data.capacityAh);
+  const power = Number(data.powerW);
+  const technology = String(data.technology ?? "");
+  const label = String(data.label ?? "").toLowerCase();
+
+  if (type === "solar-panel") {
+    if (power === 100) return "renogy-100w-ntype";
+    if (power === 200) return "renogy-200w-ntype";
+  }
+  if (type === "mppt") {
+    return ({ 10: "victron-smartsolar-75-10", 15: "victron-smartsolar-100-15", 20: "victron-smartsolar-100-20", 30: "victron-smartsolar-100-30", 35: "victron-smartsolar-150-35", 45: "victron-smartsolar-150-45", 50: "victron-smartsolar-100-50" } as Record<number, string>)[amperage];
+  }
+  if (type === "battery") {
+    if (technology === "agm" && capacity === 100) return "renogy-agm-100ah";
+    if (technology === "lifepo4" && capacity === 100) return "renogy-lifepo4-100ah";
+    if (technology === "lifepo4" && capacity === 200) return "renogy-core-mini-200ah";
+    if (technology === "lifepo4" && capacity === 280) return "powerqueen-lifepo4-280ah";
+    if (technology === "lifepo4" && capacity === 300) return "victron-lithium-ng-300ah";
+  }
+  if (type === "dcdc") {
+    if (amperage === 20) return "renogy-dcdc-20a-gen2";
+    if (amperage === 30) return "victron-orion-tr-30a";
+    if (amperage === 40) return "renogy-dcdc-mppt-40a";
+    if (amperage === 50) return label.includes("orion") ? "victron-orion-xs-12-12-50" : "renogy-dcc50s";
+  }
+  if (type === "ac-charger" && amperage === 20) return "victron-blue-smart-ip22-20a";
+  if (type === "inverter-charger" && power === 3000 && Number(data.chargeAmperage) === 120) return "victron-multiplus-ii-12-3000-120";
+  if (type === "inverter-charger" && power === 2000) return "victron-multiplus-12-2000-80";
+  if (type === "shunt" && amperage === 500) return "victron-smartshunt-500a";
+  if (type === "system-controller" && label.includes("cerbo")) return "victron-cerbo-gx";
+  if (type === "shore-power" && !label.includes("groupe")) return "p17-16a";
+  if (type === "fuse-block" && Number(data.outputCount) === 6) return "fuse-block-6way";
+  if (type === "fuse-block" && Number(data.outputCount) === 12) return "fuse-block-12way";
+  return undefined;
+}
+
 function buildNode(id: string, type: string, x: number, y: number, data: { label: string } & Record<string, unknown>): SchemaNode {
   const def = getComponentDefinition(type);
   if (!def) throw new Error(`Composant inconnu dans le gabarit : ${type}`);
-  return { id, type: "electrical", position: { x, y }, data: { componentType: type, ...data } };
+  const brandModel = getBrandModel(preferredTemplateModelId(type, data) ?? "");
+  // Un modèle certifié complète les données techniques manquantes. Une
+  // ancienne valeur générique à 0 ne doit jamais écraser une vraie fiche.
+  const meaningfulData = Object.fromEntries(
+    Object.entries(data).filter(([key, value]) => value !== 0 || !(key in (brandModel?.defaults ?? {}))),
+  );
+  return {
+    id,
+    type: "electrical",
+    position: { x, y },
+    data: {
+      componentType: type,
+      ...(brandModel?.defaults ?? {}),
+      ...(brandModel ? { brandModelId: brandModel.id, brand: brandModel.brand, model: brandModel.model } : {}),
+      ...meaningfulData,
+    } as ElectricalNodeData,
+  };
 }
 
 // Zone colorée (regroupement visuel, purement décoratif — voir le même
@@ -47,6 +138,136 @@ function buildEdge(
   bendPoint?: { x: number; y: number },
 ): SchemaEdge {
   return { id, source, sourceHandle, target, targetHandle, type: "cable", data: { color, cableType, section, length, bendPoint } };
+}
+
+// Le Ducato sert de premier essai des deux lectures d'un meme projet. Le
+// graphe electrique est construit une seule fois : seules les zones et les
+// positions changent entre la lecture fonctionnelle et l'implantation.
+function buildDucatoGraph(): { nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  const nodes: SchemaNode[] = [
+    buildNode("du-pv-1", "solar-panel", 0, 0, { label: "Panneau solaire 305 W 1", powerW: 305, voltage: 0, vocVoltage: 0 }),
+    buildNode("du-pv-2", "solar-panel", 0, 0, { label: "Panneau solaire 305 W 2", powerW: 305, voltage: 0, vocVoltage: 0 }),
+    buildNode("du-mppt", "mppt", 0, 0, { label: "SmartSolar MPPT 150/60", amperage: 60, systemVoltage: 12, maxPvVoltage: 150 }),
+    buildNode("du-starter", "battery", 0, 0, { label: "Batterie moteur", voltage: 12, capacityAh: 95, technology: "agm" }),
+    buildNode("du-fuse-dcdc-in", "fuse", 0, 0, { label: "Fusible Orion XS entree", fuseType: "midi", amperage: 60 }),
+    buildNode("du-dcdc", "dcdc", 0, 0, { label: "Orion XS 12/12-50", voltageIn: 12, voltageOut: 12, amperage: 50, topology: "non-isolated" }),
+    buildNode("du-fuse-dcdc-out", "fuse", 0, 0, { label: "Fusible Orion XS sortie", fuseType: "midi", amperage: 60 }),
+    buildNode("du-battery-1", "battery", 0, 0, { label: "Batterie service 1 - LiFePO4 280 Ah", voltage: 12, capacityAh: 280, technology: "lifepo4" }),
+    buildNode("du-battery-2", "battery", 0, 0, { label: "Batterie service 2 - LiFePO4 280 Ah", voltage: 12, capacityAh: 280, technology: "lifepo4" }),
+    buildNode("du-fuse-battery-1", "fuse", 0, 0, { label: "Fusible batterie 1", fuseType: "mega", amperage: 200 }),
+    buildNode("du-fuse-battery-2", "fuse", 0, 0, { label: "Fusible batterie 2", fuseType: "mega", amperage: 200 }),
+    buildNode("du-battery-positive", "busbar", 0, 0, { label: "Busbar batterie +", polarity: "positive", outputCount: 6 }),
+    buildNode("du-main-switch", "battery-switch", 0, 0, { label: "Coupe-batterie principal", amperage: 400 }),
+    buildNode("du-shunt", "shunt", 0, 0, { label: "SmartShunt 500 A", amperage: 500 }),
+    buildNode("du-battery-negative", "busbar", 0, 0, { label: "Busbar batterie -", polarity: "negative", outputCount: 6 }),
+    buildNode("du-tech-positive", "busbar", 0, 0, { label: "Busbar technique +", polarity: "positive", outputCount: 6 }),
+    buildNode("du-tech-negative", "busbar", 0, 0, { label: "Busbar technique -", polarity: "negative", outputCount: 6 }),
+    buildNode("du-fuse-mppt", "fuse", 0, 0, { label: "Fusible MPPT", fuseType: "midi", amperage: 80 }),
+    buildNode("du-fuse-multiplus", "fuse", 0, 0, { label: "Fusible MultiPlus", fuseType: "mega", amperage: 400 }),
+    buildNode("du-multiplus", "inverter-charger", 0, 0, { label: "MultiPlus 12/3000/120-16", powerW: 3000, voltageDC: 12, chargeAmperage: 120 }),
+    buildNode("du-shore", "shore-power", 0, 0, { label: "Prise CEE 16 A", }),
+    buildNode("du-ac-panel", "ac-panel", 0, 0, { label: "Tableau AC : differentiel 30 mA", }),
+    buildNode("du-dc-panel", "fuse-block", 0, 0, { label: "Tableau DC atelier", outputCount: 5, layout: "positive-negative", outAmp1: 10, outAmp2: 10, outAmp3: 10, outAmp4: 10, outAmp5: 10 }),
+    buildNode("du-led", "consumer", 0, 0, { label: "Eclairage atelier LED", presetType: "eclairage-led", powerW: 30 }),
+    buildNode("du-extractor", "consumer", 0, 0, { label: "Extracteur", presetType: "ventilateur", powerW: 40 }),
+    buildNode("du-pump", "consumer", 0, 0, { label: "Pompe a eau", presetType: "pompe-eau", powerW: 60 }),
+    buildNode("du-usb", "consumer", 0, 0, { label: "USB-C", presetType: "prise-usb", powerW: 60 }),
+    buildNode("du-12v", "consumer", 0, 0, { label: "Prises 12 V", presetType: "prise-12v", powerW: 120 }),
+    buildNode("du-cerbo", "system-controller", 0, 0, { label: "Cerbo GX" }),
+  ];
+
+  const edges: SchemaEdge[] = [
+    // Toit : un seul depart PV+/PV- vers la cloison technique.
+    buildEdge("du-e1", "du-pv-1", "positive", "du-pv-2", "negative", RED, "power-positive", "6 mm2", 1),
+    buildEdge("du-e2", "du-pv-1", "negative", "du-mppt", "pv-negative", BLACK, "power-negative", "6 mm2", 8),
+    buildEdge("du-e3", "du-pv-2", "positive", "du-mppt", "pv-positive", RED, "power-positive", "6 mm2", 8),
+    // Compartiment moteur : une arrivee positive protegee et une masse commune.
+    buildEdge("du-e4", "du-starter", "positive", "du-fuse-dcdc-in", "input", RED, "power-positive", "16 mm2", 1),
+    buildEdge("du-e5", "du-fuse-dcdc-in", "output", "du-dcdc", "in-positive", RED, "power-positive", "16 mm2", 5),
+    buildEdge("du-e6", "du-dcdc", "ground", "du-tech-negative", "out-1", BLACK, "power-negative", "16 mm2", 5),
+    buildEdge("du-e7", "du-dcdc", "out-positive", "du-fuse-dcdc-out", "input", RED, "power-positive", "16 mm2", 0.5),
+    buildEdge("du-e8", "du-fuse-dcdc-out", "output", "du-tech-positive", "out-1", RED, "power-positive", "16 mm2", 0.5),
+    // Soute basse : les paralleles et protections restent locaux.
+    buildEdge("du-e9", "du-battery-1", "positive", "du-fuse-battery-1", "input", RED, "power-positive", "50 mm2", 1),
+    buildEdge("du-e10", "du-battery-2", "positive", "du-fuse-battery-2", "input", RED, "power-positive", "50 mm2", 1),
+    buildEdge("du-e11", "du-fuse-battery-1", "output", "du-battery-positive", "out-1", RED, "power-positive", "50 mm2", 0.5),
+    buildEdge("du-e12", "du-fuse-battery-2", "output", "du-battery-positive", "out-2", RED, "power-positive", "50 mm2", 0.5),
+    buildEdge("du-e13", "du-battery-positive", "input", "du-main-switch", "input", RED, "power-positive", "50 mm2", 0.5),
+    buildEdge("du-e14", "du-battery-1", "negative", "du-shunt", "battery", BLACK, "power-negative", "50 mm2", 1),
+    buildEdge("du-e15", "du-battery-2", "negative", "du-shunt", "battery", BLACK, "power-negative", "50 mm2", 1),
+    buildEdge("du-e16", "du-shunt", "system", "du-battery-negative", "input", BLACK, "power-negative", "50 mm2", 0.5),
+    // Soute -> cloison : seulement le couple + / - principal.
+    buildEdge("du-e17", "du-main-switch", "output", "du-tech-positive", "input", RED, "power-positive", "50 mm2", 2),
+    buildEdge("du-e18", "du-battery-negative", "out-1", "du-tech-negative", "input", BLACK, "power-negative", "50 mm2", 2),
+    // Cloison technique : charge, conversion et protections restent ensemble.
+    buildEdge("du-e19", "du-mppt", "bat-positive", "du-fuse-mppt", "input", RED, "power-positive", "25 mm2", 0.5),
+    buildEdge("du-e20", "du-fuse-mppt", "output", "du-tech-positive", "out-2", RED, "power-positive", "25 mm2", 0.5),
+    buildEdge("du-e21", "du-mppt", "bat-negative", "du-tech-negative", "out-2", BLACK, "power-negative", "25 mm2", 0.5),
+    buildEdge("du-e22", "du-tech-positive", "out-3", "du-fuse-multiplus", "input", RED, "power-positive", "70 mm2", 0.5),
+    buildEdge("du-e23", "du-fuse-multiplus", "output", "du-multiplus", "dc-positive", RED, "power-positive", "70 mm2", 2),
+    buildEdge("du-e24", "du-tech-negative", "out-3", "du-multiplus", "dc-negative", BLACK, "power-negative", "70 mm2", 2),
+    // Quai / tableau : une liaison AC entrante, une seule liaison AC sortante.
+    buildEdge("du-e25", "du-shore", "ac", "du-multiplus", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm2", 6),
+    buildEdge("du-e26", "du-multiplus", "ac-out", "du-ac-panel", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm2", 2),
+    // Cloison -> etabli : un seul couple 12 V, puis distribution locale.
+    buildEdge("du-e27", "du-tech-positive", "out-4", "du-dc-panel", "input", RED, "power-positive", "16 mm2", 3),
+    buildEdge("du-e28", "du-tech-negative", "out-4", "du-dc-panel", "out-1-neg", BLACK, "power-negative", "16 mm2", 3),
+    buildEdge("du-e29", "du-dc-panel", "out-1", "du-led", "positive", RED, "power-positive", "1.5 mm2", 2),
+    buildEdge("du-e30", "du-dc-panel", "out-2", "du-extractor", "positive", RED, "power-positive", "1.5 mm2", 2),
+    buildEdge("du-e31", "du-dc-panel", "out-3", "du-pump", "positive", RED, "power-positive", "1.5 mm2", 2),
+    buildEdge("du-e32", "du-dc-panel", "out-4", "du-usb", "positive", RED, "power-positive", "1.5 mm2", 1),
+    buildEdge("du-e33", "du-dc-panel", "out-5", "du-12v", "positive", RED, "power-positive", "2.5 mm2", 1),
+    buildEdge("du-e34", "du-dc-panel", "out-2-neg", "du-led", "negative", BLACK, "power-negative", "1.5 mm2", 2),
+    buildEdge("du-e35", "du-dc-panel", "out-3-neg", "du-extractor", "negative", BLACK, "power-negative", "1.5 mm2", 2),
+    buildEdge("du-e36", "du-dc-panel", "out-4-neg", "du-pump", "negative", BLACK, "power-negative", "1.5 mm2", 2),
+    buildEdge("du-e37", "du-dc-panel", "out-5-neg", "du-usb", "negative", BLACK, "power-negative", "1.5 mm2", 1),
+    buildEdge("du-e38", "du-dc-panel", "out-1-neg", "du-12v", "negative", BLACK, "power-negative", "2.5 mm2", 1),
+    // Porte laterale : un seul cable de donnees vers l'affichage.
+    buildEdge("du-e39", "du-mppt", "ve-direct", "du-cerbo", "ve-direct", LIME, "data-bus", undefined, 4),
+  ];
+
+  return { nodes, edges };
+}
+
+function buildDucatoImplantationTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  const graph = buildDucatoGraph();
+  const positions: Record<string, { x: number; y: number }> = {
+    "du-pv-1": { x: 170, y: 140 }, "du-pv-2": { x: 390, y: 140 },
+    "du-starter": { x: 120, y: 580 }, "du-fuse-dcdc-in": { x: 330, y: 580 },
+    "du-battery-1": { x: 120, y: 980 }, "du-battery-2": { x: 120, y: 1150 }, "du-fuse-battery-1": { x: 350, y: 980 }, "du-fuse-battery-2": { x: 350, y: 1150 }, "du-battery-positive": { x: 570, y: 980 }, "du-main-switch": { x: 790, y: 980 }, "du-shunt": { x: 570, y: 1160 }, "du-battery-negative": { x: 790, y: 1160 },
+    "du-mppt": { x: 1140, y: 180 }, "du-fuse-mppt": { x: 1370, y: 180 }, "du-dcdc": { x: 1140, y: 390 }, "du-fuse-dcdc-out": { x: 1370, y: 390 }, "du-tech-positive": { x: 1580, y: 250 }, "du-tech-negative": { x: 1580, y: 470 }, "du-fuse-multiplus": { x: 1810, y: 250 }, "du-multiplus": { x: 2020, y: 250 },
+    "du-shore": { x: 2260, y: 80 }, "du-ac-panel": { x: 2260, y: 330 },
+    "du-dc-panel": { x: 2260, y: 800 }, "du-led": { x: 2510, y: 680 }, "du-extractor": { x: 2510, y: 800 }, "du-pump": { x: 2510, y: 920 }, "du-usb": { x: 2510, y: 1040 }, "du-12v": { x: 2510, y: 1160 },
+    "du-cerbo": { x: 2020, y: 720 },
+  };
+  const zones = [
+    buildZone("du-zone-roof", 40, 40, 600, 300, "Toit : production solaire", "#eab308"),
+    buildZone("du-zone-engine", 40, 480, 520, 260, "Compartiment moteur", "#f59e0b"),
+    buildZone("du-zone-battery", 40, 860, 960, 500, "Soute basse : batteries et coupure", "#3b82f6"),
+    buildZone("du-zone-technical", 1060, 40, 1260, 620, "Cloison ventilee : charge et conversion", "#8b5cf6"),
+    buildZone("du-zone-door", 1900, 670, 360, 220, "Porte laterale : supervision", "#64748b"),
+    buildZone("du-zone-workshop", 2180, 650, 620, 650, "Etabli : tableaux et departs", "#10b981"),
+  ];
+  return {
+    projectName: "Atelier mobile Ducato L3H2 - implantation",
+    nodes: [...zones, ...graph.nodes.map((node) => ({ ...node, position: positions[node.id] ?? node.position }))],
+    edges: graph.edges,
+  };
+}
+
+function buildDucatoPrincipleTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  const implantation = buildDucatoImplantationTemplate();
+  const components = implantation.nodes.filter((node) => node.type !== "zone");
+  const zones: SchemaNode[] = [
+    buildZone("du-principle-zone-solar", 40, 40, 600, 300, "Production solaire", "#eab308"),
+    buildZone("du-principle-zone-drive", 40, 480, 520, 260, "Charge alternateur / DC-DC", "#f59e0b"),
+    buildZone("du-principle-zone-battery", 40, 860, 960, 500, "Batteries, coupure & mesure", "#3b82f6"),
+    buildZone("du-principle-zone-dc-core", 1060, 40, 620, 620, "Coeur DC : charge & protections", "#8b5cf6"),
+    buildZone("du-principle-zone-ac", 1740, 40, 620, 620, "230 V / quai & conversion", "#7c3aed"),
+    buildZone("du-principle-zone-monitoring", 1900, 670, 360, 220, "Monitoring", "#64748b"),
+    buildZone("du-principle-zone-distribution", 2180, 650, 620, 650, "Distribution 12 V", "#10b981"),
+  ];
+  return { projectName: "Atelier mobile Ducato L3H2 - principe", nodes: [...zones, ...components], edges: implantation.edges };
 }
 
 const RED = "#dc2626";
@@ -384,8 +605,12 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
       brand: "Victron",
       model: "SmartShunt 500A",
     }),
-    buildNode("vl-busbar-neg", "busbar", 1480, 430, {
-      label: "Busbar −",
+    // Le busbar négatif est la tête de retour de la distribution 12 V : il
+    // reste avec le tableau et les consommateurs. Le coeur DC ne lui envoie
+    // ainsi qu'un seul retour depuis le shunt, au lieu de quatre retours qui
+    // traverseraient les zones.
+    buildNode("vl-busbar-neg", "busbar", 1740, 500, {
+      label: "Busbar − distribution",
       polarity: "negative",
       outputCount: 7,
       rotation: 180,
@@ -522,11 +747,11 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
   ];
 
   const zones: SchemaNode[] = [
-    buildZone("vl-zone-solar", -20, 40, 760, 190, "Solaire 200W + MPPT", "#f59e0b"),
-    buildZone("vl-zone-drive", -20, 330, 760, 250, "Recharge alternateur (option Orion)", "#10b981"),
-    buildZone("vl-zone-battery", 780, 60, 860, 570, "Batterie service + protections", "#3b82f6"),
-    buildZone("vl-zone-ac", 1560, -380, 910, 420, "Prise de quai + 230V leger", "#7c3aed"),
-    buildZone("vl-zone-dc", 1760, 100, 700, 670, "Distribution 12V", "#14b8a6"),
+    buildZone("vl-zone-solar", 20, 40, 700, 210, "Solaire", "#f59e0b"),
+    buildZone("vl-zone-drive", 20, 330, 680, 250, "Charge alternateur / DC-DC", "#10b981"),
+    buildZone("vl-zone-battery", 780, 80, 760, 560, "Coeur DC", "#3b82f6"),
+    buildZone("vl-zone-ac", 1560, -380, 910, 420, "230 V / quai", "#7c3aed"),
+    buildZone("vl-zone-dc", 1640, 100, 880, 670, "Distribution 12 V", "#14b8a6"),
   ];
 
   return { projectName: "Gabarit : Victron leger van", nodes: [...zones, ...nodes], edges };
@@ -537,9 +762,16 @@ function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; 
     buildNode("af-solar", "solar-panel", 40, 120, {
       label: "Panneau flexible 200W",
       powerW: 200,
-      voltage: 0,
+      voltage: 20.1,
+      brandModelId: "renogy-200w-flexible",
+      brand: "Renogy",
+      model: "200W flexible",
+      panelStyle: "flexible",
+      operatingCurrentA: 10.02,
+      shortCircuitCurrentA: 10.74,
+      vocVoltage: 23.9,
     }),
-    buildNode("af-veh-battery", "battery", 40, 460, {
+    buildNode("af-veh-battery", "battery", 60, 460, {
       label: "Batterie véhicule 12V",
       voltage: 12,
       capacityAh: 100,
@@ -547,17 +779,22 @@ function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; 
       brandModelId: "renogy-agm-100ah",
       brand: "Renogy",
       model: "Deep Cycle AGM 12V/100Ah",
+      rotation: 270,
     }),
     buildNode("af-dcdc-fuse", "fuse", 290, 440, {
       label: "Fusible charge véhicule",
       fuseType: "midi",
       amperage: 60,
     }),
-    buildNode("af-dcdc", "dcdc", 500, 390, {
-      label: "Chargeur DC-DC compatible",
+    buildNode("af-dcdc", "dcdc", 480, 380, {
+      label: "AFERIY DC060 580W",
       voltageIn: 12,
-      voltageOut: 12,
-      amperage: 50,
+      voltageOut: 48,
+      amperage: 15,
+      brandModelId: "aferiy-dc060",
+      brand: "AFERIY",
+      model: "DC060 580W",
+      topology: "isolated",
     }),
     buildNode("af-station", "power-station", 860, 190, {
       label: "AFERIY P280",
@@ -585,87 +822,66 @@ function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; 
     buildNode("af-ground", "ground", 1500, 120, {
       label: "Point de masse",
     }),
-    buildNode("af-dc-fuse", "fuse", 1020, 320, {
+    buildNode("af-dc-fuse", "fuse", 1260, 380, {
       label: "Fusible principal XT60",
       fuseType: "midi",
       amperage: 25,
     }),
-    buildNode("af-panel", "distribution-panel", 1320, 410, {
+    buildNode("af-panel", "distribution-panel", 1560, 380, {
       label: "Tableau 12V",
       layout: "with-fuses",
       outputCount: 4,
+      outAmp1: 10,
+      outAmp2: 5,
+      outAmp3: 20,
+      outAmp4: 15,
     }),
-    buildNode("af-busbar-neg", "busbar", 1240, 520, {
+    buildNode("af-busbar-neg", "busbar", 1220, 560, {
       label: "Busbar −",
       polarity: "negative",
       outputCount: 4,
     }),
-    buildNode("af-switch-frigo", "switch", 1610, 300, {
-      label: "Interrupteur",
-      amperage: 0,
-    }),
-    buildNode("af-frigo", "consumer", 1800, 250, {
+    buildNode("af-frigo", "consumer", 1700, 320, {
       label: "Réfrigérateur 12V",
       presetType: "refrigerateur",
       powerW: 45,
+      rotation: 180,
     }),
-    buildNode("af-switch-pompe", "switch", 1600, 470, {
-      label: "Interrupteur",
-      amperage: 0,
-    }),
-    buildNode("af-pompe", "consumer", 1800, 420, {
+    buildNode("af-pompe", "consumer", 1720, 500, {
       label: "Pompe à eau",
       presetType: "pompe-eau",
       powerW: 60,
     }),
-    buildNode("af-switch-usb", "switch", 1600, 640, {
-      label: "Interrupteur",
-      amperage: 0,
-    }),
-    buildNode("af-usb", "consumer", 1790, 590, {
+    buildNode("af-usb", "consumer", 1880, 440, {
       label: "Ports USB",
       presetType: "prise-usb-12v",
       powerW: 15,
     }),
-    buildNode("af-switch-led", "switch", 1400, 640, {
-      label: "Interrupteur",
-      amperage: 0,
-      rotation: 90,
-    }),
-    buildNode("af-led", "consumer", 1500, 730, {
+    buildNode("af-led", "consumer", 1540, 720, {
       label: "Éclairage LED",
       presetType: "eclairage-led",
       powerW: 10,
       rotation: 270,
     }),
+    buildNode("fuse_mtet9xyg_12", "fuse", 740, 300, { label: "Fusible", fuseType: "midi", amperage: 60 }),
+    buildNode("ground_mtetb7qm_15", "ground", -20, 480, { label: "Point de masse", rotation: 270 }),
+    buildNode("ground_mtetbauu_16", "ground", 700, 80, { label: "Point de masse", rotation: 270 }),
   ];
 
   const edges: SchemaEdge[] = [
     buildEdge("af-e1", "af-solar", "positive", "af-station", "xt90-1-positive", RED, "power-positive", "4 mm²", 3),
     buildEdge("af-e2", "af-solar", "negative", "af-station", "xt90-1-negative", BLACK, "power-negative", "4 mm²", 3),
     buildEdge("af-e3", "af-veh-battery", "positive", "af-dcdc-fuse", "input", RED, "power-positive", "10 mm²", 1.5),
-    buildEdge("af-e4", "af-dcdc-fuse", "output", "af-dcdc", "in-positive", RED, "power-positive", "10 mm²", 1),
-    buildEdge("af-e5", "af-veh-battery", "negative", "af-dcdc", "in-negative", BLACK, "power-negative", "10 mm²", 1.5),
-    buildEdge("af-e6", "af-dcdc", "out-positive", "af-station", "xt90-2-positive", RED, "power-positive", "10 mm²", 2),
-    buildEdge("af-e7", "af-dcdc", "out-negative", "af-station", "xt90-2-negative", BLACK, "power-negative", "10 mm²", 2),
+    buildEdge("af-e4", "af-dcdc-fuse", "output", "af-dcdc", "in-positive", RED, "power-positive", "6 mm²", 1),
 
-    buildEdge("af-e8", "af-station", "xt60-positive", "af-dc-fuse", "input", RED, "power-positive", "6 mm²", 1),
-    buildEdge("af-e9", "af-dc-fuse", "output", "af-panel", "input", RED, "power-positive", "6 mm²", 1),
-    buildEdge("af-e10", "af-station", "xt60-negative", "af-busbar-neg", "input", BLACK, "power-negative", "6 mm²", 1.5),
+    buildEdge("af-e8", "af-station", "xt60-positive", "af-dc-fuse", "input", RED, "power-positive", "4 mm²", 1),
+    buildEdge("af-e9", "af-dc-fuse", "output", "af-panel", "input", RED, "power-positive", "4 mm²", 1),
+    buildEdge("af-e10", "af-station", "xt60-negative", "af-busbar-neg", "input", BLACK, "power-negative", "4 mm²", 1.5),
 
-    buildEdge("af-e11", "af-panel", "out-1", "af-switch-frigo", "input", RED, "power-positive", "1,5 mm²", 2.5),
-    buildEdge("af-e12", "af-switch-frigo", "output", "af-frigo", "positive", RED, "power-positive", "1,5 mm²", 1),
-    buildEdge("af-e13", "af-panel", "out-2", "af-switch-pompe", "input", RED, "power-positive", "1,5 mm²", 2.5, { x: 1380, y: 520 }),
-    buildEdge("af-e14", "af-switch-pompe", "output", "af-pompe", "positive", RED, "power-positive", "1,5 mm²", 1),
-    buildEdge("af-e15", "af-panel", "out-3", "af-switch-usb", "input", RED, "power-positive", "0,75 mm²", 2),
-    buildEdge("af-e16", "af-switch-usb", "output", "af-usb", "positive", RED, "power-positive", "0,75 mm²", 1),
-    buildEdge("af-e17", "af-panel", "out-4", "af-switch-led", "input", RED, "power-positive", "0,75 mm²", 2, { x: 1520.5, y: 570 }),
-    buildEdge("af-e18", "af-switch-led", "output", "af-led", "positive", RED, "power-positive", "0,75 mm²", 1),
-
-    buildEdge("af-e19", "af-busbar-neg", "out-1", "af-frigo", "negative", BLACK, "power-negative", "1,5 mm²", 2, { x: 1540, y: 300 }),
-    buildEdge("af-e20", "af-busbar-neg", "out-2", "af-pompe", "negative", BLACK, "power-negative", "1,5 mm²", 2, { x: 1720, y: 620 }),
-    buildEdge("af-e21", "af-busbar-neg", "out-3", "af-usb", "negative", BLACK, "power-negative", "0,75 mm²", 2, { x: 1440, y: 300 }),
-    buildEdge("af-e22", "af-busbar-neg", "out-4", "af-led", "negative", BLACK, "power-negative", "0,75 mm²", 2),
+    buildEdge("af-e19", "af-busbar-neg", "out-1", "af-frigo", "negative", BLACK, "power-negative", "1 mm²", 2, { x: 1540, y: 300 }),
+    buildEdge("af-e20", "af-busbar-neg", "out-2", "af-pompe", "negative", BLACK, "power-negative", "1 mm²", 2, { x: 1720, y: 620 }),
+    buildEdge("af-e21", "af-busbar-neg", "out-3", "af-usb", "negative", BLACK, "power-negative", "0,5 mm²", 2, { x: 1440, y: 300 }),
+    buildEdge("af-e22", "af-busbar-neg", "out-4", "af-led", "negative", BLACK, "power-negative", "0,5 mm²", 2),
 
     buildEdge("af-e23", "af-station", "ac-out", "af-ac-panel", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("af-e24", "af-ac-panel", "ac-out", "af-socket-1", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
@@ -674,14 +890,24 @@ function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; 
     buildEdge("af-e27", "af-socket-1", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
     buildEdge("af-e28", "af-socket-2", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
     buildEdge("edge_msvzcvid_2", "shore-power_msvzcqef_1", "ac", "af-station", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
+    buildEdge("edge_mtet2tyr_2", "af-panel", "out-3", "af-frigo", "positive", RED, "power-positive", "2,5 mm²", 3),
+    buildEdge("edge_mtet3gj9_3", "af-panel", "out-1", "af-pompe", "positive", RED, "power-positive", "1,5 mm²", 3),
+    buildEdge("edge_mtet3zww_5", "af-panel", "out-4", "af-usb", "positive", RED, "power-positive", "0,75 mm²", 4),
+    buildEdge("edge_mtet4gcm_6", "af-panel", "out-2", "af-led", "positive", RED, "power-positive", "0,5 mm²", 2),
+    buildEdge("edge_mtet6cos_7", "af-veh-battery", "negative", "af-dcdc", "in-negative", BLACK, "power-negative", "10 mm²", 2),
+    buildEdge("edge_mtet70le_8", "af-station", "xt90-2-negative", "af-dcdc", "out-negative", BLACK, "power-negative", "10 mm²", 2),
+    buildEdge("edge_mtet9xyg_13", "af-dcdc", "out-positive", "fuse_mtet9xyg_12", "input", RED, "power-positive", "16 mm²", 2),
+    buildEdge("edge_mtet9xyg_14", "fuse_mtet9xyg_12", "output", "af-station", "xt90-2-positive", RED, "power-positive", "16 mm²", 2),
+    buildEdge("edge_mtetbjfv_17", "shore-power_msvzcqef_1", "earth", "ground_mtetbauu_16", "ground", LIME, "earth", undefined, undefined),
+    buildEdge("edge_mtetc4zc_18", "ground_mtetb7qm_15", "ground", "af-veh-battery", "negative", LIME, "earth", "10 mm²", 1),
   ];
 
   const zones: SchemaNode[] = [
-    buildZone("af-zone-solar", -20, 40, 360, 220, "XT90 solaire", "#f59e0b"),
-    buildZone("af-zone-veh", -20, 330, 700, 280, "Recharge véhicule / DC-DC (optionnel)", "#10b981"),
-    buildZone("af-zone-station", 700, 40, 410, 340, "AFERIY P280", "#6366f1"),
+    // Toutes les entrées de la station restent ensemble: solaire, véhicule,
+    // DC-DC et quai. Seuls les départs AC et 12 V sortent de cette zone.
+    buildZone("af-zone-charge", -60, 40, 1180, 570, "Production & recharge AFERIY", "#6366f1"),
     buildZone("af-zone-ac", 1180, -300, 520, 500, "230V fixe", "#7c3aed"),
-    buildZone("af-zone-12v", 1220, 240, 740, 580, "Réseau 12V via XT60", "#3b82f6"),
+    buildZone("af-zone-12v", 1180, 240, 780, 580, "Distribution 12V via XT60", "#3b82f6"),
   ];
 
   return { projectName: "Gabarit : AFERIY P280 van", nodes: [...zones, ...nodes], edges };
@@ -740,7 +966,7 @@ function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[];
     buildNode("pb-generator", "shore-power", 640, -140, { label: "Groupe électrogène", brandModelId: "honda-eu32i-generator", brand: "Honda", model: "EU32i 3200W" }),
     buildNode("pb-galvanic", "galvanic-isolator", 900, -260, { label: "Isolateur galvanique", brandModelId: "sterling-zincsaver-ii", brand: "Sterling", model: "Zinc Saver II" }),
     buildNode("pb-transfer", "ac-transfer-switch", 900, -140, { label: "Inverseur de source secteur" }),
-    buildNode("pb-cerbo", "system-monitor", 1180, -140, { label: "Cerbo GX", connection: "communication-only", brandModelId: "victron-cerbo-gx", brand: "Victron", model: "Cerbo GX" }),
+    buildNode("pb-cerbo", "system-controller", 1180, -140, { label: "Cerbo GX", brandModelId: "victron-cerbo-gx", brand: "Victron", model: "Cerbo GX" }),
     buildNode("pb-multiplus", "inverter-charger", 1420, -140, { label: "MultiPlus-II 12/3000/120", powerW: 3000, voltageDC: 12, chargeAmperage: 120, brandModelId: "victron-multiplus-ii-12-3000-120", brand: "Victron", model: "MultiPlus-II 12/3000/120-32" }),
     buildNode("pb-ac-panel", "ac-panel", 1680, -220, { label: "Tableau 220V" }),
     buildNode("pb-ground", "ground", 1680, -60, { label: "Point de masse" }),
@@ -866,7 +1092,7 @@ function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[];
     buildEdge("pb-e40", "pb-mppt", "ve-direct", "pb-cerbo", "ve-direct", GREEN_DATA, "data-bus", undefined, 4),
     buildEdge("pb-e41", "pb-lynx-bms", "ve-can", "pb-cerbo", "ve-direct", GREEN_DATA, "data-bus", undefined, 2),
     buildEdge("pb-e42", "pb-lynx-shunt", "ve-can", "pb-cerbo", "ve-direct", GREEN_DATA, "data-bus", undefined, 2),
-    buildEdge("pb-e43", "pb-multiplus", "ve-direct", "pb-cerbo", "ve-direct", GREEN_DATA, "data-bus", undefined, 2),
+    buildEdge("pb-e43", "pb-multiplus", "ve-bus", "pb-cerbo", "ve-bus", GREEN_DATA, "data-bus", undefined, 2),
 
     // Lynx Distributor → guindeau + pompe de cale (auto) + les deux tableaux
     buildEdge("pb-e44", "pb-lynx-distributor", "out-4", "pb-breaker-guindeau", "input", RED, "power-positive", "16 mm²", 1),
@@ -947,6 +1173,57 @@ function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[];
 
 export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
   {
+    id: "reference-v3-voilier-10m",
+    label: "Voilier 10 m",
+    description: "Base A2 pour le refit D2-60 : solaire, alternateur/DC-DC, quai, Lynx, MultiPlus et circuits de bord. Les éléments physiques non encore disponibles restent à compléter.",
+    build: () => ({ ...buildPremiumBoatTemplate(), projectName: "Voilier 10 m - Refit D2-60" }),
+  },
+  {
+    id: "reference-v3-vito-280ah",
+    label: "Vito 280 Ah",
+    description: "Base A2 compacte : lithium, MPPT, Orion, MultiPlus, BatteryProtect et supervision. A adapter au mobilier et au faisceau Mercedes existant.",
+    build: buildVitoMarcoPolo280AhDefault,
+  },
+  {
+    id: "reference-v3-camping-car-ds300",
+    label: "Camping-car 7 m - lithium, solaire, DC-DC et clim 12 V",
+    description: "Base A2 lithium, solaire, DC-DC, MultiPlus et climatisation 12 V protégée par BatteryProtect. À adapter aux équipements réellement installés.",
+    // Cette référence possède une implantation fonctionnelle dédiée : le
+    // plan guidé générique la remplacerait et ferait ressortir inutilement
+    // les départs consommateurs de leur zone de distribution.
+    build: buildCampingCar7mDefault,
+  },
+  {
+    id: "reference-v3-yacht-8m",
+    label: "Yacht 8 m",
+    description: "Base A2 12 V simple : quai, chargeur secteur, solaire, batterie, distribution et pompe de cale prioritaire.",
+    build: () => ({ ...buildShorePowerTemplate(), projectName: "Petit yacht 8 m - Flybridge" }),
+  },
+  {
+    id: "reference-v3-aferiy-p280",
+    label: "VW T6 AFERIY P280",
+    description: "Base A2 autour de la station tout-en-un : solaire, quai, DC-DC, XT60 12 V et sorties AC, sans batterie auxiliaire ni MultiPlus ajoutés.",
+    build: buildVwT6AferiyP280Default,
+  },
+  {
+    id: "reference-v3-atelier-ducato",
+    label: "Ducato principe",
+    description: "Lecture fonctionnelle du Ducato : solaire, alternateur, batteries, MultiPlus, AC et distribution DC. Les zones suivent les fonctions electriques, pas les emplacements physiques.",
+    build: buildDucatoPrincipleTemplate,
+  },
+  {
+    id: "reference-v3-atelier-ducato-implantation",
+    label: "Ducato implantation",
+    description: "Essai d'implantation physique : toit, compartiment moteur, soute basse, cloison ventilee, porte laterale et etabli. Les liaisons entre zones sont volontairement limitees aux interfaces utiles.",
+    build: buildDucatoImplantationTemplate,
+  },
+  {
+    id: "reference-v3-peche-24v",
+    label: "Pêche 24 V",
+    description: "Préparation A2 du scénario 12 V servitude + 24 V trolling. Les composants spécifiques trolling et les protections associées seront ajoutés avec les éléments fournis.",
+    build: () => ({ ...buildShorePowerTemplate(), projectName: "Bateau de pêche 6,5 m - préparation 24 V" }),
+  },
+  {
     id: "van-complet",
     label: "Le van tout confort",
     description: "Solaire + alternateur/DC-DC + convertisseur-chargeur + alimentation de quai — schéma déjà avancé, pour s'inspirer d'un système complet.",
@@ -989,6 +1266,21 @@ export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
     build: buildPremiumBoatTemplate,
   },
 ];
+
+/** Regroupement de lecture uniquement : les identifiants des modèles restent stables. */
+export function getSchemaTemplatesByVehicleGroup(): { id: SchemaTemplateVehicleGroup; label: string; templates: SchemaTemplate[] }[] {
+  const groupForTemplate = (template: SchemaTemplate): SchemaTemplateVehicleGroup => {
+    if (template.id === "solaire-simple") return "starter";
+    if (template.id.includes("voilier") || template.id.includes("yacht") || template.id.includes("peche") || template.id.includes("bateau") || template.id === "quai-tranquille") return "boat";
+    if (template.id.includes("ducato")) return "workshop";
+    return "van";
+  };
+
+  return SCHEMA_TEMPLATE_VEHICLE_GROUPS.map((group) => ({
+    ...group,
+    templates: SCHEMA_TEMPLATES.filter((template) => groupForTemplate(template) === group.id),
+  })).filter((group) => group.templates.length > 0);
+}
 
 export function getSchemaTemplate(id: string): SchemaTemplate | undefined {
   return SCHEMA_TEMPLATES.find((t) => t.id === id);

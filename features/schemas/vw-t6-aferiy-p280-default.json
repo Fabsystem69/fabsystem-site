@@ -1,0 +1,857 @@
+{
+  "format": "fabsystem-schema-draft",
+  "version": 1,
+  "projectName": "VW T6 - AFERIY P280",
+  "nodes": [
+    {
+      "id": "af-zone-charge",
+      "type": "zone",
+      "position": {
+        "x": -60,
+        "y": 40
+      },
+      "width": 1180,
+      "height": 570,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Production & recharge AFERIY",
+        "color": "#6366f1"
+      },
+      "measured": {
+        "width": 1180,
+        "height": 570
+      },
+      "selected": false
+    },
+    {
+      "id": "af-zone-ac",
+      "type": "zone",
+      "position": {
+        "x": 1180,
+        "y": -300
+      },
+      "width": 520,
+      "height": 500,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "230V fixe",
+        "color": "#7c3aed"
+      },
+      "measured": {
+        "width": 520,
+        "height": 500
+      }
+    },
+    {
+      "id": "af-zone-12v",
+      "type": "zone",
+      "position": {
+        "x": 1180,
+        "y": 240
+      },
+      "width": 780,
+      "height": 580,
+      "zIndex": -1,
+      "data": {
+        "componentType": "zone",
+        "label": "Distribution 12V via XT60",
+        "color": "#3b82f6"
+      },
+      "measured": {
+        "width": 780,
+        "height": 580
+      },
+      "selected": false
+    },
+    {
+      "id": "af-solar",
+      "type": "electrical",
+      "position": {
+        "x": 40,
+        "y": 120
+      },
+      "data": {
+        "componentType": "solar-panel",
+        "panelStyle": "flexible",
+        "powerW": 200,
+        "voltage": 20.1,
+        "operatingCurrentA": 10.02,
+        "shortCircuitCurrentA": 10.74,
+        "vocVoltage": 23.9,
+        "brandModelId": "renogy-200w-flexible",
+        "brand": "Renogy",
+        "model": "200W flexible",
+        "label": "Panneau flexible 200W"
+      },
+      "measured": {
+        "width": 118,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-veh-battery",
+      "type": "electrical",
+      "position": {
+        "x": 60,
+        "y": 460
+      },
+      "data": {
+        "componentType": "battery",
+        "technology": "agm",
+        "voltage": 12,
+        "capacityAh": 100,
+        "brandModelId": "renogy-agm-100ah",
+        "brand": "Renogy",
+        "model": "Deep Cycle AGM 12V/100Ah",
+        "label": "Batterie véhicule 12V",
+        "rotation": 270
+      },
+      "measured": {
+        "width": 108,
+        "height": 84
+      }
+    },
+    {
+      "id": "af-dcdc-fuse",
+      "type": "electrical",
+      "position": {
+        "x": 240,
+        "y": 420
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible charge véhicule",
+        "fuseType": "midi",
+        "amperage": 60
+      },
+      "measured": {
+        "width": 121,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "af-dcdc",
+      "type": "electrical",
+      "position": {
+        "x": 480,
+        "y": 380
+      },
+      "data": {
+        "componentType": "dcdc",
+        "voltageIn": 12,
+        "voltageOut": 48,
+        "amperage": 15,
+        "topology": "isolated",
+        "brandModelId": "aferiy-dc060",
+        "brand": "AFERIY",
+        "model": "DC060 580W",
+        "label": "AFERIY DC060 580W",
+        "communicationPorts": ""
+      },
+      "measured": {
+        "width": 115,
+        "height": 84
+      },
+      "selected": false
+    },
+    {
+      "id": "af-station",
+      "type": "electrical",
+      "position": {
+        "x": 860,
+        "y": 190
+      },
+      "data": {
+        "componentType": "power-station",
+        "powerW": 2800,
+        "capacityWh": 2048,
+        "connectorLayout": "dual-xt90-xt60",
+        "brandModelId": "aferiy-p280",
+        "brand": "AFERIY",
+        "model": "P280",
+        "label": "AFERIY P280"
+      },
+      "measured": {
+        "width": 167,
+        "height": 128
+      }
+    },
+    {
+      "id": "shore-power_msvzcqef_1",
+      "type": "electrical",
+      "position": {
+        "x": 780,
+        "y": 80
+      },
+      "data": {
+        "componentType": "shore-power",
+        "brandModelId": "p17-16a",
+        "brand": "Générique",
+        "model": "Prise P17 16A/230V",
+        "label": "Prise de quai"
+      },
+      "measured": {
+        "width": 70,
+        "height": 64
+      },
+      "selected": false
+    },
+    {
+      "id": "af-ac-panel",
+      "type": "electrical",
+      "position": {
+        "x": 1200,
+        "y": -220
+      },
+      "data": {
+        "componentType": "ac-panel",
+        "label": "Tableau 230V"
+      },
+      "measured": {
+        "width": 123,
+        "height": 75
+      }
+    },
+    {
+      "id": "af-socket-1",
+      "type": "electrical",
+      "position": {
+        "x": 1540,
+        "y": -260
+      },
+      "data": {
+        "componentType": "socket-220v",
+        "label": "Prise AC 1",
+        "powerW": 500
+      },
+      "measured": {
+        "width": 54,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-socket-2",
+      "type": "electrical",
+      "position": {
+        "x": 1540,
+        "y": -100
+      },
+      "data": {
+        "componentType": "socket-220v",
+        "label": "Prise AC 2",
+        "powerW": 500
+      },
+      "measured": {
+        "width": 55,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-ground",
+      "type": "electrical",
+      "position": {
+        "x": 1500,
+        "y": 120
+      },
+      "data": {
+        "componentType": "ground",
+        "label": "Point de masse"
+      },
+      "measured": {
+        "width": 81,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-dc-fuse",
+      "type": "electrical",
+      "position": {
+        "x": 1260,
+        "y": 380
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible principal XT60",
+        "fuseType": "midi",
+        "amperage": 25
+      },
+      "measured": {
+        "width": 114,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-panel",
+      "type": "electrical",
+      "position": {
+        "x": 1560,
+        "y": 380
+      },
+      "data": {
+        "componentType": "distribution-panel",
+        "label": "Tableau 12V",
+        "layout": "with-fuses",
+        "outputCount": 4,
+        "outAmp1": 10,
+        "outAmp2": 5,
+        "outAmp3": 20,
+        "outAmp4": 15
+      },
+      "measured": {
+        "width": 101,
+        "height": 88
+      }
+    },
+    {
+      "id": "af-busbar-neg",
+      "type": "electrical",
+      "position": {
+        "x": 1220,
+        "y": 560
+      },
+      "data": {
+        "componentType": "busbar",
+        "label": "Busbar −",
+        "polarity": "negative",
+        "outputCount": 4
+      },
+      "measured": {
+        "width": 97,
+        "height": 104
+      }
+    },
+    {
+      "id": "af-frigo",
+      "type": "electrical",
+      "position": {
+        "x": 1700,
+        "y": 320
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Réfrigérateur 12V",
+        "presetType": "refrigerateur",
+        "powerW": 45,
+        "rotation": 180
+      },
+      "measured": {
+        "width": 92,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-pompe",
+      "type": "electrical",
+      "position": {
+        "x": 1720,
+        "y": 500
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Pompe à eau",
+        "presetType": "pompe-eau",
+        "powerW": 60
+      },
+      "measured": {
+        "width": 69,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-usb",
+      "type": "electrical",
+      "position": {
+        "x": 1880,
+        "y": 440
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Ports USB",
+        "presetType": "prise-usb-12v",
+        "powerW": 15
+      },
+      "measured": {
+        "width": 56,
+        "height": 64
+      }
+    },
+    {
+      "id": "af-led",
+      "type": "electrical",
+      "position": {
+        "x": 1540,
+        "y": 720
+      },
+      "data": {
+        "componentType": "consumer",
+        "label": "Éclairage LED",
+        "presetType": "eclairage-led",
+        "powerW": 10,
+        "rotation": 270
+      },
+      "measured": {
+        "width": 72,
+        "height": 64
+      }
+    },
+    {
+      "id": "fuse_mtet9xyg_12",
+      "type": "electrical",
+      "position": {
+        "x": 740,
+        "y": 420
+      },
+      "data": {
+        "componentType": "fuse",
+        "label": "Fusible",
+        "fuseType": "midi",
+        "amperage": 20
+      },
+      "measured": {
+        "width": 47,
+        "height": 64
+      },
+      "selected": false,
+      "dragging": false
+    },
+    {
+      "id": "ground_mtetb7qm_15",
+      "type": "electrical",
+      "position": {
+        "x": -20,
+        "y": 480
+      },
+      "data": {
+        "componentType": "ground",
+        "label": "Point de masse",
+        "rotation": 270
+      },
+      "measured": {
+        "width": 81,
+        "height": 64
+      }
+    },
+    {
+      "id": "ground_mtetbauu_16",
+      "type": "electrical",
+      "position": {
+        "x": 700,
+        "y": 80
+      },
+      "data": {
+        "componentType": "ground",
+        "label": "Point de masse",
+        "rotation": 270
+      },
+      "measured": {
+        "width": 81,
+        "height": 64
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "af-e1",
+      "source": "af-solar",
+      "sourceHandle": "positive",
+      "target": "af-station",
+      "targetHandle": "xt90-1-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "4 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "af-e2",
+      "source": "af-solar",
+      "sourceHandle": "negative",
+      "target": "af-station",
+      "targetHandle": "xt90-1-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "4 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "af-e3",
+      "source": "af-veh-battery",
+      "sourceHandle": "positive",
+      "target": "af-dcdc-fuse",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "10 mm²",
+        "length": 1.5
+      }
+    },
+    {
+      "id": "af-e4",
+      "source": "af-dcdc-fuse",
+      "sourceHandle": "output",
+      "target": "af-dcdc",
+      "targetHandle": "in-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "6 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "af-e8",
+      "source": "af-station",
+      "sourceHandle": "xt60-positive",
+      "target": "af-dc-fuse",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "4 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "af-e9",
+      "source": "af-dc-fuse",
+      "sourceHandle": "output",
+      "target": "af-panel",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "4 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "af-e10",
+      "source": "af-station",
+      "sourceHandle": "xt60-negative",
+      "target": "af-busbar-neg",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "4 mm²",
+        "length": 1.5
+      }
+    },
+    {
+      "id": "af-e19",
+      "source": "af-busbar-neg",
+      "sourceHandle": "out-1",
+      "target": "af-frigo",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "1 mm²",
+        "length": 2,
+        "bendPoint": {
+          "x": 1540,
+          "y": 300
+        }
+      }
+    },
+    {
+      "id": "af-e21",
+      "source": "af-busbar-neg",
+      "sourceHandle": "out-3",
+      "target": "af-usb",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 2,
+        "bendPoint": {
+          "x": 1440,
+          "y": 300
+        }
+      }
+    },
+    {
+      "id": "af-e22",
+      "source": "af-busbar-neg",
+      "sourceHandle": "out-4",
+      "target": "af-led",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "af-e23",
+      "source": "af-station",
+      "sourceHandle": "ac-out",
+      "target": "af-ac-panel",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "af-e24",
+      "source": "af-ac-panel",
+      "sourceHandle": "ac-out",
+      "target": "af-socket-1",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "af-e25",
+      "source": "af-ac-panel",
+      "sourceHandle": "ac-out",
+      "target": "af-socket-2",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "af-e26",
+      "source": "af-ac-panel",
+      "sourceHandle": "earth",
+      "target": "af-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "af-e27",
+      "source": "af-socket-1",
+      "sourceHandle": "earth",
+      "target": "af-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "af-e28",
+      "source": "af-socket-2",
+      "sourceHandle": "earth",
+      "target": "af-ground",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "1,5 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "edge_msvzcvid_2",
+      "source": "shore-power_msvzcqef_1",
+      "sourceHandle": "ac",
+      "target": "af-station",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "edge_mtet2tyr_2",
+      "source": "af-panel",
+      "sourceHandle": "out-3",
+      "target": "af-frigo",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "2,5 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "edge_mtet3gj9_3",
+      "source": "af-panel",
+      "sourceHandle": "out-1",
+      "target": "af-pompe",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "1,5 mm²",
+        "length": 3
+      }
+    },
+    {
+      "id": "edge_mtet3zww_5",
+      "source": "af-panel",
+      "sourceHandle": "out-4",
+      "target": "af-usb",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,75 mm²",
+        "length": 4
+      }
+    },
+    {
+      "id": "edge_mtet4gcm_6",
+      "source": "af-panel",
+      "sourceHandle": "out-2",
+      "target": "af-led",
+      "targetHandle": "positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "0,5 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "edge_mtet6cos_7",
+      "source": "af-veh-battery",
+      "sourceHandle": "negative",
+      "target": "af-dcdc",
+      "targetHandle": "in-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "10 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "edge_mtet70le_8",
+      "source": "af-station",
+      "sourceHandle": "xt90-2-negative",
+      "target": "af-dcdc",
+      "targetHandle": "out-negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "10 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "edge_mtet9xyg_13",
+      "source": "af-dcdc",
+      "sourceHandle": "out-positive",
+      "target": "fuse_mtet9xyg_12",
+      "targetHandle": "input",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "edge_mtet9xyg_14",
+      "source": "fuse_mtet9xyg_12",
+      "sourceHandle": "output",
+      "target": "af-station",
+      "targetHandle": "xt90-2-positive",
+      "type": "cable",
+      "data": {
+        "color": "#dc2626",
+        "cableType": "power-positive",
+        "section": "16 mm²",
+        "length": 2
+      }
+    },
+    {
+      "id": "edge_mtetbjfv_17",
+      "source": "shore-power_msvzcqef_1",
+      "sourceHandle": "earth",
+      "target": "ground_mtetbauu_16",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth"
+      }
+    },
+    {
+      "id": "edge_mtetc4zc_18",
+      "source": "ground_mtetb7qm_15",
+      "sourceHandle": "ground",
+      "target": "af-veh-battery",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth",
+        "section": "10 mm²",
+        "length": 1
+      }
+    },
+    {
+      "id": "edge_mtezfa7t_1",
+      "source": "af-busbar-neg",
+      "sourceHandle": "out-2",
+      "target": "af-pompe",
+      "targetHandle": "negative",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "2,5 mm²",
+        "length": 4
+      }
+    }
+  ],
+  "updatedAt": "2026-08-29T23:02:42.899Z"
+}

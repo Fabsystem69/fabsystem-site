@@ -15,14 +15,6 @@ export type ChargeMatch = {
   voltage: 12 | 24;
 };
 
-/** Le catalogue ne porte pas de champ `voltage` dédié pour ce type de
- * composant (uniquement visible dans le nom du modèle, ex. "YPOWER
- * 24V/15A") — une seule référence 24V existe à ce jour, repérée par cette
- * marque textuelle plutôt que d'ajouter un champ pour un cas unique. */
-function inferVoltage(model: string): 12 | 24 {
-  return model.includes("24V") ? 24 : 12;
-}
-
 export function findCompatibleCharger(minAmperage: number, systemVoltage: 12 | 24): ChargeMatch[] {
   return BRAND_MODELS.filter((m) => m.componentType === "ac-charger")
     .map((m): ChargeMatch => ({
@@ -30,7 +22,7 @@ export function findCompatibleCharger(minAmperage: number, systemVoltage: 12 | 2
       brand: m.brand,
       model: m.model,
       chargeAmperage: Number(m.defaults.chargeAmperage) || 0,
-      voltage: inferVoltage(m.model),
+      voltage: Number(m.defaults.voltageDC) as 12 | 24,
     }))
     .filter((m) => m.voltage === systemVoltage && m.chargeAmperage >= minAmperage)
     .sort((a, b) => a.chargeAmperage - b.chargeAmperage);

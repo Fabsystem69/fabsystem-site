@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type CSSProperties } from "react";
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useReactFlow, Position, type EdgeProps, type Edge } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { resolveHandleKindForNode } from "@/lib/electrical-components/checks";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import { getCableType } from "@/lib/electrical-components/cable-types";
+import { useCableLabelCollision } from "./useCableLabelCollision";
 import type { CableEdgeData } from "@/types/schema";
+
 
 // Retour utilisateur : "pour le 3G2,5 je veux que le modélise en 3
 // conducteur et non un seul, couleur bleu marron vert" — un câble secteur
@@ -163,6 +165,60 @@ export function strokeWidthForSection(mm2: number | null): number {
   return 4.5;
 }
 
+function AutoCableLabel({
+  id,
+  caption,
+  labelX,
+  labelY,
+  darkMode,
+  selected,
+  dragging,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+}: {
+  id: string;
+  caption: string;
+  labelX: number;
+  labelY: number;
+  darkMode: boolean;
+  selected: boolean;
+  dragging: boolean;
+  onPointerDown: (event: React.PointerEvent) => void;
+  onPointerMove: (event: React.PointerEvent) => void;
+  onPointerUp: (event: React.PointerEvent) => void;
+}) {
+  const ref = useCableLabelCollision(id, selected ? `${labelX}:${labelY}:${caption}` : "closed");
+  if (!selected) return null;
+  const labelStyle = {
+    position: "absolute",
+    zIndex: 1001,
+    transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) translate(var(--cable-label-offset-x, 0px), var(--cable-label-offset-y, 0px))`,
+    "--cable-label-offset-x": "0px",
+    "--cable-label-offset-y": "0px",
+    pointerEvents: "all",
+    whiteSpace: "nowrap",
+    cursor: dragging ? "grabbing" : "grab",
+  } as CSSProperties;
+
+  return (
+    <div
+      ref={ref}
+      data-schema-cable-label={id}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      title="Glisser pour réorganiser ce câble"
+      style={labelStyle}
+      className={`rounded border px-1.5 py-0.5 text-[10px] font-medium shadow-sm ${
+        darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-300" : "border-neutral-200 bg-white text-neutral-600"
+      }`}
+    >
+      {caption}
+    </div>
+  );
+}
+
 // Câble = objet à part entière, pas un simple trait (CDC §20-21) : couleur
 // logique portée par les données de l'edge, étiquette optionnelle (section).
 export function CableEdge({
@@ -196,6 +252,7 @@ export function CableEdge({
   // — mis en évidence pendant qu'un composant compatible est glissé
   // au-dessus, avant même de lâcher (voir Canvas.tsx handleDragOver).
   const isSpliceTarget = useSchemaStore((s) => s.spliceHoverEdgeId === id);
+  const isIssueHighlighted = useSchemaStore((s) => s.highlightedIssueTarget?.kind === "edge" && s.highlightedIssueTarget.id === id);
   const { screenToFlowPosition } = useReactFlow();
   const draggingEnd = useRef<"source" | "target" | null>(null);
   const draggingLabel = useRef(false);
@@ -214,6 +271,9 @@ export function CableEdge({
     targetY,
     targetPosition,
     borderRadius: 8,
+    // Garde une sortie droite lisible à chaque borne avant le coude. Le
+    // câble ne repart plus immédiatement derrière le composant voisin.
+    offset: 36,
   });
 
   // Points de coude choisis à la main, en coordonnées absolues (retour
@@ -244,15 +304,20 @@ export function CableEdge({
   }
 
   const rawColor = data?.color ?? "#6b7280";
+  // Une extrémité sans poignée signifie un câble historique orphelin. Il est
+  // volontairement rouge et pointillé jusqu'à sa reconnexion ou suppression.
+  const isOrphanedEndpoint = !sourceHandleId || !targetHandleId;
   // Retour utilisateur : "avertissement clair si l'utilisateur tente un
   // branchement incohérent, par exemple un + sur un -" — prime sur la
   // couleur de polarité normale, jamais discret.
-  const color = isPolarityMismatch
+  const color = isOrphanedEndpoint
+    ? POLARITY_MISMATCH_COLOR
+    : isPolarityMismatch
     ? POLARITY_MISMATCH_COLOR
     : darkMode
       ? (DARK_MODE_COLOR_OVERRIDE[rawColor.toLowerCase()] ?? rawColor)
       : rawColor;
-  const strokeWidth = strokeWidthForSection(parseSectionMm2(data?.section)) + (selected ? 1 : 0) + (isPolarityMismatch ? 1 : 0);
+  const strokeWidth = strokeWidthForSection(parseSectionMm2(data?.section)) + (selected ? 1 : 0) + (isPolarityMismatch || isOrphanedEndpoint ? 1 : 0) + (isIssueHighlighted ? 3 : 0);
   // Bus de données (VE.Direct, NMEA2000, CAN…) en pointillé (retour
   // utilisateur) — les distingue au premier coup d'œil des câbles de
   // puissance, même quand la couleur seule seule ne suffit pas (impression
@@ -261,7 +326,7 @@ export function CableEdge({
   // premier coup d'œil même sans la couleur (impression N&B, daltonisme) :
   // pointillé fin pour les bus de données, tirets longs pour le secteur
   // 230V (rythme différent du bus de données pour ne pas les confondre).
-  const strokeDasharray = isPolarityMismatch
+  const strokeDasharray = isOrphanedEndpoint || isPolarityMismatch
     ? "3,3"
     : data?.cableType === "data-bus"
       ? "6,4"
@@ -370,14 +435,15 @@ export function CableEdge({
         path={edgePath}
         interactionWidth={24}
         style={{
-          stroke: isThreeConductor ? "transparent" : color,
+          stroke: isThreeConductor && !isIssueHighlighted ? "transparent" : (isIssueHighlighted ? "#ffffff" : color),
           strokeWidth,
           strokeDasharray,
           strokeLinejoin: "round",
           strokeLinecap: "round",
+          filter: isIssueHighlighted ? "drop-shadow(0 0 5px rgba(255,255,255,0.95))" : undefined,
         }}
       />
-      {conductors.map((conductor) => (
+      {!isIssueHighlighted && conductors.map((conductor) => (
         <path
           key={conductor.color}
           d={edgePath}
@@ -405,25 +471,18 @@ export function CableEdge({
             pointerup ne serait jamais reçu (bug réel rencontré : le premier
             glisser ne validait plus jamais rien). */}
         {caption && savedBendPoints.length === 0 ? (
-          <div
+          <AutoCableLabel
+            id={id}
+            caption={caption}
+            labelX={labelX}
+            labelY={labelY}
+            darkMode={darkMode}
+            selected={Boolean(selected)}
+            dragging={draggingPoint !== null}
             onPointerDown={handleLabelPointerDown}
             onPointerMove={handleLabelPointerMove}
             onPointerUp={handleLabelPointerUp}
-            title="Glisser pour réorganiser ce câble"
-            style={{
-              position: "absolute",
-              zIndex: 1001,
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              pointerEvents: "all",
-              whiteSpace: "nowrap",
-              cursor: draggingPoint ? "grabbing" : "grab",
-            }}
-            className={`rounded border px-1.5 py-0.5 text-[10px] font-medium shadow-sm ${
-              darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-300" : "border-neutral-200 bg-white text-neutral-600"
-            }`}
-          >
-            {caption}
-          </div>
+          />
         ) : null}
 
         {/* Actives seulement quand le câble est sélectionné (retour

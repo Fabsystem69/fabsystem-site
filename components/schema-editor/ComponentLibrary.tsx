@@ -8,6 +8,9 @@ import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { useGuidedStep } from "@/lib/schema-editor/useGuidedStep";
 import { CategoryIcon } from "./icons/CategoryIcons";
 import { CreateCustomItemModal } from "./CreateCustomItemModal";
+import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
+import { suggestedGuidedPosition } from "@/lib/schema-editor/guided-plan";
+import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
 
 interface LibraryItem {
   key: string;
@@ -63,6 +66,7 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   "ac-charger": ["chargeur de batterie", "chargeur secteur"],
   "circuit-breaker": ["coupe-circuit", "coupe circuit"],
   "battery-switch": ["coupure basse tension", "protection batterie"],
+  "battery-protect": ["smart battery protect", "protection basse tension", "batteryprotect"],
   ground: ["masse", "terre"],
   busbar: ["bornier"],
 };
@@ -87,8 +91,12 @@ export function ComponentLibrary() {
   const [createItemOpen, setCreateItemOpen] = useState(false);
   const nodes = useSchemaStore((s) => s.nodes);
   const addComponent = useSchemaStore((s) => s.addComponent);
+  const spliceNodeOnEdge = useSchemaStore((s) => s.spliceNodeOnEdge);
+  const selectedEdgeId = useSchemaStore((s) => s.selectedEdgeId);
+  const edges = useSchemaStore((s) => s.edges);
   const openLibraryPick = useSchemaStore((s) => s.openLibraryPick);
   const guidedMode = useSchemaStore((s) => s.guidedMode);
+  const guidedPlanMode = useSchemaStore((s) => s.guidedPlanMode);
   const addZone = useSchemaStore((s) => s.addZone);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
@@ -146,6 +154,7 @@ export function ComponentLibrary() {
     const normalizedQuery = normalizeForSearch(query.trim());
     const items: LibraryItem[] = [];
     for (const def of COMPONENT_DEFINITIONS) {
+      if (def.libraryVisible === false) continue;
       const haystack = buildSearchHaystack(def.type, def.label, def.subtitle, def.description);
       if (def.type === "consumer") {
         for (const preset of CONSUMER_LIBRARY_PRESETS) {
@@ -215,13 +224,22 @@ export function ComponentLibrary() {
   }, [guidedHighlightKey, grouped]);
 
   function handleClickAdd(type: string, presetValue?: string) {
-    const center = screenToFlowPosition({
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
-    });
+    const center = screenToFlowPosition(getVisibleCanvasCenter());
     if (type === "zone") {
       addZone({ x: center.x - 190, y: center.y - 130 });
       return;
+    }
+    const selectedEdge = selectedEdgeId ? edges.find((edge) => edge.id === selectedEdgeId) : undefined;
+    if (selectedEdge && SPLICEABLE_COMPONENT_TYPES.has(type)) {
+      const source = nodes.find((node) => node.id === selectedEdge.source);
+      const target = nodes.find((node) => node.id === selectedEdge.target);
+      if (source && target) {
+        spliceNodeOnEdge(selectedEdge.id, type, {
+          x: (source.position.x + target.position.x) / 2,
+          y: (source.position.y + target.position.y) / 2,
+        });
+        return;
+      }
     }
     // Grille en cascade (retour utilisateur indirect, mode guidé) : sans
     // elle, cliquer plusieurs composants d'affilée les empile exactement au
@@ -241,7 +259,11 @@ export function ComponentLibrary() {
     const electricalCount = nodes.filter((n) => n.type === "electrical").length;
     const col = electricalCount % 5;
     const row = Math.floor(electricalCount / 5) % 4;
-    const position = { x: center.x + (col * 220) / zoom, y: center.y + (row * 160) / zoom };
+    const cascadePosition = { x: center.x + (col * 220) / zoom, y: center.y + (row * 160) / zoom };
+    // Un clic dans la bibliothèque n'a pas de position intentionnelle : en
+    // plan guidé il rejoint donc sa zone naturelle. Le glisser-déposer reste
+    // volontairement libre dans Canvas.tsx.
+    const position = guidedPlanMode ? suggestedGuidedPosition(type, nodes) : cascadePosition;
     const preset = presetValue ? CONSUMER_PRESETS.find((p) => p.value === presetValue) : undefined;
     const dataOverride = preset ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW } : undefined;
 
@@ -417,7 +439,9 @@ export function ComponentLibrary() {
                                     ? "border-neutral-700 bg-neutral-800 text-neutral-100 hover:border-neutral-500 hover:bg-neutral-700"
                                     : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-100"
                               }`}
-                              title={`Glisser-déposer sur le canvas, ou clic pour ajouter : ${item.label}`}
+                              title={selectedEdgeId && SPLICEABLE_COMPONENT_TYPES.has(item.type)
+                                ? `Insérer ${item.label} dans le câble sélectionné`
+                                : `Glisser-déposer sur le canvas, ou clic pour ajouter : ${item.label}`}
                             >
                               <span className="flex items-center gap-2">
                                 {item.icon ? (

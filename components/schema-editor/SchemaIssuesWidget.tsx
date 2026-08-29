@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
-import { computeSchemaIssues, type SchemaIssueAction } from "@/lib/electrical-components/checks";
+import { computeSchemaIssues, type SchemaIssueAction, type SchemaIssueSeverity } from "@/lib/electrical-components/checks";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
@@ -19,6 +19,7 @@ export function SchemaIssuesWidget() {
   const edges = useSchemaStore((s) => s.edges);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const select = useSchemaStore((s) => s.select);
+  const highlightIssueTarget = useSchemaStore((s) => s.highlightIssueTarget);
   const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const projectName = useSchemaStore((s) => s.projectName);
@@ -27,6 +28,13 @@ export function SchemaIssuesWidget() {
   const [open, setOpen] = useState(false);
 
   const issues = computeSchemaIssues(nodes, edges);
+  const issueCounts = issues.reduce(
+    (counts, issue) => {
+      counts[issue.severity ?? "warning"] += 1;
+      return counts;
+    },
+    { error: 0, warning: 0, info: 0 } as Record<SchemaIssueSeverity, number>,
+  );
 
   // v2.1 : infos projet du bandeau de droite supprimé, regroupées ici plutôt
   // que dans la barre d'outils — un seul point d'entrée "informations" avec
@@ -49,6 +57,7 @@ export function SchemaIssuesWidget() {
 
   function focusTarget(targetKind: "node" | "edge", targetId: string) {
     select(targetKind, targetId);
+    highlightIssueTarget(targetKind, targetId);
 
     // Met réellement l'élément "en évidence" (retour utilisateur) : pas
     // seulement sélectionné dans les données, mais recentré/zoomé à
@@ -110,6 +119,16 @@ export function SchemaIssuesWidget() {
     return "Appliquer";
   }
 
+  function issueTone(severity: SchemaIssueSeverity | undefined) {
+    if (severity === "error") {
+      return darkMode ? "border-red-900 bg-red-950 text-red-300" : "border-red-200 bg-red-50 text-red-800";
+    }
+    if (severity === "info") {
+      return darkMode ? "border-sky-900 bg-sky-950 text-sky-300" : "border-sky-200 bg-sky-50 text-sky-800";
+    }
+    return darkMode ? "border-amber-900 bg-amber-950 text-amber-400" : "border-amber-200 bg-amber-50 text-amber-800";
+  }
+
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2">
       {open ? (
@@ -132,6 +151,14 @@ export function SchemaIssuesWidget() {
               ✕
             </button>
           </div>
+
+          {issues.length > 0 ? (
+            <div className={`flex gap-2 border-b px-4 py-2 text-[11px] font-medium ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+              {issueCounts.error > 0 ? <span className={darkMode ? "text-red-300" : "text-red-700"}>{issueCounts.error} erreur{issueCounts.error > 1 ? "s" : ""}</span> : null}
+              {issueCounts.warning > 0 ? <span className={darkMode ? "text-amber-300" : "text-amber-700"}>{issueCounts.warning} avertissement{issueCounts.warning > 1 ? "s" : ""}</span> : null}
+              {issueCounts.info > 0 ? <span className={darkMode ? "text-sky-300" : "text-sky-700"}>{issueCounts.info} information{issueCounts.info > 1 ? "s" : ""}</span> : null}
+            </div>
+          ) : null}
 
           <div className={`space-y-1 border-b px-4 py-3 text-xs ${darkMode ? "border-neutral-800 text-neutral-400" : "border-neutral-100 text-neutral-600"}`}>
             <p className={`font-medium ${darkMode ? "text-neutral-200" : "text-neutral-900"}`}>{projectName}</p>
@@ -181,9 +208,7 @@ export function SchemaIssuesWidget() {
                 {issues.map((issue) => (
                   <div
                     key={issue.id}
-                    className={`rounded-md border px-2.5 py-1.5 text-left text-xs ${
-                      darkMode ? "border-amber-900 bg-amber-950 text-amber-400" : "border-amber-200 bg-amber-50 text-amber-800"
-                    }`}
+                    className={`rounded-md border px-2.5 py-1.5 text-left text-xs ${issueTone(issue.severity)}`}
                   >
                     <button
                       type="button"
