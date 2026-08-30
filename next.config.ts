@@ -65,6 +65,26 @@ const nextConfig: NextConfig = {
         destination: "/outils/section-cable",
         permanent: true,
       },
+      {
+        source: "/schemas-electriques/schema-victron-leger-van",
+        destination: "/schemas-electriques/schema-vito-280ah-van",
+        permanent: true,
+      },
+      {
+        source: "/schemas-electriques/schema-electrique-van-complet",
+        destination: "/schemas-electriques/schema-vito-280ah-van",
+        permanent: true,
+      },
+      {
+        source: "/schemas-electriques/schema-station-electrique-van",
+        destination: "/schemas-electriques/schema-aferiy-p280-van",
+        permanent: true,
+      },
+      {
+        source: "/schemas-electriques/schema-bateau-complet-lynx",
+        destination: "/schemas-electriques/schema-voilier-autonome-12v-230v",
+        permanent: true,
+      },
     ];
   },
 };

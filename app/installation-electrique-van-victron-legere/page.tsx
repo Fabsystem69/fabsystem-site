@@ -457,10 +457,10 @@ export default async function InstallationElectriqueVanVictronLegerePage() {
             </div>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <Button href="/schemas-electriques/schema-victron-leger-van" variant="primary">
-                Voir le schema Victron
+              <Button href="/schemas-electriques/schema-vito-280ah-van" variant="primary">
+                Voir un schema van lithium
               </Button>
-              <Button href="/outils/schema?template=victron-light-van" variant="secondary">
+              <Button href="/outils/schema?template=reference-v3-vito-280ah" variant="secondary">
                 Ouvrir le template
               </Button>
               {projectCtaHref ? (
@@ -866,12 +866,12 @@ export default async function InstallationElectriqueVanVictronLegerePage() {
                     {
                       title: "Voir la fiche schema",
                       text: "Retrouver cette architecture dans la galerie et l'imprimer si besoin.",
-                      href: "/schemas-electriques/schema-victron-leger-van",
+                      href: "/schemas-electriques/schema-vito-280ah-van",
                     },
                     {
                       title: "L'ouvrir dans l'editeur",
-                      text: "Repartir du template Victron leger pour l'adapter a votre van.",
-                      href: "/outils/schema?template=victron-light-van",
+                      text: "Repartir d'un schema van lithium plus actuel pour l'adapter a votre van.",
+                      href: "/outils/schema?template=reference-v3-vito-280ah",
                     },
                     {
                       title: "Etre accompagne",

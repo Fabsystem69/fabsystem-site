@@ -226,7 +226,7 @@ const P280_RECIPE: StarterRecipe = {
   circuits: COMMON_CIRCUITS,
   cableConfig: P280_CABLE_CONFIG,
   protectionConfig: COMMON_PROTECTION_CONFIG,
-  templateId: "station-aferiy-p280",
+  templateId: "reference-v3-aferiy-p280",
 };
 
 const VICTRON_LIGHT_RECIPE: StarterRecipe = {

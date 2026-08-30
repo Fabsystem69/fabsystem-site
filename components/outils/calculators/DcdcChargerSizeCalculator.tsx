@@ -101,8 +101,8 @@ export default function DcdcChargerSizeCalculator() {
       <CalcGuidesLink
         examples={[
           { slug: "schema-aferiy-p280-van", title: "Schéma AFERIY P280 pour van" },
-          { slug: "schema-bateau-complet-lynx", title: "Schéma bateau complet avec bus Lynx" },
-          { slug: "schema-electrique-van-complet", title: "Schéma électrique van complet 12V" },
+          { slug: "schema-voilier-autonome-12v-230v", title: "Schéma voilier autonome avec 12 V et 230 V" },
+          { slug: "schema-vito-280ah-van", title: "Schéma van lithium 280 Ah avec solaire et 230 V" },
         ]}
       />
 

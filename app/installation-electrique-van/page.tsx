@@ -216,7 +216,7 @@ export default function InstallationElectriqueVanPage() {
               <Button href="/outils/bilan-consommation" variant="primary">
                 Chiffrer mes besoins
               </Button>
-              <Button href="/schemas-electriques/schema-electrique-van-complet" variant="secondary">
+              <Button href="/schemas-electriques/schema-vito-280ah-van" variant="secondary">
                 Voir un schéma van type
               </Button>
             </div>
@@ -259,7 +259,7 @@ export default function InstallationElectriqueVanPage() {
                 Une vue d&apos;ensemble pour garder le bon ordre de décision avant d&apos;acheter les composants.
               </span>
               <Link
-                href="/schemas-electriques/schema-electrique-van-complet"
+                href="/schemas-electriques/schema-vito-280ah-van"
                 className="font-semibold text-neutral-900 underline underline-offset-4 hover:text-neutral-700"
               >
                 Ouvrir un schéma van de référence →

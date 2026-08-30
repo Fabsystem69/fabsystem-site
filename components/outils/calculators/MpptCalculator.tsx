@@ -407,8 +407,8 @@ export default function MpptCalculator() {
       <CalcGuidesLink
         examples={[
           { slug: "schema-solaire-12v-simple", title: "Schéma solaire 12V simple" },
-          { slug: "schema-victron-leger-van", title: "Schéma Victron léger pour van" },
-          { slug: "schema-bateau-complet-lynx", title: "Schéma bateau complet avec bus Lynx" },
+          { slug: "schema-vito-280ah-van", title: "Schéma van lithium 280 Ah avec solaire et 230 V" },
+          { slug: "schema-voilier-autonome-12v-230v", title: "Schéma voilier autonome avec 12 V et 230 V" },
         ]}
       />
 

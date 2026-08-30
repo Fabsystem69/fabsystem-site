@@ -21,7 +21,7 @@ const featuredExample =
   SCHEMA_EXAMPLES.find((example) => example.slug === FEATURED_SCHEMA_EXAMPLE_SLUG) ??
   SCHEMA_EXAMPLES[SCHEMA_EXAMPLES.length - 1];
 const otherExamples = SCHEMA_EXAMPLES.filter((example) => example.slug !== featuredExample.slug);
-const collectionDescription = `${SCHEMA_EXAMPLE_COUNT} exemples de schémas électriques 12V pour van, bateau et station électrique, avec explication, ouverture directe dans l'éditeur et impression PDF.`;
+const collectionDescription = `${SCHEMA_EXAMPLE_COUNT} exemples de schemas electriques 12V pour van, bateau, camping-car et atelier mobile, avec explication, ouverture directe dans l'editeur et impression PDF.`;
 
 const webPageJsonLd = {
   "@context": "https://schema.org",
@@ -55,7 +55,7 @@ const breadcrumbJsonLd = {
 };
 
 export const metadata: Metadata = {
-  title: "Exemples de schémas électriques 12V van, bateau, station",
+  title: "Exemples de schémas électriques 12V van, bateau, camping-car et atelier",
   description: collectionDescription,
   alternates: {
     canonical: "/schemas-electriques",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Exemples de schémas électriques 12V | FabSystem",
     description:
-      "Des schémas commentés pour van, bateau et station électrique, à ouvrir dans l'éditeur ou à imprimer.",
+      "Des schemas commentes pour van, bateau, camping-car et atelier mobile, a ouvrir dans l'editeur ou a imprimer.",
     url: "https://www.fabsystem.fr/schemas-electriques",
     images: featuredExample
       ? [
@@ -181,9 +181,10 @@ export default function SchemasElectriquesPage() {
             laisse l&apos;ouvrir dans l&apos;éditeur FabSystem pour le modifier.
           </p>
           <p className="mt-3 text-sm leading-relaxed text-neutral-600">
-            Vous avez actuellement {SCHEMA_EXAMPLE_COUNT} bases différentes. Le repère AFERIY P280
-            reste volontairement mis en avant, pendant que les autres architectures restent
-            accessibles juste en dessous.
+            Vous avez actuellement {SCHEMA_EXAMPLE_COUNT} bases differentes. Le van lithium 280 Ah
+            sert de repere principal, puis les autres architectures restent accessibles juste en
+            dessous pour comparer un bateau, un camping-car, un atelier mobile ou une station
+            tout-en-un.
           </p>
         </div>
       </Section>
@@ -193,7 +194,7 @@ export default function SchemasElectriquesPage() {
           <div className="grid gap-0 xl:grid-cols-[1.08fr_0.92fr]">
             <div className="p-5 sm:p-6">
               <div className="flex flex-wrap gap-2">
-                <Badge tone="warning">Le plus récent</Badge>
+                <Badge tone="warning">Selection FabSystem</Badge>
                 <Badge tone="info">Schéma vedette</Badge>
               </div>
 

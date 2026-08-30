@@ -305,7 +305,7 @@ export default async function InstallationVanAferiyP280Page() {
               <Button href="/schemas-electriques/schema-aferiy-p280-van" variant="primary">
                 Voir le schéma AFERIY P280
               </Button>
-              <Button href="/outils/schema?template=station-aferiy-p280" variant="secondary">
+              <Button href="/outils/schema?template=reference-v3-aferiy-p280" variant="secondary">
                 L&apos;ouvrir dans l&apos;éditeur
               </Button>
             </div>
@@ -771,7 +771,7 @@ export default async function InstallationVanAferiyP280Page() {
                 {
                   title: "Modifier dans l'éditeur",
                   text: "Ouvrez directement le template avec les XT90, XT60 et les deux prises AC.",
-                  href: "/outils/schema?template=station-aferiy-p280",
+                  href: "/outils/schema?template=reference-v3-aferiy-p280",
                 },
                 {
                   title: "Être accompagné",

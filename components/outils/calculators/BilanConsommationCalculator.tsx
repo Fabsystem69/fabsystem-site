@@ -381,7 +381,7 @@ export default function BilanConsommationCalculator() {
       <CalcGuidesLink
         examples={[
           { slug: "schema-solaire-12v-simple", title: "Schéma solaire 12V simple" },
-          { slug: "schema-victron-leger-van", title: "Schéma Victron léger pour van" },
+          { slug: "schema-vito-280ah-van", title: "Schéma van lithium 280 Ah avec solaire et 230 V" },
           { slug: "schema-bateau-quai-chargeur", title: "Schéma électrique bateau au quai" },
         ]}
       />

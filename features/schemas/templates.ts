@@ -1236,6 +1236,13 @@ export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
   },
 ];
 
+const SCHEMA_TEMPLATE_ALIASES: Record<string, string> = {
+  "van-complet": "reference-v3-vito-280ah",
+  "station-electrique": "reference-v3-aferiy-p280",
+  "station-aferiy-p280": "reference-v3-aferiy-p280",
+  "bateau-premium": "reference-v3-voilier-10m",
+};
+
 /** Regroupement de lecture uniquement : les identifiants des modèles restent stables. */
 export function getSchemaTemplatesByVehicleGroup(): { id: SchemaTemplateVehicleGroup; label: string; templates: SchemaTemplate[] }[] {
   const groupForTemplate = (template: SchemaTemplate): SchemaTemplateVehicleGroup => {
@@ -1252,5 +1259,6 @@ export function getSchemaTemplatesByVehicleGroup(): { id: SchemaTemplateVehicleG
 }
 
 export function getSchemaTemplate(id: string): SchemaTemplate | undefined {
-  return SCHEMA_TEMPLATES.find((t) => t.id === id);
+  const resolvedId = SCHEMA_TEMPLATE_ALIASES[id] ?? id;
+  return SCHEMA_TEMPLATES.find((t) => t.id === resolvedId);
 }

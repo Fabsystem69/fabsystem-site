@@ -192,7 +192,7 @@ export default function ChargeSecteurCalculator() {
       <CalcGuidesLink
         examples={[
           { slug: "schema-bateau-quai-chargeur", title: "Schéma électrique bateau au quai" },
-          { slug: "schema-station-electrique-van", title: "Schéma station électrique van" },
+          { slug: "schema-aferiy-p280-van", title: "Schéma van avec station AFERIY P280" },
         ]}
       />
 
