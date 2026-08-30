@@ -9,7 +9,6 @@ import { useGuidedStep } from "@/lib/schema-editor/useGuidedStep";
 import { CategoryIcon } from "./icons/CategoryIcons";
 import { CreateCustomItemModal } from "./CreateCustomItemModal";
 import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
-import { suggestedGuidedPosition } from "@/lib/schema-editor/guided-plan";
 import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
 
 interface LibraryItem {
@@ -96,7 +95,6 @@ export function ComponentLibrary() {
   const edges = useSchemaStore((s) => s.edges);
   const openLibraryPick = useSchemaStore((s) => s.openLibraryPick);
   const guidedMode = useSchemaStore((s) => s.guidedMode);
-  const guidedPlanMode = useSchemaStore((s) => s.guidedPlanMode);
   const addZone = useSchemaStore((s) => s.addZone);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
@@ -260,10 +258,9 @@ export function ComponentLibrary() {
     const col = electricalCount % 5;
     const row = Math.floor(electricalCount / 5) % 4;
     const cascadePosition = { x: center.x + (col * 220) / zoom, y: center.y + (row * 160) / zoom };
-    // Un clic dans la bibliothèque n'a pas de position intentionnelle : en
-    // plan guidé il rejoint donc sa zone naturelle. Le glisser-déposer reste
-    // volontairement libre dans Canvas.tsx.
-    const position = guidedPlanMode ? suggestedGuidedPosition(type, nodes) : cascadePosition;
+    // Un clic dans la bibliothèque place le composant dans la vue en cours.
+    // Le placement reste toujours manuel et prévisible, sans réagencement.
+    const position = cascadePosition;
     const preset = presetValue ? CONSUMER_PRESETS.find((p) => p.value === presetValue) : undefined;
     const dataOverride = preset ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW } : undefined;
 
@@ -284,8 +281,8 @@ export function ComponentLibrary() {
   if (collapsed) {
     return (
       <aside
-        className={`flex h-full w-11 shrink-0 flex-col items-center gap-1 border-r py-3 ${
-          darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-neutral-50"
+        className={`absolute left-0 z-20 ml-5 mt-6 flex max-h-[calc(100dvh-7rem)] w-11 flex-col items-center gap-1 overflow-hidden rounded-2xl border py-3 shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${
+          darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
         }`}
       >
         <button
@@ -320,8 +317,8 @@ export function ComponentLibrary() {
 
   return (
     <aside
-      className={`flex h-full w-64 shrink-0 flex-col border-r ${
-        darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-neutral-50"
+      className={`absolute left-0 z-20 ml-5 mt-6 flex max-h-[calc(100dvh-7rem)] w-64 flex-col overflow-hidden rounded-3xl border shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${
+        darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
       }`}
     >
       <div className={`flex items-center justify-between gap-2 border-b p-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>

@@ -99,10 +99,10 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
 
   return (
     <>
-      <div className="flex items-center gap-1 overflow-x-auto">
-      <div className="flex w-20 shrink-0 flex-col items-center gap-0.5 px-1.5 py-1.5 text-center">
+      <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+      <div className="flex w-24 shrink-0 flex-col items-center gap-0.5 overflow-hidden px-1.5 py-1.5 text-center">
         <span className="text-lg leading-none">{isZone ? "▭" : selectedEdge ? "⏤" : "🔧"}</span>
-        <span className={`truncate text-[10px] font-medium leading-tight ${darkMode ? "text-neutral-300" : "text-neutral-600"}`} title={title}>
+        <span className={`block w-full min-w-0 truncate text-[10px] font-medium leading-tight ${darkMode ? "text-neutral-300" : "text-neutral-600"}`} title={title}>
           {title}
         </span>
       </div>

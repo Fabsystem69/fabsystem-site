@@ -1913,7 +1913,20 @@ export function getComponentDefinition(type: string): ComponentDefinition | unde
 // Bornes réelles d'un node : `def.getHandles(data)` pour les composants à
 // sorties variables, sinon `def.handles` tel quel.
 export function getEffectiveHandles(def: ComponentDefinition, data: Record<string, unknown>) {
-  return def.getHandles ? def.getHandles(data) : def.handles;
+  const baseHandles = def.getHandles ? def.getHandles(data) : def.handles;
+  const customHandles = Array.isArray(data.customHandles)
+    ? data.customHandles.filter((handle): handle is ComponentHandleDef => {
+        if (!handle || typeof handle !== "object") return false;
+        const value = handle as Partial<ComponentHandleDef>;
+        return typeof value.id === "string" && typeof value.label === "string" &&
+          (value.kind === "positive" || value.kind === "negative" || value.kind === "neutral" || value.kind === "earth") &&
+          (value.side === "left" || value.side === "right" || value.side === "top" || value.side === "bottom");
+      })
+    : [];
+  // Les ids constructeur restent prioritaires : un brouillon ne peut pas
+  // écraser une borne officielle avec une borne personnalisée du même nom.
+  const baseIds = new Set(baseHandles.map((handle) => handle.id));
+  return [...baseHandles, ...customHandles.filter((handle) => !baseIds.has(handle.id))];
 }
 
 // Libellé réel d'une borne (peut dépendre des données du node — ex. calibre

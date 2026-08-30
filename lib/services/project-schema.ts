@@ -4,6 +4,7 @@ import type { OwnershipActor } from "@/lib/ownership";
 import { logServerEvent } from "@/lib/server-log";
 import { getProject } from "@/lib/services/project";
 import { isProjectReadOnly } from "@/lib/services/schema-unlock";
+import { randomBytes } from "crypto";
 
 type PrismaClientLike = PrismaClient;
 
@@ -20,11 +21,14 @@ export type SaveProjectSchemaInput = {
 };
 
 export type ProjectSchemaSummary = { projectId: string; thumbnail: string | null; updatedAt: Date };
+export type SharedProjectSchema = Pick<ProjectSchema, "projectName" | "nodes" | "edges" | "updatedAt">;
 
 export type ProjectSchemaDb = {
   findByProjectId(projectId: string): Promise<ProjectSchema | null>;
   upsert(projectId: string, data: SaveProjectSchemaInput): Promise<ProjectSchema>;
   findSummariesByProjectIds(projectIds: string[]): Promise<ProjectSchemaSummary[]>;
+  setShareToken?(projectId: string, token: string | null): Promise<ProjectSchema>;
+  findSharedByToken?(token: string): Promise<SharedProjectSchema | null>;
 };
 
 type ProjectSchemaServiceDeps = {
@@ -80,6 +84,20 @@ function createPrismaProjectSchemaDb(client: PrismaClientLike): ProjectSchemaDb 
       return client.projectSchema.findMany({
         where: { projectId: { in: projectIds } },
         select: { projectId: true, thumbnail: true, updatedAt: true },
+      });
+    },
+    async setShareToken(projectId, token) {
+      return client.projectSchema.update({
+        where: { projectId },
+        // Les types générés localement sont régénérés par le build après la
+        // migration; l'assertion garde les tests utilisables entre les deux.
+        data: { shareToken: token, shareEnabledAt: token ? new Date() : null } as never,
+      }) as Promise<ProjectSchema>;
+    },
+    async findSharedByToken(token) {
+      return client.projectSchema.findUnique({
+        where: { shareToken: token } as never,
+        select: { projectName: true, nodes: true, edges: true, updatedAt: true },
       });
     },
   };
@@ -150,6 +168,30 @@ export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSch
       }
       return new Map(rows.map((row) => [row.projectId, row]));
     },
+
+    async enableShare(actor: OwnershipActor, projectId: string): Promise<string> {
+      const project = await assertOwnedProject(actor, projectId);
+      const schema = await db.findByProjectId(project.id);
+      if (!schema) throw forbidden("Save the schema before sharing it");
+      const token = (schema as ProjectSchema & { shareToken?: string | null }).shareToken ?? randomBytes(24).toString("base64url");
+      if (!db.setShareToken) throw projectSchemaStorageUnavailableError();
+      await db.setShareToken(project.id, token);
+      return token;
+    },
+
+    async disableShare(actor: OwnershipActor, projectId: string): Promise<void> {
+      const project = await assertOwnedProject(actor, projectId);
+      const schema = await db.findByProjectId(project.id);
+      if (schema) {
+        if (!db.setShareToken) throw projectSchemaStorageUnavailableError();
+        await db.setShareToken(project.id, null);
+      }
+    },
+
+    async getSharedSchema(token: string): Promise<SharedProjectSchema | null> {
+      if (!db.findSharedByToken) throw projectSchemaStorageUnavailableError();
+      return db.findSharedByToken(token);
+    },
   };
 }
 
@@ -166,4 +208,19 @@ export async function saveProjectSchema(actor: OwnershipActor, projectId: string
 export async function listProjectSchemaSummaries(projectIds: string[]) {
   const service = await getDefaultProjectSchemaService();
   return service.listProjectSchemaSummaries(projectIds);
+}
+
+export async function enableProjectSchemaShare(actor: OwnershipActor, projectId: string) {
+  const service = await getDefaultProjectSchemaService();
+  return service.enableShare(actor, projectId);
+}
+
+export async function disableProjectSchemaShare(actor: OwnershipActor, projectId: string) {
+  const service = await getDefaultProjectSchemaService();
+  return service.disableShare(actor, projectId);
+}
+
+export async function getSharedProjectSchema(token: string) {
+  const service = await getDefaultProjectSchemaService();
+  return service.getSharedSchema(token);
 }

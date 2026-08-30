@@ -14,7 +14,7 @@ import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 // (visible seulement quand rien n'est sélectionné, donc disparaissait dès
 // qu'on cliquait un composant) — Volta en bulle flottante bas-droite,
 // toujours visible quel que soit l'état de sélection, avec un compteur.
-export function SchemaIssuesWidget() {
+export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floating" | "header" }) {
   const nodes = useSchemaStore((s) => s.nodes);
   const edges = useSchemaStore((s) => s.edges);
   const darkMode = useSchemaStore((s) => s.darkMode);
@@ -130,10 +130,10 @@ export function SchemaIssuesWidget() {
   }
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2">
+    <div className={variant === "header" ? "relative z-40 ml-auto" : "pointer-events-none fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2"}>
       {open ? (
         <div
-          className={`pointer-events-auto w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border shadow-2xl ${
+          className={`pointer-events-auto ${variant === "header" ? "absolute right-0 top-full mt-2" : ""} w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border shadow-2xl ${
             darkMode ? "border-neutral-700 bg-neutral-900" : "border-neutral-200 bg-white"
           }`}
         >
@@ -239,22 +239,15 @@ export function SchemaIssuesWidget() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className={`pointer-events-auto relative flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 shadow-lg transition-base ${
+        className={`pointer-events-auto relative flex items-center gap-2 ${variant === "header" ? "rounded-lg px-3 py-1.5 shadow-none" : "rounded-full py-1.5 pl-1.5 pr-3 shadow-lg"} border transition-base ${
           darkMode
             ? "border-neutral-700 bg-neutral-900 hover:bg-neutral-800"
             : "border-neutral-200 bg-white hover:bg-neutral-50"
         }`}
       >
-        <span className="relative shrink-0">
-          <VoltaAvatar pose={issues.length > 0 ? "perplexe" : "confiante"} size={40} />
-          {issues.length > 0 ? (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[11px] font-bold text-white ring-2 ring-white">
-              {issues.length}
-            </span>
-          ) : null}
-        </span>
+        {variant === "header" ? <span className={issues.length > 0 ? "text-amber-500" : "text-emerald-500"} aria-hidden="true">⚠</span> : <span className="relative shrink-0"><VoltaAvatar pose={issues.length > 0 ? "perplexe" : "confiante"} size={40} />{issues.length > 0 ? <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[11px] font-bold text-white ring-2 ring-white">{issues.length}</span> : null}</span>}
         <span className={`text-xs font-semibold ${darkMode ? "text-neutral-200" : "text-neutral-800"}`}>
-          {issues.length === 0 ? "Rien à signaler" : "À vérifier"}
+          {issues.length === 0 ? "Rien à signaler" : `${issues.length} alerte${issues.length > 1 ? "s" : ""}`}
         </span>
       </button>
     </div>

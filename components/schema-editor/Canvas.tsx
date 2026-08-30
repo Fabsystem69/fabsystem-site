@@ -30,7 +30,7 @@ import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 const nodeTypes = { electrical: ElectricalNode, cableWaypoint: CableWaypointNode, zone: ZoneNode };
 const edgeTypes = { cable: CableEdge };
 
-type CanvasIconName = "undo" | "redo" | "zoom-out" | "zoom-in" | "frame" | "selection" | "grid" | "busbar-layout";
+type CanvasIconName = "undo" | "redo" | "zoom-out" | "zoom-in" | "frame" | "selection" | "grid";
 
 // Icônes SVG locales : aucune police de symboles à charger et un sens lisible
 // immédiatement sur le bandeau de pilotage du canvas.
@@ -44,7 +44,6 @@ function CanvasIcon({ name }: { name: CanvasIconName }) {
     frame: <><path {...common} d="M8 4H4v4m12-4h4v4m0 8v4h-4M8 20H4v-4" /></>,
     selection: <><rect {...common} x="4.5" y="4.5" width="15" height="15" rx="1" strokeDasharray="2.5 2.5" /><path {...common} d="m10 9 4.5 4.5-2.5.6 1.2 2.5-1.5.7-1.2-2.5-1.8 1.8Z" fill="currentColor" stroke="none" /></>,
     grid: <><rect {...common} x="4" y="4" width="16" height="16" rx="1" /><path {...common} d="M9.33 4v16M14.66 4v16M4 9.33h16M4 14.66h16" /></>,
-    "busbar-layout": <><path {...common} d="M12 4v16" /><circle cx="8" cy="7" r="1.5" fill="currentColor" /><circle cx="16" cy="11" r="1.5" fill="currentColor" /><circle cx="7" cy="16" r="1.5" fill="currentColor" /><path {...common} d="M9.5 7H12m0 4h2.5M8.5 16H12" /></>,
   };
   return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5">{paths[name]}</svg>;
 }
@@ -219,7 +218,6 @@ export function Canvas() {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const showGrid = useSchemaStore((s) => s.showGrid);
   const setShowGrid = useSchemaStore((s) => s.setShowGrid);
-  const optimizeBusbarLayouts = useSchemaStore((s) => s.optimizeBusbarLayouts);
   const undo = useSchemaStore((s) => s.undo);
   const redo = useSchemaStore((s) => s.redo);
   const canUndo = useSchemaStore((s) => s.past.length > 0);
@@ -317,7 +315,15 @@ export function Canvas() {
     [edges],
   );
 
-  const reactFlowNodes = useMemo<Node[]>(() => [...nodes, ...waypointNodes], [nodes, waypointNodes]);
+  const reactFlowNodes = useMemo<Node[]>(
+    () => [
+      // En sélection multiple, les zones restent le fond visuel et ne
+      // capturent plus le rectangle de sélection destiné aux composants.
+      ...nodes.map((node) => (selectionMode && node.type === "zone" ? { ...node, selectable: false } : node)),
+      ...waypointNodes,
+    ],
+    [nodes, waypointNodes, selectionMode],
+  );
 
   // Sépare les changements de position des nœuds de coude synthétiques (à
   // écrire dans `edge.data.bendPoints[index]`) des changements sur de vrais
@@ -493,6 +499,11 @@ export function Canvas() {
         minZoom={0.2}
         maxZoom={2}
         selectionOnDrag={selectionMode}
+        // Le même geste ne peut pas déplacer le canvas et tracer une boîte
+        // de sélection. Le bouton Sélection bascule donc explicitement de
+        // l'un à l'autre, au lieu de laisser React Flow choisir selon le
+        // navigateur ou la zone de départ du glisser.
+        panOnDrag={!selectionMode}
         // V2, retour utilisateur : le geste à deux doigts sur trackpad
         // zoomait au lieu de déplacer le canvas — comportement par défaut
         // de React Flow (zoomOnScroll=true, panOnScroll=false). On inverse
@@ -520,7 +531,14 @@ export function Canvas() {
         // sur le fond du canvas désélectionne et referme le popup.
         onPaneClick={() => select(null, null)}
       >
-        {showGrid ? <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={darkMode ? "#3f3f46" : "#d4d4d4"} /> : null}
+        {showGrid ? (
+          <>
+            {/* Papier quadrillé: une maille fine pour placer les éléments,
+                puis un repère majeur tous les 100 px pour lire l'espace. */}
+            <Background id="schema-grid-minor" variant={BackgroundVariant.Lines} gap={10} size={1} color={darkMode ? "#26272d" : "#edf0f3"} />
+            <Background id="schema-grid-major" variant={BackgroundVariant.Lines} gap={100} size={1.25} color={darkMode ? "#40424b" : "#d6dbe1"} />
+          </>
+        ) : null}
         <CableCrossingOverlay suspended={isDraggingNode} />
         <AlignmentGuideOverlay />
       </ReactFlow>
@@ -553,7 +571,6 @@ export function Canvas() {
         <button type="button" onClick={() => setZoom(canvasZoom + 0.1)} title="Augmenter le zoom" aria-label="Augmenter le zoom" className={canvasControlButtonClass}><CanvasIcon name="zoom-in" /></button>
         <span className={`h-7 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
         <button type="button" onClick={frameCanvas} title="Cadrer tout le schéma" aria-label="Cadrer tout le schéma" className={canvasControlButtonClass}><CanvasIcon name="frame" /></button>
-        <button type="button" onClick={optimizeBusbarLayouts} title="Optimiser les plots des busbars" aria-label="Optimiser les plots des busbars" className={canvasControlButtonClass}><CanvasIcon name="busbar-layout" /></button>
         <button
           type="button"
           onClick={() => setSelectionMode((current) => !current)}

@@ -2,16 +2,24 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
+import { downloadPortableSchemaFile } from "@/features/schemas/file-transfer";
+import { openPrintableBom } from "@/features/schemas/export";
+import { computeBom } from "@/lib/electrical-components/bom";
 import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
 import { SaveMenu } from "./SaveMenu";
 import { AddComponentMenu } from "./AddComponentMenu";
 import { CalculatorMenu } from "./CalculatorMenu";
+import { ExportPreviewDialog } from "./ExportPreviewDialog";
+import { OpenSchemaDialog } from "./OpenSchemaDialog";
+import { TemplatePickerDialog } from "./TemplatePickerDialog";
+import { SystemBuilderDialog } from "./SystemBuilderDialog";
+import { ShareSchemaDialog } from "./ShareSchemaDialog";
+import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 import { PropertiesTab } from "./PropertiesTab";
-import { DarkModeToggle } from "./DisplayMenu";
 import { MenubarHeading, MenubarIcon, MenubarItem, MenubarPanel, MenubarSection, RibbonButton, RibbonDivider, RibbonGroup, RibbonPanel } from "./RibbonControls";
-import { getSchemaTemplatesByVehicleGroup } from "@/features/schemas/templates";
 import { getComponentDefinition, CATEGORY_LABELS } from "@/lib/electrical-components/definitions";
 
 // Bandeau type ruban (retour utilisateur : "chargé sans avoir beaucoup de
@@ -121,6 +129,7 @@ export function Ribbon() {
           }`}
           aria-label="Nom du schéma"
         />
+        <SaveMenu darkMode={darkMode} variant="header" />
 
         <EditorMenuBar
           darkMode={darkMode}
@@ -140,14 +149,6 @@ export function Ribbon() {
         </span>
       </div>
 
-      {/* Rangée 2 : groupe d'actions de l'onglet actif */}
-      <div className="flex h-14 items-center gap-2 px-4">
-        {activeTab === "accueil" ? <AccueilGroup darkMode={darkMode} showGrid={showGrid} setShowGrid={setShowGrid} /> : null}
-        {activeTab === "ajouter" ? <AjouterGroup darkMode={darkMode} /> : null}
-        {activeTab === "export" ? <ExportGroup darkMode={darkMode} showGrid={showGrid} /> : null}
-        {activeTab === "aide" ? <AideGroup darkMode={darkMode} /> : null}
-        {activeTab === "proprietes" ? <PropertiesTab darkMode={darkMode} /> : null}
-      </div>
     </header>
   );
 }
@@ -168,10 +169,27 @@ function EditorMenuBar({
   onNewProject: () => void;
 }) {
   const [openMenu, setOpenMenu] = useState<"file" | "view" | "tools" | null>(null);
+  const [exportPreviewKind, setExportPreviewKind] = useState<"png" | "pdf" | null>(null);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [openSchemaDialogOpen, setOpenSchemaDialogOpen] = useState(false);
+  const [systemBuilder, setSystemBuilder] = useState<"solar" | "battery" | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const setIconStyle = useSchemaStore((s) => s.setIconStyle);
   const setDarkMode = useSchemaStore((s) => s.setDarkMode);
+  const showComponentLabels = useSchemaStore((s) => s.showComponentLabels);
+  const setShowComponentLabels = useSchemaStore((s) => s.setShowComponentLabels);
+  const projectName = useSchemaStore((s) => s.projectName);
+  const projectId = useSchemaStore((s) => s.projectId);
+  const nodes = useSchemaStore((s) => s.nodes);
+  const edges = useSchemaStore((s) => s.edges);
+  const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
+  const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
+  const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
+  const optimizeBusbarLayouts = useSchemaStore((s) => s.optimizeBusbarLayouts);
+  const openInstallAssistant = useSchemaStore((s) => s.openInstallAssistant);
   const menuRef = useRef<HTMLDivElement>(null);
+  const { getNodes, getEdges } = useReactFlow();
 
   useEffect(() => {
     if (!openMenu) return;
@@ -204,8 +222,48 @@ function EditorMenuBar({
     setOpenMenu(null);
   }
 
+  function report(message: string) {
+    setSaveStatus("saved", { scope: "local", message });
+  }
+
+  function exportSchemaFile() {
+    if (nodes.length === 0) return;
+    downloadPortableSchemaFile({ projectName, nodes, edges });
+    report("Copie du schéma téléchargée");
+  }
+
+  function exportBom() {
+    if (nodes.length === 0) return;
+    openPrintableBom(computeBom(getNodes(), getEdges()), projectName);
+    report("Liste de matériel prête à imprimer");
+  }
+
+  function runCableRecalculation() {
+    const count = recalculateAllCableSections();
+    report(count > 0 ? `${count} section${count > 1 ? "s" : ""} de câble recalculée${count > 1 ? "s" : ""}` : "Aucune section de câble à modifier");
+    setOpenMenu(null);
+  }
+
+  function runProtectionRecalculation() {
+    const count = recalculateAllFuseRatings();
+    report(count > 0 ? `${count} protection${count > 1 ? "s" : ""} recalculée${count > 1 ? "s" : ""}` : "Aucune protection à modifier");
+    setOpenMenu(null);
+  }
+
+  function runBusbarOptimization() {
+    optimizeBusbarLayouts();
+    report("Plots de busbar optimisés selon les câbles connectés");
+    setOpenMenu(null);
+  }
+
+  function openOrganization() {
+    setTemplatePickerOpen(true);
+    setOpenMenu(null);
+  }
+
   return (
-    <nav ref={menuRef} className="ml-3 flex items-center gap-1 border-l pl-3 dark:border-neutral-800 border-neutral-200" aria-label="Menu de l'éditeur">
+    <>
+    <nav ref={menuRef} className="ml-3 flex flex-1 items-center gap-1 border-l pl-3 dark:border-neutral-800 border-neutral-200" aria-label="Menu de l'éditeur">
       <div className="relative">
         <button type="button" aria-expanded={openMenu === "file"} onClick={() => setOpenMenu((menu) => (menu === "file" ? null : "file"))} className={menuButtonClass(openMenu === "file")}>
           Fichier <MenubarIcon name="chevron" className="h-4 w-4" />
@@ -213,11 +271,17 @@ function EditorMenuBar({
         {openMenu === "file" ? (
           <MenubarPanel darkMode={darkMode}>
             <MenubarHeading darkMode={darkMode}>Projet</MenubarHeading>
-            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="new" />} title="Nouveau schéma" detail="Partir d'un canevas vide" shortcut="⌘N" onClick={() => { onNewProject(); setOpenMenu(null); }} />
-            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="folder" />} title="Choisir un modèle" detail="Ouvrir un schéma de départ" shortcut="⌘O" onClick={() => select("accueil")} />
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="new" />} title="Nouveau schéma" detail="Choisir un modèle ou partir d'un canevas vide" shortcut="⌘N" onClick={() => { setTemplatePickerOpen(true); setOpenMenu(null); }} />
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="folder" />} title="Ouvrir un schéma" detail="Schémas sauvegardés, modèles ou import" shortcut="⌘O" onClick={() => { setOpenSchemaDialogOpen(true); setOpenMenu(null); }} />
             <MenubarSection darkMode={darkMode}>
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="save" />} title="Enregistrer" detail="Brouillon local et sauvegarde" shortcut="⌘S" onClick={() => select("export")} />
-              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="export" />} title="Exporter ou imprimer" detail="PDF, PNG ou fichier du schéma" onClick={() => select("export")} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="image" />} title="Exporter en PNG" detail="Choisir le cadrage et la qualité avant téléchargement" onClick={() => { setExportPreviewKind("png"); setOpenMenu(null); }} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="export" />} title="Imprimer en PDF" detail="Choisir le cadrage avant impression" onClick={() => { setExportPreviewKind("pdf"); setOpenMenu(null); }} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="save" />} title="Télécharger le schéma" detail="Copie complète au format .fabschema" onClick={() => { exportSchemaFile(); setOpenMenu(null); }} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="folder" />} title="Liste de matériel" detail="Équipements et quantités à imprimer" onClick={() => { exportBom(); setOpenMenu(null); }} />
+            </MenubarSection>
+            <MenubarSection darkMode={darkMode}>
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="new" />} title="Vider le canevas" detail="Repartir d'un schéma vierge après confirmation" onClick={() => { onNewProject(); setOpenMenu(null); }} />
             </MenubarSection>
           </MenubarPanel>
         ) : null}
@@ -230,6 +294,7 @@ function EditorMenuBar({
         {openMenu === "view" ? (
           <MenubarPanel darkMode={darkMode}>
             <MenubarHeading darkMode={darkMode}>Affichage du canevas</MenubarHeading>
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="components" />} title="Libellés des composants" detail={showComponentLabels ? "Noms affichés sur le schéma" : "Noms masqués sur le schéma"} active={showComponentLabels} shortcut="C" onClick={() => { setShowComponentLabels(!showComponentLabels); setOpenMenu(null); }} />
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="image" />} title="Illustrations des composants" detail={iconStyle === "pro" ? "Visuels réels activés" : "Symboles techniques activés"} active={iconStyle === "pro"} onClick={() => { setIconStyle(iconStyle === "pro" ? "simple" : "pro"); setOpenMenu(null); }} />
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="grid" />} title="Grille du canevas" detail={showGrid ? "Grille visible" : "Grille masquée"} active={showGrid} shortcut="G" onClick={() => { onToggleGrid(); setOpenMenu(null); }} />
             <MenubarSection darkMode={darkMode}>
@@ -245,10 +310,21 @@ function EditorMenuBar({
         </button>
         {openMenu === "tools" ? (
           <MenubarPanel darkMode={darkMode}>
-            <MenubarHeading darkMode={darkMode}>Édition</MenubarHeading>
-            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="components" />} title="Ajouter un composant" detail="Équipements, protections et consommateurs" onClick={() => select("ajouter")} />
-            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="layout" />} title="Organisation et modèles" detail="Gabarits, zones et présentation" onClick={() => select("accueil")} />
+            <MenubarHeading darkMode={darkMode}>Ajout guidé</MenubarHeading>
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="components" />} title="Ajouter du solaire" detail="Assistant: panneaux, régulateur et protection" onClick={() => { openInstallAssistant(); setOpenMenu(null); }} />
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="components" />} title="Créer un champ solaire" detail="Choisir les panneaux et leur montage série ou parallèle" onClick={() => { setSystemBuilder("solar"); setOpenMenu(null); }} />
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="components" />} title="Créer un parc batteries" detail="Choisir les batteries et leur câblage série ou parallèle" onClick={() => { setSystemBuilder("battery"); setOpenMenu(null); }} />
+            <MenubarSection darkMode={darkMode}>
+              <MenubarHeading darkMode={darkMode}>Contrôles électriques</MenubarHeading>
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="calculator" />} title="Recalculer les sections" detail="Met à jour les câbles dont les données sont suffisantes" onClick={runCableRecalculation} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="calculator" />} title="Recalculer les protections" detail="Met à jour les fusibles et disjoncteurs compatibles" onClick={runProtectionRecalculation} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="layout" />} title="Optimiser les busbars" detail="Répartit les plots vers le côté le plus proche" onClick={runBusbarOptimization} />
+            </MenubarSection>
+            <MenubarSection darkMode={darkMode}>
+              <MenubarHeading darkMode={darkMode}>Édition</MenubarHeading>
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="layout" />} title="Organisation et modèles" detail="Canevas structuré, zones et modèles" onClick={openOrganization} />
             {hasSelection ? <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="properties" />} title="Propriétés de la sélection" detail="Modifier l'élément sélectionné" onClick={() => select("proprietes")} /> : null}
+            </MenubarSection>
             <MenubarSection darkMode={darkMode}>
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="help" />} title="Aide et retours" detail="Raccourcis, assistance et signalement" onClick={() => select("aide")} />
             </MenubarSection>
@@ -257,41 +333,29 @@ function EditorMenuBar({
       </div>
 
       <CalculatorMenu darkMode={darkMode} variant="menubar" />
+      <SchemaIssuesWidget variant="header" />
+      <button type="button" onClick={() => setShareOpen(true)} className="ml-1 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-600">Partager</button>
     </nav>
+    {exportPreviewKind ? <ExportPreviewDialog initialKind={exportPreviewKind} initialShowGrid={showGrid} onClose={() => setExportPreviewKind(null)} /> : null}
+    {templatePickerOpen ? <TemplatePickerDialog onClose={() => setTemplatePickerOpen(false)} /> : null}
+    {openSchemaDialogOpen ? <OpenSchemaDialog onClose={() => setOpenSchemaDialogOpen(false)} onNew={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} onTemplates={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} /> : null}
+    {systemBuilder ? <SystemBuilderDialog kind={systemBuilder} onClose={() => setSystemBuilder(null)} /> : null}
+    {shareOpen ? <ShareSchemaDialog projectId={projectId} projectName={projectName} onClose={() => setShareOpen(false)} /> : null}
+    </>
   );
 }
 
-function AccueilGroup({
-  darkMode,
-  showGrid,
-  setShowGrid,
-}: {
-  darkMode: boolean;
-  showGrid: boolean;
-  setShowGrid: (value: boolean) => void;
-}) {
-  const templateGroups = getSchemaTemplatesByVehicleGroup();
-  const nodesCount = useSchemaStore((s) => s.nodes.filter((node) => node.type !== "zone").length);
-  const openInstallAssistant = useSchemaStore((s) => s.openInstallAssistant);
-  const newProject = useSchemaStore((s) => s.newProject);
-  const loadTemplate = useSchemaStore((s) => s.loadTemplate);
+function AccueilGroup({ darkMode }: { darkMode: boolean }) {
   const past = useSchemaStore((s) => s.past);
   const future = useSchemaStore((s) => s.future);
   const undo = useSchemaStore((s) => s.undo);
   const redo = useSchemaStore((s) => s.redo);
-  const applyGuidedPlanLayout = useSchemaStore((s) => s.applyGuidedPlanLayout);
-  const guidedPlanMode = useSchemaStore((s) => s.guidedPlanMode);
-  const setGuidedPlanMode = useSchemaStore((s) => s.setGuidedPlanMode);
-  const nodeCount = useSchemaStore((s) => s.nodes.filter((n) => n.type !== "zone").length);
-  const darkModeValue = useSchemaStore((s) => s.darkMode);
-  const iconStyle = useSchemaStore((s) => s.iconStyle);
-  const setIconStyle = useSchemaStore((s) => s.setIconStyle);
   const nodesForFilter = useSchemaStore((s) => s.nodes);
   const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
   const toggleCategoryVisibility = useSchemaStore((s) => s.toggleCategoryVisibility);
   const showAllCategories = useSchemaStore((s) => s.showAllCategories);
 
-  const [activePanel, setActivePanel] = useState<"gabarits" | "filtrer" | null>(null);
+  const [activePanel, setActivePanel] = useState<"filtrer" | null>(null);
   const panelsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -303,7 +367,7 @@ function AccueilGroup({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [activePanel]);
 
-  function togglePanel(panel: "gabarits" | "filtrer") {
+  function togglePanel(panel: "filtrer") {
     setActivePanel((prev) => (prev === panel ? null : panel));
   }
 
@@ -320,21 +384,6 @@ function AccueilGroup({
   }, [nodesForFilter]);
   const isFiltered = hiddenCategories.length > 0;
 
-  function handleNewProject() {
-    if (nodesCount > 0 && !window.confirm("Repartir d'un schéma vierge ? Le schéma actuel restera sauvegardé jusqu'à la prochaine modification.")) {
-      return;
-    }
-    newProject();
-  }
-
-  function handleLoadTemplate(id: string, label: string) {
-    if (nodesCount > 0 && !window.confirm(`Charger « ${label} » à la place du schéma actuel ? Le schéma actuel restera sauvegardé jusqu'à la prochaine modification.`)) {
-      return;
-    }
-    loadTemplate(id);
-    setActivePanel(null);
-  }
-
   return (
     // display:contents : invisible pour la mise en page (les enfants
     // restent des flex items directs de la rangée 2 du ruban), juste un
@@ -343,59 +392,6 @@ function AccueilGroup({
     // Options dès qu'on cliquait DEDANS (bug réel trouvé en ajoutant Options
     // ici).
     <div className="contents" ref={panelsRef}>
-      {/* Retour utilisateur : "un module débutant guidé genre chat box où
-          il dit ce qu'il veut... tu viens rajouter les panneaux dans un
-          autre zone" — voir InstallAssistant.tsx. Groupe séparé et placé en
-          premier : c'est le point d'entrée pensé pour un débutant qui ne
-          sait pas par où commencer. */}
-      <RibbonGroup darkMode={darkMode} label="Assistant">
-        <RibbonButton darkMode={darkMode} onClick={openInstallAssistant} icon="💬" label="Débutant" title="Assistant guidé pour ajouter un équipement à ton schéma" />
-        {/* Retour utilisateur : "un menu outils/calculateur et ça ouvre en
-            popup l'outil sélectionné" — voir CalculatorMenu.tsx. */}
-        <CalculatorMenu darkMode={darkMode} />
-      </RibbonGroup>
-
-      <RibbonDivider darkMode={darkMode} />
-
-      <RibbonGroup darkMode={darkMode} label="Fichier">
-        <RibbonButton darkMode={darkMode} onClick={handleNewProject} icon="📄" label="Nouveau" title="Nouveau schéma vierge" />
-        <SaveMenu darkMode={darkMode} />
-        <div className="relative">
-          <RibbonButton
-            darkMode={darkMode}
-            onClick={() => togglePanel("gabarits")}
-            active={activePanel === "gabarits"}
-            icon="🗂️"
-            label="Modèles"
-            title="Charger un modèle de départ"
-          />
-          {activePanel === "gabarits" ? (
-            <RibbonPanel darkMode={darkMode}>
-              {templateGroups.map((group) => (
-                <div key={group.id} className="py-1">
-                  <p className={`px-3 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{group.label}</p>
-                  {group.templates.map((template) => (
-                    <button
-                      key={template.id}
-                      type="button"
-                      onClick={() => handleLoadTemplate(template.id, template.label)}
-                      className={`flex w-full px-3 py-1.5 text-left text-sm transition-base ${
-                        darkMode ? "text-neutral-200 hover:bg-neutral-800" : "text-neutral-700 hover:bg-neutral-100"
-                      }`}
-                      title={template.description}
-                    >
-                      <span>{template.label}</span>
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </RibbonPanel>
-          ) : null}
-        </div>
-      </RibbonGroup>
-
-      <RibbonDivider darkMode={darkMode} />
-
       <RibbonGroup darkMode={darkMode} label="Annuler">
         <RibbonButton darkMode={darkMode} onClick={undo} disabled={past.length === 0} icon="↶" label="Annuler" title="Annuler (Ctrl/Cmd+Z)" />
         <RibbonButton darkMode={darkMode} onClick={redo} disabled={future.length === 0} icon="↷" label="Rétablir" title="Rétablir (Ctrl/Cmd+Shift+Z)" />
@@ -404,21 +400,6 @@ function AccueilGroup({
       <RibbonDivider darkMode={darkMode} />
 
       <RibbonGroup darkMode={darkMode} label="Organisation">
-        <RibbonButton
-          darkMode={darkMode}
-          onClick={applyGuidedPlanLayout}
-          disabled={nodeCount === 0}
-          icon="▦"
-          label="Plan guidé"
-          title="Réorganise selon le tableau de câblage A2 (Ctrl/Cmd+Z pour annuler)"
-        />
-        <RibbonButton
-          darkMode={darkMode}
-          onClick={() => setGuidedPlanMode(!guidedPlanMode)}
-          icon={guidedPlanMode ? "▣" : "□"}
-          label={guidedPlanMode ? "Guidé" : "Libre"}
-          title={guidedPlanMode ? "Passer en plan libre : les prochains clics ne seront plus suggérés dans une zone" : "Activer les suggestions de placement par zone"}
-        />
         {categoryCounts.length > 0 ? (
           <div className="relative">
             <RibbonButton
@@ -462,56 +443,6 @@ function AccueilGroup({
         ) : null}
       </RibbonGroup>
 
-      <RibbonDivider darkMode={darkMode} />
-
-      <RibbonGroup darkMode={darkMode} label="Affichage">
-        <div className="flex w-16 shrink-0 flex-col items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setIconStyle(iconStyle === "pro" ? "simple" : "pro")}
-            title={iconStyle === "pro" ? "Passer aux icônes symboles" : "Passer aux icônes illustrations"}
-            aria-pressed={iconStyle === "pro"}
-            className={`relative inline-flex h-7 w-14 shrink-0 items-center rounded-full border transition-base ${
-              darkMode ? "border-neutral-600 bg-neutral-700" : "border-neutral-300 bg-neutral-200"
-            }`}
-          >
-            <span className="sr-only">{iconStyle === "pro" ? "Passer aux icônes symboles" : "Passer aux icônes illustrations"}</span>
-            <span className="flex w-full items-center justify-between px-1.5 text-[9px] font-semibold leading-none">
-              <span className={iconStyle === "pro" ? "opacity-30" : "opacity-90"}>Sym</span>
-              <span className={iconStyle === "pro" ? "opacity-90" : "opacity-30"}>Illu</span>
-            </span>
-            <span
-              className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-base ${
-                iconStyle === "pro" ? "translate-x-[1.625rem]" : "translate-x-0.5"
-              }`}
-            />
-          </button>
-          <span className={`text-[10px] font-medium leading-tight ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>Icônes</span>
-        </div>
-        <div className="flex w-16 shrink-0 flex-col items-center gap-1">
-          <DarkModeToggle darkMode={darkModeValue} />
-          <span className={`text-[10px] font-medium leading-tight ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>Jour/Nuit</span>
-        </div>
-        <div className="flex w-16 shrink-0 flex-col items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setShowGrid(!showGrid)}
-            title="Inclure la grille dans les exports/impressions"
-            aria-pressed={showGrid}
-            className={`relative inline-flex h-7 w-14 shrink-0 items-center rounded-full border transition-base ${
-              showGrid ? (darkMode ? "border-brand-500 bg-brand-600" : "border-brand-400 bg-brand-400") : darkMode ? "border-neutral-700 bg-neutral-800" : "border-neutral-300 bg-neutral-200"
-            }`}
-          >
-            <span className="sr-only">{showGrid ? "Masquer la grille (exports/impressions)" : "Inclure la grille (exports/impressions)"}</span>
-            <span
-              className={`absolute top-0.5 h-6 w-6 rounded-full shadow-sm transition-base ${
-                showGrid ? "translate-x-[1.625rem] bg-white" : "translate-x-0.5 bg-white"
-              }`}
-            />
-          </button>
-          <span className={`text-[10px] font-medium leading-tight ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>Grille</span>
-        </div>
-      </RibbonGroup>
     </div>
   );
 }

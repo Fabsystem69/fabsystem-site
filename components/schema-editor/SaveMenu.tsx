@@ -25,7 +25,7 @@ import { RibbonButton, RibbonPanel } from "./RibbonControls";
 // ruban (voir Ribbon.tsx), chaque montage garde son propre état local
 // (panneau ouvert ou non) sans conflit puisqu'un seul onglet est visible à
 // la fois.
-export function SaveMenu({ darkMode }: { darkMode: boolean }) {
+export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; variant?: "ribbon" | "header" }) {
   const DEFAULT_CLOUD_ASSET_TYPE: ProjectAssetType = "BOAT";
   const DEFAULT_CLOUD_VOLTAGE: ProjectVoltage = "UNKNOWN";
   const [open, setOpen] = useState(false);
@@ -45,6 +45,7 @@ export function SaveMenu({ darkMode }: { darkMode: boolean }) {
   const [createAssetType, setCreateAssetType] = useState<ProjectAssetType>(DEFAULT_CLOUD_ASSET_TYPE);
   const [createVoltage, setCreateVoltage] = useState<ProjectVoltage>(DEFAULT_CLOUD_VOLTAGE);
   const projectId = useSchemaStore((s) => s.projectId);
+  const saveStatus = useSchemaStore((s) => s.saveStatus);
   const setProjectId = useSchemaStore((s) => s.setProjectId);
   const projectName = useSchemaStore((s) => s.projectName);
   const nodes = useSchemaStore((s) => s.nodes);
@@ -128,6 +129,14 @@ export function SaveMenu({ darkMode }: { darkMode: boolean }) {
     const next = !open;
     setOpen(next);
     if (next && projectsStatus === "idle") await loadProjects();
+  }
+
+  async function handleHeaderSave() {
+    if (projectId) {
+      await handleLinkProject(projectId);
+      return;
+    }
+    await toggleOpen();
   }
 
   function syncProjectInUrl(id: string | null) {
@@ -230,14 +239,40 @@ export function SaveMenu({ darkMode }: { darkMode: boolean }) {
 
   return (
     <div className="relative" ref={containerRef}>
-      <RibbonButton
-        darkMode={darkMode}
-        onClick={() => void toggleOpen()}
-        active={open}
-        icon="💾"
-        label={projectId ? "Sauvegardé" : "Sauvegarder"}
-        title="Associer ce schéma à un projet de votre compte — réservé aux utilisateurs connectés"
-      />
+      {variant === "header" ? (
+        projectId && saveStatus !== "error" ? (
+          <button
+            type="button"
+            onClick={() => void handleHeaderSave()}
+            disabled={busy}
+            title="Sauvegardé dans votre projet. Cliquez pour enregistrer de nouveau."
+            className={`flex h-8 w-10 items-center justify-center rounded-lg transition-base disabled:cursor-not-allowed disabled:opacity-60 ${darkMode ? "text-emerald-300 hover:bg-emerald-400/10" : "text-emerald-700 hover:bg-emerald-50"}`}
+          >
+            <span className="text-lg" aria-hidden="true">☁✓</span>
+            <span className="sr-only">Sauvegardé dans le projet</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void handleHeaderSave()}
+            disabled={busy}
+            className="flex h-9 items-center gap-2 rounded-lg bg-amber-500 px-3 text-sm font-semibold text-white shadow-sm transition-base hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+            title="Sauvegarder ce schéma dans votre projet"
+          >
+            <span aria-hidden="true">💾</span>
+            <span>{busy ? "Sauvegarde…" : "Sauvegarder"}</span>
+          </button>
+        )
+      ) : (
+        <RibbonButton
+          darkMode={darkMode}
+          onClick={() => void toggleOpen()}
+          active={open}
+          icon="💾"
+          label={projectId ? "Sauvegardé" : "Sauvegarder"}
+          title="Associer ce schéma à un projet de votre compte — réservé aux utilisateurs connectés"
+        />
+      )}
       {open ? (
         <RibbonPanel darkMode={darkMode} width="w-72">
           {projectId ? (

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { Handle, Position, useUpdateNodeInternals, type NodeProps, type Node } from "@xyflow/react";
 import { getComponentDefinition, getNodeIcon, getEffectiveHandles, getHandleLabel } from "@/lib/electrical-components/definitions";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import type { ElectricalNodeData, HandleKind } from "@/types/schema";
+import { computeSchemaIssues, type SchemaIssueSeverity } from "@/lib/electrical-components/checks";
 
 // Rendu générique piloté par la définition du composant
 // (docs/schema/CDC_FabSystem_Schema_V1.md §45-46) : un seul composant React
@@ -70,6 +71,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const def = getComponentDefinition(data.componentType);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
+  const showComponentLabels = useSchemaStore((s) => s.showComponentLabels);
   const isIssueHighlighted = useSchemaStore((s) => s.highlightedIssueTarget?.kind === "node" && s.highlightedIssueTarget.id === id);
   // Retour utilisateur : seules les bornes réellement polarisées (+/−)
   // gardent une couleur fixe (rouge/noir) — une borne non polarisée
@@ -77,6 +79,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   // branché, puis reprend la couleur réelle du câble connecté, plutôt
   // qu'une couleur générique par "kind" qui peut induire en erreur.
   const edges = useSchemaStore((s) => s.edges);
+  const nodes = useSchemaStore((s) => s.nodes);
   const rotateNode = useSchemaStore((s) => s.rotateNode);
   const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
@@ -85,6 +88,17 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const mirrored = Boolean(data.mirrored);
   const outputCount = Number(data.outputCount) || 0;
   const busbarFaceLayout = `${String(data.leftPoints ?? "")}:${String(data.topPoints ?? "")}:${String(data.rightPoints ?? "")}:${String(data.bottomPoints ?? "")}`;
+  const nodeIssues = useMemo(
+    () => computeSchemaIssues(nodes, edges).filter((issue) => issue.targetKind === "node" && issue.targetId === id),
+    [nodes, edges, id],
+  );
+  const issueSeverity: SchemaIssueSeverity | null = nodeIssues.some((issue) => issue.severity === "error")
+    ? "error"
+    : nodeIssues.some((issue) => issue.severity === "warning")
+      ? "warning"
+      : nodeIssues.length > 0
+        ? "info"
+        : null;
 
   // React Flow met en cache la position de chaque borne pour tracer les
   // câbles ; changer le côté effectif d'une borne (pivot) ou leur nombre
@@ -119,7 +133,10 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
       .filter((handleId): handleId is string => Boolean(handleId)),
   );
   const connectedOnSide = (side: Side) => bySide[side].filter(({ handle }) => connectedHandles.has(handle.id)).length;
-  const componentLabelSide: "top" | "bottom" = connectedOnSide("bottom") > connectedOnSide("top") ? "top" : "bottom";
+  const configuredLabelPosition = data.labelPosition === "top" || data.labelPosition === "bottom" ? data.labelPosition : "auto";
+  const componentLabelSide: "top" | "bottom" = configuredLabelPosition === "auto"
+    ? connectedOnSide("bottom") > connectedOnSide("top") ? "top" : "bottom"
+    : configuredLabelPosition;
 
   // Bornes dont la polarité dépend d'une propriété du composant (ex.
   // busbar) plutôt que d'être fixe dans la définition.
@@ -219,7 +236,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
       className={`max-w-full truncate px-1 font-medium leading-tight ${
         selected ? "text-neutral-700" : darkMode ? "text-neutral-300" : "text-neutral-700"
       }`}
-      style={{ fontSize: 10 + (displayScale - 1) * 1.5 }}
+      style={{ fontSize: 10 + (displayScale - 1) * 1.5, transform: `rotate(${Number(data.labelAngle) || 0}deg)` }}
       title={String(data.label ?? def.label)}
     >
       {String(data.label ?? def.label)}
@@ -228,7 +245,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
 
   return (
     <div className="relative flex w-fit flex-col items-center gap-1">
-      {componentLabelSide === "top" ? componentLabel : null}
+      {showComponentLabels && componentLabelSide === "top" ? componentLabel : null}
       {selected ? (
         <div
           className={`nodrag nopan absolute -top-7 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-md border px-1 py-0.5 shadow-sm ${
@@ -300,6 +317,7 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
           gridTemplateAreas: `"tl top tr" "left icon right" "bl bottom br"`,
         }}
       >
+        {issueSeverity ? <IssueBadge severity={issueSeverity} messages={nodeIssues.map((issue) => issue.message)} /> : null}
         {topLabels.length > 0 && (
           <div
             ref={topRef}
@@ -416,7 +434,29 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
         })}
       </div>
 
-      {componentLabelSide === "bottom" ? componentLabel : null}
+      {showComponentLabels && componentLabelSide === "bottom" ? componentLabel : null}
     </div>
+  );
+}
+
+function IssueBadge({ severity, messages }: { severity: SchemaIssueSeverity; messages: string[] }) {
+  const tone = severity === "error"
+    ? { fill: "#dc2626", label: "Erreur" }
+    : severity === "warning"
+      ? { fill: "#f59e0b", label: "Avertissement" }
+      : { fill: "#0284c7", label: "Information" };
+  return (
+    <span
+      className="pointer-events-none absolute -left-4 -top-5 z-20 drop-shadow-md"
+      title={`${tone.label} : ${messages.join("\n")}`}
+      aria-label={`${tone.label} : ${messages.join(". ")}`}
+    >
+      <svg viewBox="0 0 42 50" className="h-10 w-9" role="img" aria-hidden="true">
+        <path d="M21 1C9.95 1 1 9.95 1 21c0 15 20 28 20 28s20-13 20-28C41 9.95 32.05 1 21 1Z" fill={tone.fill} stroke="white" strokeWidth="3" />
+        <path d="M21 11v13" stroke="white" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="21" cy="31" r="2.5" fill="white" />
+      </svg>
+      <span className="sr-only">{tone.label}</span>
+    </span>
   );
 }

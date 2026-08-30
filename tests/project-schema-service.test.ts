@@ -36,6 +36,8 @@ function createProjectSchemaRecord(overrides: Partial<ProjectSchema> = {}): Proj
     nodes: overrides.nodes ?? [],
     edges: overrides.edges ?? [],
     thumbnail: overrides.thumbnail ?? null,
+    shareToken: overrides.shareToken ?? null,
+    shareEnabledAt: overrides.shareEnabledAt ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
   };

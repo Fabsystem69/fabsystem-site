@@ -18,6 +18,7 @@ import {
   buildCloudStatusMessage,
   buildLocalDraftAssistant,
 } from "@/lib/schema-editor/save-assistant";
+import { PropertiesSidebar } from "./PropertiesSidebar";
 import { Ribbon } from "./Ribbon";
 import { ComponentLibrary } from "./ComponentLibrary";
 import { Canvas } from "./Canvas";
@@ -30,7 +31,6 @@ import { SizingPopup } from "./SizingPopup";
 import { BatteryPairPopup } from "./BatteryPairPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
 import { InstallAssistant } from "./InstallAssistant";
-import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 
 const AUTOSAVE_DELAY_MS = 700;
 
@@ -332,9 +332,10 @@ export function Editor() {
       <div className={`flex h-screen flex-col ${darkMode ? "bg-neutral-950" : "bg-white"}`}>
         <Ribbon />
         <SaveAssistantBanner />
-        <div className="flex min-h-0 flex-1">
+        <div className="relative flex min-h-0 flex-1">
           <ComponentLibrary />
           <Canvas />
+          <PropertiesSidebar />
         </div>
       </div>
       <EditorShortcuts />
@@ -355,7 +356,6 @@ export function Editor() {
       <BatteryPairPopup />
       <GuidedTutorial />
       <InstallAssistant />
-      <SchemaIssuesWidget />
       <CoachingOfferWidget />
     </ReactFlowProvider>
   );

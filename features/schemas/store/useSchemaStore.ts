@@ -19,7 +19,7 @@ import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import { movePointWithZones, moveZoneContents } from "@/lib/schema-editor/zone-contents";
 import { optimizeBusbarHandleLayout } from "@/lib/schema-editor/busbar-layout";
 import { computeAutoLayout } from "@/lib/schema-editor/auto-layout";
-import { applyGuidedPlan } from "@/lib/schema-editor/guided-plan";
+import { applyGuidedPlan, buildStructuredCanvas } from "@/lib/schema-editor/guided-plan";
 import type { SolarInstallPlan } from "@/lib/schema-editor/guided-install/solar";
 import type { CustomCatalogItem } from "@/features/schemas/customCatalogApi";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
@@ -28,7 +28,7 @@ const ICON_STYLE_STORAGE_KEY = "fabsystem-schema:icon-style";
 const DARK_MODE_STORAGE_KEY = "fabsystem-schema:dark-mode";
 const LEFT_PANEL_COLLAPSED_KEY = "fabsystem-schema:left-panel-collapsed";
 let issueHighlightTimeout: ReturnType<typeof setTimeout> | null = null;
-const DEFAULT_GUIDED_PLAN = applyGuidedPlan([], []);
+const DEFAULT_STRUCTURED_CANVAS = buildStructuredCanvas();
 
 // Retour v2.1 : le mode illustration ("pro") est plus vendeur/lisible pour
 // un nouvel utilisateur que les symboles électriques. Devient le défaut pour
@@ -210,6 +210,15 @@ const DEFAULT_CABLE_TYPE_BY_KIND: Record<HandleKind, string> = {
 export type SchemaNode = Node<ElectricalNodeData>;
 export type SchemaEdge = Edge<CableEdgeData>;
 
+export type SystemBuilderConfig = {
+  kind: "solar" | "battery";
+  quantity: number;
+  arrangement: "parallel" | "series" | "2s2p";
+  wiring: "busbars" | "daisy-chain";
+  brandModelId: string | null;
+  position: { x: number; y: number };
+};
+
 interface Snapshot {
   nodes: SchemaNode[];
   edges: SchemaEdge[];
@@ -281,8 +290,10 @@ interface SchemaState {
   // pas) ; levé au store pour que Canvas.tsx (affichage réel) ET les
   // captures d'export lisent la même valeur.
   showGrid: boolean;
-  // Actif pour les nouveaux schémas seulement. Le plan libre désactive les
-  // suggestions de placement, sans jamais déplacer un composant existant.
+  /** Affiche le nom sous/au-dessus des composants, sans masquer les bornes. */
+  showComponentLabels: boolean;
+  // Compatibilité des brouillons existants: l'interface ne propose plus le
+  // plan guidé et les nouveaux composants suivent toujours le placement libre.
   guidedPlanMode: boolean;
   leftPanelCollapsed: boolean;
   // v2.1, retour utilisateur : "le bandeau de droite... si celui est réduit
@@ -435,6 +446,7 @@ interface SchemaState {
   setIconStyle: (style: IconStyle) => void;
   setDarkMode: (value: boolean) => void;
   setShowGrid: (value: boolean) => void;
+  setShowComponentLabels: (value: boolean) => void;
   setGuidedPlanMode: (value: boolean) => void;
   toggleLeftPanel: () => void;
   openItemPropertiesPopup: () => void;
@@ -492,7 +504,7 @@ interface SchemaState {
   select: (kind: "node" | "edge" | null, id: string | null) => void;
   undo: () => void;
   redo: () => void;
-  newProject: () => void;
+  newProject: (options?: { withZones?: boolean }) => void;
   loadTemplate: (id: string) => void;
   setSaveStatus: (
     status: "saved" | "saving" | "error",
@@ -523,6 +535,9 @@ interface SchemaState {
   // l'id de la zone créée pour que l'UI puisse la sélectionner/centrer la
   // vue dessus.
   insertGuidedInstall: (plan: SolarInstallPlan) => string;
+  /** Pose et câble un ensemble homogène (champ solaire ou parc batteries)
+   * en une seule opération, donc annulable en un seul Ctrl/Cmd+Z. */
+  buildSystem: (config: SystemBuilderConfig) => void;
   setHasUnlimitedConsumers: (value: boolean) => void;
   setIsLoggedIn: (value: boolean) => void;
   dismissFreemiumLimitPopup: () => void;
@@ -553,8 +568,8 @@ function defaultSaveMessage(status: SchemaState["saveStatus"], scope: SchemaSave
 
 export const useSchemaStore = create<SchemaState>((set) => ({
   projectName: "Nouveau schéma",
-  nodes: DEFAULT_GUIDED_PLAN.nodes,
-  edges: DEFAULT_GUIDED_PLAN.edges,
+  nodes: DEFAULT_STRUCTURED_CANVAS.nodes,
+  edges: DEFAULT_STRUCTURED_CANVAS.edges,
   selectedNodeId: null,
   selectedEdgeId: null,
   past: [],
@@ -567,7 +582,8 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   iconStyle: loadIconStyle(),
   darkMode: loadDarkMode(),
   showGrid: true,
-  guidedPlanMode: true,
+  showComponentLabels: true,
+  guidedPlanMode: false,
   leftPanelCollapsed: loadPanelCollapsed(LEFT_PANEL_COLLAPSED_KEY),
   itemPropertiesPopupOpen: false,
   draggingComponentType: null,
@@ -625,6 +641,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   },
 
   setShowGrid: (value) => set({ showGrid: value }),
+  setShowComponentLabels: (value) => set({ showComponentLabels: value }),
 
   toggleLeftPanel: () =>
     set((state) => {
@@ -1286,9 +1303,9 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       };
     }),
 
-  newProject: () =>
+  newProject: (options) =>
     set(() => {
-      const plan = applyGuidedPlan([], []);
+      const plan = options?.withZones === false ? { nodes: [], edges: [] } : buildStructuredCanvas();
       return {
       projectName: "Nouveau schéma",
       nodes: plan.nodes,
@@ -1307,7 +1324,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       saveAssistant: null,
       guidedMode: false,
       guidedStepIndex: 0,
-      guidedPlanMode: true,
+      guidedPlanMode: false,
       consumerBaseline: 0,
       };
     }),
@@ -1505,6 +1522,104 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     });
     return zoneId;
   },
+
+  buildSystem: (config) =>
+    set((state) => {
+      const quantity = Math.max(2, Math.min(config.kind === "solar" ? 8 : 6, Math.round(config.quantity)));
+      const type = config.kind === "solar" ? "solar-panel" : "battery";
+      const definition = getComponentDefinition(type);
+      const brandModel = config.brandModelId ? getBrandModel(config.brandModelId) : undefined;
+      if (!definition || (brandModel && brandModel.componentType !== type)) return {};
+
+      const nodeData = (index: number): ElectricalNodeData => ({
+        componentType: type,
+        label: config.kind === "solar" ? `Panneau solaire ${index + 1}` : `Batterie ${index + 1}`,
+        ...definition.defaultData,
+        ...(brandModel
+          ? { brandModelId: brandModel.id, brand: brandModel.brand, model: brandModel.model, ...brandModel.defaults }
+          : {}),
+      });
+      const columns = quantity > 4 ? 2 : 1;
+      const spacingX = 220;
+      const spacingY = 145;
+      const items: SchemaNode[] = Array.from({ length: quantity }, (_, index) => ({
+        id: nextId(type),
+        type: "electrical",
+        position: {
+          x: config.position.x + (index % columns) * spacingX,
+          y: config.position.y + Math.floor(index / columns) * spacingY,
+        },
+        data: nodeData(index),
+      }));
+      const edges: SchemaEdge[] = [];
+      const addEdge = (source: string, sourceHandle: string, target: string, targetHandle: string, kind: HandleKind) => {
+        edges.push({
+          id: nextId("edge"),
+          source,
+          sourceHandle,
+          target,
+          targetHandle,
+          type: "cable",
+          data: { color: HANDLE_COLORS[kind], cableType: DEFAULT_CABLE_TYPE_BY_KIND[kind], length: 0.5 },
+        });
+      };
+
+      const addBusbars = () => {
+        const busbarData = (polarity: "positive" | "negative"): ElectricalNodeData => ({
+          componentType: "busbar",
+          label: polarity === "positive" ? (config.kind === "solar" ? "Collecteur PV +" : "Busbar batterie +") : (config.kind === "solar" ? "Collecteur PV −" : "Busbar batterie −"),
+          ...getComponentDefinition("busbar")!.defaultData,
+          polarity,
+          outputCount: quantity - 1,
+          leftPoints: 0,
+          topPoints: 0,
+          rightPoints: quantity,
+          bottomPoints: 0,
+        });
+        const busbarX = config.position.x + columns * spacingX + 110;
+        const positive: SchemaNode = { id: nextId("busbar"), type: "electrical", position: { x: busbarX, y: config.position.y + 10 }, data: busbarData("positive") };
+        const negative: SchemaNode = { id: nextId("busbar"), type: "electrical", position: { x: busbarX, y: config.position.y + Math.max(180, Math.ceil(quantity / columns) * spacingY - 70) }, data: busbarData("negative") };
+        for (let index = 0; index < items.length; index += 1) {
+          const handle = index === 0 ? "input" : `out-${index}`;
+          addEdge(items[index].id, "positive", positive.id, handle, "positive");
+          addEdge(items[index].id, "negative", negative.id, handle, "negative");
+        }
+        return [positive, negative];
+      };
+
+      let extraNodes: SchemaNode[] = [];
+      if (config.arrangement === "parallel") {
+        if (config.wiring === "busbars") {
+          extraNodes = addBusbars();
+        } else {
+          for (let index = 0; index < items.length - 1; index += 1) {
+            addEdge(items[index].id, "positive", items[index + 1].id, "positive", "positive");
+            addEdge(items[index].id, "negative", items[index + 1].id, "negative", "negative");
+          }
+        }
+      } else if (config.arrangement === "series") {
+        for (let index = 0; index < items.length - 1; index += 1) {
+          addEdge(items[index].id, "positive", items[index + 1].id, "negative", "positive");
+        }
+      } else if (quantity === 4) {
+        addEdge(items[0].id, "positive", items[1].id, "negative", "positive");
+        addEdge(items[2].id, "positive", items[3].id, "negative", "positive");
+        addEdge(items[0].id, "negative", items[2].id, "negative", "negative");
+        addEdge(items[1].id, "positive", items[3].id, "positive", "positive");
+      }
+
+      return {
+        nodes: [...state.nodes, ...items, ...extraNodes],
+        edges: [...state.edges, ...edges],
+        selectedNodeId: items[0]?.id ?? null,
+        selectedEdgeId: null,
+        pendingModelPickerNodeId: null,
+        pendingBatteryPairPrompt: null,
+        lastMeaningfulActionAt: Date.now(),
+        pickerCancelStreak: 0,
+        ...commit(state),
+      };
+    }),
 }));
 
 export function selectComponentDefinition(node: SchemaNode) {

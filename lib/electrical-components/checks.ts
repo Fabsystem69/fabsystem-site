@@ -30,6 +30,14 @@ export interface SchemaIssue {
 type SchemaNodeInternal = Node<ElectricalNodeData>;
 type SchemaEdgeInternal = Edge<CableEdgeData>;
 
+// Le panneau global et chaque vignette de composant consultent les mêmes
+// contrôles. Le store remplace les tableaux à chaque modification, ce cache
+// par référence garantit donc un calcul unique par état du schéma, même avec
+// plusieurs dizaines de composants visibles.
+let cachedNodes: SchemaNodeInternal[] | null = null;
+let cachedEdges: SchemaEdgeInternal[] | null = null;
+let cachedIssues: SchemaIssue[] | null = null;
+
 function classifyIssues(
   issues: SchemaIssue[],
   defaults: Pick<SchemaIssue, "severity" | "category">,
@@ -780,6 +788,7 @@ export function computeSchemaIssues(
   nodes: Node<ElectricalNodeData>[],
   edges: Edge<CableEdgeData>[],
 ): SchemaIssue[] {
+  if (nodes === cachedNodes && edges === cachedEdges && cachedIssues) return cachedIssues;
   const issues: SchemaIssue[] = [];
   const structurallyBlockedNodeIds = new Set<string>();
 
@@ -824,7 +833,7 @@ export function computeSchemaIssues(
   const oversizedProtectionIssues = computeOversizedProtectionIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
   const undersizedProtectionIssues = computeUndersizedProtectionIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
 
-  return [
+  const result = [
     ...classifyIssues(issues, { severity: "warning", category: "topology" }),
     ...classifyIssues(electricalIssues, { severity: "warning", category: "protection" }),
     ...classifyIssues(cableSizingIssues, { severity: "warning", category: "cabling" }),
@@ -837,4 +846,8 @@ export function computeSchemaIssues(
     ...classifyIssues(oversizedProtectionIssues, { severity: "warning", category: "protection" }),
     ...classifyIssues(undersizedProtectionIssues, { severity: "warning", category: "protection" }),
   ];
+  cachedNodes = nodes;
+  cachedEdges = edges;
+  cachedIssues = result;
+  return result;
 }

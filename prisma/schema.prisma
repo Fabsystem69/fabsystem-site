@@ -460,6 +460,10 @@ model ProjectSchema {
   nodes       Json
   edges       Json
   thumbnail   String?  @db.Text
+  // Jeton public opaque, distinct de l'id projet : seul ce secret permet la
+  // lecture du schema partage, jamais l'ecriture ni l'acces au projet.
+  shareToken  String?  @unique
+  shareEnabledAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

@@ -366,8 +366,9 @@ function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: 
 
 // Rappel des équipements installés (retour utilisateur : "surtout le choix
 // des boîtiers... pour avoir une page avec tout le nécessaire pour lire le
-// schéma") — coin haut-droit, seule zone encore libre (légende en
-// bas-gauche, cartouche en bas-droit). Nombre de lignes plafonné pour ne
+// schéma") — coin haut-gauche, réservé pour préserver la partie droite des
+// schémas, généralement plus dense (légende en bas-gauche, cartouche en
+// bas-droit). Nombre de lignes plafonné pour ne
 // jamais envahir le schéma : au-delà, une ligne "+N autres" résume le reste
 // plutôt que de faire grandir la boîte indéfiniment. Largeur de colonne
 // plafonnée aussi (un nom de modèle peut être long) — tronqué avec ellipse.
@@ -392,7 +393,7 @@ function drawEquipmentList(ctx: CanvasRenderingContext2D, equipment: EquipmentLi
   const detailWidth = Math.min(detailMaxWidth, Math.max(...visible.map((d) => ctx.measureText(d.detail).width)));
   const boxW = pad * 2 + labelWidth + 16 * scale + detailWidth;
   const boxH = titleH + rowCount * lineHeight + pad;
-  const x = w - boxW - 16 * scale;
+  const x = 16 * scale;
   const y = 16 * scale;
 
   ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
@@ -533,7 +534,7 @@ interface RawCapture {
   height: number;
 }
 
-async function captureRawSchema(viewportEl: HTMLElement, nodes: Node[]): Promise<RawCapture> {
+async function captureRawSchema(viewportEl: HTMLElement, nodes: Node[], pixelRatio = EXPORT_PIXEL_RATIO): Promise<RawCapture> {
   const bounds = getNodesBounds(nodes);
   // Zoom fixe (EXPORT_ZOOM) : le canvas exporté fait exactement la taille du
   // schéma (+ marge), jamais rétréci pour tenir dans un cadre — voir le
@@ -553,7 +554,7 @@ async function captureRawSchema(viewportEl: HTMLElement, nodes: Node[]): Promise
     backgroundColor: "#ffffff",
     width,
     height,
-    pixelRatio: EXPORT_PIXEL_RATIO,
+    pixelRatio,
     style: {
       width: `${width}px`,
       height: `${height}px`,
@@ -602,12 +603,14 @@ export async function captureSchemaPng(
   edges: Edge<CableEdgeData>[],
   projectName: string,
   showGrid = true,
+  options?: { pixelRatio?: number },
 ): Promise<SchemaCapture | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
 
-  const raw = await captureRawSchema(viewportEl, nodes);
-  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, EXPORT_PIXEL_RATIO, undefined, undefined, buildCableLegend(edges), buildEquipmentList(nodes));
+  const pixelRatio = options?.pixelRatio ?? EXPORT_PIXEL_RATIO;
+  const raw = await captureRawSchema(viewportEl, nodes, pixelRatio);
+  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, pixelRatio, undefined, undefined, buildCableLegend(edges), buildEquipmentList(nodes));
   return { dataUrl, width: raw.width, height: raw.height + EXPORT_FOOTER_HEIGHT };
 }
 

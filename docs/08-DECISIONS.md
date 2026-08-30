@@ -247,3 +247,9 @@ Avant mise en production du commerce MVP, il faut au minimum:
 ### Consequence
 
 La stabilisation precede les sprints fonctionnels.
+# Partage public des schémas (2026-08-30)
+
+Un schéma de projet peut recevoir un jeton public opaque et révocable. Le
+lien `/schema/partage/[jeton]` donne uniquement une vue du schéma: aucune
+authentification, modification, sauvegarde ou donnée client/projet n'y est
+exposée. Le jeton ne reprend jamais l'identifiant du projet.

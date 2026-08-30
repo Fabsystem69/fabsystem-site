@@ -1,7 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { getBrandModel } from "@/lib/electrical-components/brand-models";
-import { buildExampleSchema } from "@/features/schemas/example";
 import campingCar7mDefault from "@/features/schemas/camping-car-7m-default.json";
 import vitoMarcoPolo280AhDefault from "@/features/schemas/vito-marco-polo-280ah-default.json";
 import vwT6AferiyP280Default from "@/features/schemas/vw-t6-aferiy-p280-default.json";
@@ -260,7 +259,9 @@ function buildDucatoImplantationTemplate(): { projectName: string; nodes: Schema
   };
 }
 
-function buildDucatoPrincipleTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+// Variante archivée: la galerie propose l'implantation, plus parlante pour
+// démarrer. Le schéma de principe reste disponible si un mode dédié revient.
+export function buildDucatoPrincipleTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
   const implantation = buildDucatoImplantationTemplate();
   const components = implantation.nodes.filter((node) => node.type !== "zone");
   const zones: SchemaNode[] = [
@@ -460,7 +461,9 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
 // solaire et par le quai ; elle alimente en retour un circuit 230V protégé
 // (tableau + masse) et un circuit 12V (tableau de distribution à fusibles +
 // interrupteurs pour le +, busbar négatif commun pour le retour).
-function buildPowerStationTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+// Gabarit archivé: conservé hors galerie tant que la terre AC n'est pas
+// complète. Exporté pour pouvoir le réactiver sans restaurer du code perdu.
+export function buildPowerStationTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
   const nodes: SchemaNode[] = [
     buildNode("ps-solar", "solar-panel", 40, 240, { label: "Panneau solaire", powerW: 200, voltage: 0 }),
     buildNode("ps-shore", "shore-power", 160, -20, { label: "Prise de quai" }),
@@ -762,7 +765,9 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
   return { projectName: "Gabarit : Victron leger van", nodes: [...zones, ...nodes], edges };
 }
 
-function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+// Variante archivée: remplacée dans la galerie par le T6 AFERIY P280 plus
+// complet et mis à jour avec le chargeur DC060.
+export function buildAferiyP280Template(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
   const nodes: SchemaNode[] = [
     buildNode("af-solar", "solar-panel", 40, 120, {
       label: "Panneau flexible 200W",
@@ -941,7 +946,8 @@ const GREEN_DATA = "#16a34a";
 //   retours négatifs des sources de charge et du MultiPlus rejoignent le bus
 //   négatif APRÈS le shunt (sur "system"), jamais avant, pour ne pas fausser
 //   la mesure.
-function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
+// Gabarit archivé: à reprendre avant de le rendre à nouveau visible.
+export function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
   const nodes: SchemaNode[] = [
     // Solaire
     buildNode("pb-solar-1", "solar-panel", 40, -40, { label: "Panneau solaire 1", powerW: 300, voltage: 0 }),
@@ -1179,96 +1185,54 @@ function buildPremiumBoatTemplate(): { projectName: string; nodes: SchemaNode[];
 export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
   {
     id: "reference-v3-voilier-10m",
-    label: "Voilier 10 m",
-    description: "Base A2 pour le refit D2-60 : solaire, alternateur/DC-DC, quai, Lynx, MultiPlus et circuits de bord. Les éléments physiques non encore disponibles restent à compléter.",
+    label: "Bateau autonome complet - 12 V et 230 V",
+    description: "Pour un voilier ou bateau de croisière: solaire, alternateur/DC-DC, quai, bus Lynx, MultiPlus et circuits de bord. Exemple issu d'un refit de voilier 10 m.",
     build: buildVoilier10mRefitD260Default,
   },
   {
     id: "reference-v3-vito-280ah",
-    label: "Vito 280 Ah",
-    description: "Base A2 compacte : lithium, MPPT, Orion, MultiPlus, BatteryProtect et supervision. A adapter au mobilier et au faisceau Mercedes existant.",
+    label: "Van lithium 280 Ah - solaire et 230 V",
+    description: "Installation compacte avec batterie lithium 280 Ah, MPPT, DC-DC, MultiPlus, BatteryProtect et supervision. Exemple adapté d'un Vito Marco Polo.",
     build: buildVitoMarcoPolo280AhDefault,
   },
   {
     id: "reference-v3-camping-car-ds300",
-    label: "Camping-car 7 m - lithium, solaire, DC-DC et clim 12 V",
-    description: "Base A2 lithium, solaire, DC-DC, MultiPlus et climatisation 12 V protégée par BatteryProtect. À adapter aux équipements réellement installés.",
+    label: "Camping-car autonome - solaire, lithium et clim 12 V",
+    description: "Système complet pour camping-car: lithium, solaire, DC-DC, MultiPlus et climatisation 12 V protégée par BatteryProtect. Exemple sur porteur 7 m.",
     // Cette référence possède une implantation fonctionnelle dédiée : le
     // plan guidé générique la remplacerait et ferait ressortir inutilement
     // les départs consommateurs de leur zone de distribution.
     build: buildCampingCar7mDefault,
   },
   {
-    id: "reference-v3-yacht-8m",
-    label: "Yacht 8 m",
-    description: "Base A2 12 V simple : quai, chargeur secteur, solaire, batterie, distribution et pompe de cale prioritaire.",
-    build: () => ({ ...buildShorePowerTemplate(), projectName: "Petit yacht 8 m - Flybridge" }),
-  },
-  {
     id: "reference-v3-aferiy-p280",
-    label: "VW T6 AFERIY P280",
-    description: "Base A2 autour de la station tout-en-un : solaire, quai, DC-DC, XT60 12 V et sorties AC, sans batterie auxiliaire ni MultiPlus ajoutés.",
+    label: "Van avec station AFERIY P280",
+    description: "Pour une station tout-en-un: solaire, quai, DC-DC, sortie XT60 12 V et sorties AC, sans batterie auxiliaire ni MultiPlus séparés. Exemple sur VW T6.",
     build: buildVwT6AferiyP280Default,
   },
   {
     id: "reference-v3-atelier-ducato",
-    label: "Ducato principe",
-    description: "Lecture fonctionnelle du Ducato : solaire, alternateur, batteries, MultiPlus, AC et distribution DC. Les zones suivent les fonctions electriques, pas les emplacements physiques.",
-    build: buildDucatoPrincipleTemplate,
-  },
-  {
-    id: "reference-v3-atelier-ducato-implantation",
-    label: "Ducato implantation",
-    description: "Essai d'implantation physique : toit, compartiment moteur, soute basse, cloison ventilee, porte laterale et etabli. Les liaisons entre zones sont volontairement limitees aux interfaces utiles.",
+    label: "Van ou atelier mobile - implantation complète",
+    description: "Vue par emplacements réels: toit, compartiment moteur, soute batteries, cloison technique, tableau et consommateurs. Exemple issu d'un Ducato L3H2.",
     build: buildDucatoImplantationTemplate,
   },
   {
-    id: "reference-v3-peche-24v",
-    label: "Pêche 24 V",
-    description: "Préparation A2 du scénario 12 V servitude + 24 V trolling. Les composants spécifiques trolling et les protections associées seront ajoutés avec les éléments fournis.",
-    build: () => ({ ...buildShorePowerTemplate(), projectName: "Bateau de pêche 6,5 m - préparation 24 V" }),
-  },
-  {
-    id: "van-complet",
-    label: "Le van tout confort",
-    description: "Solaire + alternateur/DC-DC + convertisseur-chargeur + alimentation de quai — schéma déjà avancé, pour s'inspirer d'un système complet.",
-    build: buildExampleSchema,
-  },
-  {
     id: "solaire-simple",
-    label: "Le premier pas solaire",
-    description: "Deux panneaux, un MPPT, une batterie et un écran de contrôle — la chaîne solaire minimale, pour un premier système ou pour découvrir l'éditeur.",
+    label: "Installation solaire 12 V - débuter avec un MPPT",
+    description: "Deux panneaux, un MPPT, une batterie et un écran de contrôle: la chaîne solaire minimale pour un premier système ou pour découvrir l'éditeur.",
     build: buildSolarBasicTemplate,
   },
   {
     id: "quai-tranquille",
-    label: "Le quai tranquille",
-    description: "Alimentation de quai + chargeur secteur + appoint solaire, sans onduleur, avec pompe de cale — pour un bateau qui reste surtout au port.",
+    label: "Bateau au quai - chargeur secteur et solaire",
+    description: "Alimentation de quai, chargeur secteur, appoint solaire et pompe de cale, sans onduleur: pour un bateau qui reste principalement au port.",
     build: buildShorePowerTemplate,
   },
   {
-    id: "station-electrique",
-    label: "La station électrique",
-    description: "Panneau solaire + prise de quai en entrée d'une station tout-en-1, avec un circuit 220V protégé et un circuit 12V (frigo, éclairage, pompe) en sortie — pas de batterie ni d'onduleur séparés à câbler.",
-    build: buildPowerStationTemplate,
-  },
-  {
     id: "victron-light-van",
-    label: "Le Victron leger",
-    description: "Une base coherente pour van autour d'une batterie LiFePO4 150Ah, d'un MPPT 75/15, d'un MultiPlus Compact 12/800, d'un SmartShunt et d'un Orion 18A optionnel.",
+    label: "Van Victron léger - autonomie essentielle",
+    description: "Base Victron cohérente autour d'une batterie LiFePO4 150 Ah, MPPT 75/15, MultiPlus Compact 12/800, SmartShunt et Orion 18 A optionnel.",
     build: buildVictronLightVanTemplate,
-  },
-  {
-    id: "station-aferiy-p280",
-    label: "AFERIY P280 dans un van",
-    description: "Cas concret autour d'une AFERIY P280 : un XT90 pour le solaire, un XT90 pour la recharge véhicule / DC-DC, une sortie XT60 12V protégée et deux prises AC fixes à traiter avec sérieux.",
-    build: buildAferiyP280Template,
-  },
-  {
-    id: "bateau-premium",
-    label: "Le bateau FabSystem",
-    description: "Le système le plus complet du catalogue : solaire + éolien + alternateur/DC-DC + quai/groupe électrogène, batterie Lithium NG sur bus Lynx complet (Power In, Smart BMS, Distributor, Shunt), MultiPlus-II, Cerbo GX, et deux tableaux 12V (confort + pont/sécurité).",
-    build: buildPremiumBoatTemplate,
   },
 ];
 

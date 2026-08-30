@@ -6,18 +6,16 @@ import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { useGuidedStep } from "@/lib/schema-editor/useGuidedStep";
 import { downloadPortableSchemaFile, readPortableSchemaFile } from "@/features/schemas/file-transfer";
 import {
-  captureSchemaPng,
   captureSchemaSvg,
   captureSchemaCarousel,
   downloadDataUrl,
   downloadCarouselZip,
-  openPrintablePdf,
   openPrintableBom,
   slugify,
 } from "@/features/schemas/export";
 import { computeBom } from "@/lib/electrical-components/bom";
 import { RibbonButton, RibbonDivider, RibbonGroup } from "./RibbonControls";
-import { SaveMenu } from "./SaveMenu";
+import { ExportPreviewDialog } from "./ExportPreviewDialog";
 
 // Export PNG / PDF / liste de matériel (CDC §36-40) : capture uniquement le
 // canvas, jamais une capture d'écran de l'éditeur avec ses boutons.
@@ -40,6 +38,7 @@ import { SaveMenu } from "./SaveMenu";
 // ailleurs — export/impression portent toujours sur tout le schéma.
 export function ExportMenu({ darkMode, showGrid }: { darkMode: boolean; showGrid: boolean }) {
   const [busy, setBusy] = useState(false);
+  const [exportPreviewKind, setExportPreviewKind] = useState<"png" | "pdf" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileFeedback, setFileFeedback] = useState<string | null>(null);
   const { getNodes, getEdges } = useReactFlow();
@@ -55,19 +54,6 @@ export function ExportMenu({ darkMode, showGrid }: { darkMode: boolean; showGrid
   // le pdf") — mis en avant à la toute dernière étape.
   const guided = useGuidedStep();
   const spotlight = guided.active && guided.step.id === "outro";
-
-  async function handleExport(kind: "png" | "pdf") {
-    setBusy(true);
-    try {
-      const capture = await captureSchemaPng(getNodes(), getEdges(), projectName, showGrid);
-      if (capture) {
-        if (kind === "png") downloadDataUrl(capture.dataUrl, `${slugify(projectName)}.png`);
-        else openPrintablePdf(capture, projectName);
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function handleExportSvg() {
     setBusy(true);
@@ -147,7 +133,6 @@ export function ExportMenu({ darkMode, showGrid }: { darkMode: boolean; showGrid
   return (
     <div className="flex items-center gap-1">
       <RibbonGroup darkMode={darkMode} label="Enregistrer">
-        <SaveMenu darkMode={darkMode} />
         <RibbonButton
           darkMode={darkMode}
           onClick={handleExportFile}
@@ -172,20 +157,20 @@ export function ExportMenu({ darkMode, showGrid }: { darkMode: boolean; showGrid
       <RibbonGroup darkMode={darkMode} label="Imprimer">
         <RibbonButton
           darkMode={darkMode}
-          onClick={() => handleExport("png")}
+          onClick={() => setExportPreviewKind("png")}
           disabled={disabled}
           icon="🖼️"
-          label={busy ? "…" : "PNG"}
-          title={nodesCount === 0 ? "Ajoutez au moins un composant pour exporter" : "Image PNG"}
+          label="PNG"
+          title={nodesCount === 0 ? "Ajoutez au moins un composant pour exporter" : "Prévisualiser une image PNG"}
           active={spotlight}
         />
         <RibbonButton
           darkMode={darkMode}
-          onClick={() => handleExport("pdf")}
+          onClick={() => setExportPreviewKind("pdf")}
           disabled={disabled}
           icon="🖨️"
-          label={busy ? "…" : "PDF"}
-          title="Planche PDF imprimable"
+          label="PDF"
+          title="Prévisualiser avant impression"
         />
         <RibbonButton
           darkMode={darkMode}
@@ -210,6 +195,7 @@ export function ExportMenu({ darkMode, showGrid }: { darkMode: boolean; showGrid
       <RibbonGroup darkMode={darkMode} label="Matériel">
         <RibbonButton darkMode={darkMode} onClick={handleExportBom} disabled={disabled} icon="📋" label="Matériel" title="Liste de matériel" />
       </RibbonGroup>
+      {exportPreviewKind ? <ExportPreviewDialog initialKind={exportPreviewKind} initialShowGrid={showGrid} onClose={() => setExportPreviewKind(null)} /> : null}
     </div>
   );
 }

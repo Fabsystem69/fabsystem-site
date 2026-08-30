@@ -23,23 +23,22 @@ export interface GuidedPlanZone {
   y: number;
   width: number;
   height: number;
+  locked?: boolean;
 }
 
 // Plan de lecture A2 paysage : sources en haut, distribution au centre,
 // stockage en bas et 230 V sur la droite. Ces coordonnées restent des
 // coordonnées canvas, pas un format d'export impose.
 export const GUIDED_PLAN_ZONES: GuidedPlanZone[] = [
-  { id: "alternator", label: "Charge alternateur", color: "#f59e0b", x: 80, y: 90, width: 460, height: 560 },
-  { id: "solar", label: "Système solaire", color: "#eab308", x: 650, y: 60, width: 820, height: 590 },
-  { id: "shore-ac", label: "Entrée quai / secteur", color: "#14b8a6", x: 1720, y: 90, width: 500, height: 560 },
-  // Un seul rail de masse, place entre les sources et les noyaux de
-  // puissance. Il remplace les petites zones "Châssis" dispersées.
-  { id: "chassis-ground", label: "Châssis / masse", color: "#64748b", x: 80, y: 710, width: 2140, height: 120 },
-  { id: "dc-core", label: "Coeur DC", color: "#8b5cf6", x: 700, y: 880, width: 960, height: 440 },
-  { id: "dc-distribution", label: "Distribution DC", color: "#10b981", x: 80, y: 900, width: 540, height: 650 },
-  { id: "ac-system", label: "Système AC", color: "#ef4444", x: 1720, y: 880, width: 550, height: 680 },
-  { id: "battery", label: "Batteries", color: "#3b82f6", x: 700, y: 1380, width: 960, height: 310 },
-  { id: "monitoring", label: "Monitoring", color: "#64748b", x: 700, y: 1760, width: 960, height: 180 },
+  { id: "alternator", label: "Charge alternateur", color: "#f59e0b", x: 80, y: 80, width: 460, height: 560 },
+  { id: "solar", label: "Système solaire", color: "#eab308", x: 660, y: 80, width: 820, height: 590 },
+  { id: "shore-ac", label: "Entrée quai / secteur", color: "#14b8a6", x: 1600, y: 80, width: 500, height: 560 },
+  { id: "chassis-ground", label: "Châssis / masse", color: "#64748b", x: 80, y: 790, width: 220, height: 120, locked: false },
+  { id: "dc-distribution", label: "Distribution DC", color: "#10b981", x: 80, y: 1030, width: 540, height: 650 },
+  { id: "dc-core", label: "Coeur DC", color: "#8b5cf6", x: 740, y: 1030, width: 960, height: 660 },
+  { id: "ac-system", label: "Système AC", color: "#ef4444", x: 1820, y: 1030, width: 550, height: 680 },
+  { id: "battery", label: "Batteries", color: "#3b82f6", x: 740, y: 1830, width: 960, height: 310 },
+  { id: "monitoring", label: "Monitoring", color: "#64748b", x: 740, y: 2260, width: 960, height: 180 },
 ];
 
 const ZONE_BY_ID = new Map(GUIDED_PLAN_ZONES.map((zone) => [zone.id, zone]));
@@ -224,7 +223,7 @@ function buildGuidedZone(zone: GuidedPlanZone): SchemaNode {
     width: zone.width,
     height: zone.height,
     zIndex: -1,
-    data: { componentType: "zone", label: zone.label, color: zone.color, locked: true },
+    data: { componentType: "zone", label: zone.label, color: zone.color, locked: zone.locked ?? true },
   };
 }
 
@@ -283,7 +282,7 @@ function positionZones(dimensions: Map<GuidedPlanZoneId, GuidedPlanZone>): Guide
     { ...alternator, x: alternatorX, y: topY },
     { ...solar, x: solarX, y: topY },
     { ...shoreAc, x: shoreAcX, y: topY },
-    { ...chassisGround, x: alternatorX, y: groundY, width: shoreAcX + shoreAc.width - alternatorX },
+    { ...chassisGround, x: alternatorX, y: groundY },
     { ...dcDistribution, x: distributionX, y: mainY },
     { ...dcCore, x: coreX, y: mainY },
     { ...acSystem, x: acX, y: mainY },
@@ -308,9 +307,14 @@ export function applyGuidedPlan(nodes: SchemaNode[], edges: SchemaEdge[]): { nod
     const existing = existingGuidedZones.get(`${GUIDED_ZONE_PREFIX}${zone.id}`);
     const dimensions = expandZoneToContent(zone, laidOutNodes);
     return existing
-      ? { ...existing, position: { x: zone.x, y: zone.y }, ...dimensions, zIndex: -1, data: { ...existing.data, label: zone.label, color: zone.color, locked: true } }
+      ? { ...existing, position: { x: zone.x, y: zone.y }, ...dimensions, zIndex: -1, data: { ...existing.data, label: zone.label, color: zone.color, locked: zone.locked ?? true } }
       : { ...buildGuidedZone(zone), ...dimensions };
   });
 
   return { nodes: [...guidedZones, ...laidOutNodes], edges };
+}
+
+/** Canevas structuré proposé aux nouveaux schémas, sans équipement ni câble. */
+export function buildStructuredCanvas() {
+  return applyGuidedPlan([], []);
 }
