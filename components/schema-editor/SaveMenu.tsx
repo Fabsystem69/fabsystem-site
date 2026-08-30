@@ -243,10 +243,11 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
         projectId && saveStatus !== "error" ? (
           <button
             type="button"
+            data-schema-header-save
             onClick={() => void handleHeaderSave()}
             disabled={busy}
             title="Sauvegardé dans votre projet. Cliquez pour enregistrer de nouveau."
-            className={`flex h-8 w-10 items-center justify-center rounded-lg transition-base disabled:cursor-not-allowed disabled:opacity-60 ${darkMode ? "text-emerald-300 hover:bg-emerald-400/10" : "text-emerald-700 hover:bg-emerald-50"}`}
+            className={`flex h-8 w-10 items-center justify-center rounded-lg transition-base disabled:cursor-not-allowed disabled:opacity-60 max-md:h-10 max-md:w-10 ${darkMode ? "text-emerald-300 hover:bg-emerald-400/10" : "text-emerald-700 hover:bg-emerald-50"}`}
           >
             <span className="text-lg" aria-hidden="true">☁✓</span>
             <span className="sr-only">Sauvegardé dans le projet</span>
@@ -254,13 +255,14 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
         ) : (
           <button
             type="button"
+            data-schema-header-save
             onClick={() => void handleHeaderSave()}
             disabled={busy}
-            className="flex h-9 items-center gap-2 rounded-lg bg-amber-500 px-3 text-sm font-semibold text-white shadow-sm transition-base hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex h-9 items-center gap-2 rounded-lg bg-amber-500 px-3 text-sm font-semibold text-white shadow-sm transition-base hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60 max-md:h-10 max-md:w-10 max-md:justify-center max-md:px-0"
             title="Sauvegarder ce schéma dans votre projet"
           >
             <span aria-hidden="true">💾</span>
-            <span>{busy ? "Sauvegarde…" : "Sauvegarder"}</span>
+            <span className="max-md:sr-only">{busy ? "Sauvegarde…" : "Sauvegarder"}</span>
           </button>
         )
       ) : (

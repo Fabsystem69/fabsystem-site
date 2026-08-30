@@ -48,18 +48,34 @@ function ScrollHint({ visible, darkMode }: { visible: boolean; darkMode: boolean
   return <div aria-hidden="true" className={`pointer-events-none absolute inset-x-0 bottom-0 flex h-12 items-end justify-center bg-gradient-to-t pb-1 text-base ${darkMode ? "from-neutral-950 via-neutral-950/90 to-transparent text-neutral-400" : "from-white via-white/90 to-transparent text-slate-400"}`}>⌄</div>;
 }
 
+function MobileSelectionBar({ title, subtitle, darkMode, onOpen, onDelete, onClose }: { title: string; subtitle: string; darkMode: boolean; onOpen: () => void; onDelete: () => void; onClose: () => void }) {
+  return <div className={`schema-mobile-selection absolute bottom-[calc(env(safe-area-inset-bottom)+5rem)] left-3 right-3 z-30 hidden items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl md:hidden ${darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`}>
+    <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left" aria-label={`Modifier ${title}`}>
+      <span className={`block text-[10px] font-bold uppercase tracking-[0.18em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Sélectionné · toucher pour modifier</span>
+      <span className="block truncate text-base font-semibold">{title}</span>
+      <span className={`block truncate text-xs ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>{subtitle}</span>
+    </button>
+    <button type="button" onClick={onOpen} className="rounded-xl p-2 text-xl text-slate-500" aria-label="Ouvrir les propriétés">⌃</button>
+    <button type="button" onClick={onDelete} className="rounded-xl p-2 text-xl text-red-500" aria-label="Supprimer">⌫</button>
+    <button type="button" onClick={onClose} className="rounded-xl p-2 text-xl text-slate-500" aria-label="Fermer la sélection">×</button>
+  </div>;
+}
+
 function WirePropertiesSidebar({ edge, darkMode }: { edge: NonNullable<ReturnType<typeof useSchemaStore.getState>["edges"][number]>; darkMode: boolean }) {
   const nodes = useSchemaStore((s) => s.nodes);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const deleteSelected = useSchemaStore((s) => s.deleteSelected);
+  const select = useSchemaStore((s) => s.select);
   const sourceLabel = nodes.find((node) => node.id === edge.source)?.data.label ?? "Source";
   const targetLabel = nodes.find((node) => node.id === edge.target)?.data.label ?? "Destination";
   const sectionClass = `border-b pb-5 ${darkMode ? "border-neutral-800" : "border-slate-200"}`;
   const headingClass = `mb-4 text-xs font-bold uppercase tracking-[0.22em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`;
   const { ref: scrollRef, hasMoreContent, updateScrollHint } = useScrollHint();
+  const [mobileExpanded, setMobileExpanded] = useState(false);
+  useEffect(() => setMobileExpanded(false), [edge.id]);
 
-  return <aside className={`absolute right-0 z-20 mt-6 mr-5 flex max-h-[calc(100dvh-7rem)] w-[20rem] flex-col overflow-hidden rounded-3xl border shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${darkMode ? "border-neutral-800 bg-neutral-950 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`} aria-label="Propriétés du câble">
-    <div className={`border-b px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}><p className={`text-xs font-bold uppercase tracking-[0.24em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Propriétés</p></div>
+  return <><MobileSelectionBar title="Câble" subtitle="Spécifications et dimensionnement" darkMode={darkMode} onOpen={() => setMobileExpanded(true)} onDelete={deleteSelected} onClose={() => select(null, null)} />{mobileExpanded ? <button type="button" onClick={() => setMobileExpanded(false)} aria-label="Fermer les propriétés" className="fixed inset-0 z-40 hidden bg-slate-950/60 max-md:block" /> : null}<aside className={`schema-mobile-properties absolute right-0 z-20 mt-6 mr-5 flex max-h-[calc(100dvh-7rem)] w-[20rem] flex-col overflow-hidden rounded-3xl border shadow-[0_16px_36px_rgba(15,23,42,0.14)] max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-50 max-md:mt-0 max-md:mr-0 max-md:h-[78dvh] max-md:max-h-[78dvh] max-md:w-auto max-md:rounded-b-none max-md:pb-[env(safe-area-inset-bottom)] ${mobileExpanded ? "max-md:flex" : "max-md:hidden"} ${darkMode ? "border-neutral-800 bg-neutral-950 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`} aria-label="Propriétés du câble">
+    <div className={`border-b px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}><div className={`mx-auto mb-3 hidden h-1.5 w-16 rounded-full max-md:block ${darkMode ? "bg-neutral-800" : "bg-slate-100"}`} /><p className={`text-xs font-bold uppercase tracking-[0.24em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Propriétés</p></div>
     <div ref={scrollRef} onScroll={updateScrollHint} className="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5">
       <section className={sectionClass}><h2 className="text-xl font-semibold">Câble</h2><p className={`mt-1 text-sm ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Spécifications et dimensionnement</p></section>
       <section className={sectionClass}><h3 className={headingClass}>Spécifications du câble</h3><label className="block"><span className="mb-1.5 block text-sm">Type de câble</span><select value={String(edge.data?.cableType ?? "other")} onChange={(event) => { const cable = getCableType(event.target.value); updateEdgeData(edge.id, { cableType: event.target.value, color: cable?.color }); }} className={inputClass(darkMode)}>{CABLE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label><div className="mt-4 grid grid-cols-[1fr_6.5rem] gap-3"><label><span className="mb-1.5 block text-sm">Section</span><select value={String(edge.data?.section ?? "")} onChange={(event) => updateEdgeData(edge.id, { section: event.target.value })} className={inputClass(darkMode)}><option value="">Auto / non définie</option>{CABLE_SECTIONS.map((section) => <option key={section} value={section}>{section}</option>)}</select></label><label><span className="mb-1.5 block text-sm">Conducteurs</span><input className={inputClass(darkMode)} type="number" min={1} value={Number(edge.data?.parallelRuns ?? 1)} onChange={(event) => updateEdgeData(edge.id, { parallelRuns: Math.max(1, Number(event.target.value)) })} /></label></div><button type="button" className="mt-3 text-sm font-medium text-amber-600 hover:underline">▦ M’aider à dimensionner ce câble</button></section>
@@ -69,7 +85,7 @@ function WirePropertiesSidebar({ edge, darkMode }: { edge: NonNullable<ReturnTyp
       <section><h3 className={headingClass}>Actions</h3><button type="button" onClick={() => updateEdgeData(edge.id, { bendPoints: [] })} className={`mb-3 w-full rounded-lg border px-4 py-2.5 text-sm font-semibold ${darkMode ? "border-neutral-700 hover:bg-neutral-900" : "border-slate-300 hover:bg-slate-50"}`}>↻ Réinitialiser les coudes</button><button type="button" onClick={deleteSelected} className="w-full rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">⌫ Supprimer le câble</button></section>
     </div>
     <ScrollHint visible={hasMoreContent} darkMode={darkMode} />
-  </aside>;
+  </aside></>;
 }
 
 /** Panneau contextuel: tous les réglages d'un élément sélectionné restent à droite du canevas. */
@@ -84,13 +100,16 @@ export function PropertiesSidebar() {
   const rotateNode = useSchemaStore((s) => s.rotateNode);
   const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const deleteSelected = useSchemaStore((s) => s.deleteSelected);
+  const select = useSchemaStore((s) => s.select);
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const [tab, setTab] = useState<PanelTab>("properties");
   const [labelMenuOpen, setLabelMenuOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
   const { ref: scrollRef, hasMoreContent, updateScrollHint } = useScrollHint();
 
   const node = selectedNodeId ? nodes.find((item) => item.id === selectedNodeId) : undefined;
   const edge = selectedEdgeId ? edges.find((item) => item.id === selectedEdgeId) : undefined;
+  useEffect(() => setMobileExpanded(false), [selectedNodeId, selectedEdgeId]);
   const isZone = node?.data.componentType === "zone";
   const definition = node && !isZone ? getComponentDefinition(node.data.componentType) : undefined;
   const { brandModels, brandModelsByBrand, handleBrandModelChange } = useBrandModelSelector(node);
@@ -132,8 +151,9 @@ export function PropertiesSidebar() {
   }
 
   return (
-    <aside className={`absolute right-0 z-20 mt-6 mr-5 flex max-h-[calc(100dvh-7rem)] w-[20rem] flex-col overflow-hidden rounded-3xl border shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${darkMode ? "border-neutral-800 bg-neutral-950 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`} aria-label="Propriétés de l'élément sélectionné">
+    <><MobileSelectionBar title={title} subtitle={subtitle} darkMode={darkMode} onOpen={() => setMobileExpanded(true)} onDelete={deleteSelected} onClose={() => select(null, null)} />{mobileExpanded ? <button type="button" onClick={() => setMobileExpanded(false)} aria-label="Fermer les propriétés" className="fixed inset-0 z-40 hidden bg-slate-950/60 max-md:block" /> : null}<aside className={`schema-mobile-properties absolute right-0 z-20 mt-6 mr-5 flex max-h-[calc(100dvh-7rem)] w-[20rem] flex-col overflow-hidden rounded-3xl border shadow-[0_16px_36px_rgba(15,23,42,0.14)] max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-50 max-md:mt-0 max-md:mr-0 max-md:h-[78dvh] max-md:max-h-[78dvh] max-md:w-auto max-md:rounded-b-none max-md:pb-[env(safe-area-inset-bottom)] ${mobileExpanded ? "max-md:flex" : "max-md:hidden"} ${darkMode ? "border-neutral-800 bg-neutral-950 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`} aria-label="Propriétés de l'élément sélectionné">
       <div className={`border-b px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}>
+        <div className={`mx-auto mb-3 hidden h-1.5 w-16 rounded-full max-md:block ${darkMode ? "bg-neutral-800" : "bg-slate-100"}`} />
         <p className={`text-xs font-bold uppercase tracking-[0.24em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Propriétés</p>
       </div>
       <div ref={scrollRef} onScroll={updateScrollHint} className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
@@ -164,6 +184,6 @@ export function PropertiesSidebar() {
         {tab === "display" ? <div className="space-y-4 pt-5">{node ? <><label className="block"><span className={`mb-1.5 block text-sm ${darkMode ? "text-neutral-300" : "text-slate-600"}`}>Sous-titre</span><input className={inputClass(darkMode)} value={String(node.data.subtitle ?? "")} placeholder="Ajouter un sous-titre" onChange={(event) => updateNodeData(node.id, { subtitle: event.target.value })} /></label><label className="block"><span className={`mb-1.5 block text-sm ${darkMode ? "text-neutral-300" : "text-slate-600"}`}>Marque</span><input className={inputClass(darkMode)} value={String(node.data.brand ?? "")} placeholder="Générique" onChange={(event) => updateNodeData(node.id, { brand: event.target.value })} /></label></> : <p className={`py-8 text-center text-sm ${darkMode ? "text-neutral-500" : "text-slate-400"}`}>Les options d’affichage sont disponibles pour les composants.</p>}</div> : null}
       </div>
       <ScrollHint visible={hasMoreContent} darkMode={darkMode} />
-    </aside>
+    </aside></>
   );
 }

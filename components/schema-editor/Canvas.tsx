@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ReactFlow,
   Background,
@@ -23,6 +23,7 @@ import { AlignmentGuideOverlay } from "./AlignmentGuideOverlay";
 import { WiringHintBanner } from "./WiringHintBanner";
 import { CableWaypointNode } from "./nodes/CableWaypointNode";
 import { ZoneNode } from "./nodes/ZoneNode";
+import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 import { getConsumerPreset, getComponentDefinition, getEffectiveHandles } from "@/lib/electrical-components/definitions";
 import { filterNodesByZone, filterEdgesForNodes } from "@/features/schemas/export";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
@@ -30,7 +31,7 @@ import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 const nodeTypes = { electrical: ElectricalNode, cableWaypoint: CableWaypointNode, zone: ZoneNode };
 const edgeTypes = { cable: CableEdge };
 
-type CanvasIconName = "undo" | "redo" | "zoom-out" | "zoom-in" | "frame" | "selection" | "grid";
+type CanvasIconName = "undo" | "redo" | "zoom-out" | "zoom-in" | "frame" | "selection";
 
 // Icônes SVG locales : aucune police de symboles à charger et un sens lisible
 // immédiatement sur le bandeau de pilotage du canvas.
@@ -43,7 +44,6 @@ function CanvasIcon({ name }: { name: CanvasIconName }) {
     "zoom-in": <><circle {...common} cx="10.5" cy="10.5" r="5.5" /><path {...common} d="m15 15 4 4M8 10.5h5M10.5 8v5" /></>,
     frame: <><path {...common} d="M8 4H4v4m12-4h4v4m0 8v4h-4M8 20H4v-4" /></>,
     selection: <><rect {...common} x="4.5" y="4.5" width="15" height="15" rx="1" strokeDasharray="2.5 2.5" /><path {...common} d="m10 9 4.5 4.5-2.5.6 1.2 2.5-1.5.7-1.2-2.5-1.8 1.8Z" fill="currentColor" stroke="none" /></>,
-    grid: <><rect {...common} x="4" y="4" width="16" height="16" rx="1" /><path {...common} d="M9.33 4v16M14.66 4v16M4 9.33h16M4 14.66h16" /></>,
   };
   return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5">{paths[name]}</svg>;
 }
@@ -212,6 +212,7 @@ export function Canvas() {
   const reconnectEdgeAction = useSchemaStore((s) => s.reconnectEdge);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const select = useSchemaStore((s) => s.select);
+  const selectedNodeId = useSchemaStore((s) => s.selectedNodeId);
   const draggingComponentType = useSchemaStore((s) => s.draggingComponentType);
   const setSpliceHoverEdgeId = useSchemaStore((s) => s.setSpliceHoverEdgeId);
   const setAlignmentGuides = useSchemaStore((s) => s.setAlignmentGuides);
@@ -220,13 +221,15 @@ export function Canvas() {
   const setShowGrid = useSchemaStore((s) => s.setShowGrid);
   const undo = useSchemaStore((s) => s.undo);
   const redo = useSchemaStore((s) => s.redo);
+  const toggleLeftPanel = useSchemaStore((s) => s.toggleLeftPanel);
   const canUndo = useSchemaStore((s) => s.past.length > 0);
   const canRedo = useSchemaStore((s) => s.future.length > 0);
   const { screenToFlowPosition, zoomTo, fitView, getZoom } = useReactFlow();
   const [canvasZoom, setCanvasZoom] = useState(1);
   const [selectionMode, setSelectionMode] = useState(false);
   const [isDraggingNode, setIsDraggingNode] = useState(false);
-  const canvasControlButtonClass = `flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const canvasControlButtonClass = `flex h-9 w-9 items-center justify-center rounded-full text-lg font-semibold leading-none transition-colors disabled:cursor-not-allowed disabled:opacity-35 max-md:h-10 max-md:w-10 ${
     darkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
   }`;
 
@@ -243,6 +246,18 @@ export function Canvas() {
     void fitView({ padding: 0.16, duration: 250 });
     window.setTimeout(() => setCanvasZoom(getZoom()), 260);
   }, [fitView, getZoom]);
+
+  // Mobile: un premier geste sur un composant sert a le selectionner. Tant
+  // qu'il n'est pas selectionne, il laisse le glisser remonter au canvas afin
+  // de conserver une navigation fluide a un doigt. Le comportement desktop
+  // reste volontairement identique: tout composant peut y etre deplace.
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
+    syncViewport();
+    mediaQuery.addEventListener("change", syncViewport);
+    return () => mediaQuery.removeEventListener("change", syncViewport);
+  }, []);
 
   // Isolement par catégorie (retour utilisateur : "isoler le circuit MPPT ou
   // consommateur") : les nœuds masqués disparaissent du canvas — et par
@@ -319,10 +334,21 @@ export function Canvas() {
     () => [
       // En sélection multiple, les zones restent le fond visuel et ne
       // capturent plus le rectangle de sélection destiné aux composants.
-      ...nodes.map((node) => (selectionMode && node.type === "zone" ? { ...node, selectable: false } : node)),
+      ...nodes.map((node) => {
+        const selectionAdjustedNode = selectionMode && node.type === "zone" ? { ...node, selectable: false } : node;
+        if (!isMobileViewport || (selectionAdjustedNode.type === "zone" && selectionAdjustedNode.data.locked)) {
+          return selectionAdjustedNode;
+        }
+        return {
+          ...selectionAdjustedNode,
+          // `draggable: false` retire la classe `nopan` de React Flow: le
+          // glisser sur un element non selectionne deplace donc le canvas.
+          draggable: selectionAdjustedNode.id === selectedNodeId,
+        };
+      }),
       ...waypointNodes,
     ],
-    [nodes, waypointNodes, selectionMode],
+    [nodes, waypointNodes, selectionMode, isMobileViewport, selectedNodeId],
   );
 
   // Sépare les changements de position des nœuds de coude synthétiques (à
@@ -544,18 +570,32 @@ export function Canvas() {
       </ReactFlow>
 
       <div
-        className={`pointer-events-auto absolute bottom-4 left-1/2 z-30 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-1 rounded-[1.35rem] border p-2 shadow-xl backdrop-blur-md ${
+        className={`schema-mobile-canvas-controls pointer-events-auto absolute bottom-4 left-1/2 z-30 flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-1 rounded-[1.35rem] border p-2 shadow-xl backdrop-blur-md max-md:fixed max-md:bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))] max-md:z-[60] max-md:gap-0 max-md:p-1.5 ${
           darkMode ? "border-neutral-700/90 bg-neutral-900/95 text-neutral-100" : "border-neutral-200/90 bg-white/95 text-neutral-800"
         }`}
         aria-label="Commandes du canvas"
       >
-        <div className="flex items-center gap-1 pr-2">
+        <button
+          type="button"
+          onClick={toggleLeftPanel}
+          className={`hidden h-10 items-center gap-2 rounded-2xl border px-4 text-sm font-semibold max-md:flex ${
+            darkMode
+              ? "border-neutral-700 bg-neutral-800 text-neutral-100 hover:bg-neutral-700"
+              : "border-slate-200 bg-slate-100 text-slate-800 hover:bg-slate-200"
+          }`}
+          aria-label="Ouvrir les composants"
+        >
+          <span className="text-2xl leading-none" aria-hidden="true">＋</span>
+          <span>Composants</span>
+        </button>
+        <span className={`hidden h-7 w-px max-md:block ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+        <div className="flex items-center gap-1 pr-2 max-md:pr-1">
           <button type="button" onClick={undo} disabled={!canUndo} title="Annuler" aria-label="Annuler" className={canvasControlButtonClass}><CanvasIcon name="undo" /></button>
           <button type="button" onClick={redo} disabled={!canRedo} title="Rétablir" aria-label="Rétablir" className={canvasControlButtonClass}><CanvasIcon name="redo" /></button>
         </div>
-        <span className={`h-7 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
-        <button type="button" onClick={() => setZoom(canvasZoom - 0.1)} title="Réduire le zoom" aria-label="Réduire le zoom" className={canvasControlButtonClass}><CanvasIcon name="zoom-out" /></button>
-        <div className={`flex h-9 items-center gap-2 rounded-full px-2 ${darkMode ? "bg-neutral-800" : "bg-neutral-100"}`}>
+        <span className={`h-7 w-px max-md:hidden ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+        <button type="button" onClick={() => setZoom(canvasZoom - 0.1)} title="Réduire le zoom" aria-label="Réduire le zoom" className={`max-md:hidden ${canvasControlButtonClass}`}><CanvasIcon name="zoom-out" /></button>
+        <div className={`flex h-9 items-center gap-2 rounded-full px-2 max-md:hidden ${darkMode ? "bg-neutral-800" : "bg-neutral-100"}`}>
           <input
             type="range"
             min="0.2"
@@ -564,12 +604,12 @@ export function Canvas() {
             value={canvasZoom}
             onChange={(event) => setZoom(Number(event.target.value))}
             aria-label="Niveau de zoom"
-            className="h-1.5 w-20 cursor-pointer accent-amber-500 sm:w-28"
+            className="h-1.5 w-20 cursor-pointer accent-amber-500 sm:w-28 max-md:hidden"
           />
           <span className="w-9 text-right text-xs font-semibold tabular-nums">{Math.round(canvasZoom * 100)}%</span>
         </div>
-        <button type="button" onClick={() => setZoom(canvasZoom + 0.1)} title="Augmenter le zoom" aria-label="Augmenter le zoom" className={canvasControlButtonClass}><CanvasIcon name="zoom-in" /></button>
-        <span className={`h-7 w-px ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+        <button type="button" onClick={() => setZoom(canvasZoom + 0.1)} title="Augmenter le zoom" aria-label="Augmenter le zoom" className={`max-md:hidden ${canvasControlButtonClass}`}><CanvasIcon name="zoom-in" /></button>
+        <span className={`h-7 w-px max-md:hidden ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
         <button type="button" onClick={frameCanvas} title="Cadrer tout le schéma" aria-label="Cadrer tout le schéma" className={canvasControlButtonClass}><CanvasIcon name="frame" /></button>
         <button
           type="button"
@@ -577,20 +617,14 @@ export function Canvas() {
           title="Sélection par zone"
           aria-label="Sélection par zone"
           aria-pressed={selectionMode}
-          className={`${canvasControlButtonClass} ${selectionMode ? (darkMode ? "bg-amber-500 text-neutral-950" : "bg-amber-400 text-neutral-950") : ""}`}
+          className={`max-md:hidden ${canvasControlButtonClass} ${selectionMode ? (darkMode ? "bg-amber-500 text-neutral-950" : "bg-amber-400 text-neutral-950") : ""}`}
         >
           <CanvasIcon name="selection" />
         </button>
-        <button
-          type="button"
-          onClick={() => setShowGrid(!showGrid)}
-          title={showGrid ? "Masquer la grille" : "Afficher la grille"}
-          aria-label={showGrid ? "Masquer la grille" : "Afficher la grille"}
-          aria-pressed={showGrid}
-          className={`${canvasControlButtonClass} ${showGrid ? (darkMode ? "bg-neutral-700" : "bg-neutral-200") : ""}`}
-        >
-          <CanvasIcon name="grid" />
-        </button>
+        <span className={`hidden h-7 w-px max-md:block ${darkMode ? "bg-neutral-700" : "bg-neutral-200"}`} />
+        <div className="hidden max-md:block">
+          <SchemaIssuesWidget variant="canvas" />
+        </div>
       </div>
 
       {allNodes.length === 0 ? (

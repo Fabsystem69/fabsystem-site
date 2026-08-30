@@ -17,9 +17,6 @@
     "prisma:seed": "prisma db seed",
     "seed:prestations-packs": "tsx scripts/seed-prestations-packs.ts"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
   "dependencies": {
     "@dagrejs/dagre": "^3.1.1",
     "@prisma/adapter-pg": "^7.4.2",

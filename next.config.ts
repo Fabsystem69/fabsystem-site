@@ -10,6 +10,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // Autorise les essais de l'éditeur sur un téléphone du même réseau Wi-Fi.
+  // Cette origine n'est prise en compte que par `next dev`, jamais en production.
+  allowedDevOrigins: ["192.168.1.23"],
   serverExternalPackages: [
     "@prisma/adapter-pg",
     "@react-pdf/renderer",

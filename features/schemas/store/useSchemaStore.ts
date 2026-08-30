@@ -296,6 +296,7 @@ interface SchemaState {
   // plan guidé et les nouveaux composants suivent toujours le placement libre.
   guidedPlanMode: boolean;
   leftPanelCollapsed: boolean;
+  setLeftPanelCollapsed: (collapsed: boolean) => void;
   // v2.1, retour utilisateur : "le bandeau de droite... si celui est réduit
   // on ne sait même pas qu'on peut modifier, on refait un montage avec un
   // nouvel item" — remplace le bandeau permanent (et son état
@@ -649,6 +650,11 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       if (typeof window !== "undefined") window.localStorage.setItem(LEFT_PANEL_COLLAPSED_KEY, next ? "1" : "0");
       return { leftPanelCollapsed: next };
     }),
+
+  setLeftPanelCollapsed: (collapsed) => {
+    if (typeof window !== "undefined") window.localStorage.setItem(LEFT_PANEL_COLLAPSED_KEY, collapsed ? "1" : "0");
+    set({ leftPanelCollapsed: collapsed });
+  },
 
   openItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: true }),
   closeItemPropertiesPopup: () => set({ itemPropertiesPopupOpen: false }),

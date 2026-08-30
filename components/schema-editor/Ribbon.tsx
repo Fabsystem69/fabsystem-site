@@ -108,21 +108,21 @@ export function Ribbon() {
           : "text-emerald-700";
 
   return (
-    <header className={`flex shrink-0 flex-col border-b ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
+    <header className={`relative z-50 flex shrink-0 flex-col border-b ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
       {/* Rangée 1 : identité + onglets + statut d'enregistrement */}
-      <div className={`flex h-10 items-center gap-3 border-b px-4 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+      <div className={`flex h-10 items-center gap-3 border-b px-4 max-md:h-14 max-md:gap-2 max-md:overflow-hidden max-md:px-3 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
         <Link
           href="/outils"
-          className={`text-sm font-medium transition-base ${darkMode ? "text-neutral-400 hover:text-white" : "text-neutral-500 hover:text-neutral-900"}`}
+          className={`text-sm font-medium transition-base max-md:flex max-md:h-10 max-md:w-9 max-md:items-center max-md:justify-center max-md:text-xl ${darkMode ? "text-neutral-400 hover:text-white" : "text-neutral-500 hover:text-neutral-900"}`}
         >
-          ← Outils
+          <span aria-hidden="true">←</span><span className="max-md:sr-only"> Outils</span>
         </Link>
-        <span className={darkMode ? "text-neutral-700" : "text-neutral-300"}>|</span>
+        <span className={`max-md:hidden ${darkMode ? "text-neutral-700" : "text-neutral-300"}`}>|</span>
         <input
           type="text"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          className={`rounded-md border border-transparent bg-transparent px-2 py-0.5 text-sm font-medium focus:outline-none ${
+          className={`min-w-0 rounded-md border border-transparent bg-transparent px-2 py-0.5 text-sm font-medium focus:outline-none max-md:flex-1 max-md:text-center max-md:text-base ${
             darkMode
               ? "text-neutral-100 hover:border-neutral-700 focus:border-neutral-400"
               : "text-neutral-800 hover:border-neutral-200 focus:border-neutral-900"
@@ -144,7 +144,7 @@ export function Ribbon() {
           }}
         />
 
-        <span className={`ml-auto max-w-[13rem] text-right text-xs ${saveToneClass}`} title={saveMessage}>
+        <span className={`ml-auto max-w-[13rem] text-right text-xs max-md:hidden ${saveToneClass}`} title={saveMessage}>
           {saveMessage}
         </span>
       </div>
@@ -169,6 +169,8 @@ function EditorMenuBar({
   onNewProject: () => void;
 }) {
   const [openMenu, setOpenMenu] = useState<"file" | "view" | "tools" | null>(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [exportPreviewKind, setExportPreviewKind] = useState<"png" | "pdf" | null>(null);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [openSchemaDialogOpen, setOpenSchemaDialogOpen] = useState(false);
@@ -192,12 +194,20 @@ function EditorMenuBar({
   const { getNodes, getEdges } = useReactFlow();
 
   useEffect(() => {
-    if (!openMenu) return;
+    if (!openMenu && !accountOpen && !mobileActionsOpen) return;
     const close = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) setOpenMenu(null);
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setOpenMenu(null);
+        setAccountOpen(false);
+        setMobileActionsOpen(false);
+      }
     };
     const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenMenu(null);
+      if (event.key === "Escape") {
+        setOpenMenu(null);
+        setAccountOpen(false);
+        setMobileActionsOpen(false);
+      }
     };
     document.addEventListener("mousedown", close);
     document.addEventListener("keydown", closeWithEscape);
@@ -205,10 +215,10 @@ function EditorMenuBar({
       document.removeEventListener("mousedown", close);
       document.removeEventListener("keydown", closeWithEscape);
     };
-  }, [openMenu]);
+  }, [accountOpen, mobileActionsOpen, openMenu]);
 
   const menuButtonClass = (active: boolean) =>
-    `flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-base ${
+    `flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-base max-md:h-10 max-md:px-2 max-md:text-xs ${
       active
         ? darkMode
           ? "bg-neutral-800 text-white"
@@ -261,9 +271,15 @@ function EditorMenuBar({
     setOpenMenu(null);
   }
 
+  function openMobileSave() {
+    setMobileActionsOpen(false);
+    requestAnimationFrame(() => document.querySelector<HTMLButtonElement>("[data-schema-header-save]")?.click());
+  }
+
   return (
     <>
-    <nav ref={menuRef} className="ml-3 flex flex-1 items-center gap-1 border-l pl-3 dark:border-neutral-800 border-neutral-200" aria-label="Menu de l'éditeur">
+    <button type="button" onClick={() => setMobileActionsOpen(true)} className={`ml-auto hidden h-10 w-10 items-center justify-center rounded-full text-2xl font-bold max-md:flex ${darkMode ? "text-neutral-200 hover:bg-neutral-800" : "text-slate-700 hover:bg-slate-100"}`} aria-label="Ouvrir les actions">⋮</button>
+    <nav ref={menuRef} className="ml-3 flex flex-1 items-center gap-1 border-l pl-3 dark:border-neutral-800 border-neutral-200 max-md:hidden" aria-label="Menu de l'éditeur">
       <div className="relative">
         <button type="button" aria-expanded={openMenu === "file"} onClick={() => setOpenMenu((menu) => (menu === "file" ? null : "file"))} className={menuButtonClass(openMenu === "file")}>
           Fichier <MenubarIcon name="chevron" className="h-4 w-4" />
@@ -335,7 +351,37 @@ function EditorMenuBar({
       <CalculatorMenu darkMode={darkMode} variant="menubar" />
       <SchemaIssuesWidget variant="header" />
       <button type="button" onClick={() => setShareOpen(true)} className="ml-1 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-600">Partager</button>
+      <div className="relative ml-1 max-md:hidden">
+        <button
+          type="button"
+          aria-expanded={accountOpen}
+          aria-label="Ouvrir le menu du compte"
+          onClick={() => setAccountOpen((open) => !open)}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-sm font-semibold text-amber-700 transition-base hover:bg-amber-100"
+        >
+          FL
+        </button>
+        {accountOpen ? (
+          <div className={`absolute right-0 top-11 z-50 w-72 overflow-hidden rounded-2xl border shadow-[0_16px_36px_rgba(15,23,42,0.18)] ${darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`}>
+            <div className={`border-b px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-100"}`}>
+              <p className="text-lg font-semibold">Mon compte</p>
+              <p className={`mt-1 text-sm ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Gérez vos projets et vos préférences.</p>
+              <span className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${darkMode ? "bg-neutral-800 text-neutral-300" : "bg-slate-100 text-slate-600"}`}>Éditeur gratuit</span>
+            </div>
+            <div className="p-2">
+              <Link href="/mon-compte/profil" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⚙</span> Paramètres du compte</Link>
+              <Link href="/mon-compte/projets" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">▣</span> Mes projets</Link>
+              <button type="button" onClick={() => { setAccountOpen(false); select("aide"); }} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">✦</span> Nouveautés et aide</button>
+              <a href="mailto:contact@fabsystem.fr?subject=Retour%20%C3%A9diteur%20de%20sch%C3%A9ma" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">✉</span> Contacter le support</a>
+            </div>
+            <div className={`border-t p-2 ${darkMode ? "border-neutral-800" : "border-slate-100"}`}>
+              <form action="/api/auth/logout" method="post"><button type="submit" className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⇥</span> Se déconnecter</button></form>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </nav>
+    {mobileActionsOpen ? <MobileActionsSheet darkMode={darkMode} onClose={() => setMobileActionsOpen(false)} onNew={() => { setTemplatePickerOpen(true); setMobileActionsOpen(false); }} onOpen={() => { setOpenSchemaDialogOpen(true); setMobileActionsOpen(false); }} onSave={openMobileSave} onShare={() => { setShareOpen(true); setMobileActionsOpen(false); }} onExportPng={() => { setExportPreviewKind("png"); setMobileActionsOpen(false); }} onExportPdf={() => { setExportPreviewKind("pdf"); setMobileActionsOpen(false); }} onCableSizing={() => { runCableRecalculation(); setMobileActionsOpen(false); }} onProtectionSizing={() => { runProtectionRecalculation(); setMobileActionsOpen(false); }} onSolarBuilder={() => { setSystemBuilder("solar"); setMobileActionsOpen(false); }} onBatteryBuilder={() => { setSystemBuilder("battery"); setMobileActionsOpen(false); }} /> : null}
     {exportPreviewKind ? <ExportPreviewDialog initialKind={exportPreviewKind} initialShowGrid={showGrid} onClose={() => setExportPreviewKind(null)} /> : null}
     {templatePickerOpen ? <TemplatePickerDialog onClose={() => setTemplatePickerOpen(false)} /> : null}
     {openSchemaDialogOpen ? <OpenSchemaDialog onClose={() => setOpenSchemaDialogOpen(false)} onNew={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} onTemplates={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} /> : null}
@@ -343,6 +389,20 @@ function EditorMenuBar({
     {shareOpen ? <ShareSchemaDialog projectId={projectId} projectName={projectName} onClose={() => setShareOpen(false)} /> : null}
     </>
   );
+}
+
+function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare, onExportPng, onExportPdf, onCableSizing, onProtectionSizing, onSolarBuilder, onBatteryBuilder }: { darkMode: boolean; onClose: () => void; onNew: () => void; onOpen: () => void; onSave: () => void; onShare: () => void; onExportPng: () => void; onExportPdf: () => void; onCableSizing: () => void; onProtectionSizing: () => void; onSolarBuilder: () => void; onBatteryBuilder: () => void }) {
+  const itemClass = `flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-base font-semibold transition-base ${darkMode ? "text-neutral-100 hover:bg-neutral-800" : "text-slate-800 hover:bg-slate-50"}`;
+  const headingClass = `px-4 pt-5 text-[11px] font-bold uppercase tracking-[0.24em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`;
+  return <div className="schema-mobile-actions-backdrop fixed inset-0 z-[80] hidden items-end bg-slate-950/65 max-md:flex" role="dialog" aria-modal="true" aria-label="Actions du schéma" onMouseDown={onClose}>
+    <section className={`schema-mobile-actions-sheet max-h-[calc(100dvh-3rem)] w-full overflow-y-auto rounded-t-[1.75rem] border-t shadow-2xl ${darkMode ? "border-neutral-700 bg-neutral-950" : "border-slate-200 bg-white"}`} onMouseDown={(event) => event.stopPropagation()}>
+      <div className={`sticky top-0 z-10 border-b px-5 pb-4 pt-3 ${darkMode ? "border-neutral-800 bg-neutral-950" : "border-slate-200 bg-white"}`}><div className={`mx-auto mb-4 h-1.5 w-20 rounded-full ${darkMode ? "bg-neutral-800" : "bg-slate-100"}`} /><div className="flex items-center justify-between"><h2 className="text-2xl font-semibold">Actions</h2><button type="button" onClick={onClose} className={`rounded-full px-3 py-1 text-2xl ${darkMode ? "text-neutral-400 hover:bg-neutral-800" : "text-slate-500 hover:bg-slate-100"}`} aria-label="Fermer">×</button></div></div>
+      <p className={headingClass}>Fichier</p><div className="px-2"><button type="button" onClick={onNew} className={itemClass}><span>▧</span>Nouveau schéma</button><button type="button" onClick={onSave} className={itemClass}><span>▣</span>Sauvegarder</button><button type="button" onClick={onOpen} className={itemClass}><span>▱</span>Ouvrir mes schémas</button><button type="button" onClick={onShare} className={itemClass}><span>⌘</span>Partager</button></div>
+      <p className={headingClass}>Outils</p><div className="px-2"><button type="button" onClick={onCableSizing} className={itemClass}><span>⌁</span>Recalculer les sections</button><button type="button" onClick={onProtectionSizing} className={itemClass}><span>▣</span>Recalculer les protections</button><button type="button" onClick={onSolarBuilder} className={itemClass}><span>☀</span>Créer un champ solaire</button><button type="button" onClick={onBatteryBuilder} className={itemClass}><span>▰</span>Créer un parc batteries</button></div>
+      <p className={headingClass}>Export</p><div className="px-2"><button type="button" onClick={onExportPng} className={itemClass}><span>▧</span>Exporter en PNG</button><button type="button" onClick={onExportPdf} className={itemClass}><span>▤</span>Imprimer en PDF</button></div>
+      <p className={headingClass}>Compte</p><div className="px-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"><a href="/mon-compte/profil" className={itemClass}><span>⚙</span>Paramètres du compte</a><form action="/api/auth/logout" method="post"><button type="submit" className={itemClass}><span>⇥</span>Se déconnecter</button></form></div>
+    </section>
+  </div>;
 }
 
 function AccueilGroup({ darkMode }: { darkMode: boolean }) {

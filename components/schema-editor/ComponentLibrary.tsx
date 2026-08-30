@@ -99,9 +99,22 @@ export function ComponentLibrary() {
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const darkMode = useSchemaStore((s) => s.darkMode);
   const collapsed = useSchemaStore((s) => s.leftPanelCollapsed);
+  const setLeftPanelCollapsed = useSchemaStore((s) => s.setLeftPanelCollapsed);
   const setDraggingComponentType = useSchemaStore((s) => s.setDraggingComponentType);
   const toggleLeftPanel = useSchemaStore((s) => s.toggleLeftPanel);
   const { screenToFlowPosition, getZoom } = useReactFlow();
+
+  // Sur téléphone, le canevas est la surface principale. La bibliothèque
+  // démarre donc fermée et ne s'ouvre qu'à la demande via le bouton compact.
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const collapseForMobile = () => {
+      if (mediaQuery.matches) setLeftPanelCollapsed(true);
+    };
+    collapseForMobile();
+    mediaQuery.addEventListener("change", collapseForMobile);
+    return () => mediaQuery.removeEventListener("change", collapseForMobile);
+  }, [setLeftPanelCollapsed]);
 
   // Famille à faire défiler en vue une fois le panneau rouvert (V2, retour
   // utilisateur : "quand il est rabattu, des boutons de famille pour le
@@ -223,8 +236,12 @@ export function ComponentLibrary() {
 
   function handleClickAdd(type: string, presetValue?: string) {
     const center = screenToFlowPosition(getVisibleCanvasCenter());
+    const closeOnMobile = () => {
+      if (window.matchMedia("(max-width: 767px)").matches) setLeftPanelCollapsed(true);
+    };
     if (type === "zone") {
       addZone({ x: center.x - 190, y: center.y - 130 });
+      closeOnMobile();
       return;
     }
     const selectedEdge = selectedEdgeId ? edges.find((edge) => edge.id === selectedEdgeId) : undefined;
@@ -236,6 +253,7 @@ export function ComponentLibrary() {
           x: (source.position.x + target.position.x) / 2,
           y: (source.position.y + target.position.y) / 2,
         });
+        closeOnMobile();
         return;
       }
     }
@@ -273,15 +291,17 @@ export function ComponentLibrary() {
     const hasBrandModels = !guidedMode && getBrandModelsForType(type).length > 0;
     if (hasBrandModels) {
       openLibraryPick(type, position, dataOverride);
+      closeOnMobile();
       return;
     }
     addComponent(type, position, dataOverride);
+    closeOnMobile();
   }
 
   if (collapsed) {
     return (
       <aside
-        className={`absolute left-0 z-20 ml-5 mt-6 flex max-h-[calc(100dvh-7rem)] w-11 flex-col items-center gap-1 overflow-hidden rounded-2xl border py-3 shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${
+        className={`schema-mobile-components-launcher absolute left-0 z-20 ml-5 mt-6 flex max-h-[calc(100dvh-7rem)] w-11 flex-col items-center gap-1 overflow-hidden rounded-2xl border py-3 shadow-[0_16px_36px_rgba(15,23,42,0.14)] max-md:hidden ${
           darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
         }`}
       >
@@ -289,13 +309,13 @@ export function ComponentLibrary() {
           type="button"
           onClick={toggleLeftPanel}
           title="Afficher la bibliothèque de composants"
-          className={`rounded-md border p-1.5 text-xs transition-base ${
-            darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
+          className={`rounded-md border p-1.5 text-xs transition-base max-md:flex max-md:h-9 max-md:items-center max-md:gap-1.5 max-md:rounded-full max-md:border-amber-500 max-md:bg-amber-500 max-md:px-3 max-md:text-sm max-md:font-semibold max-md:text-white ${
+            darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800 max-md:border-amber-500 max-md:bg-amber-500 max-md:text-neutral-950" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
           }`}
         >
-          ›
+          <span className="hidden max-md:inline" aria-hidden="true">＋</span><span className="max-md:hidden">›</span><span className="hidden max-md:inline">Composants</span>
         </button>
-        <div className={`my-1 h-px w-6 shrink-0 ${darkMode ? "bg-neutral-800" : "bg-neutral-200"}`} />
+        <div className={`my-1 h-px w-6 shrink-0 max-md:hidden ${darkMode ? "bg-neutral-800" : "bg-neutral-200"}`} />
         {Object.entries(CATEGORY_LABELS)
           .sort(([a], [b]) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b))
           .map(([category, label]) => (
@@ -304,7 +324,7 @@ export function ComponentLibrary() {
             type="button"
             onClick={() => handleOpenCategory(category)}
             title={label}
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border text-[11px] font-bold uppercase transition-base ${
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md border text-[11px] font-bold uppercase transition-base max-md:hidden ${
               darkMode ? "border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:bg-neutral-800 hover:text-neutral-100" : "border-neutral-300 text-neutral-500 hover:border-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
             }`}
           >
@@ -316,18 +336,26 @@ export function ComponentLibrary() {
   }
 
   return (
-    <aside
-      className={`absolute left-0 z-20 ml-5 mt-6 flex max-h-[calc(100dvh-7rem)] w-64 flex-col overflow-hidden rounded-3xl border shadow-[0_16px_36px_rgba(15,23,42,0.14)] ${
+    <>
+      <button
+        type="button"
+        aria-label="Fermer la bibliothèque de composants"
+        onClick={toggleLeftPanel}
+        className="schema-mobile-library-backdrop fixed inset-0 z-40 hidden bg-slate-950/60 max-md:block"
+      />
+      <aside
+      className={`schema-mobile-library absolute left-0 z-20 ml-5 mt-6 flex max-h-[calc(100dvh-7rem)] w-64 flex-col overflow-hidden rounded-3xl border shadow-[0_16px_36px_rgba(15,23,42,0.14)] max-md:fixed max-md:inset-0 max-md:z-50 max-md:m-0 max-md:max-h-none max-md:w-auto max-md:rounded-none max-md:pb-[env(safe-area-inset-bottom)] ${
         darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"
       }`}
     >
-      <div className={`flex items-center justify-between gap-2 border-b p-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+      <div className={`flex items-center justify-between gap-2 border-b p-3 max-md:px-5 max-md:py-4 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+        <div className="hidden min-w-0 max-md:block"><p className={`text-lg font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>Ajouter un composant</p><p className={`text-xs ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Touchez un élément pour l&apos;ajouter au canevas.</p></div>
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Rechercher un composant…"
-          className={`w-full min-w-0 flex-1 rounded-md border px-2.5 py-1.5 text-sm focus:outline-none ${
+          className={`w-full min-w-0 flex-1 rounded-md border px-2.5 py-1.5 text-sm focus:outline-none max-md:absolute max-md:left-5 max-md:right-5 max-md:top-[5.8rem] max-md:w-auto ${
             darkMode
               ? "border-neutral-700 bg-neutral-800 text-neutral-100 placeholder:text-neutral-500 focus:border-neutral-400"
               : "border-neutral-300 bg-white text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-900"
@@ -337,20 +365,20 @@ export function ComponentLibrary() {
           type="button"
           onClick={toggleLeftPanel}
           title="Réduire la bibliothèque de composants"
-          className={`shrink-0 rounded-md border p-1.5 text-xs transition-base ${
+          className={`shrink-0 rounded-md border p-1.5 text-xs transition-base max-md:ml-auto ${
             darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
           }`}
         >
-          ‹
+          <span className="max-md:hidden">‹</span><span className="hidden text-xl max-md:inline">×</span>
         </button>
       </div>
       {!collapsed ? (
-        <div className={`border-b px-3 py-2 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
+        <div className={`border-b px-3 py-2 max-md:mt-16 max-md:px-5 max-md:py-3 ${darkMode ? "border-neutral-800" : "border-neutral-200"}`}>
           <button
             type="button"
             onClick={() => setCreateItemOpen(true)}
             title="Créer un modèle personnalisé (marque/référence manquante), avec sa vraie photo"
-            className={`w-full rounded-md border px-2.5 py-1.5 text-xs font-medium transition-base ${
+            className={`w-full rounded-md border px-2.5 py-1.5 text-xs font-medium transition-base max-md:rounded-xl max-md:px-3 max-md:py-2.5 max-md:text-sm max-md:font-semibold ${
               darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
             }`}
           >
@@ -360,7 +388,7 @@ export function ComponentLibrary() {
       ) : null}
       {createItemOpen ? <CreateCustomItemModal onClose={() => setCreateItemOpen(false)} /> : null}
 
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-3 max-md:px-5 max-md:pb-8">
         {grouped.size === 0 ? (
           <p className={`mt-4 text-center text-sm ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Aucun composant trouvé.</p>
         ) : (
@@ -382,22 +410,22 @@ export function ComponentLibrary() {
                       pendingScrollCategory.current = null;
                     }
                   }}
-                  className="mb-2 scroll-mt-3"
+                  className="mb-1 scroll-mt-3"
                 >
                   <button
                     type="button"
                     onClick={() => toggleCategory(category)}
-                    className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left transition-base ${
+                    className={`flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left transition-base max-md:min-h-12 max-md:gap-3 max-md:rounded-xl max-md:px-3 max-md:py-2.5 ${
                       darkMode ? "hover:bg-neutral-800" : "hover:bg-neutral-100"
                     }`}
                   >
                     <span className={darkMode ? "text-neutral-400" : "text-neutral-500"}>
-                      <CategoryIcon category={category} className="h-3.5 w-3.5" />
+                      <CategoryIcon category={category} className="h-3.5 w-3.5 max-md:h-5 max-md:w-5" />
                     </span>
-                    <span className={`flex-1 text-[11px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>
+                    <span className={`flex-1 text-[11px] font-semibold uppercase tracking-wide max-md:text-sm max-md:normal-case max-md:tracking-normal ${darkMode ? "text-neutral-300 max-md:text-neutral-200" : "text-neutral-600 max-md:text-slate-700"}`}>
                       {label}
                     </span>
-                    <span className={`text-[10px] tabular-nums ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>{itemCount}</span>
+                    <span className={`text-[10px] tabular-nums max-md:rounded-md max-md:px-2 max-md:py-1 max-md:text-xs ${darkMode ? "text-neutral-600 max-md:bg-neutral-800 max-md:text-neutral-400" : "text-neutral-400 max-md:bg-slate-100 max-md:text-slate-500"}`}>{itemCount}</span>
                     <span
                       className={`text-[10px] transition-transform ${isOpen ? "rotate-90" : ""} ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}
                     >
@@ -406,11 +434,11 @@ export function ComponentLibrary() {
                   </button>
 
                   {isOpen ? (
-                    <div className="mt-1 space-y-2.5 px-1 pt-0.5">
+                    <div className="mt-1 space-y-2.5 px-1 pt-0.5 max-md:space-y-2 max-md:px-2 max-md:pb-2">
                       {Array.from(subgroups.entries()).map(([subcategory, items]) => (
                         <div key={subcategory} className="space-y-1">
                           {subcategory !== NO_SUBCATEGORY ? (
-                            <h4 className={`px-0.5 text-[10px] font-medium uppercase tracking-wide ${darkMode ? "text-neutral-600" : "text-neutral-400"}`}>
+                            <h4 className={`px-0.5 text-[10px] font-medium uppercase tracking-wide max-md:px-1 max-md:pt-2 max-md:font-bold max-md:tracking-[0.16em] ${darkMode ? "text-neutral-600 max-md:text-neutral-500" : "text-neutral-400 max-md:text-slate-400"}`}>
                               {SUBCATEGORY_LABELS[subcategory] ?? subcategory}
                             </h4>
                           ) : null}
@@ -427,7 +455,7 @@ export function ComponentLibrary() {
                               }}
                               onDragEnd={() => setDraggingComponentType(null)}
                               onClick={() => handleClickAdd(item.type, item.presetValue)}
-                              className={`flex w-full cursor-grab items-center justify-between rounded-md border px-2.5 py-2 text-left text-sm shadow-sm transition-base active:cursor-grabbing ${
+                              className={`flex w-full cursor-grab items-center justify-between rounded-md border px-2.5 py-2 text-left text-sm shadow-sm transition-base active:cursor-grabbing max-md:min-h-12 max-md:rounded-xl max-md:px-3 max-md:py-2.5 ${
                                 item.key === guidedHighlightKey
                                   ? darkMode
                                     ? "border-emerald-400 bg-emerald-950/40 text-neutral-100 ring-2 ring-emerald-400"
@@ -443,7 +471,7 @@ export function ComponentLibrary() {
                               <span className="flex items-center gap-2">
                                 {item.icon ? (
                                   // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={item.icon} alt="" className="h-4 w-4 shrink-0 object-contain" />
+                                  <img src={item.icon} alt="" className="h-4 w-4 shrink-0 object-contain max-md:h-5 max-md:w-5" />
                                 ) : null}
                                 <span className="font-medium">{item.label}</span>
                               </span>
@@ -461,6 +489,7 @@ export function ComponentLibrary() {
             })
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

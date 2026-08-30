@@ -47,3 +47,50 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* L'editeur reste parfaitement utilisable en portrait, mais les telephones
+   en paysage ont peu de hauteur. Les feuilles mobiles deviennent donc des
+   tiroirs lateraux: le canevas, la barre de commandes et le bouton
+   Composants restent toujours visibles derriere. */
+@media (max-width: 767px) and (orientation: landscape) {
+  .schema-mobile-actions-backdrop {
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  .schema-mobile-actions-sheet {
+    width: min(28rem, 58vw);
+    max-height: none;
+    height: 100dvh;
+    border-top-left-radius: 1.5rem;
+    border-bottom-left-radius: 1.5rem;
+    border-top-right-radius: 0;
+  }
+
+  .schema-mobile-library {
+    inset: 0 auto 0 0 !important;
+    width: min(22rem, 56vw) !important;
+    border-top-right-radius: 1.5rem !important;
+    border-bottom-right-radius: 1.5rem !important;
+  }
+
+  .schema-mobile-properties {
+    inset: 0.5rem 0.5rem 0.5rem auto !important;
+    width: min(20rem, 44vw) !important;
+    height: auto !important;
+    max-height: none !important;
+    border-radius: 1.5rem !important;
+  }
+
+  .schema-mobile-selection {
+    left: auto;
+    right: calc(min(20rem, 44vw) + 1rem);
+    bottom: 0.75rem;
+    width: min(19rem, 42vw);
+  }
+
+  .schema-mobile-canvas-controls {
+    bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+  }
+
+}

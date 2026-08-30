@@ -329,10 +329,10 @@ export function Editor() {
 
   return (
     <ReactFlowProvider>
-      <div className={`flex h-screen flex-col ${darkMode ? "bg-neutral-950" : "bg-white"}`}>
+      <div className={`schema-editor flex h-[100dvh] flex-col ${darkMode ? "bg-neutral-950" : "bg-white"}`}>
         <Ribbon />
         <SaveAssistantBanner />
-        <div className="relative flex min-h-0 flex-1">
+        <div className="relative flex min-h-0 flex-1 overflow-hidden max-md:overflow-visible">
           <ComponentLibrary />
           <Canvas />
           <PropertiesSidebar />
