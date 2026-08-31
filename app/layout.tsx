@@ -87,7 +87,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={spaceGrotesk.variable}>
+    <html lang="fr" className={spaceGrotesk.variable} data-scroll-behavior="smooth">
       <body className="bg-white font-sans text-neutral-900 antialiased">
         {/* structured data for SEO */}
         <script

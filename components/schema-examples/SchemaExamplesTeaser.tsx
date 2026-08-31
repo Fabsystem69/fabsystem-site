@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { SCHEMA_EXAMPLE_COUNT } from "@/lib/schema-examples";
+import { SCHEMA_EXAMPLE_COUNT } from "@/lib/schema-examples-data";
 
 const EXAMPLE_TAGS = [
   "Solaire simple",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getSchemaExampleHref } from "@/lib/schema-examples";
+import { getSchemaExampleHref } from "@/lib/schema-examples-data";
 
 // Retour utilisateur (comparatif Wireframe) : "Use this calculator with our
 // wiring guides" — chez eux, un mur de cartes vers leurs 61 diagrammes

@@ -3,7 +3,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import { listActiveBuyNowProducts } from "@/lib/services/catalog";
 import { isPrestationsPackSlug } from "@/lib/prestations-packs";
-import { SCHEMA_EXAMPLE_SLUGS } from "@/lib/schema-examples";
+import { SCHEMA_EXAMPLE_SLUGS } from "@/lib/schema-examples-data";
 
 // Sitemap dynamique (retour utilisateur : "optimise l'affichage des pages
 // sur Google") — les pages hub (/outils, /formations, /boutique) étaient
@@ -35,7 +35,7 @@ const FORMATIONS_SLUGS = [
 ];
 
 const ROUTE_FILE_MAP = {
-  "/": ["app/page.tsx"],
+  "/": ["app/(home)/page.tsx"],
   "/prestations": ["app/prestations/page.tsx"],
   "/prestations/accompagnement": [
     "app/prestations/accompagnement/page.tsx",
@@ -53,7 +53,7 @@ const ROUTE_FILE_MAP = {
     "components/schema-editor/SchemaEditorRuntime.tsx",
   ],
   "/realisations": ["app/realisations/page.tsx"],
-  "/schemas-electriques": ["app/schemas-electriques/page.tsx", "lib/schema-examples.ts"],
+  "/schemas-electriques": ["app/schemas-electriques/page.tsx", "lib/schema-examples-data.ts"],
   "/boutique": ["app/boutique/page.tsx"],
   "/a-propos": ["app/a-propos/page.tsx"],
   "/contact": ["app/contact/page.tsx"],
@@ -157,7 +157,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/schemas-electriques/${slug}`,
       lastModified: await getStableLastModified([
         "app/schemas-electriques/[slug]/page.tsx",
-        "lib/schema-examples.ts",
+        "lib/schema-examples-data.ts",
       ]),
       changeFrequency: "monthly" as const,
       priority: 0.7,

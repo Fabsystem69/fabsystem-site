@@ -57,6 +57,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           ]
         : undefined,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: example.metaTitle,
+      description: example.metaDescription,
+      images: getSchemaExampleThumbnailAbsoluteUrl(example.slug)
+        ? [getSchemaExampleThumbnailAbsoluteUrl(example.slug) ?? ""]
+        : undefined,
+    },
   };
 }
 

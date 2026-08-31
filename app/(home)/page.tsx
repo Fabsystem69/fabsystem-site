@@ -5,8 +5,8 @@ import { TroisUnivers } from "@/components/home/TroisUnivers";
 import { Parcours } from "@/components/home/Parcours";
 import { OutilsGratuits } from "@/components/home/OutilsGratuits";
 import { LesBases } from "@/components/home/LesBases";
-import { Accompagnement } from "@/components/home/Accompagnement";
 import { Confiance } from "@/components/home/Confiance";
+import { Accompagnement } from "@/components/home/Accompagnement";
 import { CtaFinal } from "@/components/home/CtaFinal";
 
 // Home V2 : le sélecteur d'univers reste présent, mais il devient un
