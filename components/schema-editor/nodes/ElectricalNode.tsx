@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Handle, Position, useUpdateNodeInternals, type NodeProps, type Node } from "@xyflow/react";
 import { getComponentDefinition, getNodeIcon, getEffectiveHandles, getHandleLabel } from "@/lib/electrical-components/definitions";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
@@ -83,7 +83,10 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const rotateNode = useSchemaStore((s) => s.rotateNode);
   const duplicateNode = useSchemaStore((s) => s.duplicateNode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
+  const select = useSchemaStore((s) => s.select);
+  const highlightIssueTarget = useSchemaStore((s) => s.highlightIssueTarget);
   const updateNodeInternals = useUpdateNodeInternals();
+  const [issueBubbleOpen, setIssueBubbleOpen] = useState(false);
   const rotation = Number(data.rotation) || 0;
   const mirrored = Boolean(data.mirrored);
   const outputCount = Number(data.outputCount) || 0;
@@ -133,8 +136,10 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
       .filter((handleId): handleId is string => Boolean(handleId)),
   );
   const connectedOnSide = (side: Side) => bySide[side].filter(({ handle }) => connectedHandles.has(handle.id)).length;
-  const configuredLabelPosition = data.labelPosition === "top" || data.labelPosition === "bottom" ? data.labelPosition : "auto";
-  const componentLabelSide: "top" | "bottom" = configuredLabelPosition === "auto"
+  const configuredLabelPosition = data.labelPosition === "top" || data.labelPosition === "bottom" || data.labelPosition === "left" || data.labelPosition === "right"
+    ? data.labelPosition
+    : "auto";
+  const componentLabelSide: Side = configuredLabelPosition === "auto"
     ? connectedOnSide("bottom") > connectedOnSide("top") ? "top" : "bottom"
     : configuredLabelPosition;
 
@@ -233,10 +238,31 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   const componentLabel = (
     <div
       data-schema-component-label={id}
-      className={`max-w-full truncate px-1 font-medium leading-tight ${
+      // Le libellé ne doit jamais participer aux dimensions du nœud React
+      // Flow : en flux normal, le passer au-dessus agrandissait la hauteur
+      // mesurée puis décalait les bornes alors que les câbles restaient sur
+      // leur géométrie précédente. Il reste donc visuellement adjacent,
+      // mais ancré en absolu hors du boîtier électrique.
+      className={`pointer-events-none absolute z-10 w-max max-w-[220px] truncate px-1 text-center font-medium leading-tight ${
+        componentLabelSide === "top"
+          ? "bottom-full left-1/2 mb-1"
+          : componentLabelSide === "bottom"
+            ? "left-1/2 top-full mt-1"
+            : componentLabelSide === "left"
+              ? "right-full top-1/2 mr-1"
+              : "left-full top-1/2 ml-1"
+      } ${
         selected ? "text-neutral-700" : darkMode ? "text-neutral-300" : "text-neutral-700"
       }`}
-      style={{ fontSize: 10 + (displayScale - 1) * 1.5, transform: `rotate(${Number(data.labelAngle) || 0}deg)` }}
+      style={{
+        fontSize: 10 + (displayScale - 1) * 1.5,
+        // `transform` est une propriété unique : le `rotate()` précédent
+        // annulait le translate Tailwind et plaçait le début du texte au
+        // centre du boîtier. Les deux transformations sont donc composées
+        // ici pour garder le point milieu comme ancre, quelle que soit la
+        // face choisie.
+        transform: `${componentLabelSide === "top" || componentLabelSide === "bottom" ? "translateX(-50%)" : "translateY(-50%)"} rotate(${Number(data.labelAngle) || 0}deg)`,
+      }}
       title={String(data.label ?? def.label)}
     >
       {String(data.label ?? def.label)}
@@ -244,8 +270,8 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
   );
 
   return (
-    <div className="relative flex w-fit flex-col items-center gap-1">
-      {showComponentLabels && componentLabelSide === "top" ? componentLabel : null}
+    <div className="relative w-fit">
+      {showComponentLabels ? componentLabel : null}
       {selected ? (
         <div
           className={`nodrag nopan absolute -top-7 left-1/2 z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-md border px-1 py-0.5 shadow-sm ${
@@ -317,7 +343,20 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
           gridTemplateAreas: `"tl top tr" "left icon right" "bl bottom br"`,
         }}
       >
-        {issueSeverity ? <IssueBadge severity={issueSeverity} messages={nodeIssues.map((issue) => issue.message)} /> : null}
+        {issueSeverity ? (
+          <IssueBadge
+            severity={issueSeverity}
+            messages={nodeIssues.map((issue) => issue.message)}
+            open={issueBubbleOpen}
+            onToggle={() => setIssueBubbleOpen((open) => !open)}
+            onClose={() => setIssueBubbleOpen(false)}
+            onResolve={() => {
+              setIssueBubbleOpen(false);
+              select("node", id);
+              highlightIssueTarget("node", id);
+            }}
+          />
+        ) : null}
         {topLabels.length > 0 && (
           <div
             ref={topRef}
@@ -434,29 +473,85 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
         })}
       </div>
 
-      {showComponentLabels && componentLabelSide === "bottom" ? componentLabel : null}
     </div>
   );
 }
 
-function IssueBadge({ severity, messages }: { severity: SchemaIssueSeverity; messages: string[] }) {
+function IssueBadge({
+  severity,
+  messages,
+  open,
+  onToggle,
+  onClose,
+  onResolve,
+}: {
+  severity: SchemaIssueSeverity;
+  messages: string[];
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onResolve: () => void;
+}) {
   const tone = severity === "error"
-    ? { fill: "#dc2626", label: "Erreur" }
+    ? { fill: "#dc2626", label: "Erreur", panel: "border-red-200 bg-red-50 text-red-950", button: "bg-red-600 hover:bg-red-700" }
     : severity === "warning"
-      ? { fill: "#f59e0b", label: "Avertissement" }
-      : { fill: "#0284c7", label: "Information" };
+      ? { fill: "#f59e0b", label: "Avertissement", panel: "border-amber-200 bg-amber-50 text-amber-950", button: "bg-amber-600 hover:bg-amber-700" }
+      : { fill: "#0284c7", label: "Information", panel: "border-sky-200 bg-sky-50 text-sky-950", button: "bg-sky-600 hover:bg-sky-700" };
+  const stopNodeInteraction = (event: React.SyntheticEvent) => event.stopPropagation();
+
   return (
-    <span
-      className="pointer-events-none absolute -left-4 -top-5 z-20 drop-shadow-md"
-      title={`${tone.label} : ${messages.join("\n")}`}
-      aria-label={`${tone.label} : ${messages.join(". ")}`}
-    >
-      <svg viewBox="0 0 42 50" className="h-10 w-9" role="img" aria-hidden="true">
-        <path d="M21 1C9.95 1 1 9.95 1 21c0 15 20 28 20 28s20-13 20-28C41 9.95 32.05 1 21 1Z" fill={tone.fill} stroke="white" strokeWidth="3" />
-        <path d="M21 11v13" stroke="white" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="21" cy="31" r="2.5" fill="white" />
-      </svg>
-      <span className="sr-only">{tone.label}</span>
-    </span>
+    <div className="absolute -left-4 -top-5 z-30">
+      <button
+        type="button"
+        className="nodrag nopan block drop-shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+        title={`${tone.label} : ${messages.join("\n")}`}
+        aria-label={`${tone.label} : ${messages.join(". ")}`}
+        aria-expanded={open}
+        onPointerDown={stopNodeInteraction}
+        onClick={(event) => {
+          stopNodeInteraction(event);
+          onToggle();
+        }}
+      >
+        <svg viewBox="0 0 42 50" className="h-10 w-9" role="img" aria-hidden="true">
+          <path d="M21 1C9.95 1 1 9.95 1 21c0 15 20 28 20 28s20-13 20-28C41 9.95 32.05 1 21 1Z" fill={tone.fill} stroke="white" strokeWidth="3" />
+          <path d="M21 11v13" stroke="white" strokeWidth="4" strokeLinecap="round" />
+          <circle cx="21" cy="31" r="2.5" fill="white" />
+        </svg>
+      </button>
+
+      {open ? (
+        <div
+          role="dialog"
+          aria-label={`${tone.label} sur ce composant`}
+          className={`nodrag nopan absolute left-0 top-10 w-72 rounded-xl border p-3 shadow-xl ${tone.panel}`}
+          onPointerDown={stopNodeInteraction}
+          onClick={stopNodeInteraction}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs font-bold">{tone.label} à corriger</p>
+            <button
+              type="button"
+              className="rounded p-0.5 text-sm leading-none opacity-60 hover:bg-white/60 hover:opacity-100"
+              aria-label="Fermer l'alerte"
+              onClick={onClose}
+            >
+              ×
+            </button>
+          </div>
+          <ul className="mt-2 space-y-1.5 text-[11px] leading-relaxed">
+            {messages.map((message) => <li key={message}>• {message}</li>)}
+          </ul>
+          <p className="mt-2 text-[10px] leading-relaxed opacity-75">Ouvrez les propriétés pour ajuster les valeurs ou corriger le raccordement concerné.</p>
+          <button
+            type="button"
+            className={`mt-3 w-full rounded-lg px-2.5 py-2 text-xs font-bold text-white transition-colors ${tone.button}`}
+            onClick={onResolve}
+          >
+            Corriger ce point
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }

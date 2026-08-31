@@ -315,6 +315,22 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
               className="w-20"
             />
           </InlineField>
+
+          <RibbonDivider darkMode={darkMode} />
+          <InlineField darkMode={darkMode} label="Libellé">
+            <select
+              value={String(selectedNode.data.labelPosition ?? "auto")}
+              onChange={(e) => updateNodeData(selectedNode.id, { labelPosition: e.target.value })}
+              title="Position du libellé autour de la vignette"
+              className={`${inlineInputClass(darkMode)} w-28`}
+            >
+              <option value="auto">Auto</option>
+              <option value="top">Haut</option>
+              <option value="right">Droite</option>
+              <option value="bottom">Bas</option>
+              <option value="left">Gauche</option>
+            </select>
+          </InlineField>
         </>
       ) : null}
 

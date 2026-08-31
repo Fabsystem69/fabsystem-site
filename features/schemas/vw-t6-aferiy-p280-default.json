@@ -8,10 +8,10 @@
       "type": "zone",
       "position": {
         "x": -60,
-        "y": 40
+        "y": -80
       },
       "width": 1180,
-      "height": 570,
+      "height": 690,
       "zIndex": -1,
       "data": {
         "componentType": "zone",
@@ -20,7 +20,7 @@
       },
       "measured": {
         "width": 1180,
-        "height": 570
+        "height": 690
       },
       "selected": false
     },
@@ -70,7 +70,7 @@
       "type": "electrical",
       "position": {
         "x": 40,
-        "y": 120
+        "y": 0
       },
       "data": {
         "componentType": "solar-panel",
@@ -95,7 +95,7 @@
       "type": "electrical",
       "position": {
         "x": 60,
-        "y": 460
+        "y": 340
       },
       "data": {
         "componentType": "battery",
@@ -118,7 +118,7 @@
       "type": "electrical",
       "position": {
         "x": 240,
-        "y": 420
+        "y": 300
       },
       "data": {
         "componentType": "fuse",
@@ -138,7 +138,7 @@
       "type": "electrical",
       "position": {
         "x": 480,
-        "y": 380
+        "y": 260
       },
       "data": {
         "componentType": "dcdc",
@@ -163,7 +163,7 @@
       "type": "electrical",
       "position": {
         "x": 860,
-        "y": 190
+        "y": 70
       },
       "data": {
         "componentType": "power-station",
@@ -173,7 +173,9 @@
         "brandModelId": "aferiy-p280",
         "brand": "AFERIY",
         "model": "P280",
-        "label": "AFERIY P280"
+        "label": "AFERIY P280",
+        "labelAngle": 0,
+        "labelPosition": "bottom"
       },
       "measured": {
         "width": 167,
@@ -184,8 +186,8 @@
       "id": "shore-power_msvzcqef_1",
       "type": "electrical",
       "position": {
-        "x": 780,
-        "y": 80
+        "x": 700,
+        "y": -40
       },
       "data": {
         "componentType": "shore-power",
@@ -277,7 +279,9 @@
         "componentType": "fuse",
         "label": "Fusible principal XT60",
         "fuseType": "midi",
-        "amperage": 25
+        "amperage": 25,
+        "labelPosition": "top",
+        "labelAngle": 0
       },
       "measured": {
         "width": 114,
@@ -403,7 +407,7 @@
       "type": "electrical",
       "position": {
         "x": 740,
-        "y": 420
+        "y": 300
       },
       "data": {
         "componentType": "fuse",
@@ -423,7 +427,7 @@
       "type": "electrical",
       "position": {
         "x": -20,
-        "y": 480
+        "y": 360
       },
       "data": {
         "componentType": "ground",
@@ -439,8 +443,8 @@
       "id": "ground_mtetbauu_16",
       "type": "electrical",
       "position": {
-        "x": 700,
-        "y": 80
+        "x": 540,
+        "y": -40
       },
       "data": {
         "componentType": "ground",
@@ -450,6 +454,18 @@
       "measured": {
         "width": 81,
         "height": 64
+      }
+    },
+    {
+      "id": "ac-panel_mthnukgu_1",
+      "type": "electrical",
+      "position": {
+        "x": 860,
+        "y": -80
+      },
+      "data": {
+        "componentType": "ac-panel",
+        "label": "Tableau 220V"
       }
     }
   ],
@@ -687,17 +703,41 @@
       }
     },
     {
-      "id": "edge_msvzcvid_2",
+      "id": "edge_mthnuvps_2",
       "source": "shore-power_msvzcqef_1",
       "sourceHandle": "ac",
+      "target": "ac-panel_mthnukgu_1",
+      "targetHandle": "ac-in",
+      "type": "cable",
+      "data": {
+        "color": "#7c3aed",
+        "cableType": "ac-230v",
+        "section": "3G2,5 mm²"
+      }
+    },
+    {
+      "id": "edge_mthnuyj5_3",
+      "source": "ac-panel_mthnukgu_1",
+      "sourceHandle": "ac-out",
       "target": "af-station",
       "targetHandle": "ac-in",
       "type": "cable",
       "data": {
         "color": "#7c3aed",
         "cableType": "ac-230v",
-        "section": "3G2,5 mm²",
-        "length": 2
+        "section": "3G2,5 mm²"
+      }
+    },
+    {
+      "id": "edge_mthnv1wx_4",
+      "source": "ac-panel_mthnukgu_1",
+      "sourceHandle": "earth",
+      "target": "ground_mtetbauu_16",
+      "targetHandle": "ground",
+      "type": "cable",
+      "data": {
+        "color": "#84cc16",
+        "cableType": "earth"
       }
     },
     {
@@ -853,5 +893,5 @@
       }
     }
   ],
-  "updatedAt": "2026-08-29T23:02:42.899Z"
+  "updatedAt": "2026-08-31T20:11:23.185Z"
 }
