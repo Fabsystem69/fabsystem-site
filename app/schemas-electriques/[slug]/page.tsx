@@ -6,7 +6,6 @@ import { PageIntro } from "@/components/public/PageIntro";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { PrintExampleButton } from "@/components/schema-examples/PrintExampleButton";
-import { SchemaExamplesHelpCta } from "@/components/schema-examples/SchemaExamplesHelpCta";
 import {
   SCHEMA_EXAMPLE_SLUGS,
   getSchemaEditorTemplateHref,
@@ -23,6 +22,43 @@ import {
 type PageProps = {
   params: Promise<{ slug: string }>;
 };
+
+function getRecommendedTools(slug: string, hasAc: boolean) {
+  const tools = [
+    {
+      href: "/outils/bilan-consommation",
+      label: "Faire le bilan de consommation",
+      description:
+        "Valider l'autonomie, la capacité batterie et les gros consommateurs avant d'adapter ce schéma.",
+    },
+    {
+      href: "/outils/fusible",
+      label: "Vérifier les fusibles",
+      description:
+        "Recouper les calibres de protection avant de reprendre les mêmes valeurs sur votre installation.",
+    },
+  ];
+
+  if (slug.includes("solaire") || slug.includes("van") || slug.includes("voilier")) {
+    tools.unshift({
+      href: "/outils/mppt",
+      label: "Choisir panneau et MPPT",
+      description:
+        "Comparer tension, courant et puissance avant de figer la chaîne solaire de votre montage.",
+    });
+  }
+
+  if (hasAc) {
+    tools.push({
+      href: "/outils/section-cable",
+      label: "Vérifier la section des câbles",
+      description:
+        "Contrôler les sections de puissance et les longueurs réelles avant d'arrêter votre architecture.",
+    });
+  }
+
+  return tools.slice(0, 3);
+}
 
 export const dynamicParams = false;
 
@@ -104,6 +140,7 @@ export default async function SchemaExamplePage({ params }: PageProps) {
   const components = getSchemaExampleComponents(slug);
   const wiring = getSchemaExampleWiring(slug);
   const relatedExamples = getRelatedSchemaExamples(slug);
+  const recommendedTools = getRecommendedTools(slug, example.hasAc);
   const faq = faqItems(example.title);
 
   const faqJsonLd = {
@@ -235,6 +272,33 @@ export default async function SchemaExamplePage({ params }: PageProps) {
               <p className="mt-3 text-sm leading-relaxed text-neutral-800">{example.bestFor}</p>
             </div>
 
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Usage visé
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-800">{example.context}</p>
+              </div>
+              <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Ce que vous gagnez
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-800">
+                  Une base déjà structurée pour comparer, expliquer et modifier sans repartir
+                  d&apos;un schéma vide.
+                </p>
+              </div>
+              <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                  Limite importante
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-800">
+                  Les valeurs et protections restent liées à ce gabarit et doivent être revérifiées
+                  pour votre matériel réel.
+                </p>
+              </div>
+            </div>
+
             <div className="rounded-[26px] border border-neutral-200 bg-neutral-50 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
                 Chaîne principale
@@ -305,6 +369,26 @@ export default async function SchemaExamplePage({ params }: PageProps) {
                   </li>
                 ))}
               </ul>
+            </div>
+
+            <div className="rounded-[26px] border border-neutral-200 bg-neutral-50 p-5">
+              <h2 className="text-lg font-bold tracking-tight text-neutral-950">
+                Étapes conseillées après cette lecture
+              </h2>
+              <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+                <li className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm leading-relaxed text-neutral-700">
+                  1. Comparez ce schéma à vos sources de charge, à votre batterie et à vos gros
+                  consommateurs.
+                </li>
+                <li className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm leading-relaxed text-neutral-700">
+                  2. Ouvrez ensuite le gabarit dans l&apos;éditeur pour remplacer les composants et
+                  supprimer les blocs inutiles.
+                </li>
+                <li className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm leading-relaxed text-neutral-700">
+                  3. Revérifiez enfin sections, fusibles et implantation avant impression PDF ou
+                  câblage réel.
+                </li>
+              </ol>
             </div>
 
             <div>
@@ -432,6 +516,26 @@ export default async function SchemaExamplePage({ params }: PageProps) {
               <p className="mt-2 text-sm leading-relaxed text-neutral-700">{example.context}</p>
             </div>
 
+            <div className="rounded-[26px] border border-neutral-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                Outils conseillés
+              </p>
+              <div className="mt-4 space-y-3">
+                {recommendedTools.map((tool) => (
+                  <Link
+                    key={tool.href}
+                    href={tool.href}
+                    className="block rounded-2xl border border-neutral-200 bg-neutral-50 p-4 transition-colors hover:border-neutral-300 hover:bg-white"
+                  >
+                    <p className="text-sm font-semibold text-neutral-950">{tool.label}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-neutral-600">
+                      {tool.description}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
             <div className="rounded-[26px] border border-neutral-200 bg-neutral-950 p-5 text-white">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">
                 Besoin d&apos;aide ?
@@ -524,10 +628,6 @@ export default async function SchemaExamplePage({ params }: PageProps) {
             </div>
           ))}
         </div>
-      </Section>
-
-      <Section tone="light" className="pt-0">
-        <SchemaExamplesHelpCta contextLabel={example.title} />
       </Section>
     </main>
   );

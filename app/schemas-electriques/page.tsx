@@ -97,6 +97,53 @@ const utilityLinks = [
   },
 ];
 
+const intentPaths = [
+  {
+    title: "Je veux une base van complète et évolutive",
+    description:
+      "Le meilleur point d'entrée si vous devez réunir solaire, recharge alternateur, batterie lithium, distribution 12 V, 230 V et supervision sans partir d'une feuille blanche.",
+    primaryHref: getSchemaExampleHref("schema-vito-280ah-van"),
+    primaryLabel: "Voir le Vito 280 Ah",
+    secondaryHref: getSchemaEditorTemplateHref("reference-v3-vito-280ah"),
+    secondaryLabel: "Ouvrir le gabarit van",
+  },
+  {
+    title: "Je débute et je veux comprendre le solaire 12 V",
+    description:
+      "Le schéma le plus simple pour lire la chaîne panneaux, MPPT et batterie avant d'ajouter une vraie distribution ou un autre mode de charge.",
+    primaryHref: getSchemaExampleHref("schema-solaire-12v-simple"),
+    primaryLabel: "Voir le schéma solaire simple",
+    secondaryHref: "/outils/mppt",
+    secondaryLabel: "Vérifier panneau et MPPT",
+  },
+  {
+    title: "Je veux comparer station tout-en-un et installation classique",
+    description:
+      "Utile pour arbitrer entre une station AFERIY P280 compacte et une architecture plus ouverte autour d'une batterie lithium dédiée.",
+    primaryHref: getSchemaExampleHref("schema-aferiy-p280-van"),
+    primaryLabel: "Voir l'exemple AFERIY",
+    secondaryHref: getSchemaExampleHref("schema-vito-280ah-van"),
+    secondaryLabel: "Comparer avec le Vito 280 Ah",
+  },
+  {
+    title: "Je prépare un bateau au quai ou un voilier autonome",
+    description:
+      "Deux bases pour distinguer un montage simple avec quai et chargeur d'une architecture de bord plus autonome avec plusieurs sources de charge.",
+    primaryHref: getSchemaExampleHref("schema-bateau-quai-chargeur"),
+    primaryLabel: "Voir le bateau au quai",
+    secondaryHref: getSchemaExampleHref("schema-voilier-autonome-12v-230v"),
+    secondaryLabel: "Comparer avec le voilier autonome",
+  },
+];
+
+const comparisonColumns = [
+  { key: "title", label: "Schéma" },
+  { key: "vehicleScope", label: "Projet type" },
+  { key: "chargeSources", label: "Sources de charge" },
+  { key: "hasAc", label: "230 V" },
+  { key: "level", label: "Niveau" },
+] as const;
+
 const collectionFaq = [
   {
     question: "Quel schéma choisir pour un van aménagé avec batterie lithium ?",
@@ -357,6 +404,38 @@ export default function SchemasElectriquesPage() {
         </div>
       </Section>
 
+      <Section tone="light" className="pt-0 pb-8 sm:pb-10">
+        <div className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+            Choisir selon votre cas
+          </p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-neutral-950">
+            Quatre chemins rapides pour ne pas ouvrir le mauvais schéma
+          </h2>
+          <div className="mt-5 grid gap-4 xl:grid-cols-2">
+            {intentPaths.map((path) => (
+              <article
+                key={path.title}
+                className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-5"
+              >
+                <h3 className="text-lg font-bold tracking-tight text-neutral-950">{path.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-700">
+                  {path.description}
+                </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <Button href={path.primaryHref} variant="primary" className="px-4 text-sm">
+                    {path.primaryLabel}
+                  </Button>
+                  <Button href={path.secondaryHref} variant="secondary" className="px-4 text-sm">
+                    {path.secondaryLabel}
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </Section>
+
       <Section tone="muted" className="py-8 sm:py-10">
         <article className="overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-sm">
           <div className="grid gap-0 xl:grid-cols-[1.05fr_0.95fr]">
@@ -492,6 +571,80 @@ export default function SchemasElectriquesPage() {
           </div>
         </Section>
       ))}
+
+      <Section tone="muted" className="py-8 sm:py-10">
+        <article className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              Comparer vite
+            </p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-neutral-950">
+              Tableau de comparaison des schémas
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+              Ce tableau aide à filtrer avant d&apos;ouvrir une fiche détaillée. Il ne remplace pas
+              l&apos;analyse de vos longueurs de câble, protections, courants et contraintes
+              d&apos;implantation.
+            </p>
+          </div>
+
+          <div className="mt-5 overflow-x-auto rounded-[24px] border border-neutral-200 bg-neutral-50">
+            <table className="w-full min-w-[920px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-neutral-200 bg-white text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-500">
+                  {comparisonColumns.map((column) => (
+                    <th key={column.key} className="px-4 py-3">
+                      {column.label}
+                    </th>
+                  ))}
+                  <th className="px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {SCHEMA_EXAMPLES.map((example) => (
+                  <tr key={example.slug} className="border-t border-neutral-200 align-top">
+                    <td className="px-4 py-4">
+                      <Link
+                        href={getSchemaExampleHref(example.slug)}
+                        className="font-semibold text-neutral-950 hover:text-neutral-700"
+                      >
+                        {example.title}
+                      </Link>
+                      <p className="mt-1 text-xs leading-relaxed text-neutral-600">
+                        {example.bestFor}
+                      </p>
+                    </td>
+                    <td className="px-4 py-4 text-neutral-700">{example.vehicleScope}</td>
+                    <td className="px-4 py-4 text-neutral-700">
+                      {example.chargeSources.join(" · ")}
+                    </td>
+                    <td className="px-4 py-4 text-neutral-700">
+                      {example.hasAc ? "Oui" : "Non"}
+                    </td>
+                    <td className="px-4 py-4 text-neutral-700">{example.level}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          href={getSchemaExampleHref(example.slug)}
+                          className="font-semibold text-brand-700 underline underline-offset-4 hover:text-brand-800"
+                        >
+                          Voir la fiche
+                        </Link>
+                        <Link
+                          href={getSchemaEditorTemplateHref(example.templateId)}
+                          className="text-neutral-700 underline underline-offset-4 hover:text-neutral-950"
+                        >
+                          Ouvrir dans l&apos;éditeur
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </Section>
 
       <Section tone="muted" className="py-8 sm:py-10">
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
