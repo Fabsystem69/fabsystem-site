@@ -16,6 +16,14 @@ export type SchemaExample = {
   quickTags: string[];
   context: string;
   flow: string[];
+  vehicleScope: string;
+  systemVoltage: string;
+  chargeSources: string[];
+  hasAc: boolean;
+  chooseWhen: string[];
+  avoidIf: string[];
+  upgradePaths: string[];
+  relatedSlugs: string[];
   highlights: string[];
   includes: string[];
   watchouts: string[];
@@ -40,6 +48,30 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
     family: "van",
     bestFor: "Van ou fourgon avec lithium, solaire, recharge alternateur, 230 V embarque et vraie supervision.",
     quickTags: ["Van", "Lithium", "Solaire", "DC-DC", "230 V", "Victron"],
+    vehicleScope: "Van et fourgon aménagé",
+    systemVoltage: "12 V avec 230 V embarqué",
+    chargeSources: ["Solaire", "Alternateur via DC-DC", "Quai / chargeur-convertisseur"],
+    hasAc: true,
+    chooseWhen: [
+      "Vous cherchez une base sérieuse pour un van lithium avec plusieurs sources de charge.",
+      "Vous voulez voir ensemble la distribution 12 V, le 230 V, les busbars et la supervision.",
+      "Votre projet n'est plus un simple kit solaire mais une vraie architecture complète.",
+    ],
+    avoidIf: [
+      "Vous cherchez seulement un premier schéma solaire très simple pour débuter.",
+      "Votre installation n'a ni 230 V ni recharge alternateur structurée.",
+      "Vous voulez copier tel quel sans recalculer sections, fusibles et implantation réelle.",
+    ],
+    upgradePaths: [
+      "Adapter la base à votre capacité batterie réelle et à vos consommateurs quotidiens.",
+      "Ajouter ou simplifier la partie 230 V selon votre convertisseur ou votre usage au quai.",
+      "Affiner ensuite sections, fusibles et longueurs avec les calculateurs FabSystem.",
+    ],
+    relatedSlugs: [
+      "schema-solaire-12v-simple",
+      "schema-aferiy-p280-van",
+      "schema-camping-car-autonome-clim",
+    ],
     context:
       "Vito Marco Polo ou van equivalent qui veut une installation serieuse avec lithium, MPPT, DC-DC, MultiPlus, protections et reseau 12 V / 230 V clair.",
     flow: ["Panneau solaire", "MPPT", "Batterie lithium 280 Ah", "Busbars et protections", "MultiPlus", "Supervision"],
@@ -75,6 +107,30 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
     family: "van",
     bestFor: "Premier panneau solaire sur van, bateau ou petite installation autonome 12 V.",
     quickTags: ["Debut", "Solaire", "MPPT", "12 V"],
+    vehicleScope: "Van, bateau ou petite installation autonome",
+    systemVoltage: "12 V",
+    chargeSources: ["Solaire"],
+    hasAc: false,
+    chooseWhen: [
+      "Vous voulez comprendre la chaîne panneaux → MPPT → batterie sans distribution complexe.",
+      "Vous cherchez un point de départ pédagogique avant d'ajouter des usages 12 V.",
+      "Vous avez besoin d'un schéma simple à modifier et imprimer rapidement.",
+    ],
+    avoidIf: [
+      "Votre projet inclut déjà un convertisseur 230 V, un DC-DC ou plusieurs sous-ensembles.",
+      "Vous devez représenter un van complet ou un bateau avec quai et distribution riche.",
+      "Vous voulez valider un gros courant ou une architecture multi-sources directement.",
+    ],
+    upgradePaths: [
+      "Ajouter ensuite une distribution 12 V structurée autour de protections et d'un tableau.",
+      "Passer à un van plus complet comme le Vito 280 Ah si plusieurs sources arrivent.",
+      "Vérifier le couple panneau / MPPT et les sections avant de figer le montage.",
+    ],
+    relatedSlugs: [
+      "schema-vito-280ah-van",
+      "schema-aferiy-p280-van",
+      "schema-bateau-quai-chargeur",
+    ],
     context: "Premier panneau solaire sur van, bateau ou petite installation autonome 12V.",
     flow: ["Panneaux solaires", "MPPT", "Fusible de sortie", "Batterie 12V", "Écran de contrôle"],
     highlights: [
@@ -109,6 +165,30 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
     family: "bateau",
     bestFor: "Bateau souvent au quai avec chargeur secteur, appoint solaire et circuits DC essentiels.",
     quickTags: ["Bateau", "Quai", "Chargeur", "12 V", "Pompe de cale"],
+    vehicleScope: "Bateau au port ou au mouillage avec retour fréquent au quai",
+    systemVoltage: "12 V avec arrivée quai",
+    chargeSources: ["Quai / chargeur secteur", "Solaire d'appoint"],
+    hasAc: true,
+    chooseWhen: [
+      "Votre bateau passe surtout du temps au quai et vous voulez une base simple et propre.",
+      "Vous avez besoin de visualiser la séparation entre 230 V quai et distribution 12 V.",
+      "La pompe de cale et les circuits essentiels doivent rester lisibles et prioritaires.",
+    ],
+    avoidIf: [
+      "Vous cherchez un schéma de voilier autonome avec plusieurs sources et 230 V embarqué avancé.",
+      "Votre bord est déjà très dense avec supervision complète et cœur DC plus structuré.",
+      "Vous voulez transposer directement ce montage à un fourgon ou un camping-car.",
+    ],
+    upgradePaths: [
+      "Élargir ensuite la distribution 12 V avec de nouveaux départs et protections.",
+      "Passer vers le voilier autonome si le quai n'est plus votre source principale.",
+      "Contrôler précisément les masses, terres et protections AC avant toute intervention réelle.",
+    ],
+    relatedSlugs: [
+      "schema-voilier-autonome-12v-230v",
+      "schema-solaire-12v-simple",
+      "schema-vito-280ah-van",
+    ],
     context: "Bateau qui passe beaucoup de temps au quai, avec besoin de garder une installation fiable et lisible.",
     flow: ["Prise de quai", "Tableau 220V", "Chargeur secteur", "Batterie 12V", "Busbar + consommateurs", "Pompe de cale"],
     highlights: [
@@ -143,6 +223,30 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
     family: "atelier",
     bestFor: "Atelier mobile, utilitaire technique ou grand fourgon avec vraies zones physiques a organiser.",
     quickTags: ["Atelier", "Implantation", "Zones", "Quai", "Solaire"],
+    vehicleScope: "Utilitaire technique, atelier mobile ou grand fourgon d'intervention",
+    systemVoltage: "12 V avec zones d'implantation et éventuelle partie AC",
+    chargeSources: ["Solaire", "Quai / AC", "Selon implantation moteur"],
+    hasAc: true,
+    chooseWhen: [
+      "Vous devez organiser des zones physiques et pas seulement une logique électrique abstraite.",
+      "Votre enjeu est autant l'implantation que le schéma de principe.",
+      "Vous travaillez sur un utilitaire avec compartiments, passages et longueurs réelles à préparer.",
+    ],
+    avoidIf: [
+      "Vous cherchez seulement un schéma très simple pour découvrir le solaire 12 V.",
+      "Votre projet est un van compact sans vraie logique d'implantation par zones.",
+      "Vous attendez une validation finale des passages et des distances sans relevé terrain.",
+    ],
+    upgradePaths: [
+      "Transformer cette base en implantation détaillée selon ton véhicule réel.",
+      "Simplifier certaines zones si le véhicule embarque moins de fonctions que prévu.",
+      "Reprendre ensuite les longueurs réelles pour corriger sections et protections.",
+    ],
+    relatedSlugs: [
+      "schema-vito-280ah-van",
+      "schema-camping-car-autonome-clim",
+      "schema-bateau-quai-chargeur",
+    ],
     context: "Ducato, utilitaire ou atelier mobile avec besoin de reperer les zones techniques, les distances et les sous-ensembles dans un volume reel.",
     flow: ["Toit solaire", "Compartiment moteur", "Coeur DC", "Distribution 12 V", "Quai / AC", "Supervision"],
     highlights: [
@@ -177,6 +281,30 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
     family: "van",
     bestFor: "Van simple autour d'une station tout-en-un avec solaire, quai et quelques usages 12 V / AC.",
     quickTags: ["Van", "AFERIY", "Station", "Solaire", "Quai"],
+    vehicleScope: "Van simple avec station électrique tout-en-un",
+    systemVoltage: "12 V et sorties AC via station",
+    chargeSources: ["Solaire", "Recharge véhicule via DC-DC", "Quai"],
+    hasAc: true,
+    chooseWhen: [
+      "Vous voulez garder une architecture compacte autour d'une station tout-en-un.",
+      "Vous comparez une solution simple à une vraie installation lithium plus classique.",
+      "Vous avez besoin d'un van fonctionnel sans reconstruire tout un cœur électrique séparé.",
+    ],
+    avoidIf: [
+      "Vous avez besoin d'une grosse distribution DC ou de très gros courants continus.",
+      "Vous cherchez une architecture Victron complète avec busbars, shunt et MultiPlus distincts.",
+      "Votre projet dépend fortement d'une climatisation 12 V ou d'usages très énergivores.",
+    ],
+    upgradePaths: [
+      "Faire évoluer la base vers un système lithium complet si la station devient limitante.",
+      "Ajouter progressivement quelques départs 12 V fixes bien protégés.",
+      "Comparer ensuite avec le Vito 280 Ah pour décider si un système séparé serait plus adapté.",
+    ],
+    relatedSlugs: [
+      "schema-vito-280ah-van",
+      "schema-solaire-12v-simple",
+      "schema-camping-car-autonome-clim",
+    ],
     context:
       "Van amenage qui veut rester simple: solaire, prise de quai, recharge vehicule optionnelle, petite distribution 12 V fixe et quelques usages AC.",
     flow: ["Panneau solaire", "Recharge DC-DC", "Prise de quai", "AFERIY P280", "XT60 12 V", "Prises AC"],
@@ -212,6 +340,30 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
     family: "camping-car",
     bestFor: "Camping-car autonome avec vraie batterie service, 230 V embarque et depart dedie pour clim 12 V.",
     quickTags: ["Camping-car", "Lithium", "Clim 12 V", "Solaire", "230 V"],
+    vehicleScope: "Camping-car autonome avec usages énergivores",
+    systemVoltage: "12 V avec 230 V embarqué",
+    chargeSources: ["Solaire", "Alternateur via DC-DC", "230 V embarqué / quai selon configuration"],
+    hasAc: true,
+    chooseWhen: [
+      "Vous devez intégrer un départ puissant comme une climatisation 12 V dans un ensemble cohérent.",
+      "Votre camping-car demande plus qu'un simple montage solaire ou une petite station.",
+      "Vous voulez visualiser les gros courants et la cohabitation entre DC quotidien et 230 V.",
+    ],
+    avoidIf: [
+      "Votre besoin réel est un van léger ou un petit système sans gros appel de courant.",
+      "Vous cherchez un premier schéma pédagogique très simple.",
+      "Vous n'avez pas encore validé vos consommations et votre autonomie cible.",
+    ],
+    upgradePaths: [
+      "Valider d'abord le bilan de consommation avant de figer la batterie et les sections.",
+      "Alléger la base si certains usages forts comme la clim ne sont finalement pas retenus.",
+      "Comparer avec le Vito 280 Ah si tu veux une base complète mais moins orientée gros départ dédié.",
+    ],
+    relatedSlugs: [
+      "schema-vito-280ah-van",
+      "schema-aferiy-p280-van",
+      "schema-atelier-mobile-ducato",
+    ],
     context:
       "Camping-car equipe pour plus d'autonomie avec une vraie batterie service, des charges multiples, du 230 V et un besoin de gerer une climatisation 12 V separee.",
     flow: ["Solaire", "DC-DC", "Batterie lithium", "Busbars et protections", "MultiPlus", "Climatisation 12 V"],
@@ -247,6 +399,30 @@ export const SCHEMA_EXAMPLES: SchemaExample[] = [
     family: "bateau",
     bestFor: "Voilier ou bateau de croisiere avec solaire, recharge moteur, quai et distribution 12 V / 230 V complete.",
     quickTags: ["Voilier", "Bateau", "Solaire", "Quai", "230 V", "Monitoring"],
+    vehicleScope: "Voilier ou bateau de croisière avec autonomie renforcée",
+    systemVoltage: "12 V avec 230 V embarqué",
+    chargeSources: ["Solaire", "Alternateur / DC-DC", "Quai"],
+    hasAc: true,
+    chooseWhen: [
+      "Vous cherchez une base bateau plus autonome qu'un simple montage de quai.",
+      "Vous devez représenter plusieurs sources de charge sans perdre la lisibilité du bord.",
+      "Le projet inclut distribution 12 V, supervision et usages AC embarqués.",
+    ],
+    avoidIf: [
+      "Votre bateau a seulement un chargeur de quai et quelques circuits DC essentiels.",
+      "Vous voulez un schéma minimaliste pour débuter sans réseau AC embarqué.",
+      "Vous n'êtes pas prêt à vérifier sérieusement corrosion, retours négatifs et protections AC.",
+    ],
+    upgradePaths: [
+      "Adapter la distribution aux usages réels du bord et à la recharge moteur réelle.",
+      "Réduire ou étendre la partie AC selon l'usage au quai et le convertisseur retenu.",
+      "Comparer avec le schéma bateau au quai si le projet réel est moins ambitieux qu'un refit autonome.",
+    ],
+    relatedSlugs: [
+      "schema-bateau-quai-chargeur",
+      "schema-vito-280ah-van",
+      "schema-camping-car-autonome-clim",
+    ],
     context:
       "Voilier ou bateau de croisiere avec solaire, recharge moteur, quai, distribution 12 V et besoins AC embarques, sans perdre la lisibilite du schema.",
     flow: ["Solaire", "Alternateur / DC-DC", "Quai", "Coeur DC", "Distribution 12 V", "Monitoring et AC"],
@@ -294,4 +470,20 @@ export function getSchemaExampleThumbnailAbsoluteUrl(slug: string) {
 
 export function getSchemaEditorTemplateHref(templateId: string) {
   return `/outils/schema?template=${encodeURIComponent(templateId)}`;
+}
+
+export function getRelatedSchemaExamples(slug: string) {
+  const example = getSchemaExampleBySlug(slug);
+  if (!example) return [];
+
+  const related = example.relatedSlugs
+    .map((relatedSlug) => getSchemaExampleBySlug(relatedSlug))
+    .filter((entry): entry is SchemaExample => Boolean(entry))
+    .filter((entry) => entry.slug !== slug);
+
+  if (related.length > 0) {
+    return related;
+  }
+
+  return SCHEMA_EXAMPLES.filter((entry) => entry.family === example.family && entry.slug !== slug).slice(0, 3);
 }

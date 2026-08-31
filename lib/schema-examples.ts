@@ -11,6 +11,7 @@ import {
   getSchemaExampleHref,
   getSchemaExampleThumbnailAbsoluteUrl,
   getSchemaExampleThumbnailSrc,
+  getRelatedSchemaExamples,
   type SchemaExample,
 } from "@/lib/schema-examples-data";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
@@ -26,6 +27,7 @@ export {
   getSchemaExampleHref,
   getSchemaExampleThumbnailAbsoluteUrl,
   getSchemaExampleThumbnailSrc,
+  getRelatedSchemaExamples,
 };
 
 export type { SchemaExample };
@@ -46,7 +48,7 @@ export interface SchemaExampleComponentSummary {
 }
 
 function isRealComponentNode(data: ElectricalNodeData | undefined): data is ElectricalNodeData {
-  return Boolean(data) && data.componentType !== "zone";
+  return data !== undefined && data.componentType !== "zone";
 }
 
 export function getSchemaExampleComponents(slug: string): SchemaExampleComponentSummary[] {

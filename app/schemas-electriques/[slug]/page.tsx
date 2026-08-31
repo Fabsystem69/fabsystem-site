@@ -17,6 +17,7 @@ import {
   getSchemaExampleTemplate,
   getSchemaExampleThumbnailAbsoluteUrl,
   getSchemaExampleWiring,
+  getRelatedSchemaExamples,
 } from "@/lib/schema-examples";
 
 type PageProps = {
@@ -102,6 +103,7 @@ export default async function SchemaExamplePage({ params }: PageProps) {
 
   const components = getSchemaExampleComponents(slug);
   const wiring = getSchemaExampleWiring(slug);
+  const relatedExamples = getRelatedSchemaExamples(slug);
   const faq = faqItems(example.title);
 
   const faqJsonLd = {
@@ -193,8 +195,46 @@ export default async function SchemaExamplePage({ params }: PageProps) {
       </Section>
 
       <Section tone="light" className="py-8 sm:py-10">
+        <div className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              Véhicule type
+            </p>
+            <p className="mt-2 text-sm font-semibold text-neutral-950">{example.vehicleScope}</p>
+          </div>
+          <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              Architecture
+            </p>
+            <p className="mt-2 text-sm font-semibold text-neutral-950">{example.systemVoltage}</p>
+          </div>
+          <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              Sources de charge
+            </p>
+            <p className="mt-2 text-sm font-semibold text-neutral-950">
+              {example.chargeSources.join(" · ")}
+            </p>
+          </div>
+          <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
+              230 V embarqué
+            </p>
+            <p className="mt-2 text-sm font-semibold text-neutral-950">
+              {example.hasAc ? "Oui, présent dans cette base" : "Non, base orientée 12 V"}
+            </p>
+          </div>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
           <article className="space-y-6">
+            <div className="rounded-[26px] border border-brand-200 bg-brand-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">
+                Idéal si
+              </p>
+              <p className="mt-3 text-sm leading-relaxed text-neutral-800">{example.bestFor}</p>
+            </div>
+
             <div className="rounded-[26px] border border-neutral-200 bg-neutral-50 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
                 Chaîne principale
@@ -226,6 +266,34 @@ export default async function SchemaExamplePage({ params }: PageProps) {
               </ul>
             </div>
 
+            <div className="grid gap-4 xl:grid-cols-2">
+              <div className="rounded-[26px] border border-emerald-200 bg-emerald-50 p-5">
+                <h2 className="text-lg font-bold tracking-tight text-neutral-950">
+                  Quand choisir cette base
+                </h2>
+                <ul className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-800">
+                  {example.chooseWhen.map((item) => (
+                    <li key={item} className="rounded-2xl border border-emerald-200/80 bg-white/70 p-4">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-[26px] border border-rose-200 bg-rose-50 p-5">
+                <h2 className="text-lg font-bold tracking-tight text-neutral-950">
+                  Quand éviter de partir de ce schéma
+                </h2>
+                <ul className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-800">
+                  {example.avoidIf.map((item) => (
+                    <li key={item} className="rounded-2xl border border-rose-200/80 bg-white/75 p-4">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
             <div>
               <h2 className="text-lg font-bold tracking-tight text-neutral-950">
                 Ce que vous trouvez dans cette base
@@ -233,6 +301,22 @@ export default async function SchemaExamplePage({ params }: PageProps) {
               <ul className="mt-4 space-y-3">
                 {example.includes.map((item) => (
                   <li key={item} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-bold tracking-tight text-neutral-950">
+                Comment faire évoluer cette architecture
+              </h2>
+              <ul className="mt-4 space-y-3">
+                {example.upgradePaths.map((item) => (
+                  <li
+                    key={item}
+                    className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950"
+                  >
                     {item}
                   </li>
                 ))}
@@ -396,6 +480,36 @@ export default async function SchemaExamplePage({ params }: PageProps) {
                 </Link>
               </div>
             </div>
+
+            {relatedExamples.length > 0 ? (
+              <div className="rounded-[26px] border border-neutral-200 bg-white p-5 text-sm text-neutral-700 print:hidden">
+                <p className="font-semibold text-neutral-950">Schémas proches à comparer</p>
+                <div className="mt-4 space-y-3">
+                  {relatedExamples.map((related) => (
+                    <div key={related.slug} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                      <p className="text-sm font-semibold text-neutral-950">{related.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-neutral-600">
+                        {related.bestFor}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-3">
+                        <Link
+                          href={getSchemaExampleHref(related.slug)}
+                          className="font-medium text-neutral-700 underline underline-offset-4 hover:text-neutral-950"
+                        >
+                          Voir ce schéma
+                        </Link>
+                        <Link
+                          href={getSchemaEditorTemplateHref(related.templateId)}
+                          className="font-medium text-neutral-700 underline underline-offset-4 hover:text-neutral-950"
+                        >
+                          Ouvrir dans l&apos;éditeur
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </aside>
         </div>
       </Section>
