@@ -4,7 +4,6 @@ import { PageIntro } from "@/components/public/PageIntro";
 import { Section } from "@/components/layout/Section";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { SchemaExamplesHelpCta } from "@/components/schema-examples/SchemaExamplesHelpCta";
 import { SchemaEditorRuntime } from "@/components/schema-editor/SchemaEditorRuntime";
 
 type SchemaEditorPageProps = {
@@ -330,10 +329,6 @@ function LandingPage() {
             </Button>
           </div>
         </div>
-      </Section>
-
-      <Section tone="light" className="pt-0">
-        <SchemaExamplesHelpCta contextLabel="editeur de schema electrique" />
       </Section>
     </main>
   );
