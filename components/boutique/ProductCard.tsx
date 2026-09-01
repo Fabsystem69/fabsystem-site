@@ -30,7 +30,7 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
             width={400}
             height={534}
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 384px"
-            className="h-60 w-full object-cover object-top"
+            className="h-60 w-full object-cover object-bottom"
           />
         </div>
       ) : null}
