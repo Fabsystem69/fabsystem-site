@@ -30,7 +30,9 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
             width={400}
             height={534}
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 384px"
-            className="h-60 w-full object-cover object-bottom"
+            className={`h-60 w-full object-cover ${
+              entry.slug === "ebook-schema-electrique" ? "object-bottom" : "object-top"
+            }`}
           />
           {entry.slug === "ebook-schema-electrique" ? (
             <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/90 via-black/55 to-transparent px-5 pb-12 pt-5 text-white">
