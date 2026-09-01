@@ -37,6 +37,9 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
 
       <div className="flex flex-wrap items-center gap-2">
         {entry.univers ? <Badge tone="neutral">{getCategorieLabel(entry.univers)}</Badge> : null}
+        {entry.slug === "ebook-schema-electrique" ? (
+          <Badge tone="info">1 mois d&apos;éditeur illimité inclus</Badge>
+        ) : null}
         <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
           {getProductTypeLabel(entry.productType)}
         </span>

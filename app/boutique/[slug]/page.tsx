@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import FaqEbook from "@/components/FaqEbook";
 import { isHttpError } from "@/lib/http-errors";
@@ -115,6 +116,7 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
   const enrichment = EBOOK_ENRICHMENT[product.slug];
   const coverSrc = product.featuredImage || enrichment?.coverSrc || null;
   const coverAlt = enrichment?.coverAlt || product.name;
+  const includesEditorMonth = product.slug === "ebook-schema-electrique";
   const univers = getUniversForEbookSlug(product.slug);
   const isDeductible = findPrestationsPackIncludingEbook(product.slug) !== undefined;
 
@@ -153,6 +155,11 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                 {univers ? `${getCategorieLabel(univers)} · ` : ""}
                 {getProductTypeLabel(product.productType)}
               </p>
+              {includesEditorMonth ? (
+                <div className="mt-3">
+                  <Badge tone="info">1 mois d&apos;éditeur illimité inclus</Badge>
+                </div>
+              ) : null}
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
                 {product.name}
               </h1>
@@ -360,6 +367,12 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                 <dt className="text-neutral-500">Accès</dt>
                 <dd className="text-right font-medium text-neutral-900">Espace client</dd>
               </div>
+              {includesEditorMonth ? (
+                <div className="flex items-start justify-between gap-4">
+                  <dt className="text-neutral-500">Éditeur</dt>
+                  <dd className="text-right font-medium text-neutral-900">1 mois illimité inclus</dd>
+                </div>
+              ) : null}
               <div className="flex items-start justify-between gap-4">
                 <dt className="text-neutral-500">Prix</dt>
                 <dd className="text-right font-medium text-neutral-900">
