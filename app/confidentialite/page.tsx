@@ -24,12 +24,13 @@ export default function ConfidentialitePage() {
           </h2>
           <p className="mt-2">
             Les données personnelles collectées sur le site FabSystem sont celles
-            que l’utilisateur choisit de transmettre volontairement via le formulaire
-            de contact ou lors d’un achat dans la boutique.
+            que l’utilisateur choisit de transmettre via un formulaire, lors de la
+            création d’un compte, de l’utilisation de l’éditeur ou d’un achat dans la boutique.
           </p>
           <p className="mt-2">
             Les données susceptibles d’être collectées sont notamment :
-            nom, prénom, adresse email, numéro de téléphone et le contenu du message.
+            nom, prénom, adresse email, numéro de téléphone, données de connexion,
+            projets et schémas sauvegardés, commandes, téléchargements et contenu des messages.
           </p>
         </div>
 
@@ -42,11 +43,28 @@ export default function ConfidentialitePage() {
           </p>
           <ul className="mt-2 list-disc pl-5 space-y-1">
             <li>répondre aux demandes envoyées via les formulaires,</li>
-            <li>organiser des échanges par email ou visioconférence,</li>
-            <li>assurer le suivi des demandes clients.</li>
+            <li>créer et sécuriser l’espace client,</li>
+            <li>sauvegarder les projets et fournir les fonctionnalités demandées,</li>
+            <li>traiter les commandes, téléchargements, devis et factures,</li>
+            <li>organiser les échanges et assurer le suivi des demandes clients.</li>
           </ul>
           <p className="mt-2">
-            Aucune donnée personnelle n’est vendue, cédée ou transmise à des tiers.
+            Aucune donnée personnelle n’est vendue ni louée. Certaines données sont
+            toutefois transmises aux prestataires techniques strictement nécessaires
+            au fonctionnement du service, au paiement ou à l’hébergement.
+          </p>
+        </div>
+
+        <div>
+          <h2 className="font-semibold text-neutral-900">Choix marketing et partage de projet</h2>
+          <p className="mt-2">
+            Les messages marketing par email sont envoyés uniquement si vous avez donné
+            votre accord. Vous pouvez le retirer à tout moment depuis votre compte ou via
+            le lien de désinscription présent dans les emails concernés.
+          </p>
+          <p className="mt-2">
+            Le partage d’un dossier projet avec FabSystem dans le cadre d’un accompagnement
+            fait l’objet d’un choix distinct. Il peut être retiré depuis votre profil.
           </p>
         </div>
 

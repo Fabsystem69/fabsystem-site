@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createCheckoutFromCart } from "@/lib/checkout-flow";
 import {
@@ -64,6 +65,8 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [discountError, setDiscountError] = useState<string | null>(null);
+  const [acceptsCgv, setAcceptsCgv] = useState(false);
+  const [acknowledgesImmediateDigitalDelivery, setAcknowledgesImmediateDigitalDelivery] = useState(false);
 
   // /panier (SSR) repasse par ici après router.refresh() (ex. juste après la
   // création de compte) avec un `customerSession` à jour — on resynchronise
@@ -100,6 +103,11 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
       return;
     }
 
+    if (!acceptsCgv || !acknowledgesImmediateDigitalDelivery) {
+      setError("Veuillez accepter les conditions de vente avant de poursuivre.");
+      return;
+    }
+
     const hasPack = cart.lines.some((line) => isPrestationsPackSlug(line.slug));
 
     if (hasPack) {
@@ -129,6 +137,8 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
         existingOrderId: orderId ?? undefined,
         discountCode: summary.appliedCode ?? undefined,
         needsAnswers: hasPack ? readStoredNeedsAnswers(cart.cartId) ?? undefined : undefined,
+        acceptsCgv: true,
+        acknowledgesImmediateDigitalDelivery: true,
       });
 
       setOrderId(result.orderId);
@@ -293,10 +303,46 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
 
       {/* Validation */}
       <div className="p-4">
+        <div className="space-y-3 text-xs leading-snug text-neutral-600">
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={acceptsCgv}
+              onChange={(event) => {
+                setAcceptsCgv(event.target.checked);
+                setError(null);
+              }}
+              disabled={disabled || pending || !resolvedSession}
+              className="mt-0.5 shrink-0"
+            />
+            <span>
+              J&apos;accepte les{" "}
+              <Link href="/conditions-generales-de-vente" target="_blank" className="font-medium text-neutral-900 underline underline-offset-2">
+                conditions générales de vente
+              </Link>
+              .
+            </span>
+          </label>
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              checked={acknowledgesImmediateDigitalDelivery}
+              onChange={(event) => {
+                setAcknowledgesImmediateDigitalDelivery(event.target.checked);
+                setError(null);
+              }}
+              disabled={disabled || pending || !resolvedSession}
+              className="mt-0.5 shrink-0"
+            />
+            <span>
+              Je demande l&apos;accès immédiat aux contenus et accès numériques inclus dans ma commande et reconnais perdre mon droit de rétractation sur ces seuls éléments une fois fournis.
+            </span>
+          </label>
+        </div>
         <button
           type="button"
           onClick={() => handleSubmit()}
-          disabled={disabled || pending || !resolvedSession}
+          disabled={disabled || pending || !resolvedSession || !acceptsCgv || !acknowledgesImmediateDigitalDelivery}
           className="inline-flex h-11 w-full items-center justify-center rounded-md bg-brand-400 px-4 text-sm font-bold text-neutral-900 hover:bg-brand-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {pending

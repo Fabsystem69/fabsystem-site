@@ -119,12 +119,11 @@ export function InlineSignupForm({ darkMode, onSuccess }: { darkMode: boolean; o
       <label className={`flex items-start gap-2 text-[11px] leading-snug ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
         <input
           type="checkbox"
-          required
           checked={marketingConsent}
           onChange={(e) => setMarketingConsent(e.target.checked)}
           className="mt-0.5 shrink-0"
         />
-        <span>J&apos;accepte de recevoir des informations de FabSystem par email.</span>
+        <span>Je souhaite recevoir les informations et nouveautés FabSystem par email. Facultatif.</span>
       </label>
       <button
         type="submit"

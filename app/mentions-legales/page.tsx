@@ -29,6 +29,8 @@ export default function MentionsLegalesPage() {
             <br />
             SIRET : <strong>100 271 980 00011</strong>
             <br />
+            Adresse : <strong>48E rue Rey Loras, 69250 Neuville-sur-Saône</strong>
+            <br />
             Code APE : <strong>4321A</strong> – Travaux d&apos;installation électrique 
             <br />
             Activité principale : Installation d’équipements électriques et électroniques

@@ -37,6 +37,8 @@ test("createCheckoutFromCart orchestrates order then checkout and returns the St
     {
       customerEmail: " Buyer@Example.com ",
       customerName: " Fabien ",
+      acceptsCgv: true,
+      acknowledgesImmediateDigitalDelivery: true,
     }
   );
 
@@ -46,6 +48,8 @@ test("createCheckoutFromCart orchestrates order then checkout and returns the St
       body: {
         customerEmail: "Buyer@Example.com",
         customerName: "Fabien",
+        acceptsCgv: true,
+        acknowledgesImmediateDigitalDelivery: true,
       },
     },
     {
@@ -71,6 +75,8 @@ test("createCheckoutFromCart surfaces order creation errors", async () => {
         async () => createJsonResponse({ error: "Cart not found" }, 404),
         {
           customerEmail: "buyer@example.com",
+          acceptsCgv: true,
+          acknowledgesImmediateDigitalDelivery: true,
         }
       ),
     (error: unknown) => error instanceof Error && error.message === "Cart not found"
@@ -98,6 +104,8 @@ test("createCheckoutFromCart surfaces checkout errors", async () => {
         },
         {
           customerEmail: "buyer@example.com",
+          acceptsCgv: true,
+          acknowledgesImmediateDigitalDelivery: true,
         }
       ),
     (error: unknown) =>
@@ -118,6 +126,8 @@ test("createCheckoutFromCart reuses an existing orderId without recreating the o
     {
       customerEmail: "buyer@example.com",
       existingOrderId: "order_existing",
+      acceptsCgv: true,
+      acknowledgesImmediateDigitalDelivery: true,
     }
   );
 
@@ -157,6 +167,8 @@ test("createCheckoutFromCart forwards the discount code during order creation", 
     {
       customerEmail: "buyer@example.com",
       discountCode: " coach-abc123 ",
+      acceptsCgv: true,
+      acknowledgesImmediateDigitalDelivery: true,
     }
   );
 
@@ -165,6 +177,8 @@ test("createCheckoutFromCart forwards the discount code during order creation", 
     body: {
       customerEmail: "buyer@example.com",
       discountCode: "coach-abc123",
+      acceptsCgv: true,
+      acknowledgesImmediateDigitalDelivery: true,
     },
   });
 });
@@ -190,6 +204,8 @@ test("createCheckoutFromCart skips Stripe checkout for a free order and redirect
     {
       customerEmail: "buyer@example.com",
       discountCode: "COACH-FREE01",
+      acceptsCgv: true,
+      acknowledgesImmediateDigitalDelivery: true,
     }
   );
 

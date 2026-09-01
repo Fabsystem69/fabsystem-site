@@ -20,7 +20,7 @@ const bodySchema = z.object({
   // pratique.
   firstName: z.string().trim().min(1),
   lastName: z.string().trim().min(1),
-  marketingConsent: z.literal(true),
+  marketingConsent: z.boolean().default(false),
   // Collectes au checkout uniquement (CartAccountForm) — optionnelles pour
   // ne pas casser les autres formulaires d'inscription existants.
   phone: z.string().trim().min(1).optional(),

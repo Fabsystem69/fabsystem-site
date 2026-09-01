@@ -8,6 +8,10 @@ export const createOrderRequestSchema = z.object({
   customerEmail: z.string().trim().email().optional(),
   customerName: z.string().trim().min(1).max(120).optional(),
   discountCode: z.string().trim().min(1).max(64).optional(),
+  // Ces confirmations sont contrôlées côté serveur. Le navigateur ne peut
+  // pas créer une commande en contournant les cases du checkout.
+  acceptsCgv: z.literal(true),
+  acknowledgesImmediateDigitalDelivery: z.literal(true),
 });
 
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;

@@ -35,11 +35,8 @@ export async function signUpCustomer(input: {
   // (customer-profile-payload.ts) pour rester cohérent partout.
   firstName: string;
   lastName: string;
-  // RGPD : choix produit assumé — la case newsletter/offres est
-  // obligatoire pour créer un compte depuis ce formulaire (retour
-  // utilisateur explicite : "si pas coché pas de validation possible").
-  // Contrôlé aussi côté serveur (pas seulement `required` côté client),
-  // jamais présumé `true` par défaut.
+  // Le consentement marketing reste un choix explicite et indépendant de
+  // l'ouverture du compte. Il ne doit jamais bloquer l'accès au service.
   marketingConsent: boolean;
   // Collectes au checkout (retour utilisateur : trop ambigu pour le SAV
   // sans ces infos) — optionnelles ici pour ne pas casser les autres
@@ -62,10 +59,6 @@ export async function signUpCustomer(input: {
 
   if (!firstName || !lastName) {
     throw badRequest("Le prénom et le nom sont requis pour créer un compte");
-  }
-
-  if (!input.marketingConsent) {
-    throw badRequest("L'acceptation de recevoir des informations par email est requise pour créer un compte");
   }
 
   const { prisma } = await import("@/lib/prisma");
@@ -92,8 +85,8 @@ export async function signUpCustomer(input: {
       passwordHash,
       phone,
       assetType: input.assetType ?? "OTHER",
-      marketingConsent: true,
-      marketingConsentAt: now,
+      marketingConsent: input.marketingConsent,
+      marketingConsentAt: input.marketingConsent ? now : null,
       dataShareConsent: Boolean(input.dataShareConsent),
       dataShareConsentAt: input.dataShareConsent ? now : null,
     },

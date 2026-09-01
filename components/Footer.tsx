@@ -33,10 +33,9 @@ const COMPANY_LINKS = [
   { href: "/mon-compte", label: "Mon compte" },
 ];
 
-// Uniquement des pages légales réellement présentes sur le site (CDC §19 :
-// "ne pas inventer de page légale vide") — pas de CGV, la page n'existe pas.
 const LEGAL_LINKS = [
   { href: "/mentions-legales", label: "Mentions légales" },
+  { href: "/conditions-generales-de-vente", label: "Conditions générales de vente" },
   { href: "/confidentialite", label: "Politique de confidentialité" },
 ];
 

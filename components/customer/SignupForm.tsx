@@ -53,7 +53,7 @@ export function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () => void })
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
       <h2 className="text-lg font-semibold text-neutral-950">Créer un compte</h2>
       <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-        Quelques informations suffisent pour commencer.
+        Créez votre espace FabSystem pour sauvegarder vos projets, retrouver vos ressources et préparer vos achats.
       </p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
@@ -120,12 +120,11 @@ export function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () => void })
         <label className="flex items-start gap-2 text-xs leading-snug text-neutral-600">
           <input
             type="checkbox"
-            required
             checked={marketingConsent}
             onChange={(event) => setMarketingConsent(event.target.checked)}
             className="mt-0.5 shrink-0"
           />
-          <span>J&apos;accepte de recevoir des informations de FabSystem par email.</span>
+          <span>Je souhaite recevoir les informations et nouveautés FabSystem par email. Facultatif.</span>
         </label>
 
         <button

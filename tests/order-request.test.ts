@@ -7,6 +7,8 @@ test("parseCreateOrderRequest accepts a valid payload", () => {
   const parsed = parseCreateOrderRequest({
     customerEmail: " Client@Example.com ",
     customerName: " Fabien Lages ",
+    acceptsCgv: true,
+    acknowledgesImmediateDigitalDelivery: true,
   });
 
   assert.equal(parsed.customerEmail, "Client@Example.com");
@@ -18,6 +20,8 @@ test("parseCreateOrderRequest rejects an invalid email", () => {
     () =>
       parseCreateOrderRequest({
         customerEmail: "not-an-email",
+        acceptsCgv: true,
+        acknowledgesImmediateDigitalDelivery: true,
       }),
     (error: unknown) => error instanceof HttpError && error.status === 400
   );
@@ -29,6 +33,8 @@ test("parseCreateOrderRequest rejects an empty customerName when provided", () =
       parseCreateOrderRequest({
         customerEmail: "client@example.com",
         customerName: "   ",
+        acceptsCgv: true,
+        acknowledgesImmediateDigitalDelivery: true,
       }),
     (error: unknown) => error instanceof HttpError && error.status === 400
   );
@@ -40,6 +46,20 @@ test("parseCreateOrderRequest rejects a customerName longer than 120 characters"
       parseCreateOrderRequest({
         customerEmail: "client@example.com",
         customerName: "a".repeat(121),
+        acceptsCgv: true,
+        acknowledgesImmediateDigitalDelivery: true,
+      }),
+    (error: unknown) => error instanceof HttpError && error.status === 400
+  );
+});
+
+test("parseCreateOrderRequest requires acceptance of the CGV and immediate digital delivery", () => {
+  assert.throws(
+    () =>
+      parseCreateOrderRequest({
+        customerEmail: "client@example.com",
+        acceptsCgv: true,
+        acknowledgesImmediateDigitalDelivery: false,
       }),
     (error: unknown) => error instanceof HttpError && error.status === 400
   );

@@ -20,10 +20,10 @@ export default function ConnexionClientPage() {
               Accès client
             </p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-              Connexion client
+              Créer ou accéder à votre compte
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-neutral-700 sm:text-base">
-              Accédez à votre espace client FabSystem avec votre email et votre mot de passe.
+              Retrouvez vos projets, achats, téléchargements et futurs accompagnements depuis un espace FabSystem unique.
             </p>
           </div>
         </div>

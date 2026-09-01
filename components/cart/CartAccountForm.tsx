@@ -12,7 +12,7 @@ type Props = {
 // facilitent le suivi (téléphone, type de véhicule) en plus de l'identité
 // minimale, et la case de partage de données (accès admin au dossier
 // projet, voir Customer.dataShareConsent) — distincte de la case marketing
-// déjà obligatoire pour créer un compte (voir customer-signup.ts).
+// déjà distincte de la création de compte (voir customer-signup.ts).
 // Même endpoint /api/client-auth/signup que InlineSignupForm/SignupForm,
 // laissé inchangé : ces champs supplémentaires sont tous optionnels côté
 // API, donc rien ne casse pour les autres appelants.
@@ -177,12 +177,11 @@ export function CartAccountForm({ onAccountCreated }: Props) {
       <label className="flex items-start gap-2 text-xs leading-snug text-neutral-600">
         <input
           type="checkbox"
-          required
           checked={marketingConsent}
           onChange={(e) => setMarketingConsent(e.target.checked)}
           className="mt-0.5 shrink-0"
         />
-        <span>J&apos;accepte de recevoir des informations de FabSystem par email.</span>
+        <span>Je souhaite recevoir les informations et nouveautés FabSystem par email. Facultatif.</span>
       </label>
 
       <label className="flex items-start gap-2 text-xs leading-snug text-neutral-600">

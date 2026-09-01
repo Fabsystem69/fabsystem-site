@@ -10,6 +10,8 @@ export type CheckoutFlowInput = {
   existingOrderId?: string;
   discountCode?: string;
   needsAnswers?: PrestationsNeedsAnswers;
+  acceptsCgv: true;
+  acknowledgesImmediateDigitalDelivery: true;
 };
 
 type OrderResponse = {
@@ -55,6 +57,8 @@ export async function createCheckoutFromCart(
         customerEmail,
         customerName: customerName || undefined,
         discountCode: discountCode || undefined,
+        acceptsCgv: input.acceptsCgv,
+        acknowledgesImmediateDigitalDelivery: input.acknowledgesImmediateDigitalDelivery,
       }),
     });
 
