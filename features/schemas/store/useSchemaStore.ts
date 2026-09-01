@@ -292,6 +292,8 @@ interface SchemaState {
   showGrid: boolean;
   /** Affiche le nom sous/au-dessus des composants, sans masquer les bornes. */
   showComponentLabels: boolean;
+  /** Affiche le nom, la section et la longueur sur tous les câbles. */
+  showCableLabels: boolean;
   // Compatibilité des brouillons existants: l'interface ne propose plus le
   // plan guidé et les nouveaux composants suivent toujours le placement libre.
   guidedPlanMode: boolean;
@@ -448,6 +450,7 @@ interface SchemaState {
   setDarkMode: (value: boolean) => void;
   setShowGrid: (value: boolean) => void;
   setShowComponentLabels: (value: boolean) => void;
+  setShowCableLabels: (value: boolean) => void;
   setGuidedPlanMode: (value: boolean) => void;
   toggleLeftPanel: () => void;
   openItemPropertiesPopup: () => void;
@@ -584,6 +587,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   darkMode: loadDarkMode(),
   showGrid: true,
   showComponentLabels: true,
+  showCableLabels: false,
   guidedPlanMode: false,
   leftPanelCollapsed: loadPanelCollapsed(LEFT_PANEL_COLLAPSED_KEY),
   itemPropertiesPopupOpen: false,
@@ -643,6 +647,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
 
   setShowGrid: (value) => set({ showGrid: value }),
   setShowComponentLabels: (value) => set({ showComponentLabels: value }),
+  setShowCableLabels: (value) => set({ showCableLabels: value }),
 
   toggleLeftPanel: () =>
     set((state) => {

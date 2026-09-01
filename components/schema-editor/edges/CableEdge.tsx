@@ -172,6 +172,7 @@ function AutoCableLabel({
   labelY,
   darkMode,
   selected,
+  forceVisible,
   dragging,
   onPointerDown,
   onPointerMove,
@@ -183,32 +184,34 @@ function AutoCableLabel({
   labelY: number;
   darkMode: boolean;
   selected: boolean;
+  forceVisible: boolean;
   dragging: boolean;
   onPointerDown: (event: React.PointerEvent) => void;
   onPointerMove: (event: React.PointerEvent) => void;
   onPointerUp: (event: React.PointerEvent) => void;
 }) {
-  const ref = useCableLabelCollision(id, selected ? `${labelX}:${labelY}:${caption}` : "closed");
-  if (!selected) return null;
+  const visible = selected || forceVisible;
+  const ref = useCableLabelCollision(id, visible ? `${labelX}:${labelY}:${caption}` : "closed");
+  if (!visible) return null;
   const labelStyle = {
     position: "absolute",
     zIndex: 1001,
     transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) translate(var(--cable-label-offset-x, 0px), var(--cable-label-offset-y, 0px))`,
     "--cable-label-offset-x": "0px",
     "--cable-label-offset-y": "0px",
-    pointerEvents: "all",
+    pointerEvents: selected ? "all" : "none",
     whiteSpace: "nowrap",
-    cursor: dragging ? "grabbing" : "grab",
+    cursor: selected ? (dragging ? "grabbing" : "grab") : "default",
   } as CSSProperties;
 
   return (
     <div
       ref={ref}
       data-schema-cable-label={id}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      title="Glisser pour réorganiser ce câble"
+      onPointerDown={selected ? onPointerDown : undefined}
+      onPointerMove={selected ? onPointerMove : undefined}
+      onPointerUp={selected ? onPointerUp : undefined}
+      title={selected ? "Glisser pour réorganiser ce câble" : undefined}
       style={labelStyle}
       className={`rounded border px-1.5 py-0.5 text-[10px] font-medium shadow-sm ${
         darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-300" : "border-neutral-200 bg-white text-neutral-600"
@@ -237,6 +240,7 @@ export function CableEdge({
   selected,
 }: EdgeProps<Edge<CableEdgeData>>) {
   const darkMode = useSchemaStore((s) => s.darkMode);
+  const showCableLabels = useSchemaStore((s) => s.showCableLabels);
   const reconnectEdgeAction = useSchemaStore((s) => s.reconnectEdge);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   // Selecteurs cibles (pas `s.nodes` en entier) : le retour est une simple
@@ -478,6 +482,7 @@ export function CableEdge({
             labelY={labelY}
             darkMode={darkMode}
             selected={Boolean(selected)}
+            forceVisible={showCableLabels}
             dragging={draggingPoint !== null}
             onPointerDown={handleLabelPointerDown}
             onPointerMove={handleLabelPointerMove}

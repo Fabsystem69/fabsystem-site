@@ -181,6 +181,8 @@ function EditorMenuBar({
   const setDarkMode = useSchemaStore((s) => s.setDarkMode);
   const showComponentLabels = useSchemaStore((s) => s.showComponentLabels);
   const setShowComponentLabels = useSchemaStore((s) => s.setShowComponentLabels);
+  const showCableLabels = useSchemaStore((s) => s.showCableLabels);
+  const setShowCableLabels = useSchemaStore((s) => s.setShowCableLabels);
   const projectName = useSchemaStore((s) => s.projectName);
   const projectId = useSchemaStore((s) => s.projectId);
   const nodes = useSchemaStore((s) => s.nodes);
@@ -311,6 +313,7 @@ function EditorMenuBar({
           <MenubarPanel darkMode={darkMode}>
             <MenubarHeading darkMode={darkMode}>Affichage du canevas</MenubarHeading>
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="components" />} title="Libellés des composants" detail={showComponentLabels ? "Noms affichés sur le schéma" : "Noms masqués sur le schéma"} active={showComponentLabels} shortcut="C" onClick={() => { setShowComponentLabels(!showComponentLabels); setOpenMenu(null); }} />
+            <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="properties" />} title="Libellés des câbles" detail={showCableLabels ? "Nom, section et longueur affichés" : "Affichés seulement sur le câble sélectionné"} active={showCableLabels} onClick={() => { setShowCableLabels(!showCableLabels); setOpenMenu(null); }} />
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="image" />} title="Illustrations des composants" detail={iconStyle === "pro" ? "Visuels réels activés" : "Symboles techniques activés"} active={iconStyle === "pro"} onClick={() => { setIconStyle(iconStyle === "pro" ? "simple" : "pro"); setOpenMenu(null); }} />
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="grid" />} title="Grille du canevas" detail={showGrid ? "Grille visible" : "Grille masquée"} active={showGrid} shortcut="G" onClick={() => { onToggleGrid(); setOpenMenu(null); }} />
             <MenubarSection darkMode={darkMode}>

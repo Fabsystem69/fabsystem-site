@@ -23,6 +23,7 @@ import { useCableLabelCollision } from "../edges/useCableLabelCollision";
 // petits boutons ne déclenchent pas le glisser du point lui-même.
 export function CableWaypointNode({ data }: NodeProps) {
   const darkMode = useSchemaStore((s) => s.darkMode);
+  const showCableLabels = useSchemaStore((s) => s.showCableLabels);
   const addEdgeWaypointAfter = useSchemaStore((s) => s.addEdgeWaypointAfter);
   const removeEdgeWaypoint = useSchemaStore((s) => s.removeEdgeWaypoint);
   const selectedEdgeId = useSchemaStore((s) => s.selectedEdgeId);
@@ -31,7 +32,8 @@ export function CableWaypointNode({ data }: NodeProps) {
   const index = data.index as number;
   const label = data.label as string | undefined;
   const expanded = selectedEdgeId === edgeId;
-  const labelRef = useCableLabelCollision(`${edgeId}::${index}`, expanded ? String(data.labelLayoutKey ?? "") : "closed");
+  const visible = expanded || showCableLabels;
+  const labelRef = useCableLabelCollision(`${edgeId}::${index}`, visible ? String(data.labelLayoutKey ?? "") : "closed");
 
   const miniButtonClass = `nodrag nopan flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold leading-none transition-base ${
     darkMode ? "text-neutral-400 hover:bg-neutral-700 hover:text-neutral-100" : "text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
@@ -47,11 +49,11 @@ export function CableWaypointNode({ data }: NodeProps) {
         event.stopPropagation();
         select("edge", edgeId);
       }}
-      className={`flex ${expanded ? "cursor-grab gap-1 px-1.5 py-0.5" : "h-3 w-3 cursor-pointer p-0"} items-center whitespace-nowrap rounded border text-[10px] font-medium shadow-sm active:cursor-grabbing ${
+      className={`flex ${visible ? "cursor-pointer gap-1 px-1.5 py-0.5" : "h-3 w-3 cursor-pointer p-0"} ${expanded ? "active:cursor-grabbing" : ""} items-center whitespace-nowrap rounded border text-[10px] font-medium shadow-sm ${
         darkMode ? "border-neutral-700 bg-neutral-800 text-neutral-300" : "border-neutral-200 bg-white text-neutral-600"
       }`}
     >
-      {expanded && label ? <span>{label}</span> : <span className={`m-auto h-1.5 w-1.5 rounded-full ${darkMode ? "bg-neutral-500" : "bg-neutral-400"}`} />}
+      {visible && label ? <span>{label}</span> : <span className={`m-auto h-1.5 w-1.5 rounded-full ${darkMode ? "bg-neutral-500" : "bg-neutral-400"}`} />}
       {expanded ? <button
         type="button"
         onClick={(e) => {
