@@ -30,7 +30,7 @@ export type EbookEnrichment = {
 
 export const EBOOK_ENRICHMENT: Record<string, EbookEnrichment> = {
   "ebook-schema-electrique": {
-    coverSrc: "/ebook/ebook-schema-fabsystem-images/couverture-schema.png",
+    coverSrc: "/ebook/ebook-schema-fabsystem-images/couverture-schema-boutique.png",
     coverAlt: "Couverture du guide « Dessiner son installation électrique »",
     promesseCourte:
       "Une méthode visuelle pour lire, organiser, annoter et faire relire le schéma électrique d'un van, d'un bateau ou d'un camping-car.",

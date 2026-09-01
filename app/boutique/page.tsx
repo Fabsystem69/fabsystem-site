@@ -69,7 +69,7 @@ async function buildGuideEntries(): Promise<BoutiqueGuideEntry[]> {
         name: product.name,
         shortDescription: product.shortDescription,
         productType: product.productType,
-        featuredImage: product.featuredImage || enrichment?.coverSrc || null,
+        featuredImage: enrichment?.coverSrc || product.featuredImage || null,
         priceCents: price.unitAmountCents,
         univers: getUniversForEbookSlug(product.slug),
         isDeductible: findPrestationsPackIncludingEbook(product.slug) !== undefined,

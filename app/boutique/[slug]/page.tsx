@@ -114,7 +114,9 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
   const { product, price } = await getPublicProduct(slug);
 
   const enrichment = EBOOK_ENRICHMENT[product.slug];
-  const coverSrc = product.featuredImage || enrichment?.coverSrc || null;
+  // La couverture boutique peut etre adaptee au format d'une fiche produit,
+  // sans modifier le fichier de couverture inclus dans le guide telecharge.
+  const coverSrc = enrichment?.coverSrc || product.featuredImage || null;
   const coverAlt = enrichment?.coverAlt || product.name;
   const includesEditorMonth = product.slug === "ebook-schema-electrique";
   const univers = getUniversForEbookSlug(product.slug);
@@ -138,7 +140,7 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start">
             {coverSrc ? (
-              <div className="mx-auto w-full max-w-[200px] overflow-hidden rounded-xl border border-neutral-200 shadow-sm lg:mx-0">
+              <div className="relative mx-auto w-full max-w-[200px] overflow-hidden rounded-xl border border-neutral-200 shadow-sm lg:mx-0">
                 <Image
                   src={coverSrc}
                   alt={coverAlt}
@@ -147,6 +149,20 @@ export default async function BoutiqueProductPage({ params }: BoutiqueProductPag
                   className="h-auto w-full object-cover"
                   priority
                 />
+                {includesEditorMonth ? (
+                  <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/90 via-black/55 to-transparent px-4 pb-10 pt-4 text-white">
+                    <p className="text-[8px] font-semibold uppercase tracking-[0.22em] text-amber-300">
+                      Guide FabSystem
+                    </p>
+                    <p className="mt-2 text-lg font-semibold leading-[0.95] tracking-tight">
+                      Dessiner son<br />
+                      installation électrique
+                    </p>
+                    <p className="mt-2 text-[9px] leading-snug text-neutral-200">
+                      Lire, organiser, annoter et faire relire.
+                    </p>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 

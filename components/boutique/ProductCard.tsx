@@ -23,7 +23,7 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
   return (
     <article className="flex h-full flex-col rounded-card border border-neutral-200 bg-white p-6 shadow-card">
       {entry.featuredImage ? (
-        <div className="mb-4 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+        <div className="relative mb-4 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
           <Image
             src={entry.featuredImage}
             alt={entry.name}
@@ -32,6 +32,20 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 384px"
             className="h-60 w-full object-cover object-bottom"
           />
+          {entry.slug === "ebook-schema-electrique" ? (
+            <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/90 via-black/55 to-transparent px-5 pb-12 pt-5 text-white">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-amber-300">
+                Guide FabSystem
+              </p>
+              <p className="mt-2 text-xl font-semibold leading-[0.95] tracking-tight">
+                Dessiner son<br />
+                installation électrique
+              </p>
+              <p className="mt-2 max-w-[15rem] text-[11px] leading-snug text-neutral-200">
+                Lire, organiser, annoter et faire relire.
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
