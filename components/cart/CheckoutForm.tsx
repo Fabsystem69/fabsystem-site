@@ -121,6 +121,8 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
           customerEmail: resolvedSession.email,
           customerName: resolvedSession.name ?? undefined,
           discountCode: summary.appliedCode ?? undefined,
+          acceptsCgv: true,
+          acknowledgesImmediateDigitalDelivery: true,
         });
         setPending(true);
         router.push("/panier/projet");

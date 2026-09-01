@@ -142,6 +142,36 @@ export default async function MesAchatsPage({
         </section>
       ) : null}
 
+      {overview.editorAccessCodes.length > 0 ? (
+        <section>
+          <h2 className="text-base font-semibold text-neutral-950">Accès éditeur inclus</h2>
+          <div className="mt-4 space-y-4">
+            {overview.editorAccessCodes.map((accessCode) => (
+              <Card key={accessCode.code} className="p-6">
+                <h3 className="text-base font-semibold text-neutral-950">
+                  {accessCode.durationDays} jours d&apos;accès complet à l&apos;éditeur de schémas
+                </h3>
+                {accessCode.redeemed ? (
+                  <p className="mt-2 text-sm text-neutral-600">Code déjà activé sur votre compte.</p>
+                ) : (
+                  <>
+                    <p className="mt-2 text-sm text-neutral-600">
+                      Saisissez ce code depuis l&apos;éditeur, avec ce même compte, pour démarrer vos {accessCode.durationDays} jours.
+                    </p>
+                    <code className="mt-4 inline-flex rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold tracking-wide text-neutral-950">
+                      {accessCode.code}
+                    </code>
+                    <div className="mt-4">
+                      <Button href="/outils/schema/editeur" variant="primary">Ouvrir l&apos;éditeur</Button>
+                    </div>
+                  </>
+                )}
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {overview.orders.length === 0 ? (
         overview.offeredResources.length === 0 ? (
           <Card className="p-6">

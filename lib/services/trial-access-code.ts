@@ -1,5 +1,6 @@
 import { badRequest, notFound } from "@/lib/http-errors";
 import { grantAccountWideTrial, SCHEMA_EDITOR_UNLIMITED_CAPABILITY } from "@/lib/services/schema-unlock";
+import { randomBytes } from "node:crypto";
 
 // v2.1 : code promo communautaire (distribue sur les groupes/reseaux) —
 // accorde une capacite CUSTOMER (tous les projets du compte) pendant
@@ -15,7 +16,12 @@ export type RedeemTrialAccessCodeResult =
   | { status: "redeemed"; expiresAt: Date | null }
   | { status: "already_redeemed" }
   | { status: "invalid" }
+  | { status: "not_eligible" }
   | { status: "exhausted" };
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
 
 export async function redeemTrialAccessCode(
   customerId: string,
@@ -39,6 +45,17 @@ export async function redeemTrialAccessCode(
     (record.expiresAt && record.expiresAt <= now)
   ) {
     return { status: "invalid" };
+  }
+
+  if (record.recipientEmail) {
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+      select: { email: true },
+    });
+
+    if (!customer || normalizeEmail(customer.email) !== normalizeEmail(record.recipientEmail)) {
+      return { status: "not_eligible" };
+    }
   }
 
   const existingRedemption = await prisma.trialAccessCodeRedemption.findUnique({
@@ -88,7 +105,93 @@ export async function redeemTrialAccessCode(
 }
 
 function generateRandomSuffix() {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
+  return randomBytes(5).toString("hex").toUpperCase();
+}
+
+const EBOOK_SCHEMA_SLUG = "ebook-schema-electrique";
+const EBOOK_SCHEMA_TRIAL_REASON = "30 jours d'acces complet a l'editeur inclus avec l'ebook";
+
+function generatePurchasedEbookCode() {
+  return `EDITEUR30-${generateRandomSuffix()}`;
+}
+
+function isUniqueConstraintViolation(error: unknown) {
+  return Boolean(
+    error && typeof error === "object" && "code" in error && (error as { code?: unknown }).code === "P2002"
+  );
+}
+
+export type AutomaticSchemaEditorTrialResult =
+  | { status: "created"; code: string }
+  | { status: "already_created"; code: string }
+  | { status: "not_applicable" };
+
+// Appele uniquement apres la confirmation de paiement Stripe. Le lien unique
+// sourceOrderId rend ce traitement rejouable sans offrir un second code lors
+// d'une relivraison du webhook.
+export async function createAutomaticSchemaEditorTrialForOrder(
+  orderId: string
+): Promise<AutomaticSchemaEditorTrialResult> {
+  const normalizedOrderId = orderId.trim();
+
+  if (!normalizedOrderId) {
+    throw badRequest("Order id is required");
+  }
+
+  const { prisma } = await import("@/lib/prisma");
+  const order = await prisma.order.findUnique({
+    where: { id: normalizedOrderId },
+    include: { items: { select: { productSlug: true } } },
+  });
+
+  if (!order || !order.items.some((item) => item.productSlug === EBOOK_SCHEMA_SLUG)) {
+    return { status: "not_applicable" };
+  }
+
+  const existing = await prisma.trialAccessCode.findUnique({
+    where: { sourceOrderId: order.id },
+    select: { code: true },
+  });
+
+  if (existing) {
+    return { status: "already_created", code: existing.code };
+  }
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const code = generatePurchasedEbookCode();
+
+    try {
+      await prisma.trialAccessCode.create({
+        data: {
+          code,
+          capability: SCHEMA_EDITOR_UNLIMITED_CAPABILITY,
+          durationDays: 30,
+          maxRedemptions: 1,
+          recipientEmail: normalizeEmail(order.customerEmail),
+          sourceOrderId: order.id,
+          reason: EBOOK_SCHEMA_TRIAL_REASON,
+          status: "ACTIVE",
+        },
+      });
+
+      return { status: "created", code };
+    } catch (error) {
+      if (!isUniqueConstraintViolation(error)) {
+        throw error;
+      }
+
+      const concurrent = await prisma.trialAccessCode.findUnique({
+        where: { sourceOrderId: order.id },
+        select: { code: true },
+      });
+
+      if (concurrent) {
+        return { status: "already_created", code: concurrent.code };
+      }
+    }
+  }
+
+  throw new Error("Unable to generate a unique schema editor access code");
 }
 
 export type CreateTrialAccessCodeInput = {

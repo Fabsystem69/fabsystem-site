@@ -92,6 +92,11 @@ export function PrestationsNeedsForm() {
       return;
     }
 
+    if (!pendingInputs.acceptsCgv || !pendingInputs.acknowledgesImmediateDigitalDelivery) {
+      router.replace("/panier");
+      return;
+    }
+
     if (!vehicle.trim() || !description.trim()) {
       setError("Merci de compléter au minimum le véhicule et la description du projet.");
       return;
@@ -114,6 +119,8 @@ export function PrestationsNeedsForm() {
         customerName: pendingInputs.customerName,
         discountCode: pendingInputs.discountCode,
         needsAnswers: answers,
+        acceptsCgv: true,
+        acknowledgesImmediateDigitalDelivery: true,
       });
 
       if (result.requiresPayment && result.checkoutUrl) {

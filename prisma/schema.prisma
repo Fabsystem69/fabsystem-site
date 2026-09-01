@@ -988,6 +988,13 @@ model TrialAccessCode {
   startsAt       DateTime?
   expiresAt      DateTime?
   reason         String?
+  // Les codes issus d'un achat restent lies a leur commande : cela rend la
+  // creation idempotente lors d'une relivraison Stripe, sans modifier les
+  // codes communautaires existants (sourceOrderId reste nullable).
+  sourceOrderId  String?                     @unique
+  // Un code commercial ne peut etre active que depuis le compte de l'adresse
+  // ayant passe la commande. Les anciens codes restent non nominatifs.
+  recipientEmail String?
   redemptions    TrialAccessCodeRedemption[]
   createdAt      DateTime                    @default(now())
   updatedAt      DateTime                    @updatedAt

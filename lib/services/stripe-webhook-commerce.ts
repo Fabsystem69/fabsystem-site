@@ -81,6 +81,7 @@ type CommerceWebhookDeps = {
   sendPurchaseNotification?: (orderId: string) => Promise<unknown>;
   grantProjectUnlockForOrder?: (orderId: string) => Promise<unknown>;
   createAutomaticSchemaUnlockDiscountCodesForOrder?: (orderId: string) => Promise<unknown>;
+  createAutomaticSchemaEditorTrialForOrder?: (orderId: string) => Promise<unknown>;
 };
 
 function getRequiredMetadataValue(
@@ -252,6 +253,7 @@ async function getDefaultCommerceWebhookService() {
     { prisma },
     { createDownloadGrantsForOrder },
     { createAutomaticEbookDiscountCodesForOrder, createAutomaticSchemaUnlockDiscountCodesForOrder },
+    { createAutomaticSchemaEditorTrialForOrder },
     { sendPrestationsPackNotification },
     { sendPurchaseNotification },
     { grantProjectUnlockForOrder },
@@ -259,6 +261,7 @@ async function getDefaultCommerceWebhookService() {
     import("@/lib/prisma"),
     import("@/lib/services/download-grant"),
     import("@/lib/services/discounts"),
+    import("@/lib/services/trial-access-code"),
     import("@/lib/services/prestations-notify"),
     import("@/lib/services/purchase-notify"),
     import("@/lib/services/schema-unlock"),
@@ -268,6 +271,7 @@ async function getDefaultCommerceWebhookService() {
     createDownloadGrantsForOrder,
     createAutomaticEbookDiscountCodesForOrder,
     createAutomaticSchemaUnlockDiscountCodesForOrder,
+    createAutomaticSchemaEditorTrialForOrder,
     sendPrestationsPackNotification,
     sendPurchaseNotification,
     grantProjectUnlockForOrder: (orderId) => grantProjectUnlockForOrder({ orderId }),
@@ -288,6 +292,8 @@ export function createStripeWebhookCommerceService(
   const grantProjectUnlockForOrder = deps?.grantProjectUnlockForOrder ?? (async () => {});
   const createAutomaticSchemaUnlockDiscountCodesForOrder =
     deps?.createAutomaticSchemaUnlockDiscountCodesForOrder ?? (async () => {});
+  const createAutomaticSchemaEditorTrialForOrder =
+    deps?.createAutomaticSchemaEditorTrialForOrder ?? (async () => {});
 
   return {
     async handleCommerceCheckoutCompleted(
@@ -401,6 +407,10 @@ export function createStripeWebhookCommerceService(
         // se protège lui-même via source=order:<orderId> deja existant.
         await grantProjectUnlockForOrder(result.orderId);
         await createAutomaticSchemaUnlockDiscountCodesForOrder(result.orderId);
+        // L'ebook de schemas inclut 30 jours d'editeur complet. Le service
+        // est idempotent par sourceOrderId, donc aussi sur une relivraison
+        // du webhook Stripe deja traitee.
+        await createAutomaticSchemaEditorTrialForOrder(result.orderId);
       }
 
       return result;

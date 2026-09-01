@@ -298,6 +298,20 @@ function createMockAutoDiscountDeps() {
   };
 }
 
+function createMockSchemaEditorTrialDeps() {
+  const state = {
+    orderIds: [] as string[],
+  };
+
+  return {
+    state,
+    async createAutomaticSchemaEditorTrialForOrder(orderId: string) {
+      state.orderIds.push(orderId);
+      return { status: "created" as const, code: "EDITEUR30-TESTCODE" };
+    },
+  };
+}
+
 function createMockNotifyDeps() {
   const state = {
     calls: [] as Array<{ orderId: string; metadata: Stripe.Metadata | null | undefined }>,
@@ -516,6 +530,20 @@ test("handleCommerceCheckoutCompleted passes payment to SUCCEEDED and order to P
   assert.equal(updated?.order.status, "PAID");
   assert.equal(updated?.order.paidAt?.toISOString(), "2026-08-06T12:00:00.000Z");
   assert.deepEqual(grantDeps.state.orderIds, [order.id]);
+});
+
+test("handleCommerceCheckoutCompleted provisions the included schema editor code", async () => {
+  const order = createOrderRecord();
+  const payment = { ...createPaymentRecord(), order };
+  const { db } = createMockCommerceWebhookDb({ payment });
+  const trialDeps = createMockSchemaEditorTrialDeps();
+  const service = createStripeWebhookCommerceService(db, {
+    createAutomaticSchemaEditorTrialForOrder: trialDeps.createAutomaticSchemaEditorTrialForOrder,
+  });
+
+  await service.handleCommerceCheckoutCompleted(createCheckoutSession());
+
+  assert.deepEqual(trialDeps.state.orderIds, [order.id]);
 });
 
 test("handleCommerceCheckoutCompleted is idempotent when already processed", async () => {

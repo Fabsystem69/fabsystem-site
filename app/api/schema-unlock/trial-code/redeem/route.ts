@@ -45,6 +45,7 @@ export async function POST(request: Request) {
 
     const messageByStatus: Record<typeof result.status, string> = {
       invalid: "Code invalide ou expiré.",
+      not_eligible: "Ce code est réservé au compte utilisé lors de l'achat.",
       already_redeemed: "Vous avez déjà utilisé ce code.",
       exhausted: "Ce code a atteint sa limite d'utilisation.",
     };

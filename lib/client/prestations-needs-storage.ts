@@ -14,6 +14,10 @@ export type PendingCheckoutInputs = {
   customerEmail: string;
   customerName?: string;
   discountCode?: string;
+  // Les consentements sont collectes dans le panier avant le formulaire
+  // projet. Ils restent en session le temps de cette seule etape intermediaire.
+  acceptsCgv?: true;
+  acknowledgesImmediateDigitalDelivery?: true;
 };
 
 function isBrowser() {

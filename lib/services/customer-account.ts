@@ -7,6 +7,7 @@ import type {
   OrderItem,
   PrismaClient,
   Product,
+  TrialAccessCode,
 } from "@/lib/generated/prisma/client";
 import { notFound } from "@/lib/http-errors";
 
@@ -29,10 +30,16 @@ type ResourceGrantWithRelations = CustomerResourceGrant & {
   asset: DigitalAsset;
 };
 
+type EditorAccessCodeRecord = Pick<
+  TrialAccessCode,
+  "code" | "durationDays" | "status" | "redeemedCount" | "maxRedemptions" | "sourceOrderId"
+>;
+
 type CustomerAccountDb = {
   findCustomerById(customerId: string): Promise<Customer | null>;
   findOrdersForCustomer(customerId: string, customerEmail: string): Promise<OrderWithRelations[]>;
   findResourceGrantsForCustomer(customerId: string): Promise<ResourceGrantWithRelations[]>;
+  findEditorAccessCodesForOrders(customerEmail: string, orderIds: string[]): Promise<EditorAccessCodeRecord[]>;
 };
 
 export type CustomerAccountOverview = {
@@ -83,6 +90,13 @@ export type CustomerAccountOverview = {
     expiresAt: Date | null;
     grantedAt: Date;
   }>;
+  editorAccessCodes: Array<{
+    code: string;
+    durationDays: number;
+    status: TrialAccessCode["status"];
+    redeemed: boolean;
+    orderId: string;
+  }>;
 };
 
 type CustomerAccountDeps = {
@@ -123,6 +137,26 @@ function createPrismaCustomerAccountDb(client: PrismaClientLike): CustomerAccoun
         include: { product: true, asset: true },
         orderBy: { createdAt: "desc" },
       }) as Promise<ResourceGrantWithRelations[]>;
+    },
+    async findEditorAccessCodesForOrders(customerEmail, orderIds) {
+      if (orderIds.length === 0) {
+        return [];
+      }
+
+      return client.trialAccessCode.findMany({
+        where: {
+          recipientEmail: customerEmail,
+          sourceOrderId: { in: orderIds },
+        },
+        select: {
+          code: true,
+          durationDays: true,
+          status: true,
+          redeemedCount: true,
+          maxRedemptions: true,
+          sourceOrderId: true,
+        },
+      });
     },
   };
 }
@@ -166,6 +200,10 @@ export function createCustomerAccountService(
         db.findOrdersForCustomer(customer.id, customer.email),
         db.findResourceGrantsForCustomer(customer.id),
       ]);
+      const editorAccessCodes = await db.findEditorAccessCodesForOrders(
+        customer.email,
+        orders.map((order) => order.id)
+      );
 
       return {
         customer: {
@@ -219,6 +257,15 @@ export function createCustomerAccountService(
             maxDownloads: grant.maxDownloads,
             expiresAt: grant.expiresAt,
             grantedAt: grant.createdAt,
+          })),
+        editorAccessCodes: editorAccessCodes
+          .filter((accessCode) => accessCode.sourceOrderId)
+          .map((accessCode) => ({
+            code: accessCode.code,
+            durationDays: accessCode.durationDays,
+            status: accessCode.status,
+            redeemed: accessCode.redeemedCount >= accessCode.maxRedemptions,
+            orderId: accessCode.sourceOrderId as string,
           })),
       };
     },

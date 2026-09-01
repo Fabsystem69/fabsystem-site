@@ -29,6 +29,43 @@ export type EbookEnrichment = {
 };
 
 export const EBOOK_ENRICHMENT: Record<string, EbookEnrichment> = {
+  "ebook-schema-electrique": {
+    coverSrc: "/ebook/ebook-schema-fabsystem-images/couverture-schema.png",
+    coverAlt: "Couverture du guide « Dessiner son installation électrique »",
+    promesseCourte:
+      "Une méthode visuelle pour lire, organiser, annoter et faire relire le schéma électrique d'un van, d'un bateau ou d'un camping-car.",
+    forYouIf: [
+      "vous avez des composants et des idées, mais pas encore une architecture lisible",
+      "vous voulez comprendre un schéma avant de toucher aux câbles",
+      "vous voulez préparer un projet de van, de bateau ou de camping-car à faire relire",
+      "vous cherchez une méthode claire pour utiliser l'éditeur FabSystem sans dessiner au hasard",
+    ],
+    benefits: [
+      "Lire le chemin de l'énergie : sources, protections, distribution et consommateurs",
+      "Construire un premier schéma progressivement, sans masquer les incertitudes",
+      "Repérer les informations à documenter avant une réalisation ou une demande d'aide",
+      "Comparer des architectures solaire, batterie, chargeur et station électrique",
+      "Préparer une relecture technique avec un schéma transmissible et annoté",
+      "Distinguer un schéma de projet d'une validation d'installation réelle",
+    ],
+    sommaire: [
+      { n: "01", title: "Lire avant de brancher", detail: "La méthode pour suivre un circuit et comprendre ce que raconte un schéma." },
+      { n: "02", title: "Poser les bonnes briques", detail: "Sources, batteries, protections, distribution et consommateurs : le vocabulaire utile." },
+      { n: "03", title: "Dessiner pour décider", detail: "Organiser un projet dans l'éditeur, annoter les hypothèses et garder un schéma lisible." },
+      { n: "04", title: "Cas pratiques embarqués", detail: "Solaire, station électrique, AFERIY P280 et installation Victron légère." },
+      { n: "05", title: "Vérifier et transmettre", detail: "Relire, corriger, exporter et préparer un échange avec un professionnel." },
+    ],
+    formats: [
+      { icon: "🖨️", title: "PDF imprimable", detail: "Mise en page A4 avec pagination pour préparer ou annoter le projet sur papier." },
+      { icon: "📖", title: "EPUB", detail: "Lecture fluide sur liseuse, tablette ou application de lecture." },
+      { icon: "⚡", title: "30 jours d'éditeur", detail: "Un code personnel active 30 jours d'accès complet à l'éditeur de schémas." },
+    ],
+    preview: [
+      { src: "/ebook/ebook-schema-fabsystem-images/chapitre-01-ouverture-v1.webp", alt: "Ouverture du premier chapitre du guide" },
+      { src: "/ebook/ebook-schema-fabsystem-images/chapitre-06-ouverture-v1.webp", alt: "Ouverture d'un chapitre consacré à l'organisation du schéma" },
+      { src: "/ebook/ebook-schema-fabsystem-images/chapitre-14-ouverture-v1.webp", alt: "Ouverture d'un cas pratique du guide" },
+    ],
+  },
   "ebook-electricite-van": {
     coverSrc: "/ebook/couverture.jpg",
     coverAlt: "Couverture du livre « Câbler son van sans se planter »",

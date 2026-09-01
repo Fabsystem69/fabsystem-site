@@ -177,6 +177,9 @@ function createMockCustomerAccountDb(seed?: {
     async findResourceGrantsForCustomer() {
       return [];
     },
+    async findEditorAccessCodesForOrders() {
+      return [];
+    },
   };
 }
 
