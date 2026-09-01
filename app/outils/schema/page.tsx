@@ -105,12 +105,21 @@ export async function generateMetadata({
       title: "Editeur de schema electrique | FabSystem",
       description,
       url: "https://www.fabsystem.fr/outils/schema",
+      images: [
+        {
+          url: "/outils/schema.webp",
+          width: 1600,
+          height: 1195,
+          alt: "Editeur de schema electrique FabSystem",
+        },
+      ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: "Editeur de schema electrique | FabSystem",
       description,
+      images: ["/outils/schema.webp"],
     },
     robots: editorMode
       ? {

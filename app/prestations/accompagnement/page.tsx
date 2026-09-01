@@ -24,6 +24,14 @@ export const metadata: Metadata = {
     description:
       "Un accompagnement a distance pour clarifier un schema electrique de bateau, van ou camping-car, choisir le materiel utile et preparer une installation plus fiable.",
     url: "https://www.fabsystem.fr/prestations/accompagnement",
+    images: [
+      {
+        url: "/hero-fabsystem.png",
+        width: 1200,
+        height: 630,
+        alt: "FabSystem - Accompagnement electrique a distance",
+      },
+    ],
     type: "website",
   },
   twitter: {
@@ -31,6 +39,7 @@ export const metadata: Metadata = {
     title: "Accompagnement electrique a distance | FabSystem",
     description:
       "FabSystem accompagne a distance les projets electriques bateau, van et camping-car, du schema aux verifications utiles avant cablage.",
+    images: ["/hero-fabsystem.png"],
   },
 };
 

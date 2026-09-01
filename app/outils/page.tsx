@@ -28,6 +28,22 @@ export const metadata: Metadata = {
     description:
       "Calculez la section de câble, le bilan de consommation et l'autonomie, et votre banque de batteries pour votre bateau, van ou camping-car.",
     url: "https://www.fabsystem.fr/outils",
+    images: [
+      {
+        url: "/hero-fabsystem.png",
+        width: 1200,
+        height: 630,
+        alt: "FabSystem - Outils et calculateurs d'électricité embarquée",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Calculateurs électricité embarquée | FabSystem",
+    description:
+      "Calculez la section de câble, le bilan de consommation et l'autonomie pour votre bateau, van ou camping-car.",
+    images: ["/hero-fabsystem.png"],
   },
 };
 
