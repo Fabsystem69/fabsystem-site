@@ -154,6 +154,36 @@ test("un retour négatif de consommateur est dimensionné dès que sa puissance 
   assert.ok(result.edges[0]?.data?.section?.endsWith("mm²"));
 });
 
+test("un chauffe-eau mixte sépare bien sa puissance 12 V de sa résistance 230 V", () => {
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("boiler", "consumer", {
+      label: "Pundmann Therm 6L double résistance",
+      supplyType: "mixed",
+      powerW: 200,
+      power230VW: 500,
+    }),
+  ];
+  const edge = createEdge("boiler-12v", "battery", "positive", "boiler", "positive", "power-positive");
+
+  assert.ok(Math.abs((estimateEdgeAmps(edge, nodes, [edge]) ?? 0) - 200 / 12) < 0.000_001);
+});
+
+test("un chauffe-eau 230 V ne charge jamais le calcul de courant 12 V", () => {
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("boiler", "consumer", {
+      label: "Pundmann Therm 6L 230V",
+      supplyType: "230v",
+      powerW: 0,
+      power230VW: 500,
+    }),
+  ];
+  const edge = createEdge("boiler-12v", "battery", "positive", "boiler", "ac-in", "power-positive");
+
+  assert.equal(estimateEdgeAmps(edge, nodes, [edge]), null);
+});
+
 test("computeSchemaIssues signale un câble de puissance sans section et propose le recalcul direct", () => {
   const { nodes, edges } = createSizingFixture();
 

@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
-import { COMPONENT_DEFINITIONS, CONSUMER_PRESETS, getComponentDefinition, getNodeIcon } from "@/lib/electrical-components/definitions";
-import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
+import { COMPONENT_DEFINITIONS, CONSUMER_PRESETS, getComponentDefinition, getEffectiveHandles, getNodeIcon } from "@/lib/electrical-components/definitions";
+import { getBrandModel, getBrandModelsForType } from "@/lib/electrical-components/brand-models";
 
 function publicAssetPath(icon: string) {
   return join(process.cwd(), "public", icon.replace(/^\/+/, ""));
@@ -105,6 +105,33 @@ test("les consommateurs partagent un visuel seulement lorsqu'ils sont de même n
   assert.equal(getNodeIcon(consumer, { presetType: "ruban-led" }, "pro"), "/schema-icons/pro/ruban-led.jpg");
 });
 
+test("les chauffe-eau Pundmann utilisent leur photo et les bornes de leur alimentation", () => {
+  const consumer = getComponentDefinition("consumer");
+  const boiler12v = getBrandModel("pundmann-therm-6l-12v");
+  const boiler230v = getBrandModel("pundmann-therm-6l-230v");
+  const boilerMixed = getBrandModel("pundmann-therm-6l-12v-230v");
+  assert.ok(consumer);
+  assert.ok(boiler12v);
+  assert.ok(boiler230v);
+  assert.ok(boilerMixed);
+
+  assert.equal(
+    getNodeIcon(consumer, { brandModelId: boiler12v.id, ...boiler12v.defaults }, "pro"),
+    "/schema-icons/pro/brand/pundmann-therm-12v.jpg",
+  );
+  assert.equal(
+    getNodeIcon(consumer, { brandModelId: boiler230v.id, ...boiler230v.defaults }, "pro"),
+    "/schema-icons/pro/brand/pundmann-therm-230v.jpg",
+  );
+  assert.equal(
+    getNodeIcon(consumer, { brandModelId: boilerMixed.id, ...boilerMixed.defaults }, "pro"),
+    "/schema-icons/pro/brand/pundmann-therm-mixte.jpg",
+  );
+  assert.deepEqual(getEffectiveHandles(consumer, boiler12v.defaults).map((handle) => handle.id), ["positive", "negative"]);
+  assert.deepEqual(getEffectiveHandles(consumer, boiler230v.defaults).map((handle) => handle.id), ["ac-in", "earth"]);
+  assert.deepEqual(getEffectiveHandles(consumer, boilerMixed.defaults).map((handle) => handle.id), ["positive", "negative", "ac-in", "earth"]);
+});
+
 test("toutes les illustrations Pro référencées existent dans public", () => {
   const icons = new Set<string>();
 
@@ -117,6 +144,11 @@ test("toutes les illustrations Pro référencées existent dans public", () => {
   assert.ok(consumer);
   for (const preset of CONSUMER_PRESETS) {
     const icon = getNodeIcon(consumer, { presetType: preset.value }, "pro");
+    if (icon) icons.add(icon);
+  }
+
+  for (const model of getBrandModelsForType("consumer")) {
+    const icon = getNodeIcon(consumer, { brandModelId: model.id, ...model.defaults }, "pro");
     if (icon) icons.add(icon);
   }
 

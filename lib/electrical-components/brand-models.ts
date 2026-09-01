@@ -478,6 +478,20 @@ export const BRAND_MODELS: BrandModel[] = [
 
   // Éolienne (voir type "wind-turbine" dans definitions.ts).
   { id: "silentwind-pro-420w", brand: "Silent Wind", model: "Wind Generator Pro 12V/420W", componentType: "wind-turbine", defaults: { powerW: 420, voltage: 12 }, iconPro: "/schema-icons/pro/brand/silentwind-pro-420w.jpg" },
+
+  // Pundmann Therm : chauffe-eau électriques à accumulation. Les puissances
+  // sont celles des résistances, relevées sur les fiches constructeur :
+  // https://www.pundmann.de/mediafiles/Manuals/Pundmann_Therm_Instructions.pdf
+  { id: "pundmann-therm-3l-12v", brand: "Pundmann", model: "Therm 3L 12V/180W", componentType: "consumer", defaults: { presetType: "chauffe-eau-12v", supplyType: "12v", powerW: 180 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-12v.jpg" },
+  { id: "pundmann-therm-6l-12v", brand: "Pundmann", model: "Therm 6L 12V/200W", componentType: "consumer", defaults: { presetType: "chauffe-eau-12v", supplyType: "12v", powerW: 200 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-12v.jpg" },
+  { id: "pundmann-therm-9l-12v", brand: "Pundmann", model: "Therm 9L 12V/200W", componentType: "consumer", defaults: { presetType: "chauffe-eau-12v", supplyType: "12v", powerW: 200 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-12v.jpg" },
+  { id: "pundmann-therm-3l-230v", brand: "Pundmann", model: "Therm 3L 230V/250W", componentType: "consumer", defaults: { presetType: "chauffe-eau", supplyType: "230v", powerW: 0, power230VW: 250 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-230v.jpg" },
+  { id: "pundmann-therm-6l-230v", brand: "Pundmann", model: "Therm 6L 230V/500W", componentType: "consumer", defaults: { presetType: "chauffe-eau", supplyType: "230v", powerW: 0, power230VW: 500 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-230v.jpg" },
+  { id: "pundmann-therm-9l-230v", brand: "Pundmann", model: "Therm 9L 230V/500W", componentType: "consumer", defaults: { presetType: "chauffe-eau", supplyType: "230v", powerW: 0, power230VW: 500 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-230v.jpg" },
+  // La double résistance est utilisée alternativement selon Pundmann. La
+  // puissance maximale d'un circuit est donc 500 W, pas 700 W. Les deux
+  // résistances sont conservées séparément pour le calcul des réseaux DC/AC.
+  { id: "pundmann-therm-6l-12v-230v", brand: "Pundmann", model: "Therm 6L double résistance 12V/200W + 230V/500W", componentType: "consumer", defaults: { presetType: "chauffe-eau-mixte-12-220", supplyType: "mixed", powerW: 200, power230VW: 500 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-mixte.jpg" },
 ];
 
 export function getBrandModelsForType(componentType: string): BrandModel[] {

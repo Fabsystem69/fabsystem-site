@@ -256,6 +256,11 @@ function reachableSameCableType(startId: string, excludeEdgeId: string, cableTyp
 function getLoadPowerW(node: SchemaNode): number {
   if (node.data.componentType !== "consumer" && node.data.componentType !== "system-controller") return 0;
 
+  // Une résistance 230 V ne doit jamais être convertie en courant 12 V.
+  // Pour les appareils mixtes, seule la branche 12 V est prise en compte
+  // pendant le dimensionnement des câbles DC.
+  if (node.data.componentType === "consumer" && node.data.supplyType === "230v") return 0;
+
   const declaredPower = Number(node.data.powerW) || 0;
   if (declaredPower > 0) return declaredPower;
 

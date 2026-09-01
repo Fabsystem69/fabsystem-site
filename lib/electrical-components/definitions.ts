@@ -165,6 +165,31 @@ function consumerIconVariants(): Record<string, { icon?: string; iconPro?: strin
   return variants;
 }
 
+function consumerHandles(data: Record<string, unknown>): ComponentHandleDef[] {
+  const supplyType = String(data.supplyType ?? "12v");
+
+  if (supplyType === "230v") {
+    return [
+      { id: "ac-in", label: "230 V", kind: "neutral", side: "right" },
+      { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
+    ];
+  }
+
+  if (supplyType === "mixed") {
+    return [
+      { id: "positive", label: "+12 V", kind: "positive", side: "right" },
+      { id: "negative", label: "−12 V", kind: "negative", side: "left" },
+      { id: "ac-in", label: "230 V", kind: "neutral", side: "top" },
+      { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
+    ];
+  }
+
+  return [
+    { id: "positive", label: "+", kind: "positive", side: "right" },
+    { id: "negative", label: "−", kind: "negative", side: "left" },
+  ];
+}
+
 // Les ports de communication ne sont pas une propriete generique d'une
 // famille: deux boitiers qui se ressemblent peuvent ne pas avoir la meme
 // interface. Le modele choisi est donc la seule source de verite. Cela evite
@@ -1887,11 +1912,9 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     iconPro: "/schema-icons/consumer.svg",
     iconVariantField: "presetType",
     iconVariants: consumerIconVariants(),
-    handles: [
-      { id: "positive", label: "+", kind: "positive", side: "right" },
-      { id: "negative", label: "−", kind: "negative", side: "left" },
-    ],
-    defaultData: { presetType: "generique", powerW: 0 },
+    handles: consumerHandles({ supplyType: "12v" }),
+    getHandles: consumerHandles,
+    defaultData: { presetType: "generique", supplyType: "12v", powerW: 0, power230VW: 0 },
     fields: [
       {
         key: "presetType",
@@ -1901,7 +1924,18 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
         options: CONSUMER_PRESETS.map((p) => ({ value: p.value, label: p.label })),
       },
       { key: "label", label: "Nom", type: "text" },
-      { key: "powerW", label: "Puissance", type: "number", unit: "W" },
+      {
+        key: "supplyType",
+        label: "Alimentation",
+        type: "select",
+        options: [
+          { value: "12v", label: "12 V" },
+          { value: "230v", label: "230 V" },
+          { value: "mixed", label: "12 V + 230 V" },
+        ],
+      },
+      { key: "powerW", label: "Puissance 12 V", type: "number", unit: "W" },
+      { key: "power230VW", label: "Puissance 230 V", type: "number", unit: "W" },
     ],
   },
 ];
@@ -1966,6 +2000,11 @@ export function getNodeIcon(def: ComponentDefinition, _data: Record<string, unkn
   }
   if (style === "pro") {
     const selectedModel = typeof _data.brandModelId === "string" ? getBrandModel(_data.brandModelId) : undefined;
+    // Les chauffe-eau de marque sont visuellement très différents du pictogramme
+    // générique : la photo de la référence choisie doit donc rester visible.
+    if (def.type === "consumer" && selectedModel?.iconPro) {
+      return selectedModel.iconPro;
+    }
     // Les écrans et centrales sont des appareils visuellement distincts :
     // Cerbo, BMV, GX Touch ou Ekrano ne peuvent pas partager l'image de
     // famille Victron sans induire l'utilisateur en erreur.
