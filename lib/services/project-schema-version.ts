@@ -1,4 +1,4 @@
-import type { Prisma, ProjectSchemaVersion, ProjectSchemaVersionAuthor } from "@/lib/generated/prisma/client";
+import { Prisma, type ProjectSchemaVersion, type ProjectSchemaVersionAuthor } from "@/lib/generated/prisma/client";
 import { badRequest, notFound } from "@/lib/http-errors";
 import type { OwnershipActor } from "@/lib/ownership";
 import { getProject } from "@/lib/services/project";
@@ -33,6 +33,12 @@ function normalizedLabel(label: string | null | undefined) {
   if (!value) return null;
   if (value.length > 120) throw badRequest("Version label must be 120 characters or fewer");
   return value;
+}
+
+// Les valeurs lues en JSON peuvent être `null`, alors que Prisma impose sa
+// sentinelle `JsonNull` pour représenter cette valeur lors d'une écriture.
+function asInputJson(value: Prisma.JsonValue): Prisma.InputJsonValue | Prisma.JsonNull {
+  return value === null ? Prisma.JsonNull : value;
 }
 
 async function nextVersionNumber(db: VersionDb, projectSchemaId: string) {
@@ -74,8 +80,8 @@ export function createProjectSchemaVersionService(db: VersionDb, assertOwnedProj
             authorName: input.authorName,
             label: normalizedLabel(input.label),
             projectName: schema.projectName,
-            nodes: schema.nodes,
-            edges: schema.edges,
+            nodes: asInputJson(schema.nodes),
+            edges: asInputJson(schema.edges),
             thumbnail: schema.thumbnail,
           },
         });
@@ -100,8 +106,8 @@ export function createProjectSchemaVersionService(db: VersionDb, assertOwnedProj
             authorName: input.authorName,
             label: "Avant restauration",
             projectName: schema.projectName,
-            nodes: schema.nodes,
-            edges: schema.edges,
+            nodes: asInputJson(schema.nodes),
+            edges: asInputJson(schema.edges),
             thumbnail: schema.thumbnail,
           },
         });
@@ -109,8 +115,8 @@ export function createProjectSchemaVersionService(db: VersionDb, assertOwnedProj
           where: { id: schema.id },
           data: {
             projectName: version.projectName,
-            nodes: version.nodes,
-            edges: version.edges,
+            nodes: asInputJson(version.nodes),
+            edges: asInputJson(version.edges),
             thumbnail: version.thumbnail,
           },
         });
