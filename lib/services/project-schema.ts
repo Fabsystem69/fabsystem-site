@@ -136,7 +136,10 @@ export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSch
       // n'est plus actif repasse en lecture seule complete — jamais de perte
       // silencieuse de travail (le schema reste consultable via
       // getProjectSchema), juste plus de sauvegarde possible sans renouveler.
-      if (await checkProjectReadOnly(project.customerId, project.id)) {
+      // Le verrouillage est une limite commerciale du compte client. Il ne
+      // doit pas empêcher l'administrateur de préparer ou corriger un
+      // schéma dans le cadre de l'accompagnement.
+      if (actor.role !== "admin" && await checkProjectReadOnly(project.customerId, project.id)) {
         throw forbidden("Project schema is read-only: unlock has expired");
       }
       try {

@@ -5,7 +5,7 @@ import { toErrorResponse } from "@/lib/server/error-response";
 import { MAX_PROJECT_SCHEMA_REQUEST_BYTES } from "@/lib/project-schema-contract";
 import { parseSaveProjectSchemaInput } from "@/lib/project-schema-payload";
 import { enforceRateLimit } from "@/lib/rate-limit";
-import { requireCustomerActor } from "@/lib/server/project-actor";
+import { requireProjectActor } from "@/lib/server/project-actor";
 import { getProjectSchema, saveProjectSchema } from "@/lib/services/project-schema";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +45,7 @@ export async function GET(_request: Request, { params }: Params) {
   const { projectId } = await params;
 
   try {
-    const actor = await requireCustomerActor();
+    const actor = await requireProjectActor();
     const schema = await getProjectSchema(actor, projectId);
 
     return NextResponse.json({ schema });
@@ -70,7 +70,7 @@ export async function PUT(request: Request, { params }: Params) {
       windowMs: 5 * 60 * 1000,
     });
 
-    const actor = await requireCustomerActor();
+    const actor = await requireProjectActor();
     const json = await readSchemaRequestJson(request);
     const input = parseSaveProjectSchemaInput(json);
 

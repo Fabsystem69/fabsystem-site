@@ -87,6 +87,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Gestion",
     items: [
+      { label: "Éditeur de schémas", href: "/outils/schema/editeur", icon: FilesIcon },
       { label: "Récap URSSAF", href: "/dashboard/accounting", icon: AccountingIcon },
       // Retour utilisateur : "avoir les remontées d'erreur avec l'id du
       // client directement dans mon dashboard" — voir lib/services/error-reports.ts.

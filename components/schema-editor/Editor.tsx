@@ -26,6 +26,7 @@ import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
 import { CoachingOfferWidget } from "./CoachingOfferWidget";
+import { ProjectSharingConsentBanner } from "./ProjectSharingConsentBanner";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
 import { BatteryPairPopup } from "./BatteryPairPopup";
@@ -115,6 +116,11 @@ export function Editor() {
   // l'enveloppe trouvée), l'écran EditorStartPicker s'affiche à la place du
   // "Chargement…" tant que l'utilisateur n'a pas choisi comment démarrer.
   const [pendingDraft, setPendingDraft] = useState<DraftEnvelope | null | undefined>(undefined);
+  // Le mode invité est volontairement une découverte de session : il permet
+  // de manipuler le canvas sans faire croire que le brouillon sera retrouvé
+  // plus tard. La création de compte ouvre les gabarits, le guidage et la
+  // sauvegarde durable du projet.
+  const [guestPreview, setGuestPreview] = useState(false);
 
   // Ouverture depuis une fiche projet (retour utilisateur : "il manque
   // enregistrer lié au compte client") — /outils/schema?projectId=xxx charge
@@ -217,6 +223,7 @@ export function Editor() {
     setProjectId(null);
     setSaveAssistant(null);
     hydrate({ projectName: pendingDraft.projectName, nodes: pendingDraft.nodes, edges: pendingDraft.edges });
+    setGuestPreview(false);
   }
 
   function handleChooseTemplate(id: string) {
@@ -225,22 +232,47 @@ export function Editor() {
     setProjectId(null);
     setSaveAssistant(null);
     hydrate(template.build());
+    setGuestPreview(false);
   }
 
   function handleChooseBlank() {
     setProjectId(null);
     setSaveAssistant(null);
     hydrate({ projectName: "Nouveau schéma", nodes: [], edges: [] });
+    setGuestPreview(false);
   }
 
   function handleChooseGuided() {
     setProjectId(null);
     setSaveAssistant(null);
     startGuidedMode();
+    setGuestPreview(false);
+  }
+
+  function handleGuestPreview(selection: { kind: "structured" | "blank" | "template"; templateId?: string }) {
+    setProjectId(null);
+    setSaveAssistant(null);
+    setGuestPreview(true);
+    if (selection.kind === "template" && selection.templateId) {
+      const template = getSchemaTemplate(selection.templateId);
+      if (template) {
+        hydrate(template.build());
+        return;
+      }
+    }
+    if (selection.kind === "structured") {
+      useSchemaStore.getState().newProject({ withZones: true });
+      return;
+    }
+    hydrate({ projectName: "Découverte de l'éditeur", nodes: [], edges: [] });
   }
 
   useEffect(() => {
     if (!hydrated) return;
+    if (guestPreview) {
+      setSaveStatus("saved", { scope: "local", message: "Mode découverte : non enregistré" });
+      return;
+    }
     const targetScope = projectId ? "cloud" : "local";
     setSaveStatus("saving", { scope: targetScope });
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -280,7 +312,7 @@ export function Editor() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectName, nodes, edges, hydrated, projectId]);
+  }, [projectName, nodes, edges, hydrated, projectId, guestPreview, setSaveStatus]);
 
   // Confirmation avant de fermer l'onglet/quitter le site (retour
   // utilisateur : "demande une validation de fermer la page si la personne
@@ -331,6 +363,7 @@ export function Editor() {
     <ReactFlowProvider>
       <div className={`schema-editor flex h-[100dvh] flex-col ${darkMode ? "bg-neutral-950" : "bg-white"}`}>
         <Ribbon />
+        <ProjectSharingConsentBanner />
         <SaveAssistantBanner />
         <div className="relative flex min-h-0 flex-1 overflow-hidden max-md:overflow-visible">
           <ComponentLibrary />
@@ -347,6 +380,11 @@ export function Editor() {
           onChooseTemplate={handleChooseTemplate}
           onChooseBlank={handleChooseBlank}
           onChooseGuided={handleChooseGuided}
+          onGuestPreview={handleGuestPreview}
+          onSignupSuccess={() => {
+            setIsLoggedIn(true);
+            setGuestPreview(false);
+          }}
           isLoggedIn={isLoggedIn}
         />
       ) : null}

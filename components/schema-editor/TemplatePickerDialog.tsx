@@ -5,6 +5,16 @@ import { getSchemaTemplate, getSchemaTemplatesByVehicleGroup } from "@/features/
 import { getComponentDefinition, getNodeIcon } from "@/lib/electrical-components/definitions";
 import { buildStructuredCanvas } from "@/lib/schema-editor/guided-plan";
 import { useSchemaStore, type SchemaEdge, type SchemaNode } from "@/features/schemas/store/useSchemaStore";
+import type { DraftEnvelope } from "@/features/schemas/storage/localDraftStorage";
+
+type StartOptions = {
+  draft: DraftEnvelope | null;
+  isLoggedIn: boolean;
+  onChooseContinue: () => void;
+  onChooseTemplate: (id: string) => void;
+  onChooseStructured: () => void;
+  onChooseBlank: () => void;
+};
 
 function TemplateDiagramPreview({ nodes, edges, darkMode }: { nodes: SchemaNode[]; edges: SchemaEdge[]; darkMode: boolean }) {
   const drawableNodes = nodes.filter((node) => node.type !== "zone");
@@ -53,7 +63,7 @@ function TemplateDiagramPreview({ nodes, edges, darkMode }: { nodes: SchemaNode[
 }
 
 /** Sélection d'un point de départ: le choix est confirmé après aperçu, jamais au clic sur la liste. */
-export function TemplatePickerDialog({ onClose }: { onClose: () => void }) {
+export function TemplatePickerDialog({ onClose, startOptions }: { onClose: () => void; startOptions?: StartOptions }) {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const nodes = useSchemaStore((s) => s.nodes);
   const loadTemplate = useSchemaStore((s) => s.loadTemplate);
@@ -73,6 +83,12 @@ export function TemplatePickerDialog({ onClose }: { onClose: () => void }) {
   const visibleTemplates = visibleGroups.flatMap((group) => group.templates);
 
   function handleUseSelection() {
+    if (startOptions) {
+      if (selectedTemplate) startOptions.onChooseTemplate(selectedTemplate.id);
+      else if (selectedId === "structured") startOptions.onChooseStructured();
+      else startOptions.onChooseBlank();
+      return;
+    }
     if (selectedTemplate) {
       if (hasComponents && !window.confirm(`Charger « ${selectedTemplate.label} » à la place du schéma actuel ?`)) return;
       loadTemplate(selectedTemplate.id);
@@ -87,6 +103,18 @@ export function TemplatePickerDialog({ onClose }: { onClose: () => void }) {
   const panelClass = darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-slate-200 bg-white text-slate-900";
   const mutedClass = darkMode ? "text-neutral-400" : "text-slate-500";
   const controlClass = darkMode ? "border-neutral-700 bg-neutral-950 text-neutral-100" : "border-slate-300 bg-white text-slate-800";
+  const isGuestStart = Boolean(startOptions && !startOptions.isLoggedIn);
+  const primaryLabel = selectedTemplate
+    ? isGuestStart
+      ? "Découvrir ce modèle"
+      : "Utiliser ce modèle"
+    : selectedId === "structured"
+      ? isGuestStart
+        ? "Découvrir avec les zones"
+        : "Créer avec les zones"
+      : isGuestStart
+        ? "Découvrir le canevas vierge"
+        : "Créer un schéma vierge";
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-labelledby="template-picker-title">
@@ -94,7 +122,7 @@ export function TemplatePickerDialog({ onClose }: { onClose: () => void }) {
         <header className={`flex items-start justify-between gap-4 border-b px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}>
           <div>
             <h2 id="template-picker-title" className="text-xl font-semibold">Démarrer un schéma électrique</h2>
-            <p className={`mt-0.5 text-sm ${mutedClass}`}>Choisissez un point de départ, vérifiez-le, puis chargez-le dans l’éditeur.</p>
+            <p className={`mt-0.5 text-sm ${mutedClass}`}>{isGuestStart ? "Choisissez un point de départ et explorez-le dans l’éditeur." : "Choisissez un point de départ, vérifiez-le, puis chargez-le dans l’éditeur."}</p>
           </div>
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setSelectedId("structured")} className={`rounded-lg border px-3 py-2 text-sm font-semibold ${selectedId === "structured" ? "border-brand-500 bg-brand-50 text-brand-700" : controlClass}`}>Canevas structuré</button>
@@ -103,6 +131,25 @@ export function TemplatePickerDialog({ onClose }: { onClose: () => void }) {
             <button type="button" onClick={onClose} className={`rounded-lg px-2 py-1 text-xl leading-none ${darkMode ? "text-neutral-400 hover:bg-neutral-800 hover:text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"}`} aria-label="Fermer">×</button>
           </div>
         </header>
+
+        {startOptions?.draft ? (
+          <div className={`border-b px-5 py-3 ${darkMode ? "border-neutral-800 bg-amber-400/10" : "border-amber-100 bg-amber-50/70"}`}>
+            <button
+              type="button"
+              onClick={startOptions.onChooseContinue}
+              className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-base ${
+                darkMode ? "border-amber-700/70 bg-neutral-950/40 hover:border-amber-500" : "border-amber-300 bg-white hover:border-amber-500 hover:shadow-sm"
+              }`}
+            >
+              <span>
+                <span className={`block text-[10px] font-semibold uppercase tracking-wide ${darkMode ? "text-amber-300" : "text-amber-700"}`}>Votre brouillon</span>
+                <span className="mt-1 block text-base font-semibold">{startOptions.draft.projectName || "Mon schéma"}</span>
+                <span className={`mt-1 block text-xs ${mutedClass}`}>{startOptions.draft.nodes.length} composants · modifié le {new Date(startOptions.draft.updatedAt).toLocaleDateString("fr-FR")}</span>
+              </span>
+              <span className={`rounded-lg px-3 py-2 text-sm font-semibold ${darkMode ? "bg-amber-300 text-neutral-950" : "bg-amber-500 text-white"}`}>Reprendre mon schéma</span>
+            </button>
+          </div>
+        ) : null}
 
         {showHelp ? <div className={`border-b px-5 py-3 text-sm ${darkMode ? "border-neutral-800 bg-amber-400/10 text-amber-100" : "border-amber-100 bg-amber-50 text-amber-900"}`}>Pour un véhicule aménagé, commencez par <strong>Vans & camping-cars</strong>; pour un circuit de bord, choisissez <strong>Bateaux</strong>. Vous pourrez modifier chaque composant après chargement.</div> : null}
 
@@ -153,7 +200,8 @@ export function TemplatePickerDialog({ onClose }: { onClose: () => void }) {
 
         <footer className={`flex items-center justify-end gap-3 border-t px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}>
           <button type="button" onClick={onClose} className={`rounded-lg border px-4 py-2 text-sm font-semibold ${controlClass}`}>Annuler</button>
-          <button type="button" onClick={handleUseSelection} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-base hover:bg-brand-600">{selectedTemplate ? "Utiliser ce modèle" : selectedId === "structured" ? "Créer avec les zones" : "Créer un schéma vierge"}</button>
+          {isGuestStart ? <p className={`mr-auto max-w-md text-xs leading-relaxed ${mutedClass}`}>Mode invité : votre découverte n&apos;est pas enregistrée. Créez un compte gratuit lorsque vous souhaiterez conserver un projet.</p> : null}
+          <button type="button" onClick={handleUseSelection} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-base hover:bg-brand-600">{primaryLabel}</button>
         </footer>
       </div>
     </div>

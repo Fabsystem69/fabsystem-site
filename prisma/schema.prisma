@@ -466,6 +466,49 @@ model ProjectSchema {
   shareEnabledAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  versions    ProjectSchemaVersion[]
+}
+
+enum ProjectSchemaVersionAuthor {
+  ADMIN
+  CUSTOMER
+}
+
+// Snapshot volontairement immuable d'une étape importante du schéma. Le
+// brouillon actif reste dans ProjectSchema ; cette table n'est alimentée que
+// par une action explicite ou lors d'un envoi vers un projet client.
+model ProjectSchemaVersion {
+  id             String                     @id @default(cuid())
+  projectSchemaId String
+  projectSchema  ProjectSchema              @relation(fields: [projectSchemaId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  authorType     ProjectSchemaVersionAuthor
+  authorName     String
+  label          String?
+  projectName    String
+  nodes          Json
+  edges          Json
+  thumbnail      String?                    @db.Text
+  createdAt      DateTime                   @default(now())
+
+  @@unique([projectSchemaId, versionNumber])
+  @@index([projectSchemaId, createdAt])
+}
+
+// Espace de travail privé du dashboard : aucun faux Customer ou Project n'est
+// créé lorsqu'un administrateur prépare un schéma avant de l'envoyer à un
+// accompagnement client.
+model AdminSchemaDraft {
+  id          String   @id @default(cuid())
+  name        String
+  nodes       Json
+  edges       Json
+  thumbnail   String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
 }
 
 model Quote {

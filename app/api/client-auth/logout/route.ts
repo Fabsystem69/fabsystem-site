@@ -9,7 +9,7 @@ import { revokeCustomerSession } from "@/lib/services/customer-auth";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const sessionToken = await getCustomerSessionTokenFromCookie();
 
@@ -17,7 +17,10 @@ export async function POST() {
       await revokeCustomerSession(sessionToken);
     }
 
-    const response = NextResponse.json({ ok: true });
+    // La déconnexion peut être déclenchée par un formulaire ou par un bouton
+    // client. La redirection est suivie dans les deux cas et évite une page
+    // technique JSON lorsque l'utilisateur quitte son compte.
+    const response = NextResponse.redirect(new URL("/connexion-client", request.url), 303);
     response.cookies.set(CUSTOMER_SESSION_COOKIE_NAME, "", {
       ...getCustomerSessionCookieOptions(),
       maxAge: 0,

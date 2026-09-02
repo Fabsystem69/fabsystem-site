@@ -27,6 +27,15 @@ export interface RemoteSchema {
   thumbnail?: string | null;
 }
 
+export interface ProjectSchemaVersionSummary {
+  id: string;
+  versionNumber: number;
+  authorType: "ADMIN" | "CUSTOMER";
+  authorName: string;
+  label: string | null;
+  createdAt: string;
+}
+
 export type SchemaApiErrorCode =
   | "AUTH_REQUIRED"
   | "ACCESS_DENIED"
@@ -264,6 +273,55 @@ export async function saveProjectSchemaApi(projectId: string, data: RemoteSchema
       return { ok: false, problem: await readSchemaApiProblem(res) };
     }
 
+    return { ok: true };
+  } catch {
+    return { ok: false, problem: networkProblem() };
+  }
+}
+
+export async function listProjectSchemaVersionsApi(projectId: string): Promise<
+  | { ok: true; versions: ProjectSchemaVersionSummary[] }
+  | { ok: false; problem: SchemaApiProblem }
+> {
+  try {
+    const res = await fetch(`/api/projects/${projectId}/schema/versions`, { credentials: "include" });
+    if (!res.ok) return { ok: false, problem: await readSchemaApiProblem(res) };
+    const data = (await res.json()) as { versions?: ProjectSchemaVersionSummary[] };
+    return { ok: true, versions: data.versions ?? [] };
+  } catch {
+    return { ok: false, problem: networkProblem() };
+  }
+}
+
+export async function createProjectSchemaVersionApi(projectId: string, label?: string): Promise<
+  | { ok: true; version: ProjectSchemaVersionSummary }
+  | { ok: false; problem: SchemaApiProblem }
+> {
+  try {
+    const res = await fetch(`/api/projects/${projectId}/schema/versions`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label }),
+    });
+    if (!res.ok) return { ok: false, problem: await readSchemaApiProblem(res) };
+    const data = (await res.json()) as { version: ProjectSchemaVersionSummary };
+    return { ok: true, version: data.version };
+  } catch {
+    return { ok: false, problem: networkProblem() };
+  }
+}
+
+export async function restoreProjectSchemaVersionApi(projectId: string, versionId: string): Promise<
+  | { ok: true }
+  | { ok: false; problem: SchemaApiProblem }
+> {
+  try {
+    const res = await fetch(`/api/projects/${projectId}/schema/versions/${versionId}/restore`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (!res.ok) return { ok: false, problem: await readSchemaApiProblem(res) };
     return { ok: true };
   } catch {
     return { ok: false, problem: networkProblem() };

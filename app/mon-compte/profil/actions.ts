@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { isHttpError } from "@/lib/http-errors";
 import { requireCustomerActor } from "@/lib/server/project-actor";
-import { updateOwnCustomerProfile } from "@/lib/services/customer-profile";
+import { updateOwnCustomerProfile, updateOwnProjectSharingConsent } from "@/lib/services/customer-profile";
 import { setOwnCustomerPassword } from "@/lib/services/customer-password-auth";
 
 function getErrorMessage(error: unknown) {
@@ -78,4 +78,19 @@ export async function updateOwnPasswordAction(formData: FormData) {
   }
 
   redirect(buildProfileRedirect({ success: "Mot de passe mis à jour." }));
+}
+
+export async function updateOwnProjectSharingConsentAction(formData: FormData) {
+  const actor = await requireCustomerActor();
+  const enabled = formData.get("dataShareConsent") === "on";
+
+  try {
+    await updateOwnProjectSharingConsent(actor, enabled);
+  } catch (error) {
+    redirect(buildProfileRedirect({ error: getErrorMessage(error) }));
+  }
+
+  redirect(buildProfileRedirect({
+    success: enabled ? "Partage du dossier projet autorisé." : "Partage du dossier projet retiré.",
+  }));
 }

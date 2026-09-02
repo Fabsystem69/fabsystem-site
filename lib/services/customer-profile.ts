@@ -47,3 +47,19 @@ export async function updateOwnCustomerProfile(
     data: normalizeCustomerProfileData(parsed),
   });
 }
+
+// Consentement distinct et reversible: l'accompagnement ne doit jamais voir
+// les projets d'un client par defaut, mais le choix doit etre disponible au
+// moment pertinent dans l'editeur, pas cache uniquement dans le profil.
+export async function updateOwnProjectSharingConsent(actor: OwnershipActor, enabled: boolean) {
+  const customerId = requireCustomerId(actor);
+  const { prisma } = await import("@/lib/prisma");
+
+  return prisma.customer.update({
+    where: { id: customerId },
+    data: {
+      dataShareConsent: enabled,
+      dataShareConsentAt: enabled ? new Date() : null,
+    },
+  });
+}

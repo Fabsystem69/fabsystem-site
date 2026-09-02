@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
+import { getSessionFromCookies } from "@/lib/require-session";
 import { hasUnlimitedSchemaAccess } from "@/lib/services/schema-unlock";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,12 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
   const session = await getCustomerSessionFromCookie();
   if (!session) {
+    const adminSession = await getSessionFromCookies();
+    if (adminSession) {
+      // Le dashboard est un espace de préparation et d'accompagnement : ses
+      // schémas ne sont pas soumis à l'ancien palier consommateur client.
+      return NextResponse.json({ unlimited: true, loggedIn: true, isAdmin: true });
+    }
     return NextResponse.json({ unlimited: false, loggedIn: false });
   }
 

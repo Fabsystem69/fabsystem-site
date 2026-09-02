@@ -8,8 +8,8 @@ const routeSource = readFileSync(
   "utf8"
 );
 
-test("la route schema vérifie l'ownership via requireCustomerActor avant lecture et écriture", () => {
-  assert.match(routeSource, /requireCustomerActor/);
+test("la route schema résout un acteur client ou admin avant lecture et écriture", () => {
+  assert.match(routeSource, /requireProjectActor/);
   assert.match(routeSource, /getProjectSchema\(actor, projectId\)/);
   assert.match(routeSource, /saveProjectSchema\(actor, projectId,/);
 });

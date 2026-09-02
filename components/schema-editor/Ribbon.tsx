@@ -17,6 +17,7 @@ import { OpenSchemaDialog } from "./OpenSchemaDialog";
 import { TemplatePickerDialog } from "./TemplatePickerDialog";
 import { SystemBuilderDialog } from "./SystemBuilderDialog";
 import { ShareSchemaDialog } from "./ShareSchemaDialog";
+import { VersionHistoryDialog } from "./VersionHistoryDialog";
 import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 import { PropertiesTab } from "./PropertiesTab";
 import { MenubarHeading, MenubarIcon, MenubarItem, MenubarPanel, MenubarSection, RibbonButton, RibbonDivider, RibbonGroup, RibbonPanel } from "./RibbonControls";
@@ -176,6 +177,8 @@ function EditorMenuBar({
   const [openSchemaDialogOpen, setOpenSchemaDialogOpen] = useState(false);
   const [systemBuilder, setSystemBuilder] = useState<"solar" | "battery" | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [adminMode, setAdminMode] = useState(false);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const setIconStyle = useSchemaStore((s) => s.setIconStyle);
   const setDarkMode = useSchemaStore((s) => s.setDarkMode);
@@ -188,6 +191,15 @@ function EditorMenuBar({
   const nodes = useSchemaStore((s) => s.nodes);
   const edges = useSchemaStore((s) => s.edges);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/schema-unlock/status")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => { if (!cancelled) setAdminMode(Boolean(data?.isAdmin)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const optimizeBusbarLayouts = useSchemaStore((s) => s.optimizeBusbarLayouts);
@@ -353,6 +365,7 @@ function EditorMenuBar({
 
       <CalculatorMenu darkMode={darkMode} variant="menubar" />
       <SchemaIssuesWidget variant="header" />
+      {projectId ? <button type="button" onClick={() => setHistoryOpen(true)} className="ml-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Historique</button> : null}
       <button type="button" onClick={() => setShareOpen(true)} className="ml-1 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-600">Partager</button>
       <div className="relative ml-1 max-md:hidden">
         <button
@@ -367,18 +380,18 @@ function EditorMenuBar({
         {accountOpen ? (
           <div className={`absolute right-0 top-11 z-50 w-72 overflow-hidden rounded-2xl border shadow-[0_16px_36px_rgba(15,23,42,0.18)] ${darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`}>
             <div className={`border-b px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-100"}`}>
-              <p className="text-lg font-semibold">Mon compte</p>
-              <p className={`mt-1 text-sm ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Gérez vos projets et vos préférences.</p>
-              <span className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${darkMode ? "bg-neutral-800 text-neutral-300" : "bg-slate-100 text-slate-600"}`}>Éditeur gratuit</span>
+              <p className="text-lg font-semibold">{adminMode ? "Administration" : "Mon compte"}</p>
+              <p className={`mt-1 text-sm ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>{adminMode ? "Préparez et accompagnez les projets clients." : "Gérez vos projets et vos préférences."}</p>
+              <span className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${darkMode ? "bg-neutral-800 text-neutral-300" : "bg-slate-100 text-slate-600"}`}>{adminMode ? "Mode administration" : "Éditeur gratuit"}</span>
             </div>
             <div className="p-2">
-              <Link href="/mon-compte/profil" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⚙</span> Paramètres du compte</Link>
-              <Link href="/mon-compte/projets" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">▣</span> Mes projets</Link>
+              <Link href={adminMode ? "/dashboard" : "/mon-compte/profil"} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⚙</span> {adminMode ? "Retour au dashboard" : "Paramètres du compte"}</Link>
+              <Link href={adminMode ? "/dashboard/customers" : "/mon-compte/projets"} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">▣</span> {adminMode ? "Projets clients" : "Mes projets"}</Link>
               <button type="button" onClick={() => { setAccountOpen(false); select("aide"); }} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">✦</span> Nouveautés et aide</button>
               <a href="mailto:contact@fabsystem.fr?subject=Retour%20%C3%A9diteur%20de%20sch%C3%A9ma" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">✉</span> Contacter le support</a>
             </div>
             <div className={`border-t p-2 ${darkMode ? "border-neutral-800" : "border-slate-100"}`}>
-              <form action="/api/auth/logout" method="post"><button type="submit" className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⇥</span> Se déconnecter</button></form>
+              <form action={adminMode ? "/api/auth/logout" : "/api/client-auth/logout"} method="post"><button type="submit" className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⇥</span> Se déconnecter</button></form>
             </div>
           </div>
         ) : null}
@@ -390,6 +403,7 @@ function EditorMenuBar({
     {openSchemaDialogOpen ? <OpenSchemaDialog onClose={() => setOpenSchemaDialogOpen(false)} onNew={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} onTemplates={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} /> : null}
     {systemBuilder ? <SystemBuilderDialog kind={systemBuilder} onClose={() => setSystemBuilder(null)} /> : null}
     {shareOpen ? <ShareSchemaDialog projectId={projectId} projectName={projectName} onClose={() => setShareOpen(false)} /> : null}
+    {historyOpen && projectId ? <VersionHistoryDialog projectId={projectId} onClose={() => setHistoryOpen(false)} onRestored={() => window.location.reload()} /> : null}
     </>
   );
 }
@@ -403,7 +417,7 @@ function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare,
       <p className={headingClass}>Fichier</p><div className="px-2"><button type="button" onClick={onNew} className={itemClass}><span>▧</span>Nouveau schéma</button><button type="button" onClick={onSave} className={itemClass}><span>▣</span>Sauvegarder</button><button type="button" onClick={onOpen} className={itemClass}><span>▱</span>Ouvrir mes schémas</button><button type="button" onClick={onShare} className={itemClass}><span>⌘</span>Partager</button></div>
       <p className={headingClass}>Outils</p><div className="px-2"><button type="button" onClick={onCableSizing} className={itemClass}><span>⌁</span>Recalculer les sections</button><button type="button" onClick={onProtectionSizing} className={itemClass}><span>▣</span>Recalculer les protections</button><button type="button" onClick={onSolarBuilder} className={itemClass}><span>☀</span>Créer un champ solaire</button><button type="button" onClick={onBatteryBuilder} className={itemClass}><span>▰</span>Créer un parc batteries</button></div>
       <p className={headingClass}>Export</p><div className="px-2"><button type="button" onClick={onExportPng} className={itemClass}><span>▧</span>Exporter en PNG</button><button type="button" onClick={onExportPdf} className={itemClass}><span>▤</span>Imprimer en PDF</button></div>
-      <p className={headingClass}>Compte</p><div className="px-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"><a href="/mon-compte/profil" className={itemClass}><span>⚙</span>Paramètres du compte</a><form action="/api/auth/logout" method="post"><button type="submit" className={itemClass}><span>⇥</span>Se déconnecter</button></form></div>
+      <p className={headingClass}>Compte</p><div className="px-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"><a href="/mon-compte/profil" className={itemClass}><span>⚙</span>Paramètres du compte</a><form action="/api/client-auth/logout" method="post"><button type="submit" className={itemClass}><span>⇥</span>Se déconnecter</button></form></div>
     </section>
   </div>;
 }

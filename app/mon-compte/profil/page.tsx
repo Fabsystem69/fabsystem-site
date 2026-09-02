@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Card } from "@/components/ui/Card";
 import { LogoutButton } from "@/components/customer/LogoutButton";
 import { PasswordFieldWithToggle } from "@/components/customer/PasswordFieldWithToggle";
-import { updateOwnPasswordAction, updateOwnProfileAction } from "@/app/mon-compte/profil/actions";
+import { updateOwnPasswordAction, updateOwnProfileAction, updateOwnProjectSharingConsentAction } from "@/app/mon-compte/profil/actions";
 import { getOwnCustomerProfile } from "@/lib/services/customer-profile";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 
@@ -57,6 +57,22 @@ export default async function MonProfilPage({
         <p className="mt-1 text-xs text-neutral-400">
           Non modifiable ici — c&apos;est l&apos;adresse utilisée pour votre lien de connexion.
         </p>
+      </Card>
+
+      <Card className="p-6">
+        <p className="text-sm font-semibold text-neutral-950">Partage du dossier projet</p>
+        <p className="mt-1 text-sm text-neutral-600">
+          Autorisez FabSystem à consulter et modifier vos projets de schéma dans le cadre de votre accompagnement. Vous pouvez retirer cette autorisation à tout moment.
+        </p>
+        <form action={updateOwnProjectSharingConsentAction} className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <label className="flex items-start gap-2 text-sm font-medium text-neutral-800">
+            <input name="dataShareConsent" type="checkbox" defaultChecked={customer.dataShareConsent} className="mt-0.5 h-4 w-4" />
+            J&apos;autorise le partage de mes projets avec FabSystem
+          </label>
+          <button type="submit" className="h-10 rounded-lg border border-neutral-300 px-4 text-sm font-semibold text-neutral-900 hover:bg-neutral-50">
+            Enregistrer ce choix
+          </button>
+        </form>
       </Card>
 
       <Card className="p-6">

@@ -216,9 +216,15 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
                           {getProjectAssetTypeLabel(project.assetType)} · {getProjectStatusLabel(project.status)}
                         </p>
                       </div>
-                      <span className="shrink-0 text-xs text-neutral-500">
-                        Mis à jour le {formatDate(project.updatedAt)}
-                      </span>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <span className="text-xs text-neutral-500">Mis à jour le {formatDate(project.updatedAt)}</span>
+                        <Link
+                          href={`/outils/schema/editeur?projectId=${project.id}`}
+                          className="rounded-md border border-neutral-700 px-2.5 py-1.5 text-xs font-semibold text-neutral-200 hover:border-brand-400 hover:text-white"
+                        >
+                          Ouvrir le schéma
+                        </Link>
+                      </div>
                     </li>
                   ))}
                 </ul>
