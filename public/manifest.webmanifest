@@ -1,8 +1,9 @@
 {
-  "name": "FabSystem",
+  "name": "FabSystem Schéma électrique",
   "short_name": "FabSystem",
-  "description": "Électricité embarquée – bateaux, vans, camping-cars",
-  "start_url": "/",
+  "description": "Créez vos schémas électriques pour van, camping-car et bateau.",
+  "start_url": "/outils/schema/editeur",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#111111",
@@ -16,6 +17,12 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/apple-touch-icon.png",

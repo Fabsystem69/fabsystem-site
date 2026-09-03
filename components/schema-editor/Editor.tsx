@@ -27,6 +27,7 @@ import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
 import { CoachingOfferWidget } from "./CoachingOfferWidget";
 import { ProjectSharingConsentBanner } from "./ProjectSharingConsentBanner";
+import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
 import { SizingPopup } from "./SizingPopup";
 import { BatteryPairPopup } from "./BatteryPairPopup";
@@ -395,6 +396,7 @@ export function Editor() {
       <GuidedTutorial />
       <InstallAssistant />
       <CoachingOfferWidget />
+      <PwaInstallPrompt />
     </ReactFlowProvider>
   );
 }
