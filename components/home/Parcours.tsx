@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { useHomeUniverse } from "@/components/home/HomeUniverseProvider";
+import type { PrestationsCategorie } from "@/lib/prestations-packs";
 
 // Home V2 — Parcours (docs/refonte-site-public/home/03-PARCOURS.md).
 // Exactement trois niveaux, aucun nom commercial de pack. Progression
@@ -37,8 +38,14 @@ const STEPS = [
   },
 ] as const;
 
+const UNIVERS: { id: PrestationsCategorie; label: string }[] = [
+  { id: "bateau", label: "Bateau" },
+  { id: "van", label: "Van & fourgon" },
+  { id: "camping-car", label: "Camping-car" },
+];
+
 export function Parcours() {
-  const { selectedUniverseLabel, selectionQuery } = useHomeUniverse();
+  const { selectedUniverse, selectedUniverseLabel, selectionQuery, selectUniverse } = useHomeUniverse();
 
   return (
     <Section
@@ -54,8 +61,30 @@ export function Parcours() {
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">
           {selectedUniverseLabel
             ? `Univers actif : ${selectedUniverseLabel}. Les liens de cette page se calent sur cet univers.`
-            : "Choisissez votre univers juste en dessous pour adapter les accompagnements et les services a votre cas."}
+            : "Choisissez votre univers pour adapter les accompagnements et les services a votre projet."}
         </p>
+
+        <div className="mt-4 flex flex-wrap gap-2" aria-label="Choisir votre univers">
+          {UNIVERS.map((univers) => {
+            const isActive = selectedUniverse === univers.id;
+
+            return (
+              <button
+                key={univers.id}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => selectUniverse(univers.id)}
+                className={`rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900 ${
+                  isActive
+                    ? "border-neutral-950 bg-neutral-950 text-white"
+                    : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-950"
+                }`}
+              >
+                {univers.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="mt-7 grid gap-5 lg:grid-cols-3 lg:gap-5">
