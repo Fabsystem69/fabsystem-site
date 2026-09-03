@@ -51,7 +51,10 @@ function isProjectSchemaTableMissingError(error: unknown) {
     typeof candidate.message === "string" && candidate.message.includes("ProjectSchema");
   const metaMentionsModel = candidate.meta?.modelName === "ProjectSchema";
 
-  return candidate.code === "P2021" && (messageMentionsModel || metaMentionsModel);
+  // P2021 : table absente. P2022 : table présente mais une colonne d'une
+  // migration plus récente manque encore. Dans les deux cas, l'espace client
+  // reste disponible pendant le rattrapage de la base.
+  return (candidate.code === "P2021" || candidate.code === "P2022") && (messageMentionsModel || metaMentionsModel);
 }
 
 function defaultReportSchemaStorageMissing(operation: string, error: unknown) {

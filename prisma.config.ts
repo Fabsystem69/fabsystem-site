@@ -4,7 +4,9 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 const databaseUrl = process.env["DATABASE_URL"];
-const directUrl = process.env["DIRECT_URL"] ?? databaseUrl ?? "";
+// Les migrations doivent emprunter la connexion directe quand elle est
+// disponible. Vercel expose cette URL sous DATABASE_URL_UNPOOLED.
+const directUrl = process.env["DIRECT_URL"] ?? process.env["DATABASE_URL_UNPOOLED"] ?? databaseUrl ?? "";
 
 if (!databaseUrl) {
   throw new Error("Missing DATABASE_URL");
