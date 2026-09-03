@@ -65,11 +65,15 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [{ label: "Vue d'ensemble", href: "/dashboard", icon: DashboardIcon }],
   },
   {
-    title: "Ventes",
+    title: "Pilotage",
     items: [
-      { label: "Commandes", href: "/dashboard/orders", icon: OrdersIcon },
+      { label: "Projets", href: "/dashboard/projects", icon: FilesIcon },
       { label: "Clients", href: "/dashboard/customers", icon: CustomersIcon },
     ],
+  },
+  {
+    title: "Ventes",
+    items: [{ label: "Commandes", href: "/dashboard/orders", icon: OrdersIcon }],
   },
   {
     title: "Boutique",

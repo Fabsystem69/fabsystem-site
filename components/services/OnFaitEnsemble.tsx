@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import { PrestationsDistanceOffers } from "@/components/prestations/PrestationsDistanceOffers";
-import { getPrestationsPackProductIdBySlug } from "@/lib/services/prestations-packs-catalog";
-import type { PrestationsCategorie } from "@/lib/prestations-packs";
+import { AccompagnementOfferPaths } from "@/components/prestations/AccompagnementOfferPaths";
 
 // UI-10 §4 — contenu densifié : sur sa propre page dédiée
 // (/prestations/accompagnement), ce bloc n'a plus besoin de "respirer"
@@ -17,9 +15,7 @@ const APPORTS = [
   { title: "Débloquer", text: "Ne pas rester seul lorsqu'une difficulté apparaît." },
 ];
 
-export async function OnFaitEnsemble({ initialCategory }: { initialCategory?: PrestationsCategorie }) {
-  const packProductIdBySlug = await getPrestationsPackProductIdBySlug();
-
+export function OnFaitEnsemble() {
   return (
     <div className="bg-neutral-950 text-white">
       <div className="mx-auto max-w-6xl px-6 py-8 sm:py-10">
@@ -49,21 +45,11 @@ export async function OnFaitEnsemble({ initialCategory }: { initialCategory?: Pr
         <div className="mt-6 border-t border-white/10 pt-5">
           <p className="text-lg font-bold text-white">Faisons d&apos;abord le point.</p>
           <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-neutral-400">
-            Choisissez votre univers pour découvrir les accompagnements disponibles — de la
-            première étape jusqu&apos;au projet complet documenté.
+            Commencez par un échange découverte ou choisissez directement le niveau
+            d&apos;intervention adapté à votre projet.
           </p>
 
-          <div className="mt-4">
-            <PrestationsDistanceOffers
-              packProductIdBySlug={packProductIdBySlug}
-              initialCategory={initialCategory}
-            />
-          </div>
-
-          <p className="mt-5 max-w-xl text-xs leading-relaxed text-neutral-500">
-            Vous poursuivez ensuite avec un accompagnement plus poussé ? Le montant éligible déjà
-            engagé est pris en compte selon les conditions applicables.
-          </p>
+          <AccompagnementOfferPaths />
         </div>
       </div>
     </div>

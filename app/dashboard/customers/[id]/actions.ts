@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isHttpError } from "@/lib/http-errors";
 import { requireSession } from "@/lib/require-session";
+import { getRequiredBaseUrl } from "@/lib/server/env";
+import { requestMagicLoginLink } from "@/lib/services/customer-auth";
+import { createCustomerAuthRequestLinkService } from "@/lib/services/customer-auth-request-link";
+import { sendCustomerMagicLoginEmail } from "@/lib/services/customer-email";
 import { grantResourceToCustomer, revokeResourceGrant } from "@/lib/services/customer-resource-grants";
+import { prisma } from "@/lib/prisma";
 
 function getErrorMessage(error: unknown) {
   if (isHttpError(error)) {
@@ -79,6 +84,24 @@ export async function revokeResourceGrantAction(formData: FormData) {
     await revokeResourceGrant(grantId);
     revalidatePath(`/dashboard/customers/${customerId}`);
     redirectTarget = buildCustomerRedirect(customerId, { success: "Ressource revoquee." });
+  } catch (error) {
+    redirectTarget = buildCustomerRedirect(customerId, { error: getErrorMessage(error) });
+  }
+
+  redirect(redirectTarget);
+}
+
+export async function inviteCustomerToPortalAction(formData: FormData) {
+  await requireSession();
+  const customerId = getString(formData, "customerId");
+  let redirectTarget: string;
+
+  try {
+    const customer = await prisma.customer.findUnique({ where: { id: customerId }, select: { email: true, name: true } });
+    if (!customer?.email) throw new Error("Ce client doit avoir une adresse email avant l'invitation.");
+    const service = createCustomerAuthRequestLinkService({ requestMagicLoginLink, sendCustomerMagicLoginEmail });
+    await service.requestLink({ email: customer.email, name: customer.name ?? undefined, baseUrl: getRequiredBaseUrl() });
+    redirectTarget = buildCustomerRedirect(customerId, { success: `Invitation envoyée à ${customer.email}.` });
   } catch (error) {
     redirectTarget = buildCustomerRedirect(customerId, { error: getErrorMessage(error) });
   }

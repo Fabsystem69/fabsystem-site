@@ -5,7 +5,18 @@ import { formatRetainedValueDisplay, getRetainedValueLabel } from "@/lib/retaine
 
 export type FollowUpStepStatus = "done" | "current" | "upcoming";
 
+export const PROJECT_FOLLOW_UP_STEP_KEYS = [
+  "cadrage",
+  "materiel",
+  "implantation",
+  "cablage",
+  "essais",
+] as const;
+
+export type ProjectFollowUpStepKey = (typeof PROJECT_FOLLOW_UP_STEP_KEYS)[number];
+
 export type FollowUpStep = {
+  key: ProjectFollowUpStepKey;
   title: string;
   objective: string;
   customerAction: string;
@@ -81,6 +92,7 @@ export type PublicP280LightKit = PublicLightKit;
 
 const STEP_TEMPLATES = [
   {
+    key: "cadrage",
     title: "1. Cadrage du projet",
     objective: "Valider l'architecture générale du van et le bon niveau de complexité.",
     customerAction: "Envoyer les besoins, les photos du van et le principe d'implantation.",
@@ -88,6 +100,7 @@ const STEP_TEMPLATES = [
     deliverable: "Photos du van, plan de banquette, besoins 12 V / 230 V / eau.",
   },
   {
+    key: "materiel",
     title: "2. Commande du matériel",
     objective: "Commander une base cohérente sans doublons ni oubli bloquant.",
     customerAction: "Commander la base indispensable puis les options retenues ensemble.",
@@ -95,6 +108,7 @@ const STEP_TEMPLATES = [
     deliverable: "Paniers, captures d'écran ou liens avant paiement.",
   },
   {
+    key: "implantation",
     title: "3. Implantation et préparation",
     objective: "Préparer les passages de câbles, les fixations et la logique du chantier.",
     customerAction: "Positionner la station, repérer les volumes et préparer les accès.",
@@ -102,6 +116,7 @@ const STEP_TEMPLATES = [
     deliverable: "Photos de la banquette, du meuble et des passages de câbles.",
   },
   {
+    key: "cablage",
     title: "4. Câblage contrôlé",
     objective: "Câbler proprement sans aller trop vite sur les points sensibles.",
     customerAction: "Poser les départs 12 V, le solaire, le réseau eau et le 230 V fixe.",
@@ -109,6 +124,7 @@ const STEP_TEMPLATES = [
     deliverable: "Photos des connexions, fusibles, platine, prises et faisceaux.",
   },
   {
+    key: "essais",
     title: "5. Mise sous tension et essais",
     objective: "Faire les premiers tests dans le bon ordre et terminer sereinement.",
     customerAction: "Tester une fonction après l'autre : charge, frigo, pompe, USB, LED et prises.",

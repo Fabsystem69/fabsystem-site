@@ -390,6 +390,8 @@ model Project {
   retainedValues    ProjectRetainedValue[]
   valueDependencies ProjectValueDependency[]
   schema            ProjectSchema?
+  followUpReviews   ProjectFollowUpReview[]
+  followUpEvents    ProjectFollowUpEvent[]
   // v2.1 : commandes de deverrouillage (SCHEMA_UNLOCK) liees a ce Project.
   // Optionnel cote Order (un Order "normal" n'a pas de Project) — voir
   // Order.projectId.
@@ -398,6 +400,51 @@ model Project {
   @@index([customerId])
   @@index([status])
   @@index([deleteScheduledAt])
+}
+
+enum ProjectFollowUpReviewStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum ProjectFollowUpEventType {
+  NOTE
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+// Couche humaine du suivi : le statut technique continue d'etre deduit des
+// donnees du projet; cette table indique uniquement la decision FabSystem sur
+// une etape et la consigne a afficher au client.
+model ProjectFollowUpReview {
+  id         String                      @id @default(cuid())
+  projectId  String
+  project    Project                     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stepKey    String
+  status     ProjectFollowUpReviewStatus @default(PENDING)
+  adminNote  String?                     @db.Text
+  reviewedAt DateTime?
+  createdAt  DateTime                    @default(now())
+  updatedAt  DateTime                    @updatedAt
+
+  @@unique([projectId, stepKey])
+  @@index([projectId, status])
+}
+
+// Journal append-only des validations et demandes de correction, afin que le
+// client et l'admin puissent retrouver qui a demande quoi et quand.
+model ProjectFollowUpEvent {
+  id         String                       @id @default(cuid())
+  projectId  String
+  project    Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stepKey    String
+  type       ProjectFollowUpEventType
+  message    String?                      @db.Text
+  authorName String                       @default("FabSystem")
+  createdAt  DateTime                     @default(now())
+
+  @@index([projectId, createdAt])
 }
 
 enum ProjectValueStatus {

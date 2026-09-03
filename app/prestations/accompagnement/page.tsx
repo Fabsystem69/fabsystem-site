@@ -3,7 +3,6 @@ import { OnFaitEnsemble } from "@/components/services/OnFaitEnsemble";
 import { Confiance } from "@/components/home/Confiance";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
-import { resolvePrestationsCategorie } from "@/lib/prestations-search-params";
 import { site } from "@/lib/site";
 
 // UI-10 §4 — page dédiée à l'accompagnement, extraite de /prestations
@@ -60,21 +59,14 @@ const serviceJsonLd = {
   },
 };
 
-export default async function AccompagnementPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ univers?: string | string[] }>;
-}) {
-  const { univers } = await searchParams;
-  const initialCategory = resolvePrestationsCategorie(univers);
-
+export default function AccompagnementPage() {
   return (
     <main>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
       />
-      <OnFaitEnsemble initialCategory={initialCategory} />
+      <OnFaitEnsemble />
       <Section tone="light" className="pt-0">
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <article className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-sm">

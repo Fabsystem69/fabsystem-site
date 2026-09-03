@@ -172,6 +172,29 @@ export default async function MesAchatsPage({
         </section>
       ) : null}
 
+      {overview.ebookBenefitCodes.length > 0 ? (
+        <section>
+          <h2 className="text-base font-semibold text-neutral-950">E-book inclus avec votre accompagnement</h2>
+          <div className="mt-4 space-y-4">
+            {overview.ebookBenefitCodes.map((benefit) => (
+              <Card key={benefit.code} className="p-6">
+                <h3 className="text-base font-semibold text-neutral-950">Votre code e-book offert</h3>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+                  Ajoutez le guide de schéma au panier, puis saisissez ce code avant le paiement.
+                  {benefit.expiresAt ? ` Valable jusqu'au ${formatDate(benefit.expiresAt)}.` : ""}
+                </p>
+                <code className="mt-4 inline-flex rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold tracking-wide text-neutral-950">
+                  {benefit.code}
+                </code>
+                <div className="mt-4">
+                  <Button href="/boutique/ebook-schema-electrique" variant="primary">Choisir l&apos;e-book</Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {overview.orders.length === 0 ? (
         overview.offeredResources.length === 0 ? (
           <Card className="p-6">

@@ -7,9 +7,11 @@ import type {
   OrderItem,
   PrismaClient,
   Product,
+  DiscountCode,
   TrialAccessCode,
 } from "@/lib/generated/prisma/client";
 import { notFound } from "@/lib/http-errors";
+import { PRESTATIONS_BENEFIT_REASON } from "@/lib/services/prestations-benefits";
 
 type PrismaClientLike = PrismaClient;
 
@@ -35,11 +37,14 @@ type EditorAccessCodeRecord = Pick<
   "code" | "durationDays" | "status" | "redeemedCount" | "maxRedemptions" | "sourceOrderId"
 >;
 
+type EbookBenefitCodeRecord = Pick<DiscountCode, "code" | "expiresAt">;
+
 type CustomerAccountDb = {
   findCustomerById(customerId: string): Promise<Customer | null>;
   findOrdersForCustomer(customerId: string, customerEmail: string): Promise<OrderWithRelations[]>;
   findResourceGrantsForCustomer(customerId: string): Promise<ResourceGrantWithRelations[]>;
   findEditorAccessCodesForOrders(customerEmail: string, orderIds: string[]): Promise<EditorAccessCodeRecord[]>;
+  findEbookBenefitCodesForCustomer(customerEmail: string): Promise<EbookBenefitCodeRecord[]>;
 };
 
 export type CustomerAccountOverview = {
@@ -96,6 +101,10 @@ export type CustomerAccountOverview = {
     status: TrialAccessCode["status"];
     redeemed: boolean;
     orderId: string;
+  }>;
+  ebookBenefitCodes: Array<{
+    code: string;
+    expiresAt: Date | null;
   }>;
 };
 
@@ -158,6 +167,13 @@ function createPrismaCustomerAccountDb(client: PrismaClientLike): CustomerAccoun
         },
       });
     },
+    async findEbookBenefitCodesForCustomer(customerEmail) {
+      return client.discountCode.findMany({
+        where: { customerEmail, reason: PRESTATIONS_BENEFIT_REASON, status: "ACTIVE" },
+        select: { code: true, expiresAt: true },
+        orderBy: { createdAt: "desc" },
+      });
+    },
   };
 }
 
@@ -200,10 +216,10 @@ export function createCustomerAccountService(
         db.findOrdersForCustomer(customer.id, customer.email),
         db.findResourceGrantsForCustomer(customer.id),
       ]);
-      const editorAccessCodes = await db.findEditorAccessCodesForOrders(
-        customer.email,
-        orders.map((order) => order.id)
-      );
+      const [editorAccessCodes, ebookBenefitCodes] = await Promise.all([
+        db.findEditorAccessCodesForOrders(customer.email, orders.map((order) => order.id)),
+        db.findEbookBenefitCodesForCustomer(customer.email),
+      ]);
 
       return {
         customer: {
@@ -267,6 +283,10 @@ export function createCustomerAccountService(
             redeemed: accessCode.redeemedCount >= accessCode.maxRedemptions,
             orderId: accessCode.sourceOrderId as string,
           })),
+        ebookBenefitCodes: ebookBenefitCodes.map((code) => ({
+          code: code.code,
+          expiresAt: code.expiresAt,
+        })),
       };
     },
   };

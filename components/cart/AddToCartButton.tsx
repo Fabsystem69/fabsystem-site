@@ -9,6 +9,7 @@ type AddToCartButtonProps = {
   label?: string;
   pendingLabel?: string;
   className?: string;
+  containerClassName?: string;
   successMessage?: string;
 };
 
@@ -20,6 +21,7 @@ export function AddToCartButton({
   label = "Ajouter au panier",
   pendingLabel = "Ajout...",
   className = DEFAULT_BUTTON_CLASS,
+  containerClassName = "mt-4 flex flex-col gap-3",
   successMessage = "Produit ajouté au panier.",
 }: AddToCartButtonProps) {
   const [pending, setPending] = useState(false);
@@ -60,7 +62,7 @@ export function AddToCartButton({
   }
 
   return (
-    <div className="mt-4 flex flex-col gap-3">
+    <div className={containerClassName}>
       <button type="button" onClick={handleClick} disabled={pending} className={className}>
         {pending ? pendingLabel : label}
       </button>

@@ -7,7 +7,7 @@ import { getProjectAssetTypeLabel, getProjectStatusLabel } from "@/lib/project-l
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { listResourceGrantsForCustomer } from "@/lib/services/customer-resource-grants";
-import { revokeResourceGrantAction } from "./actions";
+import { inviteCustomerToPortalAction, revokeResourceGrantAction } from "./actions";
 import { AdminAlert, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
 
 type Params = {
@@ -75,9 +75,13 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
           backHref="/dashboard/customers"
           backLabel="Retour aux clients"
           actions={
-            <AdminButton variant="primary" href={`/dashboard/customers/${customer.id}/edit`}>
-              Modifier
-            </AdminButton>
+            <>
+              <form action={inviteCustomerToPortalAction}>
+                <input type="hidden" name="customerId" value={customer.id} />
+                <AdminButton type="submit">Inviter à mon espace</AdminButton>
+              </form>
+              <AdminButton variant="primary" href={`/dashboard/customers/${customer.id}/edit`}>Modifier</AdminButton>
+            </>
           }
         />
 
