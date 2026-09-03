@@ -37,7 +37,7 @@ function normalizedLabel(label: string | null | undefined) {
 
 // Les valeurs lues en JSON peuvent être `null`, alors que Prisma impose sa
 // sentinelle `JsonNull` pour représenter cette valeur lors d'une écriture.
-function asInputJson(value: Prisma.JsonValue): Prisma.InputJsonValue | Prisma.JsonNull {
+function asInputJson(value: Prisma.JsonValue): Prisma.InputJsonValue | typeof Prisma.JsonNull {
   return value === null ? Prisma.JsonNull : value;
 }
 
