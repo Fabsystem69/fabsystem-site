@@ -5,7 +5,8 @@ import { useState } from "react";
 import { notifyCartChanged, notifyCartItemAdded } from "@/lib/cart-events";
 
 type AddToCartButtonProps = {
-  productId: string;
+  productId?: string;
+  productSlug?: string;
   label?: string;
   pendingLabel?: string;
   className?: string;
@@ -18,6 +19,7 @@ const DEFAULT_BUTTON_CLASS =
 
 export function AddToCartButton({
   productId,
+  productSlug,
   label = "Ajouter au panier",
   pendingLabel = "Ajout...",
   className = DEFAULT_BUTTON_CLASS,
@@ -39,7 +41,7 @@ export function AddToCartButton({
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({ productId, productSlug }),
       });
 
       if (!response.ok) {

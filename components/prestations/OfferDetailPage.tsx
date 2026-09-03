@@ -17,7 +17,7 @@ type OfferDetailPageProps = {
   steps: { title: string; text: string }[];
   ctaLabel: string;
   ctaHref: string;
-  purchaseProductId?: string;
+  purchaseProductSlug?: string;
   summary: string[];
   imageSrc: string;
   imageAlt: string;
@@ -39,7 +39,7 @@ export function OfferDetailPage({
   steps,
   ctaLabel,
   ctaHref,
-  purchaseProductId,
+  purchaseProductSlug,
   summary,
   imageSrc,
   imageAlt,
@@ -75,8 +75,8 @@ export function OfferDetailPage({
             <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">{title}</h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-neutral-300">{description}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              {purchaseProductId ? <OfferPurchaseCta productId={purchaseProductId} label={ctaLabel} /> : <Button href={ctaHref} variant="primary">{ctaLabel}</Button>}
-              {purchaseProductId ? <Button href="/prestations/appel-decouverte" variant="secondary">Je ne sais pas quel forfait choisir</Button> : null}
+              {purchaseProductSlug ? <OfferPurchaseCta productSlug={purchaseProductSlug} label={ctaLabel} /> : <Button href={ctaHref} variant="primary">{ctaLabel}</Button>}
+              {purchaseProductSlug ? <Button href="/prestations/appel-decouverte" variant="secondary">Je ne sais pas quel forfait choisir</Button> : null}
               <Button href="/prestations/accompagnement" variant="secondary">Voir tous les forfaits</Button>
             </div>
           </div>
@@ -154,8 +154,8 @@ export function OfferDetailPage({
             <p className="mt-2 text-lg font-bold">Choisissez un cadre clair avant de vous lancer.</p>
           </div>
           <div className="mt-5 flex shrink-0 flex-wrap items-start gap-3 sm:mt-0">
-            {purchaseProductId ? <OfferPurchaseCta productId={purchaseProductId} label={ctaLabel} /> : <Button href={ctaHref} variant="primary">{ctaLabel}</Button>}
-            {purchaseProductId ? <Button href="/prestations/appel-decouverte" variant="secondary">Je ne sais pas quel forfait choisir</Button> : null}
+            {purchaseProductSlug ? <OfferPurchaseCta productSlug={purchaseProductSlug} label={ctaLabel} /> : <Button href={ctaHref} variant="primary">{ctaLabel}</Button>}
+            {purchaseProductSlug ? <Button href="/prestations/appel-decouverte" variant="secondary">Je ne sais pas quel forfait choisir</Button> : null}
             <Button href="/prestations/accompagnement" variant="secondary">Voir tous les forfaits</Button>
           </div>
         </div>

@@ -2,10 +2,10 @@
 
 import { AddToCartButton } from "@/components/cart/AddToCartButton";
 
-export function OfferPurchaseCta({ productId, label }: { productId: string; label: string }) {
+export function OfferPurchaseCta({ productSlug, label }: { productSlug: string; label: string }) {
   return (
     <AddToCartButton
-      productId={productId}
+      productSlug={productSlug}
       label={label}
       pendingLabel="Ajout au panier..."
       successMessage="Forfait ajouté au panier. Vous pouvez finaliser votre règlement en toute sécurité."
