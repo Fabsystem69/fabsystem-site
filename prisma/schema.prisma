@@ -7,7 +7,10 @@ generator client {
 datasource db {
   provider          = "postgresql"
   url               = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
+  // La connexion effective des migrations est fournie par prisma.config.ts
+  // (DIRECT_URL localement, DATABASE_URL_UNPOOLED sur Vercel). Cette valeur
+  // garde le schéma portable pour la validation Prisma.
+  directUrl         = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
