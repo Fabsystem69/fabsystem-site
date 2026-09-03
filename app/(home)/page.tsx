@@ -8,6 +8,7 @@ import { LesBases } from "@/components/home/LesBases";
 import { Confiance } from "@/components/home/Confiance";
 import { Accompagnement } from "@/components/home/Accompagnement";
 import { CtaFinal } from "@/components/home/CtaFinal";
+import { SchemaEditorSpotlight } from "@/components/home/SchemaEditorSpotlight";
 
 // Home V2 : le sélecteur d'univers reste présent, mais il devient un
 // configurateur compact placé juste après le bloc "Comment souhaitez-vous
@@ -43,6 +44,7 @@ export default function HomePage() {
       />
       <HomeUniverseProvider>
         <Parcours />
+        <SchemaEditorSpotlight />
         <TroisUnivers />
         <OutilsGratuits />
         <LesBases />

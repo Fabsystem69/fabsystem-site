@@ -5,6 +5,7 @@ import { Section } from "@/components/layout/Section";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SchemaEditorRuntime } from "@/components/schema-editor/SchemaEditorRuntime";
+import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
 
 type SchemaEditorPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -178,10 +179,12 @@ function LandingPage() {
               <Button href={EDITOR_PATH} variant="primary">
                 Ouvrir l&apos;editeur
               </Button>
+              <PwaInstallButton className="inline-flex h-10 min-h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-100" />
               <Button href="/schemas-electriques" variant="secondary">
                 Voir les schemas d&apos;exemple
               </Button>
             </div>
+            <p className="mt-3 text-xs leading-relaxed text-neutral-500">L&apos;installation ajoute l&apos;éditeur à votre bureau Windows ou Mac. Aucun fichier à télécharger ni compte supplémentaire.</p>
           </div>
 
           <aside className="rounded-[28px] border border-neutral-200 bg-white p-5 sm:p-6">
