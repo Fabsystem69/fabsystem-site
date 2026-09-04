@@ -198,9 +198,8 @@ export function TemplatePickerDialog({ onClose, startOptions }: { onClose: () =>
           </main>
         </div>
 
-        <footer className={`flex items-center justify-end gap-3 border-t px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}>
+        <footer className={`flex flex-wrap items-center justify-end gap-3 border-t px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}>
           <button type="button" onClick={onClose} className={`rounded-lg border px-4 py-2 text-sm font-semibold ${controlClass}`}>Annuler</button>
-          {isGuestStart ? <p className={`mr-auto max-w-md text-xs leading-relaxed ${mutedClass}`}>Mode invité : votre découverte n&apos;est pas enregistrée. Créez un compte gratuit lorsque vous souhaiterez conserver un projet.</p> : null}
           <button type="button" onClick={handleUseSelection} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-base hover:bg-brand-600">{primaryLabel}</button>
         </footer>
       </div>
