@@ -49,6 +49,9 @@ scripts/.tmp-*
 /public/ebook/ebook-schema-fabsystem-images/
 
 # dossiers de travail locaux / nettoyage manuel
+/Ebooks/
+/local/
+/docs/
 /dash/
 /local-only/
 /outputs/

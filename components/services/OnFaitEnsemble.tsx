@@ -33,7 +33,7 @@ export function OnFaitEnsemble() {
           Vous réalisez. Fabien vous accompagne là où son expertise vous est utile.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Button href="/outils/schema/editeur" variant="primary">
+          <Button href="/outils/schema" variant="primary">
             Ouvrir l&apos;éditeur de schéma
           </Button>
           <Button href="/schemas-electriques" variant="secondary">

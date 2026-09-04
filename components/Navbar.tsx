@@ -21,7 +21,12 @@ const nav = [
   { href: "/outils", label: "Outils" },
 ];
 
-const editorNavItem = { href: "/outils/schema/editeur", label: "Éditeur de schéma" };
+// Retour utilisateur : "quand je clique sur ouvrir l'editeur dans le home
+// je suis direct dirigé vers /outils/schema/editeur et non /outils/schema" —
+// pointe vers la page marketing publique, qui redirige elle-même un client
+// déjà connecté droit vers l'éditeur (voir app/outils/schema/page.tsx) ; un
+// visiteur anonyme doit toujours voir cette page d'abord.
+const editorNavItem = { href: "/outils/schema", label: "Éditeur de schéma" };
 
 const ICON_LINK_CLASS =
   "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900";
