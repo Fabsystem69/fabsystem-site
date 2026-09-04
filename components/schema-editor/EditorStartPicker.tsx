@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { DraftEnvelope } from "@/features/schemas/storage/localDraftStorage";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 import { TemplatePickerDialog } from "./TemplatePickerDialog";
@@ -9,13 +9,12 @@ import { InlineSignupForm } from "./InlineSignupForm";
 type GuestSelection = { kind: "structured" | "blank" | "template"; templateId?: string };
 
 // Retour utilisateur : "je veux une invite explicite de création de compte
-// même en gratuit... enfin on pousse principalement à l'inscription" —
-// avant, un visiteur anonyme passait directement en mode invité avec une
-// simple phrase discrète en bas de la popup (qui, en plus, chevauchait le
-// bouton Annuler sur petit écran). Le clic sur le choix principal ouvre
-// maintenant ce popup d'inscription ; "Continuer sans compte" (volontairement
-// discret, en petit texte) reste le seul moyen d'atteindre encore le mode
-// invité — jamais supprimé, juste plus difficile à rater que l'inscription.
+// même en gratuit... je veux le popup vraiment avant de rentrer ou choisir
+// un modèle" — s'affiche donc en tout premier pour un visiteur anonyme,
+// avant même la liste de modèles (pas seulement au moment de valider un
+// choix). "Continuer sans compte" (volontairement discret, en petit texte)
+// reste le seul moyen d'atteindre encore le mode invité — jamais supprimé,
+// juste plus difficile à rater que l'inscription.
 function AccountPromptModal({
   darkMode,
   onSignupSuccess,
@@ -78,56 +77,40 @@ export function EditorStartPicker({
   onGuestPreview: (selection: GuestSelection) => void;
   onSignupSuccess: () => void;
 }) {
-  const [pendingSelection, setPendingSelection] = useState<GuestSelection | null>(null);
+  const [dismissedPrompt, setDismissedPrompt] = useState(false);
   useEscapeToClose(draft ? onChooseContinue : onChooseBlank);
 
-  // Se déclenche une fois l'inscription confirmée (isLoggedIn passe à true
-  // via le parent) : reprend exactement la sélection que le visiteur avait
-  // choisie avant qu'on lui propose de créer un compte.
-  useEffect(() => {
-    if (!isLoggedIn || !pendingSelection) return;
-    if (pendingSelection.kind === "template" && pendingSelection.templateId) {
-      onChooseTemplate(pendingSelection.templateId);
-    } else {
-      onChooseBlank();
-    }
-    setPendingSelection(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn]);
+  if (!isLoggedIn && !dismissedPrompt) {
+    return (
+      <AccountPromptModal
+        darkMode={darkMode}
+        onSignupSuccess={onSignupSuccess}
+        onContinueAsGuest={() => setDismissedPrompt(true)}
+        onClose={() => setDismissedPrompt(true)}
+      />
+    );
+  }
 
   return (
-    <>
-      <TemplatePickerDialog
-        onClose={draft ? onChooseContinue : onChooseBlank}
-        startOptions={{
-          draft,
-          isLoggedIn,
-          onChooseContinue,
-          onChooseTemplate: (templateId) => {
-            if (isLoggedIn) onChooseTemplate(templateId);
-            else setPendingSelection({ kind: "template", templateId });
-          },
-          onChooseStructured: () => {
-            if (isLoggedIn) onChooseBlank();
-            else setPendingSelection({ kind: "structured" });
-          },
-          onChooseBlank: () => {
-            if (isLoggedIn) onChooseBlank();
-            else setPendingSelection({ kind: "blank" });
-          },
-        }}
-      />
-      {pendingSelection ? (
-        <AccountPromptModal
-          darkMode={darkMode}
-          onSignupSuccess={onSignupSuccess}
-          onContinueAsGuest={() => {
-            onGuestPreview(pendingSelection);
-            setPendingSelection(null);
-          }}
-          onClose={() => setPendingSelection(null)}
-        />
-      ) : null}
-    </>
+    <TemplatePickerDialog
+      onClose={draft ? onChooseContinue : onChooseBlank}
+      startOptions={{
+        draft,
+        isLoggedIn,
+        onChooseContinue,
+        onChooseTemplate: (templateId: string) => {
+          if (isLoggedIn) onChooseTemplate(templateId);
+          else onGuestPreview({ kind: "template", templateId });
+        },
+        onChooseStructured: () => {
+          if (isLoggedIn) onChooseBlank();
+          else onGuestPreview({ kind: "structured" });
+        },
+        onChooseBlank: () => {
+          if (isLoggedIn) onChooseBlank();
+          else onGuestPreview({ kind: "blank" });
+        },
+      }}
+    />
   );
 }
