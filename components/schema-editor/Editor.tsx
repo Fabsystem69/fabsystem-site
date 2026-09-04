@@ -103,6 +103,8 @@ export function Editor() {
   const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
   const isLoggedIn = useSchemaStore((s) => s.isLoggedIn);
   const setIsLoggedIn = useSchemaStore((s) => s.setIsLoggedIn);
+  const setIsAdmin = useSchemaStore((s) => s.setIsAdmin);
+  const setAccountInitials = useSchemaStore((s) => s.setAccountInitials);
   const setCustomCatalogItems = useSchemaStore((s) => s.setCustomCatalogItems);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParams = useSearchParams();
@@ -197,13 +199,15 @@ export function Editor() {
         if (!cancelled && data) {
           setHasUnlimitedConsumers(Boolean(data.unlimited));
           setIsLoggedIn(Boolean(data.loggedIn));
+          setIsAdmin(Boolean(data.isAdmin));
+          setAccountInitials(typeof data.initials === "string" ? data.initials : null);
         }
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [projectId, setHasUnlimitedConsumers, setIsLoggedIn]);
+  }, [projectId, setHasUnlimitedConsumers, setIsLoggedIn, setIsAdmin, setAccountInitials]);
 
   // Charge les items de catalogue personnalisés du compte connecté (retour
   // utilisateur : widget de création d'item) — inutile de tenter l'appel

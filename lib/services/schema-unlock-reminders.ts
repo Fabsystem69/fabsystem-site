@@ -118,7 +118,7 @@ async function sendTrialExpiryReminder(
     "",
     `Votre accès illimité gratuit à l'éditeur de schéma électrique FabSystem se termine dans ${daysLeft} jour(s) !`,
     "",
-    "Ne perdez pas cet avantage : débloquez définitivement votre projet pour 9,90€ (accès 60 jours, export inclus) — et repartez en plus avec un crédit de 9,90€ sur un ebook ou un accompagnement.",
+    "Si vous avez besoin de poursuivre une installation plus complète, Éditeur Plus donne accès aux projets et consommateurs illimités, à l'historique des versions et au partage de schéma.",
     "",
     "Ou passez directement à l'accompagnement pour être guidé de A à Z sur votre installation électrique.",
   ];
@@ -126,7 +126,7 @@ async function sendTrialExpiryReminder(
   await sendMailImpl({
     to: params.customerEmail,
     from: resolveFromAddress(params.customerEmail),
-    subject: `Plus que ${daysLeft} jour(s) d'accès illimité offert sur l'éditeur de schéma`,
+    subject: `Plus que ${daysLeft} jour(s) d'accès complet offert sur l'éditeur de schéma`,
     text: [...bodyLines, SIGNATURE_TEXT].join("\n"),
     html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#171717;">${toHtmlParagraphs(bodyLines)}${SIGNATURE_HTML}</div>`,
   });

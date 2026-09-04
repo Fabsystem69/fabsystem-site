@@ -14,7 +14,8 @@ type PrismaClientLike = PrismaClient;
 // (MASTER-06 §2). CRUD serveur uniquement — aucune interface, aucun module
 // consommateur (Volta/Circuits/Schéma/Documents/Accompagnement) ici.
 
-// Limite standard (MASTER-06 §5-7) : 3 Projects personnels maximum,
+// Limite gratuite : 1 Project personnel maximum. Éditeur Plus supprime cette
+// limite de portefeuille, sans limiter les sauvegardes du projet.
 // actifs + archivés + en attente de suppression comptent (seule une
 // suppression définitive effective libère une place, cf. MASTER-06 §7 et
 // §99 "Pour libérer réellement une place, le Projet doit être supprimé
@@ -26,7 +27,7 @@ type PrismaClientLike = PrismaClient;
 // Aucun MASTER ne tranche ce mécanisme : la valeur ci-dessous reste une
 // constante simple, volontairement isolée pour rester remplaçable sans
 // réécrire le service, plutôt que câblée à une capacité inventée.
-export const STANDARD_PROJECT_LIMIT = 3;
+export const STANDARD_PROJECT_LIMIT = 1;
 
 export type PurgeDueDeletionsResult = {
   deletedCount: number;
@@ -74,6 +75,13 @@ export type ProjectDb = {
 type ProjectDeps = {
   now?: () => Date;
   deletionDelayMs?: number;
+  // Bug corrigé : createProject importait directement
+  // lib/services/schema-editor-plus (donc lib/prisma, donc du code
+  // "server-only") au lieu de passer par le `db` injecté — cassait tous les
+  // tests appelant createProjectService avec un mock (ERR "This module
+  // cannot be imported from a Client Component module"). Injectée comme le
+  // reste : réelle dans getDefaultProjectService, mockable en test.
+  hasSchemaEditorPlusAccess?: (customerId: string) => Promise<boolean>;
 };
 
 const DELETION_DELAY_MS = 72 * 60 * 60 * 1000;
@@ -130,13 +138,17 @@ function createPrismaProjectDb(client: PrismaClientLike): ProjectDb {
 }
 
 async function getDefaultProjectService() {
-  const { prisma } = await import("@/lib/prisma");
-  return createProjectService(createPrismaProjectDb(prisma));
+  const [{ prisma }, { hasSchemaEditorPlusAccess }] = await Promise.all([
+    import("@/lib/prisma"),
+    import("@/lib/services/schema-editor-plus"),
+  ]);
+  return createProjectService(createPrismaProjectDb(prisma), { hasSchemaEditorPlusAccess });
 }
 
 export function createProjectService(db: ProjectDb, deps?: ProjectDeps) {
   const now = deps?.now ?? (() => new Date());
   const deletionDelayMs = deps?.deletionDelayMs ?? DELETION_DELAY_MS;
+  const hasSchemaEditorPlusAccess = deps?.hasSchemaEditorPlusAccess ?? (async () => false);
 
   async function fetchOwnedProject(actor: OwnershipActor, projectId: string) {
     const id = assertNonEmpty(projectId, "Project id");
@@ -159,9 +171,12 @@ export function createProjectService(db: ProjectDb, deps?: ProjectDeps) {
 
       requireOwnerOrAdmin(actor, customerId);
 
-      const existingCount = await db.countCustomerProjects(customerId);
+      const [existingCount, hasPlusAccess] = await Promise.all([
+        db.countCustomerProjects(customerId),
+        hasSchemaEditorPlusAccess(customerId),
+      ]);
 
-      if (existingCount >= STANDARD_PROJECT_LIMIT) {
+      if (!hasPlusAccess && existingCount >= STANDARD_PROJECT_LIMIT) {
         throw conflict(
           `Standard accounts are limited to ${STANDARD_PROJECT_LIMIT} personal projects`
         );

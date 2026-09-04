@@ -50,6 +50,7 @@ export function ExportMenu({ darkMode, showGrid }: { darkMode: boolean; showGrid
   const setProjectId = useSchemaStore((s) => s.setProjectId);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
+  const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
   // Mode guidé (retour utilisateur : "montre à la fin le mode jour nuit et
   // le pdf") — mis en avant à la toute dernière étape.
   const guided = useGuidedStep();
@@ -77,7 +78,7 @@ export function ExportMenu({ darkMode, showGrid }: { darkMode: boolean; showGrid
   async function handleExportCarousel() {
     setBusy(true);
     try {
-      const parts = await captureSchemaCarousel(getNodes(), getEdges(), projectName, showGrid);
+      const parts = await captureSchemaCarousel(getNodes(), getEdges(), projectName, showGrid, !hasUnlimitedConsumers);
       if (parts) await downloadCarouselZip(parts, projectName);
     } finally {
       setBusy(false);

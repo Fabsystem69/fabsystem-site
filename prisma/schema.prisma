@@ -181,6 +181,18 @@ enum CustomerCapabilityStatus {
   REVOKED
 }
 
+// Etat local d'un abonnement Stripe Billing. Les statuts reprennent les
+// etats utiles au droit d'acces sans faire de Stripe la seule source de
+// verite : chaque webhook les synchronise dans cette table.
+enum EditorSubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  UNPAID
+  INCOMPLETE
+  CANCELED
+}
+
 enum MagicLoginTokenStatus {
   ACTIVE
   USED
@@ -253,6 +265,7 @@ model Customer {
   customCatalogItems         CustomCatalogItem[]
   errorReports               ErrorReport[]
   resourceGrants             CustomerResourceGrant[]
+  editorSubscriptions        EditorSubscription[]
   createdAt                  DateTime                    @default(now())
   updatedAt                  DateTime                    @updatedAt
 
@@ -260,6 +273,28 @@ model Customer {
   @@index([status])
   @@index([registration])
   @@index([origin])
+}
+
+// Abonnement Editeur Plus : une ligne par abonnement Stripe, conservee meme
+// apres annulation afin de rendre le parcours et les webhooks rejouables.
+model EditorSubscription {
+  id                   String                   @id @default(cuid())
+  customerId           String
+  customer             Customer                 @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  stripeCustomerId     String
+  stripeSubscriptionId String                   @unique
+  stripePriceId        String
+  status               EditorSubscriptionStatus
+  cancelAtPeriodEnd    Boolean                  @default(false)
+  currentPeriodEndsAt  DateTime?
+  canceledAt           DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  @@index([customerId])
+  @@index([stripeCustomerId])
+  @@index([status])
+  @@index([currentPeriodEndsAt])
 }
 
 // Retour utilisateur : "possible d'avoir les remontées d'erreur avec l'id

@@ -39,6 +39,7 @@ export function ExportPreviewDialog({
   const projectName = useSchemaStore((s) => s.projectName);
   const storeNodes = useSchemaStore((s) => s.nodes);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
+  const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
   const { getNodes, getEdges } = useReactFlow();
   const [kind, setKind] = useState<ExportKind>(initialKind);
   const [scopeId, setScopeId] = useState<string>("all");
@@ -70,7 +71,7 @@ export function ExportPreviewDialog({
         }
         // L'aperçu reste léger; la qualité choisie est appliquée uniquement
         // au fichier final pour que les réglages restent instantanés.
-        const capture = await captureSchemaPng(scope.nodes, scope.edges, projectName, includeGrid, { pixelRatio: 1 });
+        const capture = await captureSchemaPng(scope.nodes, scope.edges, projectName, includeGrid, { pixelRatio: 1, watermark: !hasUnlimitedConsumers });
         if (!cancelled) setPreview(capture);
       } catch {
         if (!cancelled) setError("Impossible de générer l’aperçu pour le moment.");
@@ -94,6 +95,7 @@ export function ExportPreviewDialog({
       const scope = getScope();
       const capture = await captureSchemaPng(scope.nodes, scope.edges, projectName, includeGrid, {
         pixelRatio: QUALITY_PIXEL_RATIO[quality],
+        watermark: !hasUnlimitedConsumers,
       });
       if (!capture) throw new Error("Capture unavailable");
 

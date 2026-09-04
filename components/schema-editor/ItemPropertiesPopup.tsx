@@ -281,6 +281,8 @@ function SectionSuggestion({
   const [length, setLength] = useState("4");
   const [tension, setTension] = useState("12");
   const [autoEstimated, setAutoEstimated] = useState(false);
+  const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
+  const openFreemiumLimitPopup = useSchemaStore((s) => s.openFreemiumLimitPopup);
 
   useEffect(() => {
     const v = findBatteryVoltage(nodes);
@@ -307,6 +309,40 @@ function SectionSuggestion({
   const inputClass = `w-full rounded-md border px-2 py-1 text-sm focus:outline-none ${
     darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 focus:border-neutral-900"
   }`;
+
+  // Dimensionnement auto réservé à Éditeur Plus (retour utilisateur : "il
+  // faut que l'utilisateur comprenne qu'il y a quelque chose derrière") — le
+  // résultat existe et est calculé (VoltaAvatar + phrase floutée), jamais
+  // simplement masqué, pour montrer la valeur retenue plutôt qu'un mur vide.
+  if (result && !hasUnlimitedConsumers) {
+    return (
+      <div className={`relative overflow-hidden rounded-md border p-3 ${darkMode ? "border-neutral-700 bg-neutral-800" : "border-neutral-200 bg-neutral-50"}`}>
+        <div className="flex items-start gap-2 select-none blur-md" aria-hidden="true">
+          <VoltaAvatar pose="action" size={32} />
+          <div className="flex-1">
+            <p className={`text-[11px] leading-snug ${darkMode ? "text-neutral-300" : "text-neutral-700"}`}>
+              D&apos;après le consommateur relié (≈{amps} A), je te conseille une section de{" "}
+              <strong>{result.section} mm²</strong> (mini {result.sMin} mm²) — fusible conseillé{" "}
+              <strong>{fusibleRecommande(i)}</strong>.
+            </p>
+          </div>
+        </div>
+        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 px-3 text-center ${darkMode ? "bg-neutral-900/45" : "bg-white/45"}`}>
+          <span className="text-lg" aria-hidden="true">🔒</span>
+          <p className={`text-xs font-semibold ${darkMode ? "text-neutral-100" : "text-neutral-900"}`}>
+            Dimensionnement auto réservé à Éditeur Plus
+          </p>
+          <button
+            type="button"
+            onClick={openFreemiumLimitPopup}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-base ${darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"}`}
+          >
+            Débloquer →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`rounded-md border p-3 ${darkMode ? "border-neutral-700 bg-neutral-800" : "border-neutral-200 bg-neutral-50"}`}>

@@ -32,6 +32,14 @@ export function OnFaitEnsemble() {
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-400 sm:text-base">
           Vous réalisez. Fabien vous accompagne là où son expertise vous est utile.
         </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button href="/outils/schema/editeur" variant="primary">
+            Ouvrir l&apos;éditeur de schéma
+          </Button>
+          <Button href="/schemas-electriques" variant="secondary">
+            Voir des schémas d&apos;exemple
+          </Button>
+        </div>
 
         <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3">
           {APPORTS.map((apport) => (

@@ -36,6 +36,28 @@ export async function grantPrestationsBenefitsForOrder(orderId: string) {
 
   const now = new Date();
   const expiresAt = addDays(now, PRESTATIONS_EDITOR_ACCESS_DAYS);
+  // L'accès offert ne doit pas dépendre d'un code à recopier : une commande
+  // d'accompagnement déjà reliée à un compte active directement Éditeur Plus
+  // pendant un an. Le code historique est conservé comme filet de sécurité
+  // pour les commandes créées avant qu'un client n'ouvre son espace.
+  if (order.customerId) {
+    const existingAccess = await prisma.customerCapability.findFirst({
+      where: { customerId: order.customerId, source: `prestations:${order.id}:editor` },
+      select: { id: true },
+    });
+    if (!existingAccess) {
+      await prisma.customerCapability.create({
+        data: {
+          customerId: order.customerId,
+          capability: SCHEMA_EDITOR_UNLIMITED_CAPABILITY,
+          scope: "CUSTOMER",
+          source: `prestations:${order.id}:editor`,
+          startsAt: now,
+          expiresAt,
+        },
+      });
+    }
+  }
   const existingCode = await prisma.trialAccessCode.findUnique({
     where: { sourceOrderId: order.id },
     select: { code: true },

@@ -9,8 +9,8 @@ import { createCoachingCheckoutSession } from "@/lib/services/coaching-checkout"
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Compte requis, même garde que /api/schema-unlock/checkout — pas de
-// nouveau mécanisme d'auth inventé ici.
+// Compte requis via requireCustomerActor — pas de nouveau mécanisme d'auth
+// inventé ici.
 export async function POST(request: Request) {
   try {
     await enforceRateLimit(request, {

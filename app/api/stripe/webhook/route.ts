@@ -6,6 +6,7 @@ import {
 } from "@/lib/services/stripe-webhook-commerce";
 import { logServerEvent } from "@/lib/server-log";
 import { stripe } from "@/lib/stripe";
+import { syncSchemaEditorPlusSubscription } from "@/lib/services/schema-editor-plus";
 
 export const runtime = "nodejs";
 
@@ -30,12 +31,38 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  if (
-    event.type !== "checkout.session.completed" &&
-    event.type !== "checkout.session.expired"
-  ) {
+  const isEditorPlusSubscriptionEvent =
+    event.type === "customer.subscription.created" ||
+    event.type === "customer.subscription.updated" ||
+    event.type === "customer.subscription.deleted";
+  const isCheckoutEvent = event.type === "checkout.session.completed" || event.type === "checkout.session.expired";
+
+  if (!isCheckoutEvent && !isEditorPlusSubscriptionEvent) {
     logServerEvent("info", "stripe webhook: event ignored", { type: event.type });
     return Response.json({ ok: true });
+  }
+
+  // Stripe Billing est synchronise directement par l'identifiant unique de
+  // l'abonnement : les redeliveries ne creent donc jamais un second droit.
+  if (isEditorPlusSubscriptionEvent) {
+    try {
+      const subscription = event.data.object as Stripe.Subscription;
+      const result = await syncSchemaEditorPlusSubscription(subscription);
+      logServerEvent("info", "stripe webhook editor plus subscription processed", {
+        eventType: event.type,
+        subscriptionId: subscription.id,
+        status: subscription.status,
+        localSubscriptionId: result.id,
+      });
+      return Response.json({ ok: true });
+    } catch (error) {
+      logServerEvent("error", "stripe webhook editor plus subscription failed", {
+        eventType: event.type,
+        subscriptionId: (event.data.object as Stripe.Subscription).id,
+        error,
+      });
+      throw error;
+    }
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
@@ -49,6 +76,21 @@ export async function POST(req: Request) {
     paymentStatus: session.payment_status,
     flow: isCommerceSession ? "commerce" : "ignored_non_commerce",
   });
+
+  if (session.mode === "subscription" && event.type === "checkout.session.completed") {
+    const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+    if (!subscriptionId) {
+      return Response.json({ error: "Missing subscription" }, { status: 400 });
+    }
+    try {
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      await syncSchemaEditorPlusSubscription(subscription);
+      return Response.json({ ok: true });
+    } catch (error) {
+      logServerEvent("error", "stripe webhook editor plus checkout failed", { sessionId: session.id, error });
+      throw error;
+    }
+  }
 
   if (session.mode !== "payment") {
     logServerEvent("info", "stripe webhook: session skipped (unsupported mode)", {

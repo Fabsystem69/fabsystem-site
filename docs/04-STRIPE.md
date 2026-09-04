@@ -51,7 +51,7 @@ ayant tous:
 - paiement unique
 - livraison numerique apres confirmation webhook
 
-Le MVP Stripe ne couvre pas encore:
+Le commerce numerique MVP ne couvre pas encore:
 
 - abonnements
 - shipping
@@ -290,12 +290,29 @@ Point restant hors code : les pages marketing publiques `/ebook` et
 `/ebook/cabler-son-van` existent toujours et renvoient desormais vers `/boutique`
 au lieu d'ouvrir l'ancien formulaire de paiement direct.
 
+## Editeur Plus
+
+L'editeur de schema utilise Stripe Billing uniquement pour deux prix simples :
+
+- `6,90 EUR / mois`
+- `59 EUR / an`
+
+Le Checkout est cree avec un `Price` Stripe recurrent preconfigure. Les
+webhooks `checkout.session.completed`, `customer.subscription.created`,
+`customer.subscription.updated` et `customer.subscription.deleted` mettent a
+jour `EditorSubscription`, la source locale de l'etat de l'abonnement. Une
+redirection navigateur ne donne jamais le droit d'acces a elle seule.
+
+Les identifiants de prix sont fournis par les variables serveur :
+
+- `STRIPE_PRICE_ID_SCHEMA_EDITOR_PLUS_MONTHLY`
+- `STRIPE_PRICE_ID_SCHEMA_EDITOR_PLUS_YEARLY`
+
 ## Ce qui est volontairement reporte
 
 Cette strategie ne traite pas encore:
 
-- Stripe Billing
-- abonnements
+- les abonnements complexes avec plusieurs sieges ou usage metre
 - moyens de livraison
 - taxes internationales complexes
 - shipping rates

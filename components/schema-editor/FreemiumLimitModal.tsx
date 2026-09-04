@@ -7,11 +7,8 @@ import { saveDraftAsNewProjectApi } from "@/features/schemas/projectSchemaApi";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 import { InlineSignupForm } from "./InlineSignupForm";
 
-// v2.1 : popup de limite gratuite — se déclenche quand addComponent /
-// duplicateNode / spliceNodeOnEdge refusent un ajout de consommateur
-// au-delà de FREE_CONSUMER_LIMIT (voir useSchemaStore). Trois issues, jamais
-// bloquantes silencieusement : débloquer ce projet (achat unitaire), saisir
-// un code promo, ou passer par l'accompagnement.
+// Popup de limite gratuite : l'upgrade proposé est désormais un abonnement
+// de compte Éditeur Plus, pas un achat ponctuel attaché à un seul projet.
 //
 // Retour utilisateur : "ça évite les retours de gens qui ont un code promo
 // mais ça ne marche pas car ils n'ont pas de compte" (une dizaine de
@@ -31,7 +28,8 @@ export function FreemiumLimitModal() {
   const darkMode = useSchemaStore((s) => s.darkMode);
   useEscapeToClose(dismiss);
 
-  const [tab, setTab] = useState<"unlock" | "code">("unlock");
+  const [tab, setTab] = useState<"plus" | "code">("plus");
+  const [plan, setPlan] = useState<"monthly" | "yearly">("yearly");
   const [code, setCode] = useState("");
   const [redeemStatus, setRedeemStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
   const [redeemError, setRedeemError] = useState<string | null>(null);
@@ -54,15 +52,10 @@ export function FreemiumLimitModal() {
   async function handleUnlock() {
     setCheckoutStatus("loading");
     try {
-      const ensuredProjectId = await ensureProjectId();
-      if (!ensuredProjectId) {
-        setCheckoutStatus("error");
-        return;
-      }
-      const response = await fetch("/api/schema-unlock/checkout", {
+      const response = await fetch("/api/schema-editor-plus/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: ensuredProjectId }),
+        body: JSON.stringify({ plan }),
       });
       const data = await response.json();
       if (!response.ok || !data.url) {
@@ -148,20 +141,36 @@ export function FreemiumLimitModal() {
         ) : (
           <>
             <div className="mt-4 flex gap-1.5">
-              <button type="button" className={tabClass(tab === "unlock")} onClick={() => setTab("unlock")}>
-                Débloquer (9,90€)
+              <button type="button" className={tabClass(tab === "plus")} onClick={() => setTab("plus")}>
+                Éditeur Plus
               </button>
               <button type="button" className={tabClass(tab === "code")} onClick={() => setTab("code")}>
                 J&apos;ai un code
               </button>
             </div>
 
-            {tab === "unlock" ? (
+            {tab === "plus" ? (
               <div className="mt-4">
                 <p className={`text-sm ${darkMode ? "text-neutral-300" : "text-neutral-600"}`}>
-                  Consommateurs illimités sur ce projet pendant 60 jours. Un code de réduction de 9,90€ vous est
-                  aussi offert sur un ebook ou un accompagnement.
+                  Dimensionnement automatique du câblage et des fusibles, détail et correction des alertes de
+                  vérification, projets et consommateurs illimités, historique des versions, partage de schéma et
+                  exports sans filigrane.
                 </p>
+                <Link
+                  href="/mon-compte/editeur"
+                  className={`mt-1 inline-block text-xs font-semibold underline-offset-2 hover:underline ${darkMode ? "text-amber-400" : "text-amber-700"}`}
+                >
+                  Voir le détail des offres →
+                </Link>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setPlan("monthly")} className={`rounded-lg border px-3 py-2 text-left text-sm ${plan === "monthly" ? "border-amber-400 bg-amber-50 font-semibold text-neutral-950" : darkMode ? "border-neutral-700 text-neutral-300" : "border-neutral-300 text-neutral-600"}`}>
+                    6,90 € / mois
+                  </button>
+                  <button type="button" onClick={() => setPlan("yearly")} className={`rounded-lg border px-3 py-2 text-left text-sm ${plan === "yearly" ? "border-amber-400 bg-amber-50 font-semibold text-neutral-950" : darkMode ? "border-neutral-700 text-neutral-300" : "border-neutral-300 text-neutral-600"}`}>
+                    59 € / an
+                    <span className="block text-xs font-normal">4,92 € / mois</span>
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={handleUnlock}
@@ -170,7 +179,7 @@ export function FreemiumLimitModal() {
                     darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"
                   } disabled:opacity-60`}
                 >
-                  {checkoutStatus === "loading" ? "Redirection…" : "Débloquer ce projet — 9,90€"}
+                  {checkoutStatus === "loading" ? "Redirection…" : plan === "yearly" ? "Passer à Éditeur Plus annuel" : "Passer à Éditeur Plus mensuel"}
                 </button>
                 {checkoutStatus === "error" ? (
                   <p className="mt-2 text-xs text-red-500">Impossible de démarrer le paiement, réessayez.</p>
@@ -180,7 +189,7 @@ export function FreemiumLimitModal() {
               <form className="mt-4" onSubmit={handleRedeemCode}>
                 {redeemStatus === "success" ? (
                   <p className={`text-sm font-medium ${darkMode ? "text-emerald-400" : "text-emerald-700"}`}>
-                    Code appliqué — accès illimité activé sur vos projets.
+                    Code appliqué — accès complet activé sur vos projets.
                   </p>
                 ) : (
                   <>

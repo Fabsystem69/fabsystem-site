@@ -34,6 +34,8 @@ export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floati
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const projectName = useSchemaStore((s) => s.projectName);
   const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
+  const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
+  const openFreemiumLimitPopup = useSchemaStore((s) => s.openFreemiumLimitPopup);
   const { getNode, setCenter, getZoom } = useReactFlow();
   const [open, setOpen] = useState(false);
 
@@ -183,65 +185,84 @@ export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floati
             ) : null}
           </div>
 
-          <div className={`flex gap-1.5 border-b p-2 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
-            <button
-              type="button"
-              onClick={handleRecalculateSections}
-              disabled={nodes.length === 0}
-              className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
-                darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-              }`}
-              title="Recalcule en une fois la section de tous les câbles de puissance dont la charge en aval est estimable"
-            >
-              Sections câble
-            </button>
-            <button
-              type="button"
-              onClick={handleRecalculateFuses}
-              disabled={nodes.length === 0}
-              className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
-                darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-              }`}
-              title="Recalcule en une fois le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable"
-            >
-              Calibres fusible
-            </button>
-          </div>
-
-          <div className="max-h-80 overflow-y-auto p-3">
-            {issues.length === 0 ? (
-              <p className={`px-1 py-2 text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
-                Aucun point de vigilance détecté pour l&apos;instant — continuez comme ça !
-              </p>
-            ) : (
-              <div className="space-y-1.5">
-                {issues.map((issue) => (
-                  <div
-                    key={issue.id}
-                    className={`rounded-md border px-2.5 py-1.5 text-left text-xs ${issueTone(issue.severity)}`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => focusTarget(issue.targetKind, issue.targetId)}
-                      className={`block w-full text-left ${darkMode ? "hover:text-amber-300" : "hover:text-amber-900"}`}
-                    >
-                      {issue.message}
-                    </button>
-                    {issue.action ? (
-                      <button
-                        type="button"
-                        onClick={() => handleIssueAction(issue.action!)}
-                        className={`mt-2 rounded-md border px-2 py-1 text-[11px] font-semibold transition-base ${
-                          darkMode ? "border-amber-700 text-amber-200 hover:bg-amber-900" : "border-amber-300 text-amber-900 hover:bg-amber-100"
-                        }`}
-                      >
-                        {getIssueActionLabel(issue.action)}
-                      </button>
-                    ) : null}
-                  </div>
-                ))}
+          <div className="relative">
+            <div className={hasUnlimitedConsumers ? undefined : "select-none blur-sm"} aria-hidden={hasUnlimitedConsumers ? undefined : true}>
+              <div className={`flex gap-1.5 border-b p-2 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+                <button
+                  type="button"
+                  onClick={handleRecalculateSections}
+                  disabled={nodes.length === 0}
+                  className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
+                    darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                  }`}
+                  title="Recalcule en une fois la section de tous les câbles de puissance dont la charge en aval est estimable"
+                >
+                  Sections câble
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRecalculateFuses}
+                  disabled={nodes.length === 0}
+                  className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
+                    darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                  }`}
+                  title="Recalcule en une fois le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable"
+                >
+                  Calibres fusible
+                </button>
               </div>
-            )}
+
+              <div className="max-h-80 overflow-y-auto p-3">
+                {issues.length === 0 ? (
+                  <p className={`px-1 py-2 text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
+                    Aucun point de vigilance détecté pour l&apos;instant — continuez comme ça !
+                  </p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {issues.map((issue) => (
+                      <div
+                        key={issue.id}
+                        className={`rounded-md border px-2.5 py-1.5 text-left text-xs ${issueTone(issue.severity)}`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => focusTarget(issue.targetKind, issue.targetId)}
+                          className={`block w-full text-left ${darkMode ? "hover:text-amber-300" : "hover:text-amber-900"}`}
+                        >
+                          {issue.message}
+                        </button>
+                        {issue.action ? (
+                          <button
+                            type="button"
+                            onClick={() => handleIssueAction(issue.action!)}
+                            className={`mt-2 rounded-md border px-2 py-1 text-[11px] font-semibold transition-base ${
+                              darkMode ? "border-amber-700 text-amber-200 hover:bg-amber-900" : "border-amber-300 text-amber-900 hover:bg-amber-100"
+                            }`}
+                          >
+                            {getIssueActionLabel(issue.action)}
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            {!hasUnlimitedConsumers && issues.length > 0 ? (
+              <div className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-3 text-center ${darkMode ? "bg-neutral-900/45" : "bg-white/45"}`}>
+                <span className="text-lg" aria-hidden="true">🔒</span>
+                <p className={`text-xs font-semibold ${darkMode ? "text-neutral-100" : "text-neutral-900"}`}>
+                  Détail et correction réservés à Éditeur Plus
+                </p>
+                <button
+                  type="button"
+                  onClick={openFreemiumLimitPopup}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-base ${darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"}`}
+                >
+                  Débloquer →
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

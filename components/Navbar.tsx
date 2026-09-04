@@ -21,6 +21,8 @@ const nav = [
   { href: "/outils", label: "Outils" },
 ];
 
+const editorNavItem = { href: "/outils/schema/editeur", label: "Éditeur de schéma" };
+
 const ICON_LINK_CLASS =
   "relative inline-flex h-10 w-10 items-center justify-center rounded-md text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900";
 
@@ -242,6 +244,12 @@ export default function Navbar() {
               seule. */}
           <div className="hidden items-center gap-1 lg:flex">
             <Link
+              href={editorNavItem.href}
+              className="mr-1 inline-flex h-10 items-center rounded-md bg-brand-400 px-3 text-sm font-semibold text-neutral-900 transition-colors duration-150 hover:bg-brand-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+            >
+              Éditeur de schéma
+            </Link>
+            <Link
               href="/contact"
               className="inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-medium text-neutral-600 transition-colors duration-150 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
             >
@@ -336,6 +344,12 @@ export default function Navbar() {
 
             {/* Rubriques principales */}
             <nav className="mt-6 flex flex-col gap-1 text-base font-medium text-neutral-900" aria-label="Rubriques principales">
+              <Link
+                href={editorNavItem.href}
+                className="mb-2 rounded-lg bg-brand-400 px-3 py-3 font-semibold text-neutral-900 transition-colors duration-150 hover:bg-brand-300"
+              >
+                Éditeur de schéma
+              </Link>
               {nav.map((item) => {
                 const active = isActive(item.href);
                 return (

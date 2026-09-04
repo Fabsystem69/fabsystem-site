@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
 import { getSessionFromCookies } from "@/lib/require-session";
 import { hasUnlimitedSchemaAccess } from "@/lib/services/schema-unlock";
+import { hasSchemaEditorPlusAccess } from "@/lib/services/schema-editor-plus";
+import { computeAccountInitials } from "@/lib/customer-initials";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -23,14 +25,27 @@ export async function GET(request: Request) {
     if (adminSession) {
       // Le dashboard est un espace de préparation et d'accompagnement : ses
       // schémas ne sont pas soumis à l'ancien palier consommateur client.
-      return NextResponse.json({ unlimited: true, loggedIn: true, isAdmin: true });
+      return NextResponse.json({
+        unlimited: true,
+        loggedIn: true,
+        isAdmin: true,
+        initials: computeAccountInitials(null, adminSession.sub),
+      });
     }
-    return NextResponse.json({ unlimited: false, loggedIn: false });
+    return NextResponse.json({ unlimited: false, loggedIn: false, initials: null });
   }
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("projectId") ?? "";
 
-  const unlimited = await hasUnlimitedSchemaAccess(session.customer.id, projectId);
-  return NextResponse.json({ unlimited, loggedIn: true });
+  const [legacyUnlimited, plus] = await Promise.all([
+    hasUnlimitedSchemaAccess(session.customer.id, projectId),
+    hasSchemaEditorPlusAccess(session.customer.id),
+  ]);
+  return NextResponse.json({
+    unlimited: legacyUnlimited || plus,
+    plus,
+    loggedIn: true,
+    initials: computeAccountInitials(session.customer.name, session.customer.email),
+  });
 }

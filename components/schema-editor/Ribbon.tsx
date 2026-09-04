@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
@@ -53,6 +54,34 @@ const BASE_TABS: { id: RibbonTab; label: string }[] = [
   { id: "export", label: "Enregistrer / Imprimer" },
   { id: "aide", label: "Aide" },
 ];
+
+function ShareIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
+      <circle cx="6" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="18" cy="6" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="18" cy="18" r="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.2 10.8L15.8 7.2M8.2 13.2L15.8 16.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// Même icône que le lien "Mon compte" du header public (Navbar.tsx) —
+// affichée à la place des initiales quand personne n'est connecté (Mode
+// découverte), pour ne jamais laisser croire qu'un compte précis est actif.
+function AccountPlaceholderIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function Ribbon() {
   const darkMode = useSchemaStore((s) => s.darkMode);
@@ -110,27 +139,36 @@ export function Ribbon() {
 
   return (
     <header className={`relative z-50 flex shrink-0 flex-col border-b ${darkMode ? "border-neutral-800 bg-neutral-900" : "border-neutral-200 bg-white"}`}>
-      {/* Rangée 1 : identité + onglets + statut d'enregistrement */}
-      <div className={`flex h-10 items-center gap-3 border-b px-4 max-md:h-14 max-md:gap-2 max-md:overflow-hidden max-md:px-3 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+      <div className={`relative flex h-9 items-center gap-2 border-b px-3 max-md:h-14 max-md:gap-2 max-md:overflow-hidden ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+        <Link href="/" className="shrink-0 max-md:hidden" aria-label="FabSystem">
+          <Image src="/FabSystem-Logo.svg" alt="FabSystem" width={88} height={18} className="h-4 w-auto" priority />
+        </Link>
+        <span className={`max-md:hidden ${darkMode ? "text-neutral-700" : "text-neutral-300"}`}>|</span>
         <Link
           href="/outils"
-          className={`text-sm font-medium transition-base max-md:flex max-md:h-10 max-md:w-9 max-md:items-center max-md:justify-center max-md:text-xl ${darkMode ? "text-neutral-400 hover:text-white" : "text-neutral-500 hover:text-neutral-900"}`}
+          className={`text-xs font-medium transition-base max-md:flex max-md:h-10 max-md:w-9 max-md:items-center max-md:justify-center max-md:text-xl ${darkMode ? "text-neutral-400 hover:text-white" : "text-neutral-500 hover:text-neutral-900"}`}
         >
           <span aria-hidden="true">←</span><span className="max-md:sr-only"> Outils</span>
         </Link>
-        <span className={`max-md:hidden ${darkMode ? "text-neutral-700" : "text-neutral-300"}`}>|</span>
+
+        {/* Titre vraiment centré : position absolue par rapport à la rangée
+            entière (retour utilisateur : "la seule chose qui aurait pu
+            rester à une police plus grosse... et tu l'as enlevé du centre")
+            — un centrage flex classique ne fonctionne pas ici puisque
+            gauche (logo/retour) et droite (EditorMenuBar, bien plus large)
+            n'ont pas la même largeur. */}
         <input
           type="text"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          className={`min-w-0 rounded-md border border-transparent bg-transparent px-2 py-0.5 text-sm font-medium focus:outline-none max-md:flex-1 max-md:text-center max-md:text-base ${
+          size={Math.max(projectName.length, 6)}
+          className={`absolute left-1/2 z-10 min-w-0 max-w-[40%] -translate-x-1/2 rounded-md border border-transparent bg-transparent px-1.5 py-0.5 text-center text-sm font-semibold focus:outline-none max-md:static max-md:max-w-none max-md:flex-1 max-md:translate-x-0 max-md:text-base ${
             darkMode
-              ? "text-neutral-100 hover:border-neutral-700 focus:border-neutral-400"
-              : "text-neutral-800 hover:border-neutral-200 focus:border-neutral-900"
+              ? "text-neutral-100 hover:border-neutral-700 focus:border-neutral-400 focus:bg-neutral-900"
+              : "text-neutral-800 hover:border-neutral-200 focus:border-neutral-900 focus:bg-white"
           }`}
           aria-label="Nom du schéma"
         />
-        <SaveMenu darkMode={darkMode} variant="header" />
 
         <EditorMenuBar
           darkMode={darkMode}
@@ -145,7 +183,7 @@ export function Ribbon() {
           }}
         />
 
-        <span className={`ml-auto max-w-[13rem] text-right text-xs max-md:hidden ${saveToneClass}`} title={saveMessage}>
+        <span className={`ml-auto max-w-[10rem] truncate text-right text-[11px] max-md:hidden ${saveToneClass}`} title={saveMessage}>
           {saveMessage}
         </span>
       </div>
@@ -178,7 +216,10 @@ function EditorMenuBar({
   const [systemBuilder, setSystemBuilder] = useState<"solar" | "battery" | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [adminMode, setAdminMode] = useState(false);
+  const adminMode = useSchemaStore((s) => s.isAdmin);
+  const accountInitials = useSchemaStore((s) => s.accountInitials);
+  const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
+  const openFreemiumLimitPopup = useSchemaStore((s) => s.openFreemiumLimitPopup);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
   const setIconStyle = useSchemaStore((s) => s.setIconStyle);
   const setDarkMode = useSchemaStore((s) => s.setDarkMode);
@@ -192,14 +233,6 @@ function EditorMenuBar({
   const edges = useSchemaStore((s) => s.edges);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/schema-unlock/status")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => { if (!cancelled) setAdminMode(Boolean(data?.isAdmin)); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
   const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const optimizeBusbarLayouts = useSchemaStore((s) => s.optimizeBusbarLayouts);
@@ -293,7 +326,7 @@ function EditorMenuBar({
   return (
     <>
     <button type="button" onClick={() => setMobileActionsOpen(true)} className={`ml-auto hidden h-10 w-10 items-center justify-center rounded-full text-2xl font-bold max-md:flex ${darkMode ? "text-neutral-200 hover:bg-neutral-800" : "text-slate-700 hover:bg-slate-100"}`} aria-label="Ouvrir les actions">⋮</button>
-    <nav ref={menuRef} className="ml-3 flex flex-1 items-center gap-1 border-l pl-3 dark:border-neutral-800 border-neutral-200 max-md:hidden" aria-label="Menu de l'éditeur">
+    <nav ref={menuRef} className="ml-3 flex flex-1 items-center gap-1.5 border-l pl-3 dark:border-neutral-800 border-neutral-200 max-md:hidden" aria-label="Menu de l'éditeur">
       <div className="relative">
         <button type="button" aria-expanded={openMenu === "file"} onClick={() => setOpenMenu((menu) => (menu === "file" ? null : "file"))} className={menuButtonClass(openMenu === "file")}>
           Fichier <MenubarIcon name="chevron" className="h-4 w-4" />
@@ -364,10 +397,31 @@ function EditorMenuBar({
       </div>
 
       <CalculatorMenu darkMode={darkMode} variant="menubar" />
+      <SaveMenu darkMode={darkMode} variant="header" />
+      <button
+        type="button"
+        onClick={() => setShareOpen(true)}
+        aria-label="Partager"
+        className="group flex h-9 items-center overflow-hidden rounded-lg bg-amber-500 px-2.5 text-sm font-semibold text-white transition-base hover:bg-amber-600 hover:px-3"
+      >
+        <ShareIcon />
+        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-1.5 group-hover:max-w-[6rem] group-hover:opacity-100">
+          Partager
+        </span>
+      </button>
       <SchemaIssuesWidget variant="header" />
-      {projectId ? <button type="button" onClick={() => setHistoryOpen(true)} className="ml-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Historique</button> : null}
-      <button type="button" onClick={() => setShareOpen(true)} className="ml-1 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-600">Partager</button>
-      <div className="relative ml-1 max-md:hidden">
+      {projectId ? <button type="button" onClick={() => setHistoryOpen(true)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Historique</button> : null}
+      {!adminMode && !hasUnlimitedConsumers ? (
+        <button
+          type="button"
+          onClick={openFreemiumLimitPopup}
+          className="group flex h-9 items-center gap-1.5 rounded-lg bg-amber-500 px-3 text-sm font-semibold text-white transition-base hover:bg-amber-600 max-md:hidden"
+        >
+          Version gratuite
+          <span className="transition-transform group-hover:translate-x-0.5" aria-hidden="true">↗</span>
+        </button>
+      ) : null}
+      <div className="relative max-md:hidden">
         <button
           type="button"
           aria-expanded={accountOpen}
@@ -375,14 +429,34 @@ function EditorMenuBar({
           onClick={() => setAccountOpen((open) => !open)}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-sm font-semibold text-amber-700 transition-base hover:bg-amber-100"
         >
-          FL
+          {accountInitials ?? <AccountPlaceholderIcon />}
         </button>
         {accountOpen ? (
           <div className={`absolute right-0 top-11 z-50 w-72 overflow-hidden rounded-2xl border shadow-[0_16px_36px_rgba(15,23,42,0.18)] ${darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-slate-200 bg-white text-slate-900"}`}>
             <div className={`border-b px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-100"}`}>
               <p className="text-lg font-semibold">{adminMode ? "Administration" : "Mon compte"}</p>
               <p className={`mt-1 text-sm ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>{adminMode ? "Préparez et accompagnez les projets clients." : "Gérez vos projets et vos préférences."}</p>
-              <span className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${darkMode ? "bg-neutral-800 text-neutral-300" : "bg-slate-100 text-slate-600"}`}>{adminMode ? "Mode administration" : "Éditeur gratuit"}</span>
+              <span
+                className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  !adminMode && hasUnlimitedConsumers
+                    ? darkMode
+                      ? "bg-amber-400/10 text-amber-300"
+                      : "bg-amber-50 text-amber-700"
+                    : darkMode
+                      ? "bg-neutral-800 text-neutral-300"
+                      : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {adminMode ? "Mode administration" : hasUnlimitedConsumers ? "Éditeur Plus" : "Éditeur gratuit"}
+              </span>
+              {!adminMode && !hasUnlimitedConsumers ? (
+                <Link
+                  href="/mon-compte/editeur"
+                  className="mt-3 block rounded-xl bg-amber-500 px-3 py-2.5 text-center text-sm font-semibold text-white transition-base hover:bg-amber-600"
+                >
+                  Passer à Éditeur Plus →
+                </Link>
+              ) : null}
             </div>
             <div className="p-2">
               <Link href={adminMode ? "/dashboard" : "/mon-compte/profil"} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⚙</span> {adminMode ? "Retour au dashboard" : "Paramètres du compte"}</Link>

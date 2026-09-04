@@ -433,6 +433,15 @@ interface SchemaState {
   // formulaire de connexion ou d'inscription doit s'afficher dans les
   // popups d'achat/redemption.
   isLoggedIn: boolean;
+  // Compte admin (dashboard) plutôt que compte client — même origine que
+  // isLoggedIn ci-dessus (statut serveur injecté depuis l'extérieur, voir
+  // Editor.tsx). Change le libellé et les liens du menu compte (Ribbon.tsx).
+  isAdmin: boolean;
+  // Initiales (2 lettres) du compte connecté, calculées côté serveur à
+  // partir du nom/email — jamais le nom ou l'email complet n'est envoyé au
+  // client pour ce simple badge. `null` si personne n'est connecté (Mode
+  // découverte), auquel cas Ribbon.tsx affiche une icône générique.
+  accountInitials: string | null;
   /** Items de catalogue créés par l'utilisateur (retour utilisateur :
    * "widget de création d'item personnalisé si manquant") — chargés depuis
    * /api/schema-editor/custom-items par Editor.tsx, même mécanisme que
@@ -526,6 +535,7 @@ interface SchemaState {
     dataOverride?: Record<string, unknown>
   ) => void;
   dismissSizingPopup: () => void;
+  openCableSizingPopup: (edgeId: string) => void;
   resolveBatteryPairPrompt: (mode: "series" | "parallel" | "skip") => void;
   startGuidedMode: () => void;
   exitGuidedMode: () => void;
@@ -544,7 +554,10 @@ interface SchemaState {
   buildSystem: (config: SystemBuilderConfig) => void;
   setHasUnlimitedConsumers: (value: boolean) => void;
   setIsLoggedIn: (value: boolean) => void;
+  setIsAdmin: (value: boolean) => void;
+  setAccountInitials: (value: string | null) => void;
   dismissFreemiumLimitPopup: () => void;
+  openFreemiumLimitPopup: () => void;
 }
 
 // Historique undo/redo par snapshots (docs/schema/CDC_FabSystem_Schema_V1.md
@@ -610,14 +623,19 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   consumerBaseline: 0,
   hasUnlimitedConsumers: false,
   isLoggedIn: false,
+  isAdmin: false,
+  accountInitials: null,
   customCatalogItems: [],
   freemiumLimitPopupOpen: false,
 
   setProjectName: (name) => set({ projectName: name }),
   setHasUnlimitedConsumers: (value) => set({ hasUnlimitedConsumers: value }),
   setIsLoggedIn: (value) => set({ isLoggedIn: value }),
+  setIsAdmin: (value) => set({ isAdmin: value }),
+  setAccountInitials: (value) => set({ accountInitials: value }),
   setCustomCatalogItems: (items) => set({ customCatalogItems: items }),
   dismissFreemiumLimitPopup: () => set({ freemiumLimitPopupOpen: false }),
+  openFreemiumLimitPopup: () => set({ freemiumLimitPopupOpen: true }),
   setProjectId: (id) => set({ projectId: id }),
   setGuidedPlanMode: (value) => set({ guidedPlanMode: value }),
 
@@ -912,6 +930,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     }),
 
   dismissSizingPopup: () => set({ pendingSizingTarget: null }),
+  openCableSizingPopup: (edgeId) => set({ pendingSizingTarget: { kind: "cable", edgeId } }),
 
   // Retour bêta : voir `pendingBatteryPairPrompt` — relie la batterie qui
   // vient d'être ajoutée à l'unique autre batterie déjà présente. "skip" ne

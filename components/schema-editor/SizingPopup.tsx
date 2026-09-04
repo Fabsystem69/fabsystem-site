@@ -35,6 +35,8 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
   const dismissSizingPopup = useSchemaStore((s) => s.dismissSizingPopup);
+  const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
+  const openFreemiumLimitPopup = useSchemaStore((s) => s.openFreemiumLimitPopup);
   useEscapeToClose(dismissSizingPopup);
   const edge = edges.find((e) => e.id === edgeId);
 
@@ -68,6 +70,15 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
     dismissSizingPopup();
   }
 
+  // Ferme d'abord cette popup avant d'ouvrir la modale Éditeur Plus : les
+  // deux partagent le même z-index (fixed inset-0 z-50), sinon la modale
+  // s'ouvre visuellement derrière celle-ci (retour utilisateur : "si je
+  // clique pour débloquer le pop up passe derrière").
+  function handleUnlock() {
+    dismissSizingPopup();
+    openFreemiumLimitPopup();
+  }
+
   return (
     <SizingPopupShell darkMode={darkMode} onDismiss={dismissSizingPopup} eyebrow="Câble connecté" title="Section de câble suggérée">
       <SizingFields>
@@ -90,13 +101,13 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
       </SizingFields>
 
       {result ? (
-        <div className={`mt-4 rounded-lg border p-3 ${darkMode ? "border-brand-800 bg-brand-950" : "border-brand-300 bg-brand-50"}`}>
+        <SizingResultBox darkMode={darkMode} locked={!hasUnlimitedConsumers} onUnlock={handleUnlock}>
           <p className={`text-xs ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Section minimale : {result.sMin} mm²</p>
           <p className={`text-2xl font-bold ${darkMode ? "text-neutral-50" : "text-neutral-950"}`}>{result.section} mm² recommandé</p>
           <p className={`mt-1 text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
             Calculé sur {(l * 2).toLocaleString("fr-FR")} m électriques (aller-retour compris) — la longueur enregistrée reste vos {l.toLocaleString("fr-FR")} m aller.
           </p>
-        </div>
+        </SizingResultBox>
       ) : (
         <p className={`mt-4 text-sm ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Renseignez l&apos;intensité et la longueur.</p>
       )}
@@ -109,7 +120,11 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
         commercialisée.
       </ExplainDetails>
 
-      <SizingActions darkMode={darkMode} onApply={handleApply} onDismiss={dismissSizingPopup} applyLabel="Appliquer cette section" applyDisabled={!result} />
+      {hasUnlimitedConsumers ? (
+        <SizingActions darkMode={darkMode} onApply={handleApply} onDismiss={dismissSizingPopup} applyLabel="Appliquer cette section" applyDisabled={!result} />
+      ) : (
+        <SizingActions darkMode={darkMode} onApply={handleUnlock} onDismiss={dismissSizingPopup} applyLabel="Débloquer pour appliquer" applyDisabled={!result} />
+      )}
     </SizingPopupShell>
   );
 }
@@ -120,6 +135,8 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const dismissSizingPopup = useSchemaStore((s) => s.dismissSizingPopup);
+  const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
+  const openFreemiumLimitPopup = useSchemaStore((s) => s.openFreemiumLimitPopup);
   useEscapeToClose(dismissSizingPopup);
   const node = nodes.find((n) => n.id === nodeId);
 
@@ -143,6 +160,11 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
     dismissSizingPopup();
   }
 
+  function handleUnlock() {
+    dismissSizingPopup();
+    openFreemiumLimitPopup();
+  }
+
   return (
     <SizingPopupShell darkMode={darkMode} onDismiss={dismissSizingPopup} eyebrow={`${def?.label ?? "Protection"} connecté`} title="Calibre suggéré">
       <SizingFields>
@@ -150,10 +172,10 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
       </SizingFields>
 
       {rating ? (
-        <div className={`mt-4 rounded-lg border p-3 ${darkMode ? "border-brand-800 bg-brand-950" : "border-brand-300 bg-brand-50"}`}>
+        <SizingResultBox darkMode={darkMode} locked={!hasUnlimitedConsumers} onUnlock={handleUnlock}>
           <p className={`text-xs ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>{fusibleRecommande(i)} avec marge de 25 %</p>
           <p className={`text-2xl font-bold ${darkMode ? "text-neutral-50" : "text-neutral-950"}`}>{rating} A recommandé</p>
-        </div>
+        </SizingResultBox>
       ) : (
         <p className={`mt-4 text-sm ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>Renseignez l&apos;intensité du circuit.</p>
       )}
@@ -165,7 +187,11 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
         supérieur — jamais une valeur non standard.
       </ExplainDetails>
 
-      <SizingActions darkMode={darkMode} onApply={handleApply} onDismiss={dismissSizingPopup} applyLabel="Appliquer ce calibre" applyDisabled={!rating} />
+      {hasUnlimitedConsumers ? (
+        <SizingActions darkMode={darkMode} onApply={handleApply} onDismiss={dismissSizingPopup} applyLabel="Appliquer ce calibre" applyDisabled={!rating} />
+      ) : (
+        <SizingActions darkMode={darkMode} onApply={handleUnlock} onDismiss={dismissSizingPopup} applyLabel="Débloquer pour appliquer" applyDisabled={!rating} />
+      )}
     </SizingPopupShell>
   );
 }
@@ -193,6 +219,43 @@ function SizingPopupShell({
         <h2 className={`mt-1 text-xl font-bold ${darkMode ? "text-neutral-50" : "text-neutral-950"}`}>{title}</h2>
         {children}
       </div>
+    </div>
+  );
+}
+
+// Résultat du moteur de dimensionnement réservé à Éditeur Plus (retour
+// utilisateur : "il faut flouter pas supprimer") — le calcul tourne toujours
+// et le résultat est bien affiché, flouté, jamais caché : on montre la
+// valeur retenue plutôt qu'un champ vide.
+function SizingResultBox({
+  darkMode,
+  locked,
+  onUnlock,
+  children,
+}: {
+  darkMode: boolean;
+  locked: boolean;
+  onUnlock: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`relative mt-4 overflow-hidden rounded-lg border p-3 ${darkMode ? "border-brand-800 bg-brand-950" : "border-brand-300 bg-brand-50"}`}>
+      <div className={locked ? "select-none blur-md" : undefined} aria-hidden={locked || undefined}>
+        {children}
+      </div>
+      {locked ? (
+        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-3 text-center ${darkMode ? "bg-neutral-950/45" : "bg-white/45"}`}>
+          <span className="text-lg" aria-hidden="true">🔒</span>
+          <p className={`text-xs font-semibold ${darkMode ? "text-neutral-100" : "text-neutral-900"}`}>Réservé à Éditeur Plus</p>
+          <button
+            type="button"
+            onClick={onUnlock}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-base ${darkMode ? "bg-white text-neutral-900 hover:bg-neutral-200" : "bg-neutral-900 text-white hover:bg-neutral-800"}`}
+          >
+            Débloquer →
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

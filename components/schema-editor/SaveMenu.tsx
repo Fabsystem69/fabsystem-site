@@ -258,11 +258,13 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
             data-schema-header-save
             onClick={() => void handleHeaderSave()}
             disabled={busy}
-            className="flex h-9 items-center gap-2 rounded-lg bg-amber-500 px-3 text-sm font-semibold text-white shadow-sm transition-base hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60 max-md:h-10 max-md:w-10 max-md:justify-center max-md:px-0"
+            className="group flex h-9 items-center overflow-hidden rounded-lg bg-amber-500 px-2.5 text-sm font-semibold text-white shadow-sm transition-base hover:bg-amber-600 hover:px-3 disabled:cursor-not-allowed disabled:opacity-60 max-md:h-10 max-md:w-10 max-md:justify-center max-md:px-0"
             title="Sauvegarder ce schéma dans votre projet"
           >
             <span aria-hidden="true">💾</span>
-            <span className="max-md:sr-only">{busy ? "Sauvegarde…" : "Sauvegarder"}</span>
+            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover:ml-1.5 group-hover:max-w-[6rem] group-hover:opacity-100 max-md:sr-only">
+              {busy ? "Sauvegarde…" : "Sauvegarder"}
+            </span>
           </button>
         )
       ) : (

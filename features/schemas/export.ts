@@ -201,6 +201,11 @@ async function postProcess(
   // Rappel des équipements installés (retour utilisateur) — vide sur les
   // tuiles zoomées du carrousel, seulement sur la vue d'ensemble.
   equipment: EquipmentListItem[] = [],
+  // Filigrane réservé aux comptes gratuits (retour utilisateur : "je
+  // voudrais des filigrane discret fabsystem" pour l'impression gratuite) —
+  // retiré pour Éditeur Plus, jamais l'export lui-même : l'export reste
+  // disponible pour tout le monde.
+  watermark = true,
 ): Promise<string> {
   const img = await loadImage(rawDataUrl);
   const logo = await loadExportLogoImage();
@@ -244,23 +249,25 @@ async function postProcess(
     ctx.drawImage(img, 0, 0, w, h);
   }
 
-  // Filigrane diagonal répété, peu visible.
-  ctx.save();
-  ctx.globalAlpha = 0.04;
-  ctx.fillStyle = "#111827";
-  ctx.font = `600 ${18 * scale}px 'Space Grotesk', system-ui, sans-serif`;
-  ctx.textBaseline = "middle";
-  const watermarkText = "FabSystem Schéma";
-  const stepX = 420 * scale;
-  const stepY = 280 * scale;
-  ctx.rotate((-25 * Math.PI) / 180);
-  // Repère élargi pour couvrir le canvas malgré la rotation.
-  for (let wy = -h; wy < h * 1.5; wy += stepY) {
-    for (let wx = -w; wx < w * 1.5; wx += stepX) {
-      ctx.fillText(watermarkText, wx, wy);
+  // Filigrane diagonal répété, peu visible — comptes gratuits uniquement.
+  if (watermark) {
+    ctx.save();
+    ctx.globalAlpha = 0.1;
+    ctx.fillStyle = "#111827";
+    ctx.font = `600 ${18 * scale}px 'Space Grotesk', system-ui, sans-serif`;
+    ctx.textBaseline = "middle";
+    const watermarkText = "FabSystem Schéma";
+    const stepX = 420 * scale;
+    const stepY = 280 * scale;
+    ctx.rotate((-25 * Math.PI) / 180);
+    // Repère élargi pour couvrir le canvas malgré la rotation.
+    for (let wy = -h; wy < h * 1.5; wy += stepY) {
+      for (let wx = -w; wx < w * 1.5; wx += stepX) {
+        ctx.fillText(watermarkText, wx, wy);
+      }
     }
+    ctx.restore();
   }
-  ctx.restore();
 
   drawLegend(ctx, legend, w, h, scale);
   drawTitleBlock(ctx, projectName, tileLabel, w, h, scale);
@@ -603,14 +610,14 @@ export async function captureSchemaPng(
   edges: Edge<CableEdgeData>[],
   projectName: string,
   showGrid = true,
-  options?: { pixelRatio?: number },
+  options?: { pixelRatio?: number; watermark?: boolean },
 ): Promise<SchemaCapture | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
 
   const pixelRatio = options?.pixelRatio ?? EXPORT_PIXEL_RATIO;
   const raw = await captureRawSchema(viewportEl, nodes, pixelRatio);
-  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, pixelRatio, undefined, undefined, buildCableLegend(edges), buildEquipmentList(nodes));
+  const dataUrl = await postProcess(raw.dataUrl, raw.width, raw.height, showGrid, projectName, pixelRatio, undefined, undefined, buildCableLegend(edges), buildEquipmentList(nodes), options?.watermark ?? true);
   return { dataUrl, width: raw.width, height: raw.height + EXPORT_FOOTER_HEIGHT };
 }
 
@@ -725,6 +732,7 @@ export async function captureSchemaCarousel(
   edges: Edge<CableEdgeData>[],
   projectName: string,
   showGrid = true,
+  watermark = true,
 ): Promise<CarouselCapture[] | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
@@ -742,6 +750,7 @@ export async function captureSchemaCarousel(
     undefined,
     legend,
     buildEquipmentList(nodes),
+    watermark,
   );
   const parts: CarouselCapture[] = [
     { dataUrl: overviewDataUrl, width: raw.width, height: raw.height + EXPORT_FOOTER_HEIGHT, label: "Vue d'ensemble" },
@@ -764,7 +773,7 @@ export async function captureSchemaCarousel(
     const sw = Math.round(tileWidth * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
     const sh = Math.round(tileHeight * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
 
-    const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, EXPORT_PIXEL_RATIO, label, { sx, sy, sw, sh }, legend);
+    const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, EXPORT_PIXEL_RATIO, label, { sx, sy, sw, sh }, legend, [], watermark);
     parts.push({ dataUrl, width: tileWidth, height: tileHeight + EXPORT_FOOTER_HEIGHT, label });
   }
 

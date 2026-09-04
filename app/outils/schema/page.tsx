@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-session";
 import { PageIntro } from "@/components/public/PageIntro";
 import { Section } from "@/components/layout/Section";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SchemaEditorRuntime } from "@/components/schema-editor/SchemaEditorRuntime";
 import { PwaInstallButton } from "@/components/pwa/PwaInstallButton";
+import { SchemaExportPreview } from "@/components/public/SchemaExportPreview";
+import { PlansComparisonTable } from "@/components/public/PlansComparisonTable";
 
 type SchemaEditorPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -22,35 +26,35 @@ function hasActiveEditorIntent(searchParams: Record<string, string | string[] | 
 }
 
 const description =
-  "Editeur de schema electrique pour bateau, van et camping-car: preparez votre architecture 12 V ou 230 V, adaptez un exemple, verifiez vos sous-ensembles et exportez votre base de travail.";
+  "Éditeur de schéma électrique pour bateau, van et camping-car : préparez votre architecture 12 V ou 230 V, adaptez un exemple, vérifiez vos sous-ensembles et exportez votre base de travail.";
 
 const faqItems = [
   {
-    question: "A qui sert cet editeur de schema electrique ?",
+    question: "À qui sert cet éditeur de schéma électrique ?",
     answer:
-      "Il aide a preparer ou clarifier une installation electrique embarquee sur bateau, van ou camping-car. Il est utile pour visualiser l'architecture, organiser les sous-ensembles et preparer les verifications avant cablage.",
+      "Il aide à préparer ou clarifier une installation électrique embarquée sur bateau, van ou camping-car. Il est utile pour visualiser l'architecture, organiser les sous-ensembles et préparer les vérifications avant câblage.",
   },
   {
-    question: "Puis-je partir d'un exemple plutot que d'une feuille blanche ?",
+    question: "Puis-je partir d'un exemple plutôt que d'une feuille blanche ?",
     answer:
-      "Oui. La galerie des schemas electriques propose plusieurs bases a ouvrir directement dans l'editeur pour repartir d'un van, d'un bateau, d'un camping-car ou d'une station tout-en-un deja structures.",
+      "Oui. La galerie des schémas électriques propose plusieurs bases à ouvrir directement dans l'éditeur pour repartir d'un van, d'un bateau, d'un camping-car ou d'une station tout-en-un déjà structurée.",
   },
   {
-    question: "L'editeur remplace-t-il une validation electrique professionnelle ?",
+    question: "L'éditeur remplace-t-il une validation électrique professionnelle ?",
     answer:
-      "Non. Il sert a preparer, expliquer et verifier une logique de schema, mais il ne remplace ni le controle des longueurs reelles, ni le dimensionnement final, ni la validation electrique adaptee a votre materiel et a votre usage.",
+      "Non. Il sert à préparer, expliquer et vérifier une logique de schéma, mais il ne remplace ni le contrôle des longueurs réelles, ni le dimensionnement final, ni la validation électrique adaptée à votre matériel et à votre usage.",
   },
   {
-    question: "Quels outils completer avec l'editeur ?",
+    question: "Quels outils compléter avec l'éditeur ?",
     answer:
-      "Les calculateurs de section de cable, de fusible, de MPPT et de bilan de consommation servent a verifier les points critiques du schema avant impression ou realisation.",
+      "Les calculateurs de section de câble, de fusible, de MPPT et de bilan de consommation servent à vérifier les points critiques du schéma avant impression ou réalisation.",
   },
 ];
 
 const webApplicationJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Editeur de schemas electriques FabSystem",
+  name: "Éditeur de schémas électriques FabSystem",
   url: "https://www.fabsystem.fr/outils/schema",
   applicationCategory: "UtilitiesApplication",
   operatingSystem: "Web",
@@ -73,7 +77,7 @@ const breadcrumbJsonLd = {
     {
       "@type": "ListItem",
       position: 3,
-      name: "Editeur de schemas electriques",
+      name: "Éditeur de schémas électriques",
       item: "https://www.fabsystem.fr/outils/schema",
     },
   ],
@@ -99,11 +103,11 @@ export async function generateMetadata({
   const editorMode = hasActiveEditorIntent(resolvedSearchParams);
 
   return {
-    title: "Editeur de schema electrique bateau, van et camping-car",
+    title: "Éditeur de schéma électrique bateau, van et camping-car",
     description,
     alternates: { canonical: "/outils/schema" },
     openGraph: {
-      title: "Editeur de schema electrique | FabSystem",
+      title: "Éditeur de schéma électrique | FabSystem",
       description,
       url: "https://www.fabsystem.fr/outils/schema",
       images: [
@@ -111,14 +115,14 @@ export async function generateMetadata({
           url: "/outils/schema.webp",
           width: 1600,
           height: 1195,
-          alt: "Editeur de schema electrique FabSystem",
+          alt: "Éditeur de schéma électrique FabSystem",
         },
       ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Editeur de schema electrique | FabSystem",
+      title: "Éditeur de schéma électrique | FabSystem",
       description,
       images: ["/outils/schema.webp"],
     },
@@ -152,8 +156,8 @@ function LandingPage() {
 
       <PageIntro
         eyebrow="Outil FabSystem"
-        title="Editeur de schema electrique pour bateau, van et camping-car"
-        description="Une base de travail claire pour preparer votre architecture electrique, partir d'un exemple, organiser vos sous-ensembles et verifier les points sensibles avant cablage."
+        title="Éditeur de schéma électrique pour bateau, van et camping-car"
+        description="Une base de travail claire pour préparer votre architecture électrique, partir d'un exemple, organiser vos sous-ensembles et vérifier les points sensibles avant câblage."
       />
 
       <Section tone="light" className="pb-8 pt-6 sm:pb-10">
@@ -166,90 +170,96 @@ function LandingPage() {
             </div>
 
             <h2 className="mt-4 text-2xl font-bold tracking-tight text-neutral-950">
-              Ouvrez l&apos;editeur, ou partez d&apos;un schema deja structure.
+              Ouvrez l&apos;éditeur, ou partez d&apos;un schéma déjà structuré.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700">
-              L&apos;editeur sert a poser une architecture lisible: chaine solaire, recharge
+              L&apos;éditeur sert à poser une architecture lisible : chaîne solaire, recharge
               alternateur, distribution 12 V, 230 V, supervision et protections. Vous pouvez
-              partir d&apos;un schema vierge ou d&apos;un exemple adapte a un van lithium, un bateau
+              partir d&apos;un schéma vierge ou d&apos;un exemple adapté à un van lithium, un bateau
               au quai, un voilier autonome, un camping-car ou une station tout-en-un.
             </p>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <Button href={EDITOR_PATH} variant="primary">
-                Ouvrir l&apos;editeur
+                Ouvrir l&apos;éditeur
               </Button>
               <PwaInstallButton className="inline-flex h-10 min-h-10 items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-100" />
               <Button href="/schemas-electriques" variant="secondary">
-                Voir les schemas d&apos;exemple
+                Voir les schémas d&apos;exemple
               </Button>
             </div>
             <p className="mt-3 text-xs leading-relaxed text-neutral-500">L&apos;installation ajoute l&apos;éditeur à votre bureau Windows ou Mac. Aucun fichier à télécharger ni compte supplémentaire.</p>
+            <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+              Gratuit pour démarrer.{" "}
+              <Link href="/mon-compte/editeur" className="font-semibold text-amber-700 hover:underline">
+                Éditeur Plus
+              </Link>{" "}
+              ajoute le dimensionnement automatique et les alertes détaillées quand vous en avez besoin.
+            </p>
           </div>
 
-          <aside className="rounded-[28px] border border-neutral-200 bg-white p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-              Ce que l&apos;outil aide a faire
-            </p>
-            <ul className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-700">
-              <li className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                Organiser les zones techniques et les liaisons principales avant de cabler.
-              </li>
-              <li className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                Adapter un schema a votre materiel plutot que recopier un montage au hasard.
-              </li>
-              <li className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                Preparer ensuite les verifications de section, de fusible, de MPPT et de bilan de consommation.
-              </li>
-            </ul>
+          <aside className="overflow-hidden rounded-[28px] border border-neutral-200 bg-white p-2">
+            <SchemaExportPreview />
           </aside>
         </div>
       </Section>
 
-      <Section tone="muted" className="py-8 sm:py-10">
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            {
-              title: "Bateau",
-              text: "Repartir d'un schema de quai, d'un voilier autonome ou d'un refit plus dense pour clarifier le bord avant modification.",
-            },
-            {
-              title: "Van",
-              text: "Poser proprement une batterie service, un MPPT, un DC-DC, un MultiPlus ou une station tout-en-un sans perdre la lecture generale.",
-            },
-            {
-              title: "Camping-car",
-              text: "Structurer les gros sous-ensembles, la distribution et les usages plus gourmands comme un depart climatisation 12 V.",
-            },
-          ].map((item) => (
-            <article
-              key={item.title}
-              className="rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm"
-            >
-              <h2 className="text-lg font-bold tracking-tight text-neutral-950">{item.title}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-neutral-700">{item.text}</p>
-            </article>
-          ))}
+      <Section tone="dark" className="py-8 sm:py-10">
+        <div className="overflow-hidden rounded-[28px] bg-neutral-950 px-6 py-8 sm:px-10 sm:py-10">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">
+              Éditeur Plus
+            </p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Le dimensionnement automatique et les alertes détaillées, quand votre projet grandit
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-neutral-300">
+              L&apos;éditeur reste gratuit pour démarrer, composants et câblage inclus. Éditeur
+              Plus ajoute le calcul automatique de section de câble et de calibre de fusible, et
+              lève la limite de 1 projet / 3 consommateurs.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href="/mon-compte/editeur"
+                className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm font-semibold text-white transition-base hover:bg-white/10"
+              >
+                6,90 € / mois
+              </Link>
+              <Link
+                href="/mon-compte/editeur"
+                className="rounded-xl border border-amber-400 bg-amber-500/10 px-4 py-2.5 text-sm font-semibold text-amber-300 transition-base hover:bg-amber-500/20"
+              >
+                59 € / an <span className="font-normal text-neutral-400">(4,92 € / mois)</span>
+              </Link>
+              <Button href="/mon-compte/editeur" variant="primary">
+                Voir Éditeur Plus →
+              </Button>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <PlansComparisonTable />
+          </div>
         </div>
       </Section>
 
       <Section tone="light" className="py-8 sm:py-10">
         <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           <article className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-6">
-            <h2 className="text-xl font-bold tracking-tight text-neutral-950">Benefices</h2>
+            <h2 className="text-xl font-bold tracking-tight text-neutral-950">Bénéfices</h2>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-800">
               <li>Clarifier rapidement une installation avant achat, refit ou correction.</li>
-              <li>Passer d&apos;un exemple concret a votre propre configuration.</li>
-              <li>Centraliser schema, variantes et impression dans un meme outil de travail.</li>
+              <li>Passer d&apos;un exemple concret à votre propre configuration.</li>
+              <li>Centraliser schéma, variantes et impression dans un même outil de travail.</li>
             </ul>
           </article>
 
           <article className="rounded-[28px] border border-amber-200 bg-amber-50 p-6">
-            <h2 className="text-xl font-bold tracking-tight text-neutral-950">Limites a garder en tete</h2>
+            <h2 className="text-xl font-bold tracking-tight text-neutral-950">Limites à garder en tête</h2>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-neutral-800">
-              <li>Un schema lisible ne remplace jamais le releve des longueurs reelles et des intensites.</li>
-              <li>Les sections, fusibles, protections AC et details constructeur doivent etre reverifies.</li>
-              <li>La validation finale de l&apos;installation reste une etape technique distincte.</li>
+              <li>Un schéma lisible ne remplace jamais le relevé des longueurs réelles et des intensités.</li>
+              <li>Les sections, fusibles, protections AC et détails constructeur doivent être revérifiés.</li>
+              <li>La validation finale de l&apos;installation reste une étape technique distincte.</li>
             </ul>
           </article>
         </div>
@@ -259,10 +269,10 @@ function LandingPage() {
         <div className="grid gap-4 lg:grid-cols-2">
           <article className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-              Exemples a adapter
+              Exemples à adapter
             </p>
             <h2 className="mt-3 text-xl font-bold tracking-tight text-neutral-950">
-              Repartir d&apos;un cas deja structure
+              Repartir d&apos;un cas déjà structuré
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
               La galerie regroupe des architectures utiles pour un van lithium 280 Ah, un bateau au
@@ -270,7 +280,7 @@ function LandingPage() {
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Button href="/schemas-electriques" variant="primary">
-                Explorer les schemas
+                Explorer les schémas
               </Button>
               <Button href="/schemas-electriques/schema-vito-280ah-van" variant="secondary">
                 Voir le van 280 Ah
@@ -280,14 +290,14 @@ function LandingPage() {
 
           <article className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-              Verifications utiles
+              Vérifications utiles
             </p>
             <h2 className="mt-3 text-xl font-bold tracking-tight text-neutral-950">
-              Completer l&apos;editeur avec les calculateurs
+              Compléter l&apos;éditeur avec les calculateurs
             </h2>
             <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
               <Link href="/outils/section-cable" className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-700 hover:bg-neutral-100">
-                Section de cable
+                Section de câble
               </Link>
               <Link href="/outils/fusible" className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-700 hover:bg-neutral-100">
                 Calibre fusible
@@ -306,7 +316,7 @@ function LandingPage() {
       <Section tone="light" className="py-8 sm:py-10">
         <div className="max-w-4xl">
           <h2 className="text-2xl font-bold tracking-tight text-neutral-950">
-            Questions frequentes sur l&apos;editeur de schemas
+            Questions fréquentes sur l&apos;éditeur de schémas
           </h2>
           <div className="mt-6 space-y-4">
             {faqItems.map((item) => (
@@ -325,19 +335,19 @@ function LandingPage() {
       <Section tone="dark" className="py-8 sm:py-10">
         <div className="rounded-[28px] border border-white/10 bg-neutral-900 px-6 py-8">
           <h2 className="text-2xl font-bold tracking-tight text-white">
-            Besoin d&apos;aller plus loin qu&apos;un schema d&apos;intention ?
+            Besoin d&apos;aller plus loin qu&apos;un schéma d&apos;intention ?
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-neutral-300">
-            L&apos;editeur aide a preparer et clarifier. Quand il faut verifier une architecture, un
-            choix de materiel, un point de norme ou une logique de protection, l&apos;accompagnement
-            a distance prend le relais.
+            L&apos;éditeur aide à préparer et clarifier. Quand il faut vérifier une architecture, un
+            choix de matériel, un point de norme ou une logique de protection, l&apos;accompagnement
+            à distance prend le relais.
           </p>
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <Button href={EDITOR_PATH} variant="primary">
-              Utiliser l&apos;editeur
+              Utiliser l&apos;éditeur
             </Button>
             <Button href="/prestations/accompagnement" variant="secondary">
-              Voir l&apos;accompagnement a distance
+              Voir l&apos;accompagnement à distance
             </Button>
           </div>
         </div>
@@ -351,6 +361,17 @@ export default async function SchemaPage({ searchParams }: SchemaEditorPageProps
 
   if (hasActiveEditorIntent(resolvedSearchParams)) {
     return <SchemaEditorRuntime />;
+  }
+
+  // Retour utilisateur : "si il est inscrit et logué, appuyer sur le
+  // bouton envoie direct jusqu'à l'accueil de l'éditeur" — un client déjà
+  // identifié n'a plus besoin de la page marketing, seul un visiteur
+  // anonyme y atterrit. Variante "OrAnonymous" (jamais requireCustomerActor
+  // ici) : une panne de résolution de session ne doit jamais faire planter
+  // cette page publique, juste dégrader vers l'affichage anonyme.
+  const session = await getCustomerSessionFromCookieOrAnonymous();
+  if (session) {
+    redirect(EDITOR_PATH);
   }
 
   return <LandingPage />;

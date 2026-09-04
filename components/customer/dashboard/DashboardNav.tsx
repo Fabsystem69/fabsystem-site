@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/mon-compte", label: "Accueil" },
   { href: "/mon-compte/projets", label: "Mes projets" },
   { href: "/mon-compte/achats", label: "Mes achats" },
+  { href: "/mon-compte/editeur", label: "Éditeur Plus" },
   { href: "/outils", label: "Mes outils" },
   { href: "/mon-compte/profil", label: "Mon profil" },
 ] as const;

@@ -3,14 +3,14 @@ import type { OwnershipActor } from "@/lib/ownership";
 
 // v2.1 : checkout express pour un créneau de conseil ponctuel (30 min, visio
 // ou téléphone, 59€) — proposé dans l'éditeur de schéma quand l'utilisateur
-// semble bloqué (voir CoachingOfferWidget.tsx). Même schéma que
-// schema-unlock-checkout.ts (produit hors panier générique, price_data
-// Stripe construit depuis le Product/Price local plutôt qu'un Price Stripe
-// pré-créé) mais sans Project à rattacher : n'importe quel client connecté
-// peut l'acheter. Aucun octroi automatique (pas de DownloadGrant, pas de
-// capability) — sendPurchaseNotification (déjà appelée pour toute commande
-// payée, voir stripe-webhook-commerce.ts) suffit à alerter Fabien pour
-// qu'il recontacte le client et cale le rendez-vous.
+// semble bloqué (voir CoachingOfferWidget.tsx). Produit hors panier
+// générique : price_data Stripe construit depuis le Product/Price local
+// plutôt qu'un Price Stripe pré-créé, sans Project à rattacher —
+// n'importe quel client connecté peut l'acheter. Aucun octroi automatique
+// (pas de DownloadGrant, pas de capability) — sendPurchaseNotification
+// (déjà appelée pour toute commande payée, voir stripe-webhook-commerce.ts)
+// suffit à alerter Fabien pour qu'il recontacte le client et cale le
+// rendez-vous.
 export const COACHING_30MIN_PRODUCT_SLUG = "coaching-30min";
 
 function formatOrderDate(date: Date) {
