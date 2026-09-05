@@ -64,10 +64,29 @@ const SEARCH_SYNONYMS: Record<string, string[]> = {
   inverter: ["onduleur"],
   "ac-charger": ["chargeur de batterie", "chargeur secteur"],
   "circuit-breaker": ["coupe-circuit", "coupe circuit"],
-  "battery-switch": ["coupure basse tension", "protection batterie"],
+  "battery-switch": ["coupure basse tension", "protection batterie", "coupe circuit", "coupe-batterie"],
   "battery-protect": ["smart battery protect", "protection basse tension", "batteryprotect"],
   ground: ["masse", "terre"],
   busbar: ["bornier"],
+};
+
+// Audit UX (recherche bibliothèque) : "frigo" et "ampoule" sont les mots
+// réellement tapés par les utilisateurs, pas les libellés techniques des
+// préréglages "consumer" ("Réfrigérateur à compression", "Plafonnier LED"…).
+// Ces préréglages partagent tous le même type "consumer" et donc le même
+// SEARCH_SYNONYMS ci-dessus — un synonyme par préréglage est nécessaire ici,
+// indexé par `value` plutôt que par `type`.
+const CONSUMER_PRESET_SEARCH_SYNONYMS: Record<string, string[]> = {
+  refrigerateur: ["frigo"],
+  "refrigerateur-trimix": ["frigo"],
+  "eclairage-led": ["ampoule", "lampe"],
+  "spot-led": ["ampoule", "lampe"],
+  "ruban-led": ["ampoule", "lampe"],
+  "liseuse-led": ["ampoule", "lampe"],
+  "plafonnier-led": ["ampoule", "lampe"],
+  "pompe-eau": ["douche"],
+  "pompe-eau-immergee-25l": ["douche"],
+  "pompe-eau-immergee-10l": ["douche"],
 };
 
 // Retire espaces/tirets avant comparaison : les noms de produit reels
@@ -169,10 +188,13 @@ export function ComponentLibrary() {
       const haystack = buildSearchHaystack(def.type, def.label, def.subtitle, def.description);
       if (def.type === "consumer") {
         for (const preset of CONSUMER_LIBRARY_PRESETS) {
+          const presetSynonyms = CONSUMER_PRESET_SEARCH_SYNONYMS[preset.value] ?? [];
+          const presetHaystack = normalizeForSearch(presetSynonyms.join(" "));
           if (
             q &&
             !preset.label.toLowerCase().includes(q) &&
-            !haystack.includes(normalizedQuery)
+            !haystack.includes(normalizedQuery) &&
+            !(presetHaystack && presetHaystack.includes(normalizedQuery))
           )
             continue;
           items.push({
