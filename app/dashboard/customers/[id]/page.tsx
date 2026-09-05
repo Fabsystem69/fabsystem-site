@@ -108,19 +108,24 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
               ) : (
                 <ul className="divide-y divide-neutral-800/80">
                   {orders.map((order) => (
-                    <li key={order.id} className="flex items-center justify-between gap-4 py-3 text-sm">
-                      <Link href={`/dashboard/orders/${order.id}`} className="min-w-0 hover:opacity-80">
-                        <p className="truncate font-medium text-neutral-100">{order.orderNumber}</p>
-                        <p className="truncate text-neutral-500">
-                          {formatDate(order.createdAt)} · {order.itemCount} article(s)
-                        </p>
+                    <li key={order.id}>
+                      <Link
+                        href={`/dashboard/orders/${order.id}`}
+                        className="flex items-center justify-between gap-4 py-3 text-sm hover:opacity-80"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-neutral-100">{order.orderNumber}</p>
+                          <p className="truncate text-neutral-500">
+                            {formatDate(order.createdAt)} · {order.itemCount} article(s)
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <AdminBadge tone={getOrderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</AdminBadge>
+                          <span className="font-semibold text-white">
+                            {formatEuroFromCents(order.totalCents)}
+                          </span>
+                        </div>
                       </Link>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <AdminBadge tone={getOrderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</AdminBadge>
-                        <span className="font-semibold text-white">
-                          {formatEuroFromCents(order.totalCents)}
-                        </span>
-                      </div>
                     </li>
                   ))}
                 </ul>
