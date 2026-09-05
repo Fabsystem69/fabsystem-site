@@ -61,7 +61,7 @@ export function Parcours() {
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">
           {selectedUniverseLabel
             ? `Univers actif : ${selectedUniverseLabel}. Les liens de cette page se calent sur cet univers.`
-            : "Choisissez votre univers pour adapter les accompagnements et les services a votre projet."}
+            : "Choisissez votre univers pour adapter les accompagnements et les services à votre projet."}
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2" aria-label="Choisir votre univers">

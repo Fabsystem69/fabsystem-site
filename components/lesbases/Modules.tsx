@@ -170,7 +170,7 @@ export function Modules() {
             <Badge tone="neutral">À lire après les 6 modules</Badge>
           </div>
           <h3 className="mt-3 text-xl font-bold tracking-tight text-white">
-            Trois lectures pour passer des bases a un vrai projet
+            Trois lectures pour passer des bases à un vrai projet
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-white/72 sm:text-base">
             Une fois les fondamentaux compris, ces trois lectures vous aident à passer d&apos;une notion
