@@ -193,12 +193,12 @@ test("getDownloadAccessForGrant refuses a missing grant", async () => {
 test("getDownloadAccessForGrant refuses when no customer context is provided", async () => {
   const grant = createDownloadGrantRecord();
   const { db, state } = createMockDownloadAccessDb({ grant });
-  const calls: Array<{ path: string; ttl?: number }> = [];
+  const calls: Array<{ path: string }> = [];
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl(path: string, ttl?: number) {
-      calls.push({ path, ttl });
-      return "https://example.test/signed-download";
+    async resolveAssetDownload(asset) {
+      calls.push({ path: asset.path });
+      return { mode: "redirect" as const, url: "https://example.test/signed-download" };
     },
   });
 
@@ -340,12 +340,12 @@ test("getDownloadAccessForGrant refuses an order that is not paid", async () => 
 test("getDownloadAccessForGrant authorizes when order.customerId matches the customer", async () => {
   const grant = createDownloadGrantRecord();
   const { db } = createMockDownloadAccessDb({ grant });
-  const calls: Array<{ path: string; ttl?: number; filename?: string }> = [];
+  const calls: Array<{ path: string; filename?: string }> = [];
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl(path: string, ttl?: number, filename?: string) {
-      calls.push({ path, ttl, filename });
-      return "https://example.test/signed-download";
+    async resolveAssetDownload(asset) {
+      calls.push({ path: asset.path, filename: asset.filename });
+      return { mode: "redirect" as const, url: "https://example.test/signed-download" };
     },
   });
 
@@ -357,11 +357,11 @@ test("getDownloadAccessForGrant authorizes when order.customerId matches the cus
     })
   );
 
-  assert.equal(result.url, "https://example.test/signed-download");
-  assert.equal(result.expiresInSeconds, 300);
+  assert.equal(result.mode, "redirect");
+  assert.equal(result.mode === "redirect" ? result.url : null, "https://example.test/signed-download");
   assert.equal(result.grant.id, grant.id);
   assert.deepEqual(calls, [
-    { path: grant.asset.path, ttl: 300, filename: grant.asset.filename },
+    { path: grant.asset.path, filename: grant.asset.filename },
   ]);
 });
 
@@ -375,8 +375,8 @@ test("getDownloadAccessForGrant authorizes fallback on order.customerEmail when 
   const { db } = createMockDownloadAccessDb({ grant });
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl() {
-      return "https://example.test/signed-download";
+    async resolveAssetDownload() {
+      return { mode: "redirect" as const, url: "https://example.test/signed-download" };
     },
   });
 
@@ -388,7 +388,7 @@ test("getDownloadAccessForGrant authorizes fallback on order.customerEmail when 
     })
   );
 
-  assert.equal(result.url, "https://example.test/signed-download");
+  assert.equal(result.mode === "redirect" ? result.url : null, "https://example.test/signed-download");
 });
 
 test("getDownloadAccessForGrant refuses when customerId and email do not match", async () => {
@@ -397,9 +397,9 @@ test("getDownloadAccessForGrant refuses when customerId and email do not match",
   const calls: Array<string> = [];
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl(path: string) {
-      calls.push(path);
-      return "https://example.test/signed-download";
+    async resolveAssetDownload(asset) {
+      calls.push(asset.path);
+      return { mode: "redirect" as const, url: "https://example.test/signed-download" };
     },
   });
 
@@ -430,9 +430,9 @@ test("getDownloadAccessForGrant refuses fallback email when order is already lin
   const calls: Array<string> = [];
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl(path: string) {
-      calls.push(path);
-      return "https://example.test/signed-download";
+    async resolveAssetDownload(asset) {
+      calls.push(asset.path);
+      return { mode: "redirect" as const, url: "https://example.test/signed-download" };
     },
   });
 
@@ -476,7 +476,7 @@ test("consumeDownloadGrant does not increment if signed URL generation fails ups
   const { db, state } = createMockDownloadAccessDb({ grant });
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl() {
+    async resolveAssetDownload() {
       throw new Error("Supabase unavailable");
     },
   });
@@ -545,8 +545,8 @@ test("download access service does not store signed URLs in the database", async
   const { db, state } = createMockDownloadAccessDb({ grant });
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl() {
-      return "https://example.test/private";
+    async resolveAssetDownload() {
+      return { mode: "redirect" as const, url: "https://example.test/private" };
     },
   });
 
@@ -557,21 +557,24 @@ test("download access service does not store signed URLs in the database", async
   assert.equal(state.consumeAttempts[0]?.grantId, grant.id);
 });
 
-test("download access service does not touch Stripe or Vercel Blob", async () => {
+// Historiquement "ne touche jamais Vercel Blob" (avant le decommissioning
+// Sprint 8.9) — desormais Vercel Blob est un provider legitime au meme titre
+// que Supabase (voir lib/server/asset-download.ts) : ce qui compte est que
+// le service ne touche jamais Stripe, et delegue tout acces au stockage au
+// resolver injecte plutot que d'appeler un SDK en dur.
+test("download access service does not touch Stripe directly", async () => {
   const grant = createDownloadGrantRecord();
   const { db } = createMockDownloadAccessDb({ grant });
   const stripeTouched = false;
-  const blobTouched = false;
 
   const service = createDownloadAccessService(db, {
     expectedBucket: grant.asset.bucket,
-    async createPrivateAssetSignedUrl() {
-      return "https://example.test/private";
+    async resolveAssetDownload() {
+      return { mode: "redirect" as const, url: "https://example.test/private" };
     },
   });
 
   await service.getDownloadAccessForGrant(grant.id, createCustomerContext());
 
   assert.equal(stripeTouched, false);
-  assert.equal(blobTouched, false);
 });

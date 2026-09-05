@@ -103,6 +103,11 @@ enum DigitalAssetStatus {
 
 enum DigitalAssetProvider {
   SUPABASE
+  // Migration en cours (retour utilisateur : projets Supabase gratuits mis
+  // en pause apres 7 jours d'inactivite, deja source de plaintes clients
+  // sur des telechargements d'ebooks). Meme store prive que
+  // lib/server/dossier-storage.ts.
+  VERCEL_BLOB
 }
 
 enum CartStatus {

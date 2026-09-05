@@ -14,6 +14,7 @@ import {
   serviceUnavailable,
   unauthorized,
 } from "@/lib/http-errors";
+import type { AssetDownloadResolution } from "@/lib/server/asset-download";
 
 type PrismaClientLike = PrismaClient;
 
@@ -36,22 +37,21 @@ type DownloadAccessDb = {
 
 type DownloadAccessDeps = {
   now?: () => Date;
-  createPrivateAssetSignedUrl?: (
-    path: string,
-    expiresInSeconds?: number,
-    downloadFilename?: string
-  ) => Promise<string>;
-  signedUrlTtlSeconds?: number;
+  resolveAssetDownload?: (asset: {
+    provider: string;
+    path: string;
+    filename: string;
+  }) => Promise<AssetDownloadResolution>;
   // Accepte une valeur directe (tests) ou une fonction paresseuse (config
   // Supabase reelle) : la resolution paresseuse evite d'echouer sur une
   // config Supabase manquante avant meme d'avoir verifie que le grant est
   // actif (cf. docs/audits/ecommerce-production-readiness-2026-08-06.md).
+  // Ne s'applique qu'aux assets provider=SUPABASE — un bucket Vercel Blob
+  // n'a pas d'equivalent (voir assertDownloadGrantIsEligible).
   expectedBucket?: string | null | (() => string | null);
 };
 
-export type DownloadAccessResult = {
-  url: string;
-  expiresInSeconds: number;
+export type DownloadAccessResult = AssetDownloadResolution & {
   grant: DownloadGrantWithRelations;
 };
 
@@ -99,7 +99,7 @@ function assertDownloadGrantIsEligible(
     throw conflict("Digital asset is not active");
   }
 
-  if (grant.asset.provider !== "SUPABASE") {
+  if (grant.asset.provider !== "SUPABASE" && grant.asset.provider !== "VERCEL_BLOB") {
     throw conflict("Digital asset provider is not supported for signed downloads");
   }
 
@@ -107,10 +107,15 @@ function assertDownloadGrantIsEligible(
     throw conflict("Digital asset storage metadata is incomplete");
   }
 
-  const expectedBucket = resolveExpectedBucket?.() ?? null;
+  // Le controle de bucket n'a de sens que pour Supabase (config a bucket
+  // unique) — un DigitalAsset Vercel Blob utilise "vercel-blob" comme simple
+  // marqueur, jamais un vrai nom de bucket a comparer.
+  if (grant.asset.provider === "SUPABASE") {
+    const expectedBucket = resolveExpectedBucket?.() ?? null;
 
-  if (expectedBucket && grant.asset.bucket !== expectedBucket) {
-    throw conflict("Digital asset bucket does not match the configured private bucket");
+    if (expectedBucket && grant.asset.bucket !== expectedBucket) {
+      throw conflict("Digital asset bucket does not match the configured private bucket");
+    }
   }
 
   return grant;
@@ -169,14 +174,14 @@ function createPrismaDownloadAccessDb(client: PrismaClientLike): DownloadAccessD
 }
 
 async function getDefaultDownloadAccessService() {
-  const [{ prisma }, storage] = await Promise.all([
+  const [{ prisma }, storage, assetDownload] = await Promise.all([
     import("@/lib/prisma"),
     import("@/lib/server/supabase-storage"),
+    import("@/lib/server/asset-download"),
   ]);
 
   return createDownloadAccessService(createPrismaDownloadAccessDb(prisma), {
-    createPrivateAssetSignedUrl: storage.createPrivateAssetSignedUrl,
-    signedUrlTtlSeconds: storage.SUPABASE_STORAGE_SIGNED_URL_DEFAULT_TTL_SECONDS,
+    resolveAssetDownload: assetDownload.resolveAssetDownload,
     expectedBucket: () => storage.getSupabaseStorageConfig().bucket,
   });
 }
@@ -186,12 +191,11 @@ export function createDownloadAccessService(
   deps?: DownloadAccessDeps
 ) {
   const now = deps?.now ?? (() => new Date());
-  const createPrivateAssetSignedUrl =
-    deps?.createPrivateAssetSignedUrl ??
+  const resolveAssetDownload =
+    deps?.resolveAssetDownload ??
     (async () => {
       throw serviceUnavailable("Download link generation is not configured");
     });
-  const signedUrlTtlSeconds = deps?.signedUrlTtlSeconds ?? 300;
   const expectedBucketDep = deps?.expectedBucket ?? null;
   const resolveExpectedBucket = () =>
     typeof expectedBucketDep === "function" ? expectedBucketDep() : expectedBucketDep;
@@ -210,20 +214,15 @@ export function createDownloadAccessService(
       );
       assertGrantBelongsToCustomer(grant, customer);
 
-      let url: string;
+      let resolution: AssetDownloadResolution;
       try {
-        url = await createPrivateAssetSignedUrl(
-          grant.asset.path,
-          signedUrlTtlSeconds,
-          grant.asset.filename
-        );
+        resolution = await resolveAssetDownload(grant.asset);
       } catch {
         throw serviceUnavailable("Download link generation failed");
       }
 
       return {
-        url,
-        expiresInSeconds: signedUrlTtlSeconds,
+        ...resolution,
         grant,
       };
     },

@@ -18,7 +18,7 @@ const productStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
 const productTypeSchema = z.enum(["EBOOK", "DIGITAL_DOWNLOAD", "BUNDLE", "SCHEMA_UNLOCK", "COACHING_30MIN"]);
 const purchaseModeSchema = z.enum(["BUY_NOW", "REQUEST_ONLY"]);
 const digitalAssetStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
-const digitalAssetProviderSchema = z.enum(["SUPABASE"]);
+const digitalAssetProviderSchema = z.enum(["SUPABASE", "VERCEL_BLOB"]);
 const optionalTrimmedString = z.string().trim().optional().nullable().or(z.literal(""));
 
 // Identifiants techniques (slug, bucket, storage path) : jamais d'accent, jamais

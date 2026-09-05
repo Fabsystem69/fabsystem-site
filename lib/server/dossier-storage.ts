@@ -1,7 +1,7 @@
 import "server-only";
 
-import { del, get, put } from "@vercel/blob";
-import { badRequest, notFound } from "@/lib/http-errors";
+import { badRequest } from "@/lib/http-errors";
+import { deletePrivateBlob, getPrivateBlobStream, uploadPrivateBlob } from "@/lib/server/vercel-blob-storage";
 
 // Vercel Blob plutot que Supabase (retour utilisateur : pause automatique
 // des projets Supabase gratuits apres 7 jours d'inactivite — gênant pour un
@@ -9,13 +9,13 @@ import { badRequest, notFound } from "@/lib/http-errors";
 // configure en acces PRIVATE (pas 'public') : aucune URL fetchable
 // directement par le navigateur. L'acces passe donc par des routes serveur
 // qui verifient la session (admin ou client proprietaire) puis relaient le
-// contenu via `get(url, { access: "private" })` — meme garantie de securite
-// que les URLs signees Supabase, appliquee au niveau application plutot que
+// contenu via getPrivateBlobStream() — meme garantie de securite que les
+// URLs signees Supabase, appliquee au niveau application plutot que
 // stockage. Voir app/api/dossiers/documents/[documentId]/route.ts et
 // app/api/internal/dossiers/documents/[documentId]/route.ts.
 //
-// Ebooks (lib/supabase-storage.ts) restent sur Supabase pour l'instant —
-// migration separee si besoin, hors perimetre ici.
+// Operations Vercel Blob generiques dans lib/server/vercel-blob-storage.ts,
+// partagees avec la migration des ebooks (lib/services/download-access.ts).
 
 // Plan Supabase gratuit ecarte, mais les plafonds bas restent valables
 // (Vercel Blob gratuit = 1 Go egalement) : 2 Mo/fichier, 8 Mo cumules/dossier.
@@ -57,27 +57,19 @@ export async function uploadDossierDocument(input: {
   validateDossierUpload({ size: input.buffer.byteLength, type: input.contentType });
 
   const pathname = buildBlobPathname(input.dossierId, input.filename);
-  const blob = await put(pathname, input.buffer, {
-    access: "private",
-    contentType: input.contentType,
-    addRandomSuffix: true,
-  });
+  const url = await uploadPrivateBlob(pathname, input.buffer, input.contentType);
 
   // "bucket" reste "vercel-blob" (marqueur, coherent avec le champ existant
   // DossierDocument.bucket) ; "path" stocke l'URL complete Vercel Blob —
   // necessaire pour get()/del() ensuite, jamais fetchable telle quelle par
   // un navigateur (store prive).
-  return { bucket: "vercel-blob", path: blob.url };
+  return { bucket: "vercel-blob", path: url };
 }
 
 export async function getDossierDocumentStream(path: string) {
-  const result = await get(path, { access: "private" });
-  if (!result || result.statusCode !== 200) {
-    throw notFound("Document introuvable dans le stockage.");
-  }
-  return { stream: result.stream, contentType: result.blob.contentType, size: result.blob.size };
+  return getPrivateBlobStream(path);
 }
 
 export async function deleteDossierDocumentFile(path: string) {
-  await del(path);
+  await deletePrivateBlob(path);
 }

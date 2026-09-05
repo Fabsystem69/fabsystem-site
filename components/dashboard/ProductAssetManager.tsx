@@ -1,3 +1,4 @@
+import type { DigitalAssetProvider } from "@/lib/generated/prisma/client";
 import {
   activateDigitalAssetAction,
   archiveDigitalAssetAction,
@@ -14,7 +15,7 @@ type ProductAssetManagerProps = {
     asset: {
       id: string;
       filename: string;
-      provider: "SUPABASE";
+      provider: DigitalAssetProvider;
       bucket: string;
       path: string;
       status: "DRAFT" | "ACTIVE" | "ARCHIVED";

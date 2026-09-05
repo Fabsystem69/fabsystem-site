@@ -1,11 +1,13 @@
 "use client";
 
+import type { DigitalAssetProvider } from "@/lib/generated/prisma/client";
+
 type DigitalAssetFormProps = {
   action: (formData: FormData) => void | Promise<void>;
   submitLabel: string;
   initialValues?: {
     assetId?: string;
-    provider?: "SUPABASE";
+    provider?: DigitalAssetProvider;
     filename?: string;
     bucket?: string;
     path?: string;
@@ -33,6 +35,7 @@ export function DigitalAssetForm({
             className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500"
           >
             <option value="SUPABASE">SUPABASE</option>
+            <option value="VERCEL_BLOB">VERCEL_BLOB</option>
           </select>
         </label>
 

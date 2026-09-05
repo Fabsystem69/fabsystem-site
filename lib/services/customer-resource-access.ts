@@ -6,6 +6,7 @@ import type {
   Product,
 } from "@/lib/generated/prisma/client";
 import { badRequest, conflict, forbidden, notFound, serviceUnavailable } from "@/lib/http-errors";
+import type { AssetDownloadResolution } from "@/lib/server/asset-download";
 
 type PrismaClientLike = PrismaClient;
 
@@ -24,18 +25,15 @@ type ResourceAccessDb = {
 
 type ResourceAccessDeps = {
   now?: () => Date;
-  createPrivateAssetSignedUrl?: (
-    path: string,
-    expiresInSeconds?: number,
-    downloadFilename?: string
-  ) => Promise<string>;
-  signedUrlTtlSeconds?: number;
+  resolveAssetDownload?: (asset: {
+    provider: string;
+    path: string;
+    filename: string;
+  }) => Promise<AssetDownloadResolution>;
   expectedBucket?: string | null | (() => string | null);
 };
 
-export type ResourceAccessResult = {
-  url: string;
-  expiresInSeconds: number;
+export type ResourceAccessResult = AssetDownloadResolution & {
   grant: ResourceGrantWithRelations;
 };
 
@@ -79,7 +77,7 @@ function assertResourceGrantIsEligible(
     throw conflict("Digital asset is not active");
   }
 
-  if (grant.asset.provider !== "SUPABASE") {
+  if (grant.asset.provider !== "SUPABASE" && grant.asset.provider !== "VERCEL_BLOB") {
     throw conflict("Digital asset provider is not supported for signed downloads");
   }
 
@@ -87,10 +85,12 @@ function assertResourceGrantIsEligible(
     throw conflict("Digital asset storage metadata is incomplete");
   }
 
-  const expectedBucket = resolveExpectedBucket?.() ?? null;
+  if (grant.asset.provider === "SUPABASE") {
+    const expectedBucket = resolveExpectedBucket?.() ?? null;
 
-  if (expectedBucket && grant.asset.bucket !== expectedBucket) {
-    throw conflict("Digital asset bucket does not match the configured private bucket");
+    if (expectedBucket && grant.asset.bucket !== expectedBucket) {
+      throw conflict("Digital asset bucket does not match the configured private bucket");
+    }
   }
 
   return grant;
@@ -137,26 +137,25 @@ function createPrismaResourceAccessDb(client: PrismaClientLike): ResourceAccessD
 }
 
 async function getDefaultResourceAccessService() {
-  const [{ prisma }, storage] = await Promise.all([
+  const [{ prisma }, storage, assetDownload] = await Promise.all([
     import("@/lib/prisma"),
     import("@/lib/server/supabase-storage"),
+    import("@/lib/server/asset-download"),
   ]);
 
   return createResourceAccessService(createPrismaResourceAccessDb(prisma), {
-    createPrivateAssetSignedUrl: storage.createPrivateAssetSignedUrl,
-    signedUrlTtlSeconds: storage.SUPABASE_STORAGE_SIGNED_URL_DEFAULT_TTL_SECONDS,
+    resolveAssetDownload: assetDownload.resolveAssetDownload,
     expectedBucket: () => storage.getSupabaseStorageConfig().bucket,
   });
 }
 
 export function createResourceAccessService(db: ResourceAccessDb, deps?: ResourceAccessDeps) {
   const now = deps?.now ?? (() => new Date());
-  const createPrivateAssetSignedUrl =
-    deps?.createPrivateAssetSignedUrl ??
+  const resolveAssetDownload =
+    deps?.resolveAssetDownload ??
     (async () => {
       throw serviceUnavailable("Download link generation is not configured");
     });
-  const signedUrlTtlSeconds = deps?.signedUrlTtlSeconds ?? 300;
   const expectedBucketDep = deps?.expectedBucket ?? null;
   const resolveExpectedBucket = () =>
     typeof expectedBucketDep === "function" ? expectedBucketDep() : expectedBucketDep;
@@ -175,18 +174,14 @@ export function createResourceAccessService(db: ResourceAccessDb, deps?: Resourc
       );
       assertGrantBelongsToCustomer(grant, customer);
 
-      let url: string;
+      let resolution: AssetDownloadResolution;
       try {
-        url = await createPrivateAssetSignedUrl(
-          grant.asset.path,
-          signedUrlTtlSeconds,
-          grant.asset.filename
-        );
+        resolution = await resolveAssetDownload(grant.asset);
       } catch {
         throw serviceUnavailable("Download link generation failed");
       }
 
-      return { url, expiresInSeconds: signedUrlTtlSeconds, grant };
+      return { ...resolution, grant };
     },
 
     async consumeResourceGrant(grantId: string, customer?: ResourceAccessCustomerContext | null) {

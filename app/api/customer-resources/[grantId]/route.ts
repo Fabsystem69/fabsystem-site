@@ -63,7 +63,16 @@ export async function GET(request: Request, { params }: Params) {
     const access = await getResourceAccessForGrant(grantId, customer);
     await consumeResourceGrant(grantId, customer);
 
-    return NextResponse.redirect(access.url, { status: 302 });
+    if (access.mode === "redirect") {
+      return NextResponse.redirect(access.url, { status: 302 });
+    }
+
+    return new NextResponse(access.stream, {
+      headers: {
+        "Content-Type": access.contentType,
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(access.grant.asset.filename)}"`,
+      },
+    });
   } catch (error) {
     if (isHttpError(error) && error.status >= 500) {
       logServerEvent("error", "api.customer-resources.get: http error", {

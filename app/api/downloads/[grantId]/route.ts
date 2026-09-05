@@ -69,7 +69,19 @@ export async function GET(request: Request, { params }: Params) {
     const access = await getDownloadAccessForGrant(grantId, customer);
     await consumeDownloadGrant(grantId, customer);
 
-    return NextResponse.redirect(access.url, { status: 302 });
+    // Supabase : URL signee, le navigateur la recupere directement (redirect).
+    // Vercel Blob (store prive, pas d'URL signee equivalente) : la route
+    // relaie elle-meme le flux, avec le nom de fichier reel en en-tete.
+    if (access.mode === "redirect") {
+      return NextResponse.redirect(access.url, { status: 302 });
+    }
+
+    return new NextResponse(access.stream, {
+      headers: {
+        "Content-Type": access.contentType,
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(access.grant.asset.filename)}"`,
+      },
+    });
   } catch (error) {
     if (isHttpError(error) && error.status >= 500) {
       logServerEvent("error", "api.downloads.get: http error", {
