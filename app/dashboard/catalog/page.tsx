@@ -2,10 +2,12 @@ import { formatDate, formatEuroFromCents } from "@/lib/format";
 import Link from "next/link";
 import { listDashboardProducts } from "@/lib/services/catalog";
 import { getProductStatusLabel, getProductStatusTone } from "@/lib/dashboard-status-labels";
+import { PRESTATIONS_OFFERS } from "@/lib/prestations-offers";
 import {
   activateProductAction,
   archiveProductAction,
   draftProductAction,
+  seedPrestationsOffersAction,
 } from "@/app/dashboard/catalog/actions";
 import {
   DashboardPageShell, AdminAlert, AdminBadge, AdminButton, AdminEmptyState, AdminPageHeader } from "@/components/dashboard/ui";
@@ -82,6 +84,10 @@ export default async function DashboardCatalogPage({
 }: DashboardCatalogPageProps) {
   const products = await listDashboardProducts();
   const { error, success } = await searchParams;
+  const activeSlugs = new Set(
+    products.filter((product) => product.status === "ACTIVE").map((product) => product.slug)
+  );
+  const missingOffers = PRESTATIONS_OFFERS.filter((offer) => !activeSlugs.has(offer.slug));
 
   return (
     <DashboardPageShell>
@@ -102,6 +108,23 @@ export default async function DashboardCatalogPage({
 
         {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
         {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
+
+        {missingOffers.length > 0 ? (
+          <AdminAlert tone="danger">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                {missingOffers.length} offre(s) d&apos;accompagnement absente(s) ou inactive(s) du
+                catalogue ({missingOffers.map((o) => o.name).join(", ")}) : leur achat échoue
+                actuellement sur le site (panier renvoie &quot;Product not found&quot;).
+              </p>
+              <form action={seedPrestationsOffersAction}>
+                <AdminButton type="submit" variant="danger" size="sm">
+                  Créer/réparer les offres d&apos;accompagnement
+                </AdminButton>
+              </form>
+            </div>
+          </AdminAlert>
+        ) : null}
 
         {products.length === 0 ? (
           <AdminEmptyState title="Aucun produit numérique n'est encore disponible dans le catalogue." />

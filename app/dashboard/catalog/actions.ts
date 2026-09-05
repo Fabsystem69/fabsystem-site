@@ -15,6 +15,8 @@ import {
   updateActiveProductPrice,
   updateProductDetails,
 } from "@/lib/services/catalog";
+import { prisma } from "@/lib/prisma";
+import { seedPrestationsOffers } from "@/lib/services/prestations-offers-seed";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof ZodError) {
@@ -165,6 +167,26 @@ export async function updateProductAction(formData: FormData) {
   } catch (error) {
     redirect(buildCatalogEditRedirect(productId, { error: getErrorMessage(error) }));
   }
+}
+
+export async function seedPrestationsOffersAction() {
+  await requireSession();
+
+  let target: string;
+
+  try {
+    const result = await seedPrestationsOffers(prisma);
+    revalidatePath("/dashboard/catalog");
+    target = buildCatalogRedirect({
+      success: `${result.seeded.length} offre(s) d'accompagnement synchronisee(s) (${result.seeded
+        .map((s) => s.slug)
+        .join(", ")}), ${result.archivedLegacyProducts} ancien(s) pack(s) archive(s).`,
+    });
+  } catch (error) {
+    target = buildCatalogRedirect({ error: getErrorMessage(error) });
+  }
+
+  redirect(target);
 }
 
 export async function updateProductPriceAction(formData: FormData) {
