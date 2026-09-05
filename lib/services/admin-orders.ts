@@ -32,6 +32,7 @@ type OrderDetailRecord = Order & {
 
 type AdminOrdersDb = {
   listOrders(): Promise<OrderListRecord[]>;
+  listOrdersForCustomer(customerId: string): Promise<OrderListRecord[]>;
   findOrderById(orderId: string): Promise<OrderDetailRecord | null>;
 };
 
@@ -191,6 +192,27 @@ function createPrismaAdminOrdersDb(client: PrismaClientLike): AdminOrdersDb {
         orderBy: { createdAt: "desc" },
       }) as Promise<OrderListRecord[]>;
     },
+    async listOrdersForCustomer(customerId) {
+      return client.order.findMany({
+        where: { customerId },
+        include: {
+          items: {
+            orderBy: { createdAt: "asc" },
+          },
+          payments: {
+            orderBy: { createdAt: "desc" },
+          },
+          discountCode: {
+            select: {
+              id: true,
+              code: true,
+              reason: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }) as Promise<OrderListRecord[]>;
+    },
     async findOrderById(orderId) {
       return client.order.findUnique({
         where: { id: orderId },
@@ -226,27 +248,41 @@ async function getDefaultAdminOrdersService() {
   return createAdminOrdersService(createPrismaAdminOrdersDb(prisma));
 }
 
+function mapOrderToSummary(order: OrderListRecord): DashboardOrderSummary {
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber,
+    createdAt: order.createdAt,
+    customerEmail: order.customerEmail,
+    customerName: order.customerName,
+    status: order.status,
+    subtotalCents: order.subtotalCents,
+    discountTotalCents: order.discountTotalCents,
+    totalCents: order.totalCents,
+    currency: order.currency,
+    itemCount: order.items.length,
+    paymentCount: order.payments.length,
+    primaryPaymentStatus: order.payments[0]?.status ?? null,
+    discountCode: order.discountCode?.code ?? null,
+  };
+}
+
 export function createAdminOrdersService(db: AdminOrdersDb) {
   return {
     async listDashboardOrders(): Promise<DashboardOrderSummary[]> {
       const orders = await db.listOrders();
+      return orders.map(mapOrderToSummary);
+    },
 
-      return orders.map((order) => ({
-        id: order.id,
-        orderNumber: order.orderNumber,
-        createdAt: order.createdAt,
-        customerEmail: order.customerEmail,
-        customerName: order.customerName,
-        status: order.status,
-        subtotalCents: order.subtotalCents,
-        discountTotalCents: order.discountTotalCents,
-        totalCents: order.totalCents,
-        currency: order.currency,
-        itemCount: order.items.length,
-        paymentCount: order.payments.length,
-        primaryPaymentStatus: order.payments[0]?.status ?? null,
-        discountCode: order.discountCode?.code ?? null,
-      }));
+    async listDashboardOrdersForCustomer(customerId: string): Promise<DashboardOrderSummary[]> {
+      const normalizedCustomerId = customerId.trim();
+
+      if (!normalizedCustomerId) {
+        return [];
+      }
+
+      const orders = await db.listOrdersForCustomer(normalizedCustomerId);
+      return orders.map(mapOrderToSummary);
     },
 
     async getDashboardOrderDetail(orderId: string): Promise<DashboardOrderDetail> {
@@ -282,6 +318,11 @@ export function createAdminOrdersService(db: AdminOrdersDb) {
 export async function listDashboardOrders() {
   const service = await getDefaultAdminOrdersService();
   return service.listDashboardOrders();
+}
+
+export async function listDashboardOrdersForCustomer(customerId: string) {
+  const service = await getDefaultAdminOrdersService();
+  return service.listDashboardOrdersForCustomer(customerId);
 }
 
 export async function getDashboardOrderDetail(orderId: string) {

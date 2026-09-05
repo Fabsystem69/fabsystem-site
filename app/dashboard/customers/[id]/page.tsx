@@ -2,14 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Customer } from "@/lib/generated/prisma/client";
 import { formatCustomerAssetSummary, getCustomerAssetLabel } from "@/lib/customer-asset";
-import { formatCustomerDisplayName, formatDate } from "@/lib/format";
+import { formatCustomerDisplayName, formatDate, formatEuroFromCents } from "@/lib/format";
 import { getProjectAssetTypeLabel, getProjectStatusLabel } from "@/lib/project-labels";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
+import { listDashboardOrdersForCustomer } from "@/lib/services/admin-orders";
 import { listResourceGrantsForCustomer } from "@/lib/services/customer-resource-grants";
+import { getOrderStatusLabel, getOrderStatusTone } from "@/lib/dashboard-status-labels";
 import { inviteCustomerToPortalAction, revokeResourceGrantAction } from "./actions";
 import {
-  DashboardPageShell, AdminAlert, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
+  DashboardPageShell, AdminAlert, AdminBadge, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
 
 type Params = {
   params: Promise<{
@@ -40,7 +42,7 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
     notFound();
   }
 
-  const [resourceGrants, projects] = await Promise.all([
+  const [resourceGrants, projects, orders] = await Promise.all([
     listResourceGrantsForCustomer(customer.id),
     customer.dataShareConsent
       ? prisma.project.findMany({
@@ -48,6 +50,7 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
           orderBy: { updatedAt: "desc" },
         })
       : Promise.resolve([]),
+    listDashboardOrdersForCustomer(customer.id),
   ]);
 
   const activeGrants = resourceGrants.filter((grant) => grant.status === "ACTIVE");
@@ -96,6 +99,34 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
           </div>
 
           <div className="space-y-4">
+            <AdminCard
+              title="Commandes"
+              description="Historique des commandes passées par ce client."
+            >
+              {orders.length === 0 ? (
+                <p className="text-sm text-neutral-500">Aucune commande pour l&apos;instant.</p>
+              ) : (
+                <ul className="divide-y divide-neutral-800/80">
+                  {orders.map((order) => (
+                    <li key={order.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                      <Link href={`/dashboard/orders/${order.id}`} className="min-w-0 hover:opacity-80">
+                        <p className="truncate font-medium text-neutral-100">{order.orderNumber}</p>
+                        <p className="truncate text-neutral-500">
+                          {formatDate(order.createdAt)} · {order.itemCount} article(s)
+                        </p>
+                      </Link>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <AdminBadge tone={getOrderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</AdminBadge>
+                        <span className="font-semibold text-white">
+                          {formatEuroFromCents(order.totalCents)}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AdminCard>
+
             <AdminCard
               title="Ressources offertes"
               description="Ebooks ou fichiers octroyés directement, sans commande."
