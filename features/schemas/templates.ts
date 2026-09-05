@@ -320,7 +320,7 @@ function buildSolarBasicTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildEdge("sb-e11", "sb-mppt", "ve-direct", "sb-monitor", "ve-direct", "#16a34a", "data-bus", undefined, 2),
   ];
 
-  return { projectName: "Gabarit : premier pas solaire", nodes, edges };
+  return { projectName: "Premier pas solaire", nodes, edges };
 }
 
 // Gabarit bateau : alimentation de quai + chargeur secteur, sans onduleur —
@@ -446,7 +446,7 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildEdge("qt-e40", "qt-battery", "negative", "qt-klaxon", "negative", BLACK, "power-negative", "1,5 mm²", 6),
   ];
 
-  return { projectName: "Gabarit : quai tranquille (bateau)", nodes, edges };
+  return { projectName: "Quai tranquille (bateau)", nodes, edges };
 }
 
 // Gabarit "station électrique tout-en-1" (retour utilisateur : "panneau
@@ -533,7 +533,7 @@ export function buildPowerStationTemplate(): { projectName: string; nodes: Schem
     buildZone("ps-zone-12v", 560, 120, 900, 440, "Circuit 12V", "#3b82f6"),
   ];
 
-  return { projectName: "Gabarit : station électrique tout-en-1", nodes: [...zones, ...nodes], edges };
+  return { projectName: "Station électrique tout-en-1", nodes: [...zones, ...nodes], edges };
 }
 
 function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] } {
@@ -762,7 +762,7 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
     buildZone("vl-zone-dc", 1640, 100, 880, 670, "Distribution 12 V", "#14b8a6"),
   ];
 
-  return { projectName: "Gabarit : Victron leger van", nodes: [...zones, ...nodes], edges };
+  return { projectName: "Victron léger (van)", nodes: [...zones, ...nodes], edges };
 }
 
 // Variante archivée: remplacée dans la galerie par le T6 AFERIY P280 plus
@@ -920,7 +920,7 @@ export function buildAferiyP280Template(): { projectName: string; nodes: SchemaN
     buildZone("af-zone-12v", 1180, 240, 780, 580, "Distribution 12V via XT60", "#3b82f6"),
   ];
 
-  return { projectName: "Gabarit : AFERIY P280 van", nodes: [...zones, ...nodes], edges };
+  return { projectName: "AFERIY P280 (van)", nodes: [...zones, ...nodes], edges };
 }
 
 const GREEN_DATA = "#16a34a";
@@ -1179,7 +1179,7 @@ export function buildPremiumBoatTemplate(): { projectName: string; nodes: Schema
     buildZone("pb-zone-pont", 1900, 1420, 900, 900, "Pont & sécurité", "#ec4899"),
   ];
 
-  return { projectName: "Gabarit : le bateau FabSystem", nodes: [...zones, ...nodes], edges };
+  return { projectName: "Le bateau FabSystem", nodes: [...zones, ...nodes], edges };
 }
 
 export const SCHEMA_TEMPLATES: SchemaTemplate[] = [

@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 
 const PROCESS_STEPS = [
   "Vous laissez un retour simple sur votre projet ou l’accompagnement reçu.",
-  "Le témoignage arrive dans le dashboard en non publié pour relecture.",
+  "Votre témoignage est transmis à Fabien pour relecture, non publié dans un premier temps.",
   "Il n’est mis en ligne qu’après validation manuelle.",
 ] as const;
 

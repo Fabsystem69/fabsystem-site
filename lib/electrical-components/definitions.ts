@@ -201,7 +201,7 @@ function victronCommunicationHandles(data: Record<string, unknown>): ComponentHa
   // borne générique. On la conserve pour ne jamais rendre ce câble invisible;
   // les nouveaux nœuds reçoivent explicitement une chaîne vide.
   if (!("communicationPorts" in data)) {
-    return [{ id: "ve-direct", label: "Communication (ancien schéma)", kind: "neutral", side: "bottom", optional: true }];
+    return [{ id: "ve-direct", label: "Communication", kind: "neutral", side: "bottom", optional: true }];
   }
   const modelId = typeof data.brandModelId === "string" ? data.brandModelId : "";
   // Une chaîne vide vient des données génériques ajoutées récemment. Si un

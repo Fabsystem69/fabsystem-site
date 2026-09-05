@@ -69,7 +69,7 @@ export function ModelPickerModal() {
         }`}
       >
         <p className={`text-xs font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
-          {libraryPick ? def.label : `${def.label} ajouté`}
+          {libraryPick ? def.label : `Ajouté : ${def.label}`}
         </p>
         <h2 className={`mt-1 text-xl font-bold ${darkMode ? "text-neutral-50" : "text-neutral-950"}`}>Choisir un modèle ?</h2>
         <p className={`mt-1 text-sm ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
