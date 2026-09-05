@@ -41,6 +41,16 @@ export function isPrestationsOfferSlug(slug: string) {
   return PRESTATIONS_OFFERS.some((offer) => offer.slug === slug);
 }
 
+// Decision validee (CDC v3 §3.1) : l'acces inclus (365j editeur + ebook
+// offert) est retire de l'Appel conseil (69€, un simple appel), conserve
+// pour Guide et Conception. Avant cette decision, grantPrestationsBenefitsForOrder
+// utilisait isPrestationsOfferSlug seul et accordait le meme bonus aux 3 offres.
+const BONUS_ACCESS_EXCLUDED_SLUGS = new Set(["accompagnement-appel-conseil"]);
+
+export function offerIncludesBonusAccess(slug: string) {
+  return isPrestationsOfferSlug(slug) && !BONUS_ACCESS_EXCLUDED_SLUGS.has(slug);
+}
+
 export function getPrestationsOfferBySlug(slug: string) {
   return PRESTATIONS_OFFERS.find((offer) => offer.slug === slug) ?? null;
 }

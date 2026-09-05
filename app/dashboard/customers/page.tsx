@@ -10,10 +10,12 @@ import {
   parseCustomerPageParam,
 } from "@/lib/services/customers";
 import {
+  DashboardPageShell,
   AdminAlert,
   AdminButton,
   AdminEmptyState,
   AdminPageHeader,
+  AdminPagination,
   AdminSearchInput,
   AdminTable,
   adminTableBodyClass,
@@ -62,10 +64,11 @@ export default async function DashboardCustomersPage({
   }
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Clients"
+          backHref="/dashboard"
+          backLabel="Retour au dashboard"
           description={
             search
               ? `Résultats pour "${search}".`
@@ -151,26 +154,14 @@ export default async function DashboardCustomersPage({
         ) : null}
 
         {!databaseError ? (
-          <div className="flex items-center justify-between gap-3">
-            {currentPage > 1 ? (
-              <AdminButton
-                href={`/dashboard/customers?page=${currentPage - 1}&limit=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
-              >
-                Page précédente
-              </AdminButton>
-            ) : (
-              <span />
-            )}
-            {currentPage < totalPages ? (
-              <AdminButton
-                href={`/dashboard/customers?page=${currentPage + 1}&limit=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ""}`}
-              >
-                Page suivante
-              </AdminButton>
-            ) : null}
-          </div>
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            buildHref={(page) =>
+              `/dashboard/customers?page=${page}&limit=${pageSize}${search ? `&search=${encodeURIComponent(search)}` : ""}`
+            }
+          />
         ) : null}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

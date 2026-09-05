@@ -4,8 +4,10 @@ import {
   revokeTrialAccessCodeAction,
 } from "@/app/dashboard/schema-unlock-codes/actions";
 import { listTrialAccessCodes } from "@/lib/services/trial-access-code";
+import { getTrialAccessCodeStatusLabel, getTrialAccessCodeStatusTone } from "@/lib/dashboard-status-labels";
 import { CodesPageTabs } from "@/components/dashboard/CodesPageTabs";
 import {
+  DashboardPageShell,
   AdminAlert,
   AdminBadge,
   AdminButton,
@@ -18,20 +20,9 @@ import {
   adminTableHeadCellClass,
   adminTableHeadClass,
   adminTableRowClass,
-  type AdminBadgeTone,
 } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_TONE: Record<string, AdminBadgeTone> = {
-  ACTIVE: "success",
-  REVOKED: "neutral",
-};
-
-const successButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition-colors duration-150 hover:bg-emerald-500/20";
-const secondaryButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-xs font-semibold text-neutral-200 transition-colors duration-150 hover:bg-neutral-800";
 
 export default async function DashboardSchemaUnlockCodesPage({
   searchParams,
@@ -42,18 +33,16 @@ export default async function DashboardSchemaUnlockCodesPage({
   const { error, success } = await searchParams;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Codes promo"
+          backHref="/dashboard"
+          backLabel="Retour au dashboard"
           description="Accès illimité (consommateurs) à l'éditeur de schéma, à distribuer à la communauté sans paiement — un compte client est requis pour les saisir."
           actions={
-            <>
-              <AdminButton variant="primary" href="/dashboard/schema-unlock-codes/new">
-                Créer un code
-              </AdminButton>
-              <AdminButton href="/dashboard">Retour dashboard</AdminButton>
-            </>
+            <AdminButton variant="primary" href="/dashboard/schema-unlock-codes/new">
+              Créer un code
+            </AdminButton>
           }
         />
 
@@ -82,7 +71,9 @@ export default async function DashboardSchemaUnlockCodesPage({
                 <tr key={code.id} className={adminTableRowClass}>
                   <td className={adminTableCellStrongClass}>{code.code}</td>
                   <td className={adminTableCellClass}>
-                    <AdminBadge tone={STATUS_TONE[code.status] ?? "neutral"}>{code.status}</AdminBadge>
+                    <AdminBadge tone={getTrialAccessCodeStatusTone(code.status)}>
+                      {getTrialAccessCodeStatusLabel(code.status)}
+                    </AdminBadge>
                   </td>
                   <td className={adminTableCellClass}>{code.durationDays} jours</td>
                   <td className={adminTableCellClass}>
@@ -96,16 +87,16 @@ export default async function DashboardSchemaUnlockCodesPage({
                     {code.status === "ACTIVE" ? (
                       <form action={revokeTrialAccessCodeAction}>
                         <input type="hidden" name="codeId" value={code.id} />
-                        <button type="submit" className={secondaryButtonClass}>
+                        <AdminButton type="submit" variant="secondary" size="sm">
                           Désactiver
-                        </button>
+                        </AdminButton>
                       </form>
                     ) : (
                       <form action={activateTrialAccessCodeAction}>
                         <input type="hidden" name="codeId" value={code.id} />
-                        <button type="submit" className={successButtonClass}>
+                        <AdminButton type="submit" variant="success" size="sm">
                           Réactiver
-                        </button>
+                        </AdminButton>
                       </form>
                     )}
                   </td>
@@ -114,7 +105,6 @@ export default async function DashboardSchemaUnlockCodesPage({
             </tbody>
           </AdminTable>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

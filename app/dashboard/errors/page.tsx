@@ -3,10 +3,11 @@ import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { formatCustomerDisplayName } from "@/lib/format";
 import { getErrorReportsPage, parseErrorReportPageParam } from "@/lib/services/error-reports";
 import {
+  DashboardPageShell,
   AdminAlert,
-  AdminButton,
   AdminEmptyState,
   AdminPageHeader,
+  AdminPagination,
   AdminTable,
   adminTableBodyClass,
   adminTableCellClass,
@@ -45,10 +46,11 @@ export default async function DashboardErrorsPage({
   }
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Erreurs"
+          backHref="/dashboard"
+          backLabel="Retour au dashboard"
           description="Erreurs serveur (5xx) survenues sur le site, avec le client concerné quand une session était identifiée."
         />
 
@@ -109,18 +111,12 @@ export default async function DashboardErrorsPage({
         ) : null}
 
         {!databaseError ? (
-          <div className="flex items-center justify-between gap-3">
-            {currentPage > 1 ? (
-              <AdminButton href={`/dashboard/errors?page=${currentPage - 1}`}>Page précédente</AdminButton>
-            ) : (
-              <span />
-            )}
-            {currentPage < totalPages ? (
-              <AdminButton href={`/dashboard/errors?page=${currentPage + 1}`}>Page suivante</AdminButton>
-            ) : null}
-          </div>
+          <AdminPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            buildHref={(page) => `/dashboard/errors?page=${page}`}
+          />
         ) : null}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

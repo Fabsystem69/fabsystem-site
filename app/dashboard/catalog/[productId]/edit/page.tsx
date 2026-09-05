@@ -9,7 +9,8 @@ import {
   getDashboardProductForEdit,
   listAvailableAssetsForProduct,
 } from "@/lib/services/catalog";
-import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 type DashboardCatalogEditPageProps = {
   params: Promise<{
@@ -43,8 +44,7 @@ export default async function DashboardCatalogEditPage({
   const activePrice = product.prices.find((price) => price.status === "ACTIVE") ?? null;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="3xl">
         <AdminPageHeader
           title="Modifier le produit"
           description="Mise à jour du produit et de son prix courant. Les anciens snapshots de commande restent inchangés dans OrderItem."
@@ -105,7 +105,6 @@ export default async function DashboardCatalogEditPage({
           linkedAssets={product.assets}
           availableAssets={availableAssets}
         />
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

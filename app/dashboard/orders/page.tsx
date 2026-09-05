@@ -2,9 +2,11 @@ import Link from "next/link";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { listDashboardOrders } from "@/lib/services/admin-orders";
 import { listPendingOrdersForPurge } from "@/lib/services/order-purge";
+import { getOrderStatusLabel, getOrderStatusTone, getPaymentStatusLabel, getPaymentStatusTone } from "@/lib/dashboard-status-labels";
 import { PendingOrderPurgeButton } from "@/components/dashboard/PendingOrderPurgeButton";
 import { PurgeAllPendingOrdersButton } from "@/components/dashboard/PurgeAllPendingOrdersButton";
 import {
+  DashboardPageShell,
   AdminBadge,
   AdminEmptyState,
   AdminPageHeader,
@@ -15,25 +17,9 @@ import {
   adminTableHeadCellClass,
   adminTableHeadClass,
   adminTableRowClass,
-  type AdminBadgeTone,
 } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
-
-const ORDER_STATUS_TONE: Record<string, AdminBadgeTone> = {
-  PAID: "success",
-  PENDING_PAYMENT: "warning",
-  CANCELLED: "neutral",
-  REFUNDED: "info",
-  DRAFT: "neutral",
-};
-
-const PAYMENT_STATUS_TONE: Record<string, AdminBadgeTone> = {
-  SUCCEEDED: "success",
-  PENDING: "warning",
-  FAILED: "danger",
-  REFUNDED: "info",
-};
 
 export default async function DashboardOrdersPage() {
   const [orders, purgeSummaries] = await Promise.all([
@@ -47,8 +33,7 @@ export default async function DashboardOrdersPage() {
   ).length;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Commandes e-commerce"
           description="Vue admin lecture seule des commandes, paiements et tentatives du commerce FabSystem."
@@ -91,7 +76,7 @@ export default async function DashboardOrdersPage() {
                           <p className="mt-0.5 truncate text-sm text-neutral-400">{order.customerEmail}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1">
-                          <AdminBadge tone={ORDER_STATUS_TONE[order.status] ?? "neutral"}>{order.status}</AdminBadge>
+                          <AdminBadge tone={getOrderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</AdminBadge>
                           {purgeInfo?.isPurgeTier ? <AdminBadge tone="danger">À purger</AdminBadge> : null}
                         </div>
                       </div>
@@ -103,8 +88,8 @@ export default async function DashboardOrdersPage() {
                       </div>
                       {order.primaryPaymentStatus ? (
                         <div className="mt-2">
-                          <AdminBadge tone={PAYMENT_STATUS_TONE[order.primaryPaymentStatus] ?? "neutral"}>
-                            Paiement {order.primaryPaymentStatus}
+                          <AdminBadge tone={getPaymentStatusTone(order.primaryPaymentStatus)}>
+                            Paiement {getPaymentStatusLabel(order.primaryPaymentStatus)}
                           </AdminBadge>
                         </div>
                       ) : null}
@@ -149,7 +134,7 @@ export default async function DashboardOrdersPage() {
                   </td>
                   <td className={adminTableCellClass}>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <AdminBadge tone={ORDER_STATUS_TONE[order.status] ?? "neutral"}>{order.status}</AdminBadge>
+                      <AdminBadge tone={getOrderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</AdminBadge>
                       {purgeInfoByOrderId.get(order.id)?.isPurgeTier ? (
                         <AdminBadge tone="danger">À purger</AdminBadge>
                       ) : null}
@@ -176,8 +161,8 @@ export default async function DashboardOrdersPage() {
                   <td className={adminTableCellClass}>{order.itemCount}</td>
                   <td className={adminTableCellClass}>
                     {order.primaryPaymentStatus ? (
-                      <AdminBadge tone={PAYMENT_STATUS_TONE[order.primaryPaymentStatus] ?? "neutral"}>
-                        {order.primaryPaymentStatus}
+                      <AdminBadge tone={getPaymentStatusTone(order.primaryPaymentStatus)}>
+                        {getPaymentStatusLabel(order.primaryPaymentStatus)}
                       </AdminBadge>
                     ) : (
                       "Aucun"
@@ -204,7 +189,6 @@ export default async function DashboardOrdersPage() {
             </div>
           </>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

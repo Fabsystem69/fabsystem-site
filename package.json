@@ -26,6 +26,7 @@
     "@types/pg": "^8.16.0",
     "@upstash/redis": "^1.38.2",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/blob": "^2.8.0",
     "@xyflow/react": "^12.11.3",
     "bcryptjs": "^3.0.3",
     "html-to-image": "^1.11.13",

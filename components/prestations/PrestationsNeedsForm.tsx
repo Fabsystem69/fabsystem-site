@@ -7,10 +7,10 @@ import {
   readPendingCheckoutInputs,
   storeNeedsAnswers,
 } from "@/lib/client/prestations-needs-storage";
-import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 import {
   PRESTATIONS_NEEDS_PROGRESS_LABELS,
   PRESTATIONS_NEEDS_PROGRESS_VALUES,
+  requiresNeedsIntake,
   type PrestationsNeedsProgress,
 } from "@/lib/prestations-needs";
 
@@ -33,6 +33,7 @@ export function PrestationsNeedsForm() {
   const [progress, setProgress] = useState<PrestationsNeedsProgress>("not_started");
   const [deadline, setDeadline] = useState("");
   const [other, setOther] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,7 @@ export function PrestationsNeedsForm() {
 
         if (cancelled) return;
 
-        if (!cart?.cartId || !cart.lines?.some((line) => isPrestationsPackSlug(line.slug ?? ""))) {
+        if (!cart?.cartId || !cart.lines?.some((line) => requiresNeedsIntake(line.slug ?? ""))) {
           setLoadState("no-pack");
           return;
         }
@@ -97,8 +98,8 @@ export function PrestationsNeedsForm() {
       return;
     }
 
-    if (!vehicle.trim() || !description.trim()) {
-      setError("Merci de compléter au minimum le véhicule et la description du projet.");
+    if (!vehicle.trim() || !description.trim() || !whatsapp.trim()) {
+      setError("Merci de compléter au minimum le véhicule, la description du projet et votre numéro WhatsApp.");
       return;
     }
 
@@ -108,6 +109,7 @@ export function PrestationsNeedsForm() {
       progress,
       deadline: deadline.trim() || undefined,
       other: other.trim() || undefined,
+      whatsapp: whatsapp.trim(),
     };
 
     storeNeedsAnswers(cartId, answers);
@@ -216,6 +218,22 @@ export function PrestationsNeedsForm() {
           ))}
         </div>
       </fieldset>
+
+      <label className="block space-y-2">
+        <span className="text-sm font-medium text-neutral-900">Numéro WhatsApp</span>
+        <input
+          type="tel"
+          required
+          value={whatsapp}
+          onChange={(event) => setWhatsapp(event.target.value)}
+          disabled={pending}
+          className="block min-h-11 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-950 shadow-sm outline-none focus:border-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100"
+          placeholder="Ex. +33612345678"
+        />
+        <span className="block text-xs text-neutral-500">
+          C&apos;est par ce canal que Fabien échangera avec vous pendant l&apos;accompagnement.
+        </span>
+      </label>
 
       <label className="block space-y-2">
         <span className="text-sm font-medium text-neutral-900">

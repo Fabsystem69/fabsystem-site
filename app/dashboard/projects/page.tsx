@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AdminBadge, AdminEmptyState, AdminPageHeader, AdminTable, adminTableBodyClass, adminTableCellClass, adminTableCellStrongClass, adminTableHeadCellClass, adminTableHeadClass, adminTableRowClass } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminBadge, AdminEmptyState, AdminPageHeader, AdminTable, adminTableBodyClass, adminTableCellClass, adminTableCellStrongClass, adminTableHeadCellClass, adminTableHeadClass, adminTableRowClass } from "@/components/dashboard/ui";
 import { listRegisteredEngineIds } from "@/lib/engines";
 import type { RegisteredEngineId } from "@/lib/engine-payload";
 import { formatCustomerDisplayName, formatDate } from "@/lib/format";
@@ -24,10 +25,11 @@ export default async function DashboardProjectsPage() {
   const engineIds = listRegisteredEngineIds() as RegisteredEngineId[];
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Projets"
+          backHref="/dashboard"
+          backLabel="Retour au dashboard"
           description="Pilotez les accompagnements pour lesquels le client a autorisé le partage de son dossier."
         />
 
@@ -68,6 +70,7 @@ export default async function DashboardProjectsPage() {
                   retainedValues: project.retainedValues,
                   engineIds,
                   hasSchema: Boolean(project.schema),
+                  stepOverride: project.followUpStepOverride,
                 });
                 const activeReview = project.followUpReviews.find((review) => review.status === "CHANGES_REQUESTED") ?? project.followUpReviews[0];
 
@@ -100,7 +103,6 @@ export default async function DashboardProjectsPage() {
             </tbody>
           </AdminTable>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

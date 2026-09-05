@@ -43,34 +43,6 @@ export function OrdersIcon(props: IconProps) {
   );
 }
 
-export function QuotesIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path
-        d="M7 4h8l4 4v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-      <path d="M9 12h6M9 16h6M9 9h3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-export function InvoicesIcon(props: IconProps) {
-  return (
-    <svg {...base(props)}>
-      <path
-        d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinejoin="round"
-      />
-      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 export function CustomersIcon(props: IconProps) {
   return (
     <svg {...base(props)}>
@@ -215,6 +187,37 @@ export function ErrorsIcon(props: IconProps) {
       />
       <path d="M12 10v4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
       <circle cx="12" cy="17" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function AccompagnementIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="M4 18c2-6 5-9 8-9s6 3 8 9"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="6" cy="19" r="1.6" fill="currentColor" />
+      <circle cx="12" cy="9" r="1.6" fill="currentColor" />
+      <circle cx="18" cy="19" r="1.6" fill="currentColor" />
+    </svg>
+  );
+}
+
+export function CrmIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path
+        d="M3 11 19 5l-3 14-5-5-4 2 2-4-6-1Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

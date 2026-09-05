@@ -7,10 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { ProjectPrintButton } from "@/components/project-follow-up/ProjectPrintButton";
 import { isHttpError } from "@/lib/http-errors";
 import { buildProjectFollowUpDossier } from "@/lib/project-follow-up";
-import {
-  formatDate,
-  formatEuroFromCents,
-} from "@/lib/format";
+import { formatDate, formatEuroFromCents } from "@/lib/format";
 import {
   getProjectAssetTypeLabel,
   getProjectStatusLabel,
@@ -18,6 +15,7 @@ import {
 } from "@/lib/project-labels";
 import { listRegisteredEngineIds } from "@/lib/engines/index";
 import type { RegisteredEngineId } from "@/lib/engine-payload";
+import { prisma } from "@/lib/prisma";
 import { getProject } from "@/lib/services/project";
 import { getProjectSchema } from "@/lib/services/project-schema";
 import { getProjectValues } from "@/lib/services/project-values";
@@ -74,9 +72,12 @@ export default async function ProjectFollowUpPage({ params }: PageProps) {
     throw error;
   }
 
-  const [retainedValues, schema] = await Promise.all([
+  const [retainedValues, schema, kit] = await Promise.all([
     getProjectValues(project.id),
     getProjectSchema(actor, project.id),
+    project.kitId
+      ? prisma.kit.findUnique({ where: { id: project.kitId }, include: { items: true } })
+      : Promise.resolve(null),
   ]);
   const engineIds = listRegisteredEngineIds() as RegisteredEngineId[];
   const dossier = buildProjectFollowUpDossier({
@@ -84,10 +85,17 @@ export default async function ProjectFollowUpPage({ params }: PageProps) {
     retainedValues,
     engineIds,
     hasSchema: Boolean(schema),
+    stepOverride: project.followUpStepOverride,
+    kit: kit
+      ? {
+          name: kit.name,
+          items: kit.items,
+          photoControls: Array.isArray(kit.photoControls) ? (kit.photoControls as string[]) : [],
+          powerControls: Array.isArray(kit.powerControls) ? (kit.powerControls as string[]) : [],
+          checklist: Array.isArray(kit.checklist) ? (kit.checklist as string[]) : [],
+        }
+      : null,
   });
-
-  const indispensablePurchases = dossier.purchases.filter((item) => item.priority === "Indispensable");
-  const optionalPurchases = dossier.purchases.filter((item) => item.priority === "Option officielle");
 
   return (
     <div className="space-y-8 print:space-y-5">
@@ -321,225 +329,237 @@ export default async function ProjectFollowUpPage({ params }: PageProps) {
         </Card>
       </section>
 
-      <section className="space-y-6">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            Achats centralisés
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
-            Liste d&apos;achat pilotée depuis le projet
-          </h2>
-        </div>
-
-        <Card className="overflow-hidden print:shadow-none">
-          <div className="border-b border-neutral-200 px-5 py-4">
-            <h3 className="text-base font-semibold text-neutral-950">Base indispensable</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-neutral-50 text-neutral-600">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Bloc</th>
-                  <th className="px-5 py-3 font-semibold">Article</th>
-                  <th className="px-5 py-3 font-semibold">Budget</th>
-                  <th className="px-5 py-3 font-semibold print:hidden">Lien</th>
-                </tr>
-              </thead>
-              <tbody>
-                {indispensablePurchases.map((item) => (
-                  <tr key={item.name} className="border-t border-neutral-200 align-top">
-                    <td className="px-5 py-4 text-neutral-600">{item.block}</td>
-                    <td className="px-5 py-4">
-                      <p className="font-semibold text-neutral-950">{item.name}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-neutral-500">{item.why}</p>
-                      <p className="mt-2 hidden text-[11px] leading-relaxed text-neutral-500 print:block">
-                        {item.href}
-                      </p>
-                    </td>
-                    <td className="px-5 py-4 font-medium text-neutral-900">
-                      {formatEuroFromCents(item.budgetCents)}
-                    </td>
-                    <td className="px-5 py-4 print:hidden">
-                      <a
-                        href={item.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium text-neutral-900 underline underline-offset-4"
-                      >
-                        Ouvrir
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-
-        <Card className="overflow-hidden print:shadow-none">
-          <div className="border-b border-neutral-200 px-5 py-4">
-            <h3 className="text-base font-semibold text-neutral-950">Options officielles</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-neutral-50 text-neutral-600">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Bloc</th>
-                  <th className="px-5 py-3 font-semibold">Option</th>
-                  <th className="px-5 py-3 font-semibold">Budget</th>
-                  <th className="px-5 py-3 font-semibold print:hidden">Lien</th>
-                </tr>
-              </thead>
-              <tbody>
-                {optionalPurchases.map((item) => (
-                  <tr key={item.name} className="border-t border-neutral-200 align-top">
-                    <td className="px-5 py-4">
-                      <Badge tone="info">{item.block}</Badge>
-                    </td>
-                    <td className="px-5 py-4">
-                      <p className="font-semibold text-neutral-950">{item.name}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-neutral-500">{item.why}</p>
-                      <p className="mt-2 hidden text-[11px] leading-relaxed text-neutral-500 print:block">
-                        {item.href}
-                      </p>
-                    </td>
-                    <td className="px-5 py-4 font-medium text-neutral-900">
-                      {formatEuroFromCents(item.budgetCents)}
-                    </td>
-                    <td className="px-5 py-4 print:hidden">
-                      <a
-                        href={item.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium text-neutral-900 underline underline-offset-4"
-                      >
-                        Ouvrir
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-2">
-        <Card className="p-5 print:shadow-none">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            Contrôles photos
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
-            Avant branchement
-          </h2>
-          <div className="mt-5 grid gap-3">
-            {dossier.photoControls.map((item) => (
-              <div key={item.title} className="rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-neutral-950">{item.title}</p>
-                  <Badge tone="warning">{item.statusLabel}</Badge>
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-700">{item.why}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="p-5 print:shadow-none">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            Checklist sécurité
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
-            Mise sous tension
-          </h2>
-          <div className="mt-5 grid gap-3">
-            {dossier.powerControls.map((item) => (
-              <div key={item.title} className="rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-semibold text-neutral-950">{item.title}</p>
-                  <Badge tone="neutral">{item.statusLabel}</Badge>
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-700">{item.why}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <Card className="p-5 print:shadow-none">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            Budget repère
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
-            Base et version complète
-          </h2>
-          <div className="mt-5 grid gap-3">
-            <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-4">
+      {dossier.hasKit ? (
+        <>
+          <section className="space-y-6">
+            <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                Base indispensable
+                Achats centralisés — kit {dossier.kitName}
               </p>
-              <p className="mt-2 text-2xl font-semibold text-neutral-950">
-                {formatEuroFromCents(dossier.budgetBaseCents)}
-              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
+                Liste d&apos;achat pilotée depuis le projet
+              </h2>
             </div>
-            <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-4">
+
+            <Card className="overflow-hidden print:shadow-none">
+              <div className="border-b border-neutral-200 px-5 py-4">
+                <h3 className="text-base font-semibold text-neutral-950">Base indispensable</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-neutral-50 text-neutral-600">
+                    <tr>
+                      <th className="px-5 py-3 font-semibold">Bloc</th>
+                      <th className="px-5 py-3 font-semibold">Article</th>
+                      <th className="px-5 py-3 font-semibold">Budget</th>
+                      <th className="px-5 py-3 font-semibold print:hidden">Lien</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dossier.purchases
+                      .filter((item) => item.priority === "Indispensable")
+                      .map((item) => (
+                        <tr key={item.name} className="border-t border-neutral-200 align-top">
+                          <td className="px-5 py-4 text-neutral-600">{item.block}</td>
+                          <td className="px-5 py-4">
+                            <p className="font-semibold text-neutral-950">{item.name}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-neutral-500">{item.why}</p>
+                            <p className="mt-2 hidden text-[11px] leading-relaxed text-neutral-500 print:block">
+                              {item.href}
+                            </p>
+                          </td>
+                          <td className="px-5 py-4 font-medium text-neutral-900">
+                            {formatEuroFromCents(item.budgetCents)}
+                          </td>
+                          <td className="px-5 py-4 print:hidden">
+                            <a
+                              href={item.href}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium text-neutral-900 underline underline-offset-4"
+                            >
+                              Ouvrir
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {dossier.purchases.some((item) => item.priority === "Option officielle") ? (
+              <Card className="overflow-hidden print:shadow-none">
+                <div className="border-b border-neutral-200 px-5 py-4">
+                  <h3 className="text-base font-semibold text-neutral-950">Options officielles</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="bg-neutral-50 text-neutral-600">
+                      <tr>
+                        <th className="px-5 py-3 font-semibold">Bloc</th>
+                        <th className="px-5 py-3 font-semibold">Option</th>
+                        <th className="px-5 py-3 font-semibold">Budget</th>
+                        <th className="px-5 py-3 font-semibold print:hidden">Lien</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dossier.purchases
+                        .filter((item) => item.priority === "Option officielle")
+                        .map((item) => (
+                          <tr key={item.name} className="border-t border-neutral-200 align-top">
+                            <td className="px-5 py-4">
+                              <Badge tone="info">{item.block}</Badge>
+                            </td>
+                            <td className="px-5 py-4">
+                              <p className="font-semibold text-neutral-950">{item.name}</p>
+                              <p className="mt-1 text-xs leading-relaxed text-neutral-500">{item.why}</p>
+                              <p className="mt-2 hidden text-[11px] leading-relaxed text-neutral-500 print:block">
+                                {item.href}
+                              </p>
+                            </td>
+                            <td className="px-5 py-4 font-medium text-neutral-900">
+                              {formatEuroFromCents(item.budgetCents)}
+                            </td>
+                            <td className="px-5 py-4 print:hidden">
+                              <a
+                                href={item.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-medium text-neutral-900 underline underline-offset-4"
+                              >
+                                Ouvrir
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            ) : null}
+          </section>
+
+          {dossier.photoControls.length > 0 || dossier.powerControls.length > 0 ? (
+            <section className="grid gap-6 xl:grid-cols-2">
+              {dossier.photoControls.length > 0 ? (
+                <Card className="p-5 print:shadow-none">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                    Contrôles photos
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
+                    Avant branchement
+                  </h2>
+                  <div className="mt-5 grid gap-3">
+                    {dossier.photoControls.map((item) => (
+                      <div key={item.title} className="rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-neutral-950">{item.title}</p>
+                          <Badge tone="warning">{item.statusLabel}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ) : null}
+
+              {dossier.powerControls.length > 0 ? (
+                <Card className="p-5 print:shadow-none">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                    Checklist sécurité
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
+                    Mise sous tension
+                  </h2>
+                  <div className="mt-5 grid gap-3">
+                    {dossier.powerControls.map((item) => (
+                      <div key={item.title} className="rounded-[20px] border border-neutral-200 bg-neutral-50 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-neutral-950">{item.title}</p>
+                          <Badge tone="neutral">{item.statusLabel}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ) : null}
+            </section>
+          ) : null}
+
+          <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <Card className="p-5 print:shadow-none">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-                Avec recharge roulage
+                Budget repère
               </p>
-              <p className="mt-2 text-2xl font-semibold text-neutral-950">
-                {formatEuroFromCents(dossier.budgetWithOptionsCents)}
-              </p>
-            </div>
-          </div>
-        </Card>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
+                Base et version complète
+              </h2>
+              <div className="mt-5 grid gap-3">
+                <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                    Base indispensable
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold text-neutral-950">
+                    {formatEuroFromCents(dossier.budgetBaseCents)}
+                  </p>
+                </div>
+                <div className="rounded-[24px] border border-neutral-200 bg-neutral-50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                    Avec options
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold text-neutral-950">
+                    {formatEuroFromCents(dossier.budgetWithOptionsCents)}
+                  </p>
+                </div>
+              </div>
+            </Card>
 
-        <Card className="overflow-hidden print:shadow-none">
-          <div className="border-b border-neutral-200 px-5 py-4">
-            <h3 className="text-base font-semibold text-neutral-950">Répartition par bloc</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-neutral-50 text-neutral-600">
-                <tr>
-                  <th className="px-5 py-3 font-semibold">Bloc</th>
-                  <th className="px-5 py-3 font-semibold">Budget indicatif</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dossier.budgetLines.map((line) => (
-                  <tr key={line.block} className="border-t border-neutral-200">
-                    <td className="px-5 py-4 font-medium text-neutral-800">{line.block}</td>
-                    <td className="px-5 py-4 font-semibold text-neutral-950">
-                      {formatEuroFromCents(line.budgetCents)}
-                    </td>
-                  </tr>
+            <Card className="overflow-hidden print:shadow-none">
+              <div className="border-b border-neutral-200 px-5 py-4">
+                <h3 className="text-base font-semibold text-neutral-950">Répartition par bloc</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="bg-neutral-50 text-neutral-600">
+                    <tr>
+                      <th className="px-5 py-3 font-semibold">Bloc</th>
+                      <th className="px-5 py-3 font-semibold">Budget indicatif</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dossier.budgetLines.map((line) => (
+                      <tr key={line.block} className="border-t border-neutral-200">
+                        <td className="px-5 py-4 font-medium text-neutral-800">{line.block}</td>
+                        <td className="px-5 py-4 font-semibold text-neutral-950">
+                          {formatEuroFromCents(line.budgetCents)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </section>
+
+          {dossier.dossierChecklist.length > 0 ? (
+            <section className="rounded-[32px] border border-neutral-200 bg-neutral-50 p-5 sm:p-6 print:rounded-none print:border print:bg-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+                Dossier final
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
+                Checklist avant impression
+              </h2>
+              <div className="mt-5 grid gap-3">
+                {dossier.dossierChecklist.map((item) => (
+                  <div key={item} className="rounded-[20px] border border-neutral-200 bg-white px-4 py-3">
+                    <p className="text-sm leading-relaxed text-neutral-800">{item}</p>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </section>
-
-      <section className="rounded-[32px] border border-neutral-200 bg-neutral-50 p-5 sm:p-6 print:rounded-none print:border print:bg-white">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-          Dossier final
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-950">
-          Checklist avant impression
-        </h2>
-        <div className="mt-5 grid gap-3">
-          {dossier.dossierChecklist.map((item) => (
-            <div key={item} className="rounded-[20px] border border-neutral-200 bg-white px-4 py-3">
-              <p className="text-sm leading-relaxed text-neutral-800">{item}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-5 text-sm leading-relaxed text-neutral-600">
-          Quand le schéma, les achats et les contrôles sont alignés, cette page devient votre
-          dossier complet : version cloud pendant le projet, version imprimée le jour du montage.
-        </p>
-      </section>
+              </div>
+            </section>
+          ) : null}
+        </>
+      ) : null}
     </div>
   );
 }

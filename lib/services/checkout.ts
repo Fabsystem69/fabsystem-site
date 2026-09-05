@@ -16,11 +16,11 @@ import {
   internalServerError,
   notFound,
 } from "@/lib/http-errors";
-import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 import {
   PRESTATIONS_NEEDS_PROGRESS_LABELS,
   parsePrestationsNeedsAnswers,
   prestationsNeedsAnswersInputSchema,
+  requiresNeedsIntake,
   type PrestationsNeedsAnswers,
 } from "@/lib/prestations-needs";
 
@@ -118,8 +118,8 @@ function truncateForStripeMetadata(value: string) {
   return value.slice(0, 490);
 }
 
-function orderContainsPrestationsPack(order: Pick<OrderWithRelations, "items">) {
-  return order.items.some((item) => isPrestationsPackSlug(item.productSlug));
+function orderRequiresNeedsIntake(order: Pick<OrderWithRelations, "items">) {
+  return order.items.some((item) => requiresNeedsIntake(item.productSlug));
 }
 
 function buildNeedsAnswersMetadata(
@@ -136,6 +136,7 @@ function buildNeedsAnswersMetadata(
     needsProgressLabel: PRESTATIONS_NEEDS_PROGRESS_LABELS[needsAnswers.progress],
     needsDeadline: needsAnswers.deadline ? truncateForStripeMetadata(needsAnswers.deadline) : "",
     needsOther: needsAnswers.other ? truncateForStripeMetadata(needsAnswers.other) : "",
+    needsWhatsapp: truncateForStripeMetadata(needsAnswers.whatsapp),
   };
 }
 
@@ -217,9 +218,9 @@ function assertNeedsAnswersProvidedIfRequired(
   order: OrderWithRelations,
   needsAnswers: PrestationsNeedsAnswers | null
 ) {
-  if (orderContainsPrestationsPack(order) && !needsAnswers) {
+  if (orderRequiresNeedsIntake(order) && !needsAnswers) {
     throw badRequest(
-      "Le formulaire de projet est requis pour valider un pack d'accompagnement."
+      "Le formulaire de projet est requis pour valider cette prestation d'accompagnement."
     );
   }
 }

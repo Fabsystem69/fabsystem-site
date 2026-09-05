@@ -58,12 +58,16 @@ export type FollowUpEngineSnapshot = {
 
 export type ProjectFollowUpDossier = {
   currentStepTitle: string;
+  isStepOverridden: boolean;
+  inferredStepTitle: string;
   readinessLabel: string;
   activeRetainedCount: number;
   obsoleteCount: number;
   retainedModuleCount: number;
   totalModuleCount: number;
   hasSchema: boolean;
+  hasKit: boolean;
+  kitName: string | null;
   steps: FollowUpStep[];
   purchases: PurchaseItem[];
   photoControls: ControlItem[];
@@ -262,94 +266,6 @@ const PURCHASES: PurchaseItem[] = [
   },
 ];
 
-const PHOTO_CONTROLS: ControlItem[] = [
-  {
-    title: "Photo implantation banquette",
-    why: "Voir la P280 en place, la ventilation et l'accès.",
-    statusLabel: "À envoyer",
-  },
-  {
-    title: "Photo tableau 12 V",
-    why: "Voir la platine, le fusible principal et le départ XT60.",
-    statusLabel: "À envoyer",
-  },
-  {
-    title: "Photo faisceau 12 V",
-    why: "Vérifier les sections, les protections et le cheminement.",
-    statusLabel: "À envoyer",
-  },
-  {
-    title: "Photo kit solaire",
-    why: "Confirmer l'entrée toit, le passe-toit et la descente vers la station.",
-    statusLabel: "À envoyer",
-  },
-  {
-    title: "Photo réseau eau",
-    why: "Contrôler pompe, filtre, vase et raccords avant fermeture.",
-    statusLabel: "À envoyer",
-  },
-  {
-    title: "Photo 230 V fixe",
-    why: "Vérifier la présence du différentiel, du disjoncteur et des prises fixes.",
-    statusLabel: "À envoyer",
-  },
-] as const;
-
-const POWER_CONTROLS: ControlItem[] = [
-  {
-    title: "Polarité 12 V confirmée",
-    why: "On ne branche pas si le doute existe sur les polarités.",
-    statusLabel: "À faire",
-  },
-  {
-    title: "Fusibles en place et bien calibrés",
-    why: "Chaque départ important doit être protégé.",
-    statusLabel: "À faire",
-  },
-  {
-    title: "Départ XT60 protégé à 25 A max",
-    why: "La sortie 12 V de la P280 impose une logique simple et bien protégée.",
-    statusLabel: "À faire",
-  },
-  {
-    title: "230 V fixe protégé",
-    why: "Différentiel 30 mA + disjoncteur dédié avant essais.",
-    statusLabel: "À faire",
-  },
-  {
-    title: "Réseau eau testé sans fuite",
-    why: "Éviter toute fuite avant remise en tension globale.",
-    statusLabel: "À faire",
-  },
-  {
-    title: "Photos validées par FabSystem",
-    why: "Pas de mise sous tension si une photo importante manque.",
-    statusLabel: "À faire",
-  },
-  {
-    title: "Recharge alternateur validée si retenue",
-    why: "Pas de branchement DC060 sans validation commune du câblage amont.",
-    statusLabel: "À faire",
-  },
-  {
-    title: "Ordre des essais défini",
-    why: "On teste une fonction à la fois : charge, frigo, eau, USB, LED et 230 V.",
-    statusLabel: "À faire",
-  },
-] as const;
-
-const BUDGET_LINES: BudgetLine[] = [
-  { block: "Énergie", budgetCents: 85900 },
-  { block: "Solaire", budgetCents: 24887 },
-  { block: "12 V", budgetCents: 27408 },
-  { block: "Froid", budgetCents: 49900 },
-  { block: "Eau", budgetCents: 27470 },
-  { block: "230 V", budgetCents: 20595 },
-  { block: "Confort", budgetCents: 5900 },
-  { block: "Pose", budgetCents: 7000 },
-  { block: "Recharge alternateur", budgetCents: 28199 },
-] as const;
-
 const DECISION_KEYS = [
   "energy.dailyConsumption",
   "battery.usefulEnergy",
@@ -359,15 +275,6 @@ const DECISION_KEYS = [
   "solar.dailyEnergy",
   "charger.rechargeableEnergy",
   "energyBalance.autonomy",
-] as const;
-
-const DOSSIER_CHECKLIST = [
-  "Architecture générale relue et cohérente avec la P280.",
-  "Liste d'achats de base figée avec les liens utiles.",
-  "Recharge alternateur limitée à la piste officielle DC060 si retenue.",
-  "Schéma enregistré dans le projet client avant les branchements finaux.",
-  "Photos de contrôle centralisées avant la mise sous tension.",
-  "Ordre des essais validé et dossier prêt à être imprimé en PDF.",
 ] as const;
 
 function inferCurrentStepIndex(retainedValues: ProjectRetainedValue[], hasSchema: boolean) {
@@ -418,13 +325,77 @@ function buildDecisionHighlights(retainedValues: ProjectRetainedValue[]) {
     }));
 }
 
+export type AssignedKit = {
+  name: string;
+  items: Array<{ priority: string; block: string; name: string; why: string; budgetCents: number; href: string }>;
+  photoControls: string[];
+  powerControls: string[];
+  checklist: string[];
+};
+
+function buildDossierFromKit(kit: AssignedKit) {
+  const purchases: PurchaseItem[] = kit.items.map((item) => ({
+    priority: item.priority === "Option officielle" ? "Option officielle" : "Indispensable",
+    block: item.block,
+    name: item.name,
+    why: item.why,
+    budgetCents: item.budgetCents,
+    statusLabel: item.priority === "Option officielle" ? "Option officielle" : "À acheter",
+    href: item.href,
+  }));
+
+  const budgetByBlock = new Map<string, number>();
+  for (const item of kit.items) {
+    budgetByBlock.set(item.block, (budgetByBlock.get(item.block) ?? 0) + item.budgetCents);
+  }
+  const budgetLines: BudgetLine[] = Array.from(budgetByBlock.entries()).map(([block, budgetCents]) => ({
+    block,
+    budgetCents,
+  }));
+
+  const budgetBaseCents = kit.items
+    .filter((item) => item.priority !== "Option officielle")
+    .reduce((sum, item) => sum + item.budgetCents, 0);
+  const budgetWithOptionsCents = kit.items.reduce((sum, item) => sum + item.budgetCents, 0);
+
+  const toControlItems = (lines: string[], statusLabel: string): ControlItem[] =>
+    lines.map((title) => ({ title, why: "", statusLabel }));
+
+  return {
+    purchases,
+    photoControls: toControlItems(kit.photoControls, "À envoyer"),
+    powerControls: toControlItems(kit.powerControls, "À faire"),
+    budgetLines,
+    budgetBaseCents,
+    budgetWithOptionsCents,
+    dossierChecklist: [...kit.checklist],
+  };
+}
+
 export function buildProjectFollowUpDossier(input: {
   project: Project;
   retainedValues: ProjectRetainedValue[];
   engineIds: RegisteredEngineId[];
   hasSchema: boolean;
+  // Override manuel FabSystem (Project.followUpStepOverride) : quand
+  // renseigne, remplace l'index deduit automatiquement. Sert quand le
+  // client a communique une info hors editeur (mail, appel) et que
+  // l'auto-detection base sur les ProjectRetainedValue ne peut pas le
+  // savoir seule.
+  stepOverride?: string | null;
+  // Kit assigne (Project.kitId, lib/services/kit.ts) : remplace les listes
+  // d'achat/budget/controles hardcodees d'un seul kit (AFERIY P280) qui
+  // s'appliquaient a tort a tous les projets — bug corrige ici. Absent =
+  // aucun kit assigne, ces sections restent vides (jamais un fallback sur
+  // les anciennes constantes).
+  kit?: AssignedKit | null;
 }): ProjectFollowUpDossier {
-  const currentStepIndex = inferCurrentStepIndex(input.retainedValues, input.hasSchema);
+  const inferredStepIndex = inferCurrentStepIndex(input.retainedValues, input.hasSchema);
+  const overrideIndex = input.stepOverride
+    ? STEP_TEMPLATES.findIndex((step) => step.key === input.stepOverride)
+    : -1;
+  const isStepOverridden = overrideIndex >= 0;
+  const currentStepIndex = isStepOverridden ? overrideIndex : inferredStepIndex;
   const obsoleteCount = input.retainedValues.filter((value) => value.status === "OBSOLETE").length;
   const retainedModuleCount = input.engineIds.filter(
     (engineId) => moduleStatus(engineId, input.retainedValues) === "Retenu"
@@ -454,24 +425,34 @@ export function buildProjectFollowUpDossier(input: {
     };
   });
 
+  const kitDossier = input.kit
+    ? buildDossierFromKit(input.kit)
+    : {
+        purchases: [] as PurchaseItem[],
+        photoControls: [] as ControlItem[],
+        powerControls: [] as ControlItem[],
+        budgetLines: [] as BudgetLine[],
+        budgetBaseCents: 0,
+        budgetWithOptionsCents: 0,
+        dossierChecklist: [] as string[],
+      };
+
   return {
     currentStepTitle: steps[currentStepIndex]?.title ?? STEP_TEMPLATES[0].title,
+    isStepOverridden,
+    inferredStepTitle: STEP_TEMPLATES[inferredStepIndex]?.title ?? STEP_TEMPLATES[0].title,
     readinessLabel: readinessLabel(input.hasSchema, obsoleteCount, retainedModuleCount),
     activeRetainedCount: input.retainedValues.filter((value) => value.status === "ACTIVE").length,
     obsoleteCount,
     retainedModuleCount,
     totalModuleCount: input.engineIds.length,
     hasSchema: input.hasSchema,
+    hasKit: Boolean(input.kit),
+    kitName: input.kit?.name ?? null,
     steps,
-    purchases: PURCHASES,
-    photoControls: [...PHOTO_CONTROLS],
-    powerControls: [...POWER_CONTROLS],
-    budgetLines: [...BUDGET_LINES],
-    budgetBaseCents: 249060,
-    budgetWithOptionsCents: 277259,
+    ...kitDossier,
     decisionHighlights: buildDecisionHighlights(input.retainedValues),
     engineSnapshots,
-    dossierChecklist: [...DOSSIER_CHECKLIST],
   };
 }
 

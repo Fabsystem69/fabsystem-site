@@ -39,10 +39,18 @@ test(".env.example no longer documents the removed legacy variables", () => {
   assert.doesNotMatch(envExample, /^EBOOK_ACCESS_TOKEN_SECRET=/m);
 });
 
-test("package.json no longer depends on @vercel/blob", () => {
+// Reintroduit deliberement pour le stockage des documents de dossier
+// d'accompagnement (lib/server/dossier-storage.ts, refonte suivi client) —
+// contexte different de l'ancien systeme ebook decommissionne ci-dessus.
+// Choisi plutot que Supabase (deja utilise pour les ebooks) car les projets
+// Supabase gratuits se mettent en pause apres 7 jours d'inactivite, un
+// risque pour un stockage dont depend un client. BLOB_READ_WRITE_TOKEN dans
+// .env est le meme store historique, jamais supprime malgre le retrait du
+// code qui l'utilisait — reutilise ici, pas un nouveau provisioning.
+test("package.json depends on @vercel/blob for dossier document storage", () => {
   const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
     dependencies?: Record<string, string>;
   };
 
-  assert.equal("@vercel/blob" in (packageJson.dependencies ?? {}), false);
+  assert.equal("@vercel/blob" in (packageJson.dependencies ?? {}), true);
 });

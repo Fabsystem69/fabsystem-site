@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { listAdminTestimonials } from "@/lib/services/testimonials";
 import { updateTestimonialAction } from "../../actions";
-import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -25,8 +26,7 @@ export default async function DashboardTestimonialEditPage({
   }
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="3xl">
         <AdminPageHeader
           title="Modifier le témoignage"
           backHref="/dashboard/content/testimonials"
@@ -148,7 +148,6 @@ export default async function DashboardTestimonialEditPage({
           Enregistrer les modifications
         </button>
         </form>
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

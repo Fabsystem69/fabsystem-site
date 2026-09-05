@@ -1,12 +1,14 @@
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import Link from "next/link";
 import { listDashboardProducts } from "@/lib/services/catalog";
+import { getProductStatusLabel, getProductStatusTone } from "@/lib/dashboard-status-labels";
 import {
   activateProductAction,
   archiveProductAction,
   draftProductAction,
 } from "@/app/dashboard/catalog/actions";
-import { AdminAlert, AdminBadge, AdminButton, AdminEmptyState, AdminPageHeader, type AdminBadgeTone } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminBadge, AdminButton, AdminEmptyState, AdminPageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -15,12 +17,6 @@ type DashboardCatalogPageProps = {
     error?: string;
     success?: string;
   }>;
-};
-
-const STATUS_TONE: Record<"DRAFT" | "ACTIVE" | "ARCHIVED", AdminBadgeTone> = {
-  ACTIVE: "success",
-  ARCHIVED: "neutral",
-  DRAFT: "warning",
 };
 
 function getPriceSummary(
@@ -48,13 +44,6 @@ function getPriceSummary(
   };
 }
 
-const secondaryButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-xs font-semibold text-neutral-200 transition-colors duration-150 hover:bg-neutral-800";
-const successButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition-colors duration-150 hover:bg-emerald-500/20";
-const warningButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-orange-500/30 bg-orange-500/10 px-3 text-xs font-semibold text-orange-400 transition-colors duration-150 hover:bg-orange-500/20";
-
 function ProductStatusActions({
   productId,
   status,
@@ -67,21 +56,21 @@ function ProductStatusActions({
       {status !== "ACTIVE" ? (
         <form action={activateProductAction}>
           <input type="hidden" name="productId" value={productId} />
-          <button className={successButtonClass}>Activer</button>
+          <AdminButton type="submit" variant="success" size="sm">Activer</AdminButton>
         </form>
       ) : null}
 
       {status !== "ARCHIVED" ? (
         <form action={archiveProductAction}>
           <input type="hidden" name="productId" value={productId} />
-          <button className={secondaryButtonClass}>Archiver</button>
+          <AdminButton type="submit" variant="secondary" size="sm">Archiver</AdminButton>
         </form>
       ) : null}
 
       {status !== "DRAFT" ? (
         <form action={draftProductAction}>
           <input type="hidden" name="productId" value={productId} />
-          <button className={warningButtonClass}>Brouillon</button>
+          <AdminButton type="submit" variant="warning" size="sm">Brouillon</AdminButton>
         </form>
       ) : null}
     </div>
@@ -95,10 +84,11 @@ export default async function DashboardCatalogPage({
   const { error, success } = await searchParams;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Catalogue e-commerce"
+          backHref="/dashboard"
+          backLabel="Retour au dashboard"
           description="Produits vendus via FabSystem. Lecture du catalogue, des prix et des assets, ainsi que les changements de statut."
           actions={
             <>
@@ -129,7 +119,7 @@ export default async function DashboardCatalogPage({
                     <div className="space-y-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-lg font-semibold text-white">{product.name}</h2>
-                        <AdminBadge tone={STATUS_TONE[product.status]}>{product.status}</AdminBadge>
+                        <AdminBadge tone={getProductStatusTone(product.status)}>{getProductStatusLabel(product.status)}</AdminBadge>
                         <AdminBadge tone="neutral">{product.productType}</AdminBadge>
                         <AdminBadge tone="neutral">{product.purchaseMode}</AdminBadge>
                       </div>
@@ -199,7 +189,6 @@ export default async function DashboardCatalogPage({
             })}
           </div>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

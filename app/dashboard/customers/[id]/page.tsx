@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Customer, Invoice, Quote } from "@/lib/generated/prisma/client";
+import type { Customer } from "@/lib/generated/prisma/client";
 import { formatCustomerAssetSummary, getCustomerAssetLabel } from "@/lib/customer-asset";
 import { formatCustomerDisplayName, formatDate } from "@/lib/format";
 import { getProjectAssetTypeLabel, getProjectStatusLabel } from "@/lib/project-labels";
@@ -8,7 +8,8 @@ import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { listResourceGrantsForCustomer } from "@/lib/services/customer-resource-grants";
 import { inviteCustomerToPortalAction, revokeResourceGrantAction } from "./actions";
-import { AdminAlert, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
 
 type Params = {
   params: Promise<{
@@ -21,26 +22,11 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
   const { id } = await params;
   const { error, success } = await searchParams;
 
-  let customer:
-    | (Customer & {
-        quotes: Quote[];
-        invoices: Invoice[];
-      })
-    | null = null;
+  let customer: Customer | null = null;
 
   try {
     customer = await prisma.customer.findUnique({
       where: { id },
-      include: {
-        quotes: {
-          orderBy: { createdAt: "desc" },
-          take: 5,
-        },
-        invoices: {
-          orderBy: { createdAt: "desc" },
-          take: 5,
-        },
-      },
     });
   } catch (dbError) {
     return (
@@ -67,8 +53,7 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
   const activeGrants = resourceGrants.filter((grant) => grant.status === "ACTIVE");
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title={formatCustomerDisplayName(customer)}
           description={formatCustomerAssetSummary(customer) || "Aucune information véhicule / bateau"}
@@ -111,44 +96,6 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
           </div>
 
           <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <AdminCard title="Derniers devis">
-                <div className="space-y-2 text-sm">
-                  {customer.quotes.length === 0 ? (
-                    <p className="text-neutral-500">Aucun devis.</p>
-                  ) : (
-                    customer.quotes.map((quote) => (
-                      <Link
-                        key={quote.id}
-                        href={`/dashboard/quotes/${quote.id}`}
-                        className="block text-neutral-200 underline underline-offset-2 hover:text-brand-300"
-                      >
-                        {quote.number}
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </AdminCard>
-
-              <AdminCard title="Dernières factures">
-                <div className="space-y-2 text-sm">
-                  {customer.invoices.length === 0 ? (
-                    <p className="text-neutral-500">Aucune facture.</p>
-                  ) : (
-                    customer.invoices.map((invoice) => (
-                      <Link
-                        key={invoice.id}
-                        href={`/dashboard/invoices/${invoice.id}`}
-                        className="block text-neutral-200 underline underline-offset-2 hover:text-brand-300"
-                      >
-                        {invoice.number}
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </AdminCard>
-            </div>
-
             <AdminCard
               title="Ressources offertes"
               description="Ebooks ou fichiers octroyés directement, sans commande."
@@ -236,7 +183,6 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
             </AdminCard>
           </div>
         </div>
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

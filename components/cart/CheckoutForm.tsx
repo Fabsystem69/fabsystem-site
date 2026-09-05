@@ -9,7 +9,7 @@ import {
   readStoredNeedsAnswers,
   storePendingCheckoutInputs,
 } from "@/lib/client/prestations-needs-storage";
-import { isPrestationsPackSlug } from "@/lib/prestations-packs";
+import { requiresNeedsIntake } from "@/lib/prestations-needs";
 import type { CartSummary } from "@/lib/services/cart";
 import { CartAccountForm } from "@/components/cart/CartAccountForm";
 
@@ -108,9 +108,9 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
       return;
     }
 
-    const hasPack = cart.lines.some((line) => isPrestationsPackSlug(line.slug));
+    const needsIntakeRequired = cart.lines.some((line) => requiresNeedsIntake(line.slug));
 
-    if (hasPack) {
+    if (needsIntakeRequired) {
       const storedNeedsAnswers = readStoredNeedsAnswers(cart.cartId);
 
       if (!storedNeedsAnswers) {
@@ -138,7 +138,7 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
         customerName: resolvedSession.name ?? undefined,
         existingOrderId: orderId ?? undefined,
         discountCode: summary.appliedCode ?? undefined,
-        needsAnswers: hasPack ? readStoredNeedsAnswers(cart.cartId) ?? undefined : undefined,
+        needsAnswers: needsIntakeRequired ? readStoredNeedsAnswers(cart.cartId) ?? undefined : undefined,
         acceptsCgv: true,
         acknowledgesImmediateDigitalDelivery: true,
       });

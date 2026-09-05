@@ -1,6 +1,7 @@
 import { createDiscountCodeAction } from "@/app/dashboard/discounts/actions";
 import { listDashboardProducts } from "@/lib/services/catalog";
-import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +14,7 @@ export default async function DashboardDiscountsNewPage({
   const products = await listDashboardProducts();
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="3xl">
         <AdminPageHeader
           title="Créer un code de réduction"
           description="Montant fixe ou pourcentage, ciblé sur un produit du catalogue (ebook ou pack) ou sur tout le catalogue, nominatif ou non, usage limité ou illimité, avec ou sans date d'expiration."
@@ -160,7 +160,6 @@ export default async function DashboardDiscountsNewPage({
           Créer le code
         </button>
         </form>
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

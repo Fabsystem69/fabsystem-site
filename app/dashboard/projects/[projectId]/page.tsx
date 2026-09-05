@@ -1,14 +1,30 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AdminAlert, AdminBadge, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell,
+  AdminAlert,
+  AdminBadge,
+  AdminButton,
+  AdminCard,
+  AdminPageHeader,
+  AdminTable,
+  adminTableBodyClass,
+  adminTableCellClass,
+  adminTableCellStrongClass,
+  adminTableHeadCellClass,
+  adminTableHeadClass,
+  adminTableRowClass,
+} from "@/components/dashboard/ui";
 import { listRegisteredEngineIds } from "@/lib/engines";
 import type { RegisteredEngineId } from "@/lib/engine-payload";
 import { formatCustomerDisplayName, formatDate } from "@/lib/format";
 import { buildProjectFollowUpDossier } from "@/lib/project-follow-up";
 import { getProjectAssetTypeLabel, getProjectVoltageLabel } from "@/lib/project-labels";
 import { prisma } from "@/lib/prisma";
+import { getRetainedValueLabel, formatRetainedValueDisplay } from "@/lib/retained-value-labels";
 import { getProjectFollowUpReviewLabel, getProjectFollowUpReviewTone } from "@/lib/services/project-follow-up-review";
-import { updateProjectFollowUpReviewAction } from "./actions";
+import { listKits } from "@/lib/services/kit";
+import { setProjectFollowUpStepOverrideAction, setProjectKitAction, updateProjectFollowUpReviewAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +49,20 @@ export default async function DashboardProjectDetailPage({
 }) {
   const { projectId } = await params;
   const { error, success } = await searchParams;
-  const project = await prisma.project.findFirst({
-    where: { id: projectId, customer: { dataShareConsent: true } },
-    include: {
-      customer: true,
-      retainedValues: true,
-      schema: true,
-      followUpReviews: true,
-      followUpEvents: { orderBy: { createdAt: "desc" }, take: 12 },
-    },
-  });
+  const [project, kits] = await Promise.all([
+    prisma.project.findFirst({
+      where: { id: projectId, customer: { dataShareConsent: true } },
+      include: {
+        customer: true,
+        retainedValues: true,
+        schema: true,
+        followUpReviews: true,
+        followUpEvents: { orderBy: { createdAt: "desc" }, take: 12 },
+        kit: { include: { items: true } },
+      },
+    }),
+    listKits(),
+  ]);
 
   if (!project) notFound();
 
@@ -51,12 +71,25 @@ export default async function DashboardProjectDetailPage({
     retainedValues: project.retainedValues,
     engineIds: listRegisteredEngineIds() as RegisteredEngineId[],
     hasSchema: Boolean(project.schema),
+    stepOverride: project.followUpStepOverride,
+    kit: project.kit
+      ? {
+          name: project.kit.name,
+          items: project.kit.items,
+          photoControls: Array.isArray(project.kit.photoControls)
+            ? (project.kit.photoControls as string[])
+            : [],
+          powerControls: Array.isArray(project.kit.powerControls)
+            ? (project.kit.powerControls as string[])
+            : [],
+          checklist: Array.isArray(project.kit.checklist) ? (project.kit.checklist as string[]) : [],
+        }
+      : null,
   });
   const reviews = new Map(project.followUpReviews.map((review) => [review.stepKey, review]));
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title={project.name}
           description={`${formatCustomerDisplayName(project.customer)} · ${getProjectAssetTypeLabel(project.assetType)} · ${getProjectVoltageLabel(project.voltage)}`}
@@ -74,12 +107,56 @@ export default async function DashboardProjectDetailPage({
         {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
 
         <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <AdminCard title="Situation du projet" description="Lecture technique automatique, à partir des données réellement enregistrées.">
+          <AdminCard title="Situation du projet" description="Lecture technique automatique, à partir des données réellement enregistrées — sauf étape forcée manuellement ci-dessous.">
             <div className="grid gap-3 sm:grid-cols-3">
-              <div><p className="text-xs uppercase tracking-wide text-neutral-500">Étape technique</p><p className="mt-1 font-semibold text-white">{dossier.currentStepTitle}</p></div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-neutral-500">Étape technique</p>
+                <p className="mt-1 font-semibold text-white">{dossier.currentStepTitle}</p>
+                {dossier.isStepOverridden ? (
+                  <p className="mt-0.5 text-xs text-orange-400">Forcée manuellement (auto : {dossier.inferredStepTitle})</p>
+                ) : null}
+              </div>
               <div><p className="text-xs uppercase tracking-wide text-neutral-500">Dossier</p><p className="mt-1 font-semibold text-white">{dossier.readinessLabel}</p></div>
               <div><p className="text-xs uppercase tracking-wide text-neutral-500">Schéma</p><p className="mt-1 font-semibold text-white">{project.schema ? "Enregistré" : "À créer"}</p></div>
             </div>
+
+            <form action={setProjectFollowUpStepOverrideAction} className="mt-5 flex flex-wrap items-end gap-3 border-t border-neutral-800 pt-4">
+              <input type="hidden" name="projectId" value={project.id} />
+              <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Forcer l&apos;étape technique
+                <select
+                  name="stepKey"
+                  defaultValue={project.followUpStepOverride ?? ""}
+                  className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                >
+                  <option value="">Automatique ({dossier.inferredStepTitle})</option>
+                  {dossier.steps.map((step) => (
+                    <option key={step.key} value={step.key}>{step.title}</option>
+                  ))}
+                </select>
+              </label>
+              <AdminButton type="submit" variant="secondary" size="sm">Appliquer</AdminButton>
+            </form>
+
+            <form action={setProjectKitAction} className="mt-4 flex flex-wrap items-end gap-3">
+              <input type="hidden" name="projectId" value={project.id} />
+              <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Kit assigné
+                <select
+                  name="kitId"
+                  defaultValue={project.kitId ?? ""}
+                  className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                >
+                  <option value="">Aucun</option>
+                  {kits.map((kit) => (
+                    <option key={kit.id} value={kit.id}>{kit.name}</option>
+                  ))}
+                </select>
+              </label>
+              <AdminButton type="submit" variant="secondary" size="sm">Appliquer</AdminButton>
+              <AdminButton href="/dashboard/kits" variant="ghost" size="sm">Gérer les kits</AdminButton>
+            </form>
+
             {project.customer.driveLinkUrl ? (
               <a href={project.customer.driveLinkUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex text-sm font-semibold text-brand-300 underline underline-offset-4 hover:text-brand-200">
                 Ouvrir le dossier cloud partagé →
@@ -138,7 +215,42 @@ export default async function DashboardProjectDetailPage({
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{dossier.decisionHighlights.map((item) => <div key={item.label} className="rounded-xl border border-neutral-800 p-3"><p className="text-xs text-neutral-500">{item.label}</p><p className="mt-1 text-sm font-semibold text-neutral-100">{item.value}</p></div>)}</div>
           )}
         </AdminCard>
-      </main>
-    </div>
+
+        <AdminCard
+          title="Toutes les données enregistrées"
+          description="Détail complet derrière l'étape technique et les décisions ci-dessus, y compris les valeurs obsolètes — pour juger en connaissance de cause avant de forcer une étape."
+        >
+          {project.retainedValues.length === 0 ? (
+            <p className="text-sm text-neutral-500">Aucune valeur enregistrée pour l&apos;instant.</p>
+          ) : (
+            <AdminTable>
+              <thead className={adminTableHeadClass}>
+                <tr>
+                  <th className={adminTableHeadCellClass}>Donnée</th>
+                  <th className={adminTableHeadCellClass}>Valeur</th>
+                  <th className={adminTableHeadCellClass}>Statut</th>
+                  <th className={adminTableHeadCellClass}>Mis à jour</th>
+                </tr>
+              </thead>
+              <tbody className={adminTableBodyClass}>
+                {[...project.retainedValues]
+                  .sort((a, b) => a.key.localeCompare(b.key))
+                  .map((value) => (
+                    <tr key={value.id} className={adminTableRowClass}>
+                      <td className={adminTableCellStrongClass}>{getRetainedValueLabel(value.key, value.value)}</td>
+                      <td className={adminTableCellClass}>{formatRetainedValueDisplay(value.value, value.key) ?? "—"}</td>
+                      <td className={adminTableCellClass}>
+                        <AdminBadge tone={value.status === "ACTIVE" ? "success" : "warning"}>
+                          {value.status === "ACTIVE" ? "Actif" : "Obsolète"}
+                        </AdminBadge>
+                      </td>
+                      <td className={adminTableCellClass}>{formatDate(value.updatedAt)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </AdminTable>
+          )}
+        </AdminCard>
+  </DashboardPageShell>
   );
 }

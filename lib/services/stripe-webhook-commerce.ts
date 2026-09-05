@@ -83,6 +83,10 @@ type CommerceWebhookDeps = {
   createAutomaticSchemaUnlockDiscountCodesForOrder?: (orderId: string) => Promise<unknown>;
   createAutomaticSchemaEditorTrialForOrder?: (orderId: string) => Promise<unknown>;
   grantPrestationsBenefitsForOrder?: (orderId: string) => Promise<unknown>;
+  createDossierClientForOrder?: (
+    orderId: string,
+    sessionMetadata: Stripe.Metadata | null | undefined
+  ) => Promise<unknown>;
 };
 
 function getRequiredMetadataValue(
@@ -259,6 +263,7 @@ async function getDefaultCommerceWebhookService() {
     { sendPrestationsPackNotification },
     { sendPurchaseNotification },
     { grantProjectUnlockForOrder },
+    { createDossierClientForOrder },
   ] = await Promise.all([
     import("@/lib/prisma"),
     import("@/lib/services/download-grant"),
@@ -268,6 +273,7 @@ async function getDefaultCommerceWebhookService() {
     import("@/lib/services/prestations-notify"),
     import("@/lib/services/purchase-notify"),
     import("@/lib/services/schema-unlock"),
+    import("@/lib/services/dossier-client"),
   ]);
 
   return createStripeWebhookCommerceService(createPrismaCommerceWebhookDb(prisma), {
@@ -279,6 +285,7 @@ async function getDefaultCommerceWebhookService() {
     sendPrestationsPackNotification,
     sendPurchaseNotification,
     grantProjectUnlockForOrder: (orderId) => grantProjectUnlockForOrder({ orderId }),
+    createDossierClientForOrder,
   });
 }
 
@@ -300,6 +307,7 @@ export function createStripeWebhookCommerceService(
     deps?.createAutomaticSchemaEditorTrialForOrder ?? (async () => {});
   const grantPrestationsBenefitsForOrder =
     deps?.grantPrestationsBenefitsForOrder ?? (async () => {});
+  const createDossierClientForOrder = deps?.createDossierClientForOrder ?? (async () => {});
 
   return {
     async handleCommerceCheckoutCompleted(
@@ -418,6 +426,10 @@ export function createStripeWebhookCommerceService(
         // du webhook Stripe deja traitee.
         await createAutomaticSchemaEditorTrialForOrder(result.orderId);
         await grantPrestationsBenefitsForOrder(result.orderId);
+        // Suivi accompagnement (DossierClient) : idempotent par orderId,
+        // sans effet sur les commandes qui ne contiennent aucune des 3
+        // offres accompagnement (voir lib/services/dossier-client.ts).
+        await createDossierClientForOrder(result.orderId, session.metadata);
       }
 
       return result;

@@ -3,7 +3,7 @@ import { normalizeCustomerEmail } from "@/lib/services/customer-auth";
 import {
   PRESTATIONS_EDITOR_ACCESS_DAYS,
   PRESTATIONS_INCLUDED_EBOOK_SLUG,
-  isPrestationsOfferSlug,
+  offerIncludesBonusAccess,
 } from "@/lib/prestations-offers";
 import { SCHEMA_EDITOR_UNLIMITED_CAPABILITY } from "@/lib/services/schema-unlock";
 
@@ -30,7 +30,7 @@ export async function grantPrestationsBenefitsForOrder(orderId: string) {
     select: { id: true, customerId: true, customerEmail: true, items: { select: { productSlug: true } } },
   });
 
-  if (!order || !order.items.some((item) => isPrestationsOfferSlug(item.productSlug))) {
+  if (!order || !order.items.some((item) => offerIncludesBonusAccess(item.productSlug))) {
     return { status: "not_applicable" as const };
   }
 

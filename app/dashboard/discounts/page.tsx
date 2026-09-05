@@ -4,8 +4,10 @@ import {
   disableDiscountCodeAction,
 } from "@/app/dashboard/discounts/actions";
 import { UNLIMITED_DISCOUNT_REDEMPTIONS, listDashboardDiscountCodes } from "@/lib/services/discounts";
+import { getDiscountCodeStatusLabel, getDiscountCodeStatusTone } from "@/lib/dashboard-status-labels";
 import { CodesPageTabs } from "@/components/dashboard/CodesPageTabs";
 import {
+  DashboardPageShell,
   AdminAlert,
   AdminBadge,
   AdminButton,
@@ -18,21 +20,9 @@ import {
   adminTableHeadCellClass,
   adminTableHeadClass,
   adminTableRowClass,
-  type AdminBadgeTone,
 } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_TONE: Record<string, AdminBadgeTone> = {
-  ACTIVE: "success",
-  DISABLED: "neutral",
-  EXPIRED: "danger",
-};
-
-const successButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition-colors duration-150 hover:bg-emerald-500/20";
-const secondaryButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-xs font-semibold text-neutral-200 transition-colors duration-150 hover:bg-neutral-800";
 
 export default async function DashboardDiscountsPage({
   searchParams,
@@ -43,18 +33,16 @@ export default async function DashboardDiscountsPage({
   const { error, success } = await searchParams;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Codes promo"
+          backHref="/dashboard"
+          backLabel="Retour au dashboard"
           description="Montant fixe ou pourcentage, ciblés sur un produit ou tout le catalogue, nominatifs ou non, usage limité ou illimité."
           actions={
-            <>
-              <AdminButton variant="primary" href="/dashboard/discounts/new">
-                Créer un code
-              </AdminButton>
-              <AdminButton href="/dashboard">Retour dashboard</AdminButton>
-            </>
+            <AdminButton variant="primary" href="/dashboard/discounts/new">
+              Créer un code
+            </AdminButton>
           }
         />
 
@@ -85,7 +73,9 @@ export default async function DashboardDiscountsPage({
                 <tr key={discount.id} className={adminTableRowClass}>
                   <td className={adminTableCellStrongClass}>{discount.code}</td>
                   <td className={adminTableCellClass}>
-                    <AdminBadge tone={STATUS_TONE[discount.status] ?? "neutral"}>{discount.status}</AdminBadge>
+                    <AdminBadge tone={getDiscountCodeStatusTone(discount.status)}>
+                      {getDiscountCodeStatusLabel(discount.status)}
+                    </AdminBadge>
                   </td>
                   <td className={adminTableCellClass}>
                     {discount.type === "FIXED_AMOUNT"
@@ -109,12 +99,12 @@ export default async function DashboardDiscountsPage({
                     {discount.status === "ACTIVE" ? (
                       <form action={disableDiscountCodeAction}>
                         <input type="hidden" name="discountCodeId" value={discount.id} />
-                        <button className={secondaryButtonClass}>Désactiver</button>
+                        <AdminButton type="submit" variant="secondary" size="sm">Désactiver</AdminButton>
                       </form>
                     ) : (
                       <form action={activateDiscountCodeAction}>
                         <input type="hidden" name="discountCodeId" value={discount.id} />
-                        <button className={successButtonClass}>Réactiver</button>
+                        <AdminButton type="submit" variant="success" size="sm">Réactiver</AdminButton>
                       </form>
                     )}
                   </td>
@@ -123,7 +113,6 @@ export default async function DashboardDiscountsPage({
             </tbody>
           </AdminTable>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

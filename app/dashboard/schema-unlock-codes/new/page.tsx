@@ -1,5 +1,6 @@
 import { createTrialAccessCodeAction } from "@/app/dashboard/schema-unlock-codes/actions";
-import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,7 @@ export default async function DashboardSchemaUnlockCodesNewPage({
   const { error } = await searchParams;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="3xl">
         <AdminPageHeader
           title="Créer un code promo éditeur"
           description="Débloque un accès illimité (consommateurs) sur tous les projets du compte qui saisit le code, sans paiement — pensé pour une distribution communauté/groupes."
@@ -90,7 +90,6 @@ export default async function DashboardSchemaUnlockCodesNewPage({
             Créer le code
           </button>
         </form>
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

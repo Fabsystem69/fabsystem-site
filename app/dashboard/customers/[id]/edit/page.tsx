@@ -5,7 +5,8 @@ import {
 } from "@/components/dashboard/CustomerCreateForm";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
-import { AdminAlert, AdminButton, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 type Params = {
   params: Promise<{
@@ -47,16 +48,12 @@ export default async function DashboardCustomerEditPage({ params }: Params) {
   }
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="3xl">
         <AdminPageHeader
           title="Modifier le client"
+          backHref={customer ? `/dashboard/customers/${customer.id}` : "/dashboard/customers"}
+          backLabel="Retour à la fiche client"
           description="Mets à jour les informations de contact et les données véhicule / bateau."
-          actions={
-            <AdminButton href={customer ? `/dashboard/customers/${customer.id}` : "/dashboard/customers"}>
-              Retour
-            </AdminButton>
-          }
         />
 
         {databaseError ? (
@@ -64,7 +61,6 @@ export default async function DashboardCustomerEditPage({ params }: Params) {
         ) : customer ? (
           <CustomerCreateForm initialData={customer} />
         ) : null}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

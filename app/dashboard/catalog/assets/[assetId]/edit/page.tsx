@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { updateDigitalAssetAction } from "@/app/dashboard/catalog/assets/actions";
 import { DigitalAssetForm } from "@/components/dashboard/DigitalAssetForm";
 import { getDashboardAssetForEdit } from "@/lib/services/catalog";
-import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 type DashboardCatalogAssetsEditPageProps = {
   params: Promise<{
@@ -29,8 +30,7 @@ export default async function DashboardCatalogAssetsEditPage({
   }
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="3xl">
         <AdminPageHeader
           title="Modifier l'asset"
           description="Mise à jour des métadonnées de référence stockées dans Prisma. Aucune URL signée n'est générée et aucun upload Supabase n'est lancé depuis cette page."
@@ -53,7 +53,6 @@ export default async function DashboardCatalogAssetsEditPage({
             status: asset.status,
           }}
         />
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

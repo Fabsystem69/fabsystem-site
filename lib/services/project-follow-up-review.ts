@@ -42,6 +42,24 @@ export async function listProjectFollowUpEvents(projectId: string) {
   });
 }
 
+export async function setProjectFollowUpStepOverride(input: { projectId: string; stepKey: string | null }) {
+  const projectId = input.projectId.trim();
+  const stepKey = input.stepKey?.trim() || null;
+
+  if (stepKey && !isProjectFollowUpStepKey(stepKey)) throw badRequest("Étape de suivi invalide.");
+
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, customer: { dataShareConsent: true } },
+    select: { id: true },
+  });
+  if (!project) throw notFound("Projet partagé introuvable.");
+
+  return prisma.project.update({
+    where: { id: projectId },
+    data: { followUpStepOverride: stepKey },
+  });
+}
+
 export async function updateProjectFollowUpReview(input: {
   projectId: string;
   stepKey: string;

@@ -266,6 +266,8 @@ model Customer {
   errorReports               ErrorReport[]
   resourceGrants             CustomerResourceGrant[]
   editorSubscriptions        EditorSubscription[]
+  contactLogs                CustomerContactLog[]
+  dossiers                   DossierClient[]
   createdAt                  DateTime                    @default(now())
   updatedAt                  DateTime                    @updatedAt
 
@@ -295,6 +297,24 @@ model EditorSubscription {
   @@index([stripeCustomerId])
   @@index([status])
   @@index([currentPeriodEndsAt])
+}
+
+// CRM editeur : historique des emails envoyes a un client hors flux
+// transactionnel (commande, mot de passe...). Sert de source unique pour
+// "dernier contact" (affiche sur la liste CRM) ET pour le garde-fou anti-spam
+// des relances automatiques (lib/services/editor-crm.ts) — qu'un contact soit
+// manuel (mailing choisi par FabSystem) ou automatique (cron), il compte pour
+// le meme cooldown, jamais deux systemes de suivi distincts.
+model CustomerContactLog {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subject    String
+  message    String   @db.Text
+  sentBy     String   @default("FabSystem")
+  createdAt  DateTime @default(now())
+
+  @@index([customerId, createdAt])
 }
 
 // Retour utilisateur : "possible d'avoir les remontées d'erreur avec l'id
@@ -419,6 +439,19 @@ model Project {
   // échéance ("restitue le Project dans son état normal", MASTER-10 §56).
   deleteScheduledAt DateTime?
   preScheduleStatus ProjectStatus?
+  // Etape technique du "Parcours d'accompagnement" (voir lib/project-follow-up.ts)
+  // normalement deduite automatiquement des ProjectRetainedValue/ProjectSchema
+  // du client. Nullable = calcul automatique (comportement par defaut) ;
+  // renseigne = override manuel FabSystem (ex. info recue par mail plutot
+  // que via l'editeur). Cle parmi PROJECT_FOLLOW_UP_STEP_KEYS, jamais un
+  // enum Prisma pour rester coherent avec ProjectFollowUpReview.stepKey.
+  followUpStepOverride String?
+  // Kit assigne (liste d'achat/budget/controles reels pour CE projet) —
+  // remplace les constantes hardcodees pour un seul kit (AFERIY P280) qui
+  // s'appliquaient a tort a tous les projets (bug corrige ici). Nullable =
+  // aucun kit assigne, les sections achats/budget restent masquees.
+  kitId             String?
+  kit               Kit?             @relation(fields: [kitId], references: [id], onDelete: SetNull)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
@@ -433,6 +466,7 @@ model Project {
   orders            Order[]
 
   @@index([customerId])
+  @@index([kitId])
   @@index([status])
   @@index([deleteScheduledAt])
 }
@@ -870,6 +904,7 @@ model Order {
   payments            Payment[]
   downloadGrants      DownloadGrant[]
   discountRedemptions DiscountRedemption[]
+  dossierClient       DossierClient?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   paidAt              DateTime?
@@ -1128,6 +1163,10 @@ model TrialAccessCode {
   updatedAt      DateTime                    @updatedAt
 
   @@index([status])
+  // Restaure par la migration 20260903193000 (recherches nominatives de
+  // codes en production) mais jamais reporte ici jusqu'a present — Prisma
+  // Migrate le voyait comme un drift et voulait le redropper.
+  @@index([recipientEmail])
 }
 
 // Un compte ne peut consommer un meme code qu'une fois (@@unique) — un
@@ -1144,4 +1183,156 @@ model TrialAccessCodeRedemption {
 
   @@unique([codeId, customerId])
   @@index([customerId])
+}
+
+// --- Suivi accompagnement (DossierClient) ---------------------------------
+// Suivi de la prestation d'accompagnement achetee (Order-driven) : appel
+// decouverte/conseil (statut simple) ou guide/conception (timeline a
+// etapes). Sans rapport avec Project/ProjectFollowUpReview, qui suivent
+// l'usage de l'editeur de schema — un client peut avoir les deux, sans lien
+// entre eux. L'acces inclus (editeur/ebook) n'est jamais duplique ici : lu
+// depuis CustomerCapability/DiscountCode (source de verite existante,
+// lib/services/prestations-benefits.ts) via getIncludedAccessForCustomer().
+
+enum DossierOffre {
+  DECOUVERTE
+  CONSEIL
+  GUIDE
+  CONCEPTION
+}
+
+enum DossierStatutSimple {
+  A_VENIR
+  FAIT
+}
+
+model DossierClient {
+  id         String       @id @default(cuid())
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  // Null pour "decouverte" : jamais de commande (offre gratuite, CTA vers
+  // /contact), dossier cree manuellement depuis le dashboard.
+  orderId    String?      @unique
+  order      Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  offre      DossierOffre
+
+  whatsapp String?
+
+  // decouverte / conseil : statut simple, pas de timeline.
+  statutSimple DossierStatutSimple?
+  compteRendu  String?              @db.Text
+
+  // guide / conception : timeline a etapes fixes par offre (voir
+  // lib/dossier-client.ts, meme principe que STEP_TEMPLATES dans
+  // lib/project-follow-up.ts). Cle d'etape en String, jamais un enum Prisma,
+  // pour rester coherent avec Project.followUpStepOverride.
+  etapeActuelle  String?
+  etapeOverride  String?
+  iterationCount Int     @default(0)
+
+  dateLivraison         DateTime?
+  consentementPartage   Boolean   @default(false)
+  consentementPartageAt DateTime?
+  temoignageDemande     Boolean   @default(false)
+  temoignageRecu        Boolean   @default(false)
+  // Message de prise de nouvelles J+30 apres livraison (Phase 8) — flag
+  // "deja envoye", meme principe que temoignageDemande, pour ne jamais
+  // relancer deux fois.
+  j30MessageEnvoye      Boolean   @default(false)
+
+  notesInternes String? @db.Text
+
+  // Formulaire de besoin (lib/prestations-needs.ts) : persiste ici au lieu
+  // de ne vivre qu'en metadata Stripe (comportement precedent, toujours en
+  // vigueur pour les commandes "pack-", hors perimetre).
+  besoinVehicule    String?
+  besoinDescription String? @db.Text
+  besoinProgress    String?
+  besoinDeadline    String?
+  besoinAutre       String? @db.Text
+
+  derniereActivite DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  events    DossierEvent[]
+  documents DossierDocument[]
+
+  @@index([customerId])
+  @@index([offre])
+  @@index([derniereActivite])
+}
+
+// Journal unique par dossier : couvre a la fois les changements d'etape et
+// les iterations (schema/verification) — un seul historique plutot que deux
+// mecanismes paralleles qui pourraient diverger. Meme forme que
+// ProjectFollowUpEvent (lib/services/project-follow-up-review.ts).
+model DossierEvent {
+  id         String        @id @default(cuid())
+  dossierId  String
+  dossier    DossierClient @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  type       String
+  fromEtape  String?
+  toEtape    String?
+  note       String?       @db.Text
+  authorName String        @default("FabSystem")
+  createdAt  DateTime      @default(now())
+
+  @@index([dossierId, createdAt])
+}
+
+model DossierDocument {
+  id          String        @id @default(cuid())
+  dossierId   String
+  dossier     DossierClient @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  filename    String
+  bucket      String
+  path        String
+  contentType String?
+  sizeBytes   Int
+  uploadedBy  String
+  createdAt   DateTime      @default(now())
+
+  @@unique([bucket, path])
+  @@index([dossierId, createdAt])
+}
+
+// --- Kit (bundles d'achat assignables a un Project) -----------------------
+// Corrige a la racine un bug ou /mon-compte/projets/[id]/suivi affichait
+// toujours la liste d'achat/budget du kit AFERIY P280 (lib/project-follow-up.ts),
+// peu importe le projet reel. Un Kit est cree une fois dans le dashboard puis
+// assigne a N projets (Project.kitId) ; buildProjectFollowUpDossier derive
+// purchases/budgetLines/photoControls/powerControls/dossierChecklist du kit
+// assigne au lieu de constantes fixes.
+model Kit {
+  id            String    @id @default(cuid())
+  name          String
+  // Texte libre, pas de ligne budgetaire : listes descriptives simples
+  // (titre + pourquoi), contrairement a KitItem qui est achete/priorise.
+  photoControls Json?
+  powerControls Json?
+  checklist     Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  items    KitItem[]
+  projects Project[]
+}
+
+model KitItem {
+  id          String @id @default(cuid())
+  kitId       String
+  kit         Kit    @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  // "Indispensable" | "Option officielle" — memes valeurs que PurchaseItem
+  // dans lib/project-follow-up.ts, jamais un enum Prisma (texte affiche
+  // directement, pas de mapping de libelle necessaire).
+  priority    String
+  block       String
+  name        String
+  why         String @db.Text
+  budgetCents Int
+  href        String
+  sortOrder   Int    @default(0)
+
+  @@index([kitId])
 }

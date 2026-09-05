@@ -2,11 +2,20 @@ import { notFound } from "next/navigation";
 import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { getDashboardOrderDetail } from "@/lib/services/admin-orders";
 import {
+  getDownloadGrantStatusLabel,
+  getDownloadGrantStatusTone,
+  getOrderStatusLabel,
+  getOrderStatusTone,
+  getPaymentStatusLabel,
+  getPaymentStatusTone,
+} from "@/lib/dashboard-status-labels";
+import {
+  DashboardPageShell,
   AdminAlert,
   AdminBadge,
+  AdminButton,
   AdminCard,
   AdminPageHeader,
-  type AdminBadgeTone,
 } from "@/components/dashboard/ui";
 import {
   addDownloadsToGrantAction,
@@ -18,30 +27,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const ORDER_STATUS_TONE: Record<string, AdminBadgeTone> = {
-  PAID: "success",
-  PENDING_PAYMENT: "warning",
-  CANCELLED: "neutral",
-  REFUNDED: "info",
-  DRAFT: "neutral",
-};
-
-const GRANT_STATUS_TONE: Record<string, AdminBadgeTone> = {
-  ACTIVE: "success",
-  REVOKED: "danger",
-  EXPIRED: "neutral",
-};
-
 function formatOptionalDate(value: Date | string | null | undefined) {
   return value ? formatDate(value) : "Non renseigné";
 }
-
-const secondaryButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-xs font-semibold text-neutral-200 transition-colors duration-150 hover:bg-neutral-800";
-const successButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition-colors duration-150 hover:bg-emerald-500/20";
-const dangerButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-red-500/30 bg-red-500/10 px-3 text-xs font-semibold text-red-400 transition-colors duration-150 hover:bg-red-500/20";
 
 export default async function DashboardOrderDetailPage({
   params,
@@ -65,8 +53,7 @@ export default async function DashboardOrderDetailPage({
   const { order, refundReadiness } = detail;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="5xl">
         {successMessage ? <AdminAlert tone="success">{successMessage}</AdminAlert> : null}
         {errorMessage ? <AdminAlert tone="danger">{errorMessage}</AdminAlert> : null}
 
@@ -85,7 +72,7 @@ export default async function DashboardOrderDetailPage({
             </div>
             <div>
               <dt className="font-medium text-neutral-100">Statut</dt>
-              <dd><AdminBadge tone={ORDER_STATUS_TONE[order.status] ?? "neutral"}>{order.status}</AdminBadge></dd>
+              <dd><AdminBadge tone={getOrderStatusTone(order.status)}>{getOrderStatusLabel(order.status)}</AdminBadge></dd>
             </div>
             <div>
               <dt className="font-medium text-neutral-100">Email client</dt>
@@ -141,9 +128,9 @@ export default async function DashboardOrderDetailPage({
           <form action={resendMagicLinkAction} className="mt-4">
             <input type="hidden" name="orderId" value={order.id} />
             <input type="hidden" name="customerEmail" value={order.customerEmail} />
-            <button type="submit" className={secondaryButtonClass}>
+            <AdminButton type="submit" variant="secondary" size="sm">
               Renvoyer le lien de connexion (magic link)
-            </button>
+            </AdminButton>
           </form>
         </AdminCard>
 
@@ -172,7 +159,7 @@ export default async function DashboardOrderDetailPage({
                 <article key={payment.id} className="rounded-xl border border-neutral-800/80 bg-neutral-950/40 p-4 text-sm text-neutral-300">
                   <p className="flex items-center gap-2 font-medium text-white">
                     {payment.provider}
-                    <AdminBadge tone={GRANT_STATUS_TONE[payment.status] ?? "neutral"}>{payment.status}</AdminBadge>
+                    <AdminBadge tone={getPaymentStatusTone(payment.status)}>{getPaymentStatusLabel(payment.status)}</AdminBadge>
                   </p>
                   <p className="mt-1">Montant : {formatEuroFromCents(payment.amountCents)} · {payment.currency}</p>
                   <p className="mt-1">Stripe checkout session : {payment.stripeCheckoutSessionId || "Non renseigné"}</p>
@@ -198,7 +185,7 @@ export default async function DashboardOrderDetailPage({
                 <article key={grant.id} className="rounded-xl border border-neutral-800/80 bg-neutral-950/40 p-4 text-sm text-neutral-300">
                   <p className="flex items-center gap-2 font-medium text-white">
                     {grant.product.name}
-                    <AdminBadge tone={GRANT_STATUS_TONE[grant.status] ?? "neutral"}>{grant.status}</AdminBadge>
+                    <AdminBadge tone={getDownloadGrantStatusTone(grant.status)}>{getDownloadGrantStatusLabel(grant.status)}</AdminBadge>
                   </p>
                   <p className="mt-1">Grant ID : {grant.id}</p>
                   <p className="mt-1">Asset : {grant.asset.filename}</p>
@@ -212,24 +199,24 @@ export default async function DashboardOrderDetailPage({
                     <form action={resetDownloadGrantCountAction}>
                       <input type="hidden" name="orderId" value={order.id} />
                       <input type="hidden" name="grantId" value={grant.id} />
-                      <button type="submit" className={secondaryButtonClass}>
+                      <AdminButton type="submit" variant="secondary" size="sm">
                         Réinitialiser le compteur
-                      </button>
+                      </AdminButton>
                     </form>
                     <form action={addDownloadsToGrantAction}>
                       <input type="hidden" name="orderId" value={order.id} />
                       <input type="hidden" name="grantId" value={grant.id} />
-                      <button type="submit" className={successButtonClass}>
+                      <AdminButton type="submit" variant="success" size="sm">
                         Ajouter 5 téléchargements
-                      </button>
+                      </AdminButton>
                     </form>
                     {grant.status !== "REVOKED" ? (
                       <form action={revokeDownloadGrantAction}>
                         <input type="hidden" name="orderId" value={order.id} />
                         <input type="hidden" name="grantId" value={grant.id} />
-                        <button type="submit" className={dangerButtonClass}>
+                        <AdminButton type="submit" variant="danger" size="sm">
                           Révoquer l&apos;accès
-                        </button>
+                        </AdminButton>
                       </form>
                     ) : null}
                   </div>
@@ -300,7 +287,6 @@ export default async function DashboardOrderDetailPage({
             </div>
           )}
         </AdminCard>
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

@@ -8,6 +8,7 @@ import {
   setTestimonialPublishedAction,
 } from "./actions";
 import {
+  DashboardPageShell,
   AdminAlert,
   AdminBadge,
   AdminButton,
@@ -30,11 +31,6 @@ const customerTypeLabels: Record<string, string> = {
   OTHER: "Autre",
 };
 
-const secondaryButtonClass =
-  "inline-flex h-8 items-center rounded-md border border-neutral-700 bg-neutral-900 px-2 text-xs font-semibold text-neutral-200 transition-colors duration-150 hover:bg-neutral-800";
-const dangerButtonClass =
-  "inline-flex h-8 items-center rounded-md border border-red-500/30 bg-red-500/10 px-2 text-xs font-semibold text-red-400 transition-colors duration-150 hover:bg-red-500/20";
-
 export default async function DashboardTestimonialsPage({
   searchParams,
 }: {
@@ -44,18 +40,16 @@ export default async function DashboardTestimonialsPage({
   const { error, success } = await searchParams;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Témoignages clients"
+          backHref="/dashboard"
+          backLabel="Retour au dashboard"
           description="Modération des avis clients affichés sur le site. Les témoignages soumis depuis la page publique arrivent ici non publiés, puis sont relus avant mise en ligne."
           actions={
-            <>
-              <AdminButton variant="primary" href="/dashboard/content/testimonials/new">
-                Ajouter un témoignage
-              </AdminButton>
-              <AdminButton href="/dashboard">Retour dashboard</AdminButton>
-            </>
+            <AdminButton variant="primary" href="/dashboard/content/testimonials/new">
+              Ajouter un témoignage
+            </AdminButton>
           }
         />
 
@@ -115,9 +109,9 @@ export default async function DashboardTestimonialsPage({
                         defaultValue={testimonial.displayOrder}
                         className="h-8 w-16 rounded-md border border-neutral-700 bg-neutral-900 px-2 text-sm text-neutral-100 outline-none focus:border-neutral-500"
                       />
-                      <button type="submit" className={secondaryButtonClass}>
+                      <AdminButton type="submit" variant="secondary" size="sm">
                         OK
-                      </button>
+                      </AdminButton>
                     </form>
                   </td>
                   <td className={adminTableCellClass}>
@@ -132,25 +126,25 @@ export default async function DashboardTestimonialsPage({
                       <form action={setTestimonialPublishedAction}>
                         <input type="hidden" name="id" value={testimonial.id} />
                         <input type="hidden" name="isPublished" value={testimonial.isPublished ? "false" : "true"} />
-                        <button type="submit" className={secondaryButtonClass}>
+                        <AdminButton type="submit" variant="secondary" size="sm">
                           {testimonial.isPublished ? "Masquer" : "Publier"}
-                        </button>
+                        </AdminButton>
                       </form>
 
                       <form action={setTestimonialFeaturedAction}>
                         <input type="hidden" name="id" value={testimonial.id} />
                         <input type="hidden" name="isFeatured" value={testimonial.isFeatured ? "false" : "true"} />
-                        <button type="submit" className={secondaryButtonClass}>
+                        <AdminButton type="submit" variant="secondary" size="sm">
                           {testimonial.isFeatured ? "Retirer avant" : "Mettre en avant"}
-                        </button>
+                        </AdminButton>
                       </form>
 
                       {!testimonial.isPublished ? (
                         <form action={deleteTestimonialAction}>
                           <input type="hidden" name="id" value={testimonial.id} />
-                          <button type="submit" className={dangerButtonClass}>
+                          <AdminButton type="submit" variant="danger" size="sm">
                             Supprimer
-                          </button>
+                          </AdminButton>
                         </form>
                       ) : null}
                     </div>
@@ -160,7 +154,6 @@ export default async function DashboardTestimonialsPage({
             </tbody>
           </AdminTable>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

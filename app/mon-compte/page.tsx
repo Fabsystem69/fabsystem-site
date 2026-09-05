@@ -8,6 +8,7 @@ import { formatDate } from "@/lib/format";
 import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/project";
 import { getProjectValues } from "@/lib/services/project-values";
 import { getCustomerAccountOverview } from "@/lib/services/customer-account";
+import { getDossierForCustomer } from "@/lib/services/dossier-client";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { getProjectAssetTypeLabel, getProjectVoltageLabel } from "@/lib/project-labels";
 import { PendingImportBanner } from "@/components/customer/dashboard/PendingImportBanner";
@@ -31,9 +32,10 @@ export default async function MonComptePage() {
   const actor = await requireCustomerActor();
   const customerId = actor.role === "customer" ? actor.customerId : "";
 
-  const [projects, overview] = await Promise.all([
+  const [projects, overview, dossier] = await Promise.all([
     listProjectsForCustomer(actor, customerId),
     getCustomerAccountOverview(customerId),
+    getDossierForCustomer(customerId),
   ]);
 
   const recentProject = [...projects].sort(
@@ -121,6 +123,28 @@ export default async function MonComptePage() {
           </Card>
         )}
       </section>
+
+      {dossier ? (
+        <section>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-base font-semibold text-neutral-950">Mon accompagnement</h2>
+            <Link
+              href="/mon-compte/mon-accompagnement"
+              className="text-sm font-semibold text-neutral-700 underline underline-offset-4 hover:text-neutral-950"
+            >
+              Voir le détail →
+            </Link>
+          </div>
+          <Card className="mt-4 p-5">
+            <p className="text-sm text-neutral-700">Un dossier d&apos;accompagnement est en cours de suivi.</p>
+            <div className="mt-4">
+              <Button href="/mon-compte/mon-accompagnement" variant="primary">
+                Voir mon dossier →
+              </Button>
+            </div>
+          </Card>
+        </section>
+      ) : null}
 
       <section>
         <div className="flex items-baseline justify-between gap-3">

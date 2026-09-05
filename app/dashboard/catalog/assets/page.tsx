@@ -1,11 +1,12 @@
-import Link from "next/link";
 import { formatDate } from "@/lib/format";
 import {
   activateDigitalAssetAction,
   archiveDigitalAssetAction,
 } from "@/app/dashboard/catalog/assets/actions";
 import { listDashboardAssets } from "@/lib/services/catalog";
-import { AdminAlert, AdminBadge, AdminButton, AdminEmptyState, AdminPageHeader, type AdminBadgeTone } from "@/components/dashboard/ui";
+import { getDigitalAssetStatusLabel, getDigitalAssetStatusTone } from "@/lib/dashboard-status-labels";
+import {
+  DashboardPageShell, AdminAlert, AdminBadge, AdminButton, AdminEmptyState, AdminPageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -16,17 +17,6 @@ type DashboardCatalogAssetsPageProps = {
   }>;
 };
 
-const STATUS_TONE: Record<"DRAFT" | "ACTIVE" | "ARCHIVED", AdminBadgeTone> = {
-  ACTIVE: "success",
-  ARCHIVED: "neutral",
-  DRAFT: "warning",
-};
-
-const successButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-400 transition-colors duration-150 hover:bg-emerald-500/20";
-const secondaryButtonClass =
-  "inline-flex h-9 items-center rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-xs font-semibold text-neutral-200 transition-colors duration-150 hover:bg-neutral-800";
-
 export default async function DashboardCatalogAssetsPage({
   searchParams,
 }: DashboardCatalogAssetsPageProps) {
@@ -34,8 +24,7 @@ export default async function DashboardCatalogAssetsPage({
   const { error, success } = await searchParams;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Fichiers numériques"
           description="Gestion des références DigitalAsset du catalogue. Cette interface ne fait pas d'upload Supabase et ne génère aucune URL signée."
@@ -62,7 +51,7 @@ export default async function DashboardCatalogAssetsPage({
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-lg font-semibold text-white">{asset.filename}</h2>
                       <AdminBadge tone="neutral">{asset.provider}</AdminBadge>
-                      <AdminBadge tone={STATUS_TONE[asset.status]}>{asset.status}</AdminBadge>
+                      <AdminBadge tone={getDigitalAssetStatusTone(asset.status)}>{getDigitalAssetStatusLabel(asset.status)}</AdminBadge>
                     </div>
                     <p>Bucket : {asset.bucket}</p>
                     <p className="break-all">Path : {asset.path}</p>
@@ -72,18 +61,18 @@ export default async function DashboardCatalogAssetsPage({
                     {asset.status !== "ACTIVE" ? (
                       <form action={activateDigitalAssetAction}>
                         <input type="hidden" name="assetId" value={asset.id} />
-                        <button className={successButtonClass}>Activer</button>
+                        <AdminButton type="submit" variant="success" size="sm">Activer</AdminButton>
                       </form>
                     ) : null}
                     {asset.status !== "ARCHIVED" ? (
                       <form action={archiveDigitalAssetAction}>
                         <input type="hidden" name="assetId" value={asset.id} />
-                        <button className={secondaryButtonClass}>Archiver</button>
+                        <AdminButton type="submit" variant="secondary" size="sm">Archiver</AdminButton>
                       </form>
                     ) : null}
-                    <Link href={`/dashboard/catalog/assets/${asset.id}/edit`} className={secondaryButtonClass}>
+                    <AdminButton href={`/dashboard/catalog/assets/${asset.id}/edit`} variant="secondary" size="sm">
                       Modifier
-                    </Link>
+                    </AdminButton>
                   </div>
                 </div>
 
@@ -114,7 +103,6 @@ export default async function DashboardCatalogAssetsPage({
             ))}
           </div>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

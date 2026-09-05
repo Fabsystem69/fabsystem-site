@@ -1,6 +1,7 @@
 import { createDigitalAssetAction } from "@/app/dashboard/catalog/assets/actions";
 import { DigitalAssetForm } from "@/components/dashboard/DigitalAssetForm";
-import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 type DashboardCatalogAssetsNewPageProps = {
   searchParams: Promise<{
@@ -15,8 +16,7 @@ export default async function DashboardCatalogAssetsNewPage({
   const { error, success } = await searchParams;
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="3xl">
         <AdminPageHeader
           title="Créer un asset"
           description="Création d'une référence DigitalAsset privée. Le fichier doit déjà exister hors du dashboard ; aucun upload n'est effectué ici."
@@ -35,7 +35,6 @@ export default async function DashboardCatalogAssetsNewPage({
             status: "DRAFT",
           }}
         />
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

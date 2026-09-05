@@ -760,6 +760,7 @@ test("buildCheckoutSessionParams adds needs-form answers to metadata when provid
       progress: "in_progress",
       deadline: "fin du mois",
       other: "aucune",
+      whatsapp: "+33612345678",
     },
   });
 
@@ -768,6 +769,7 @@ test("buildCheckoutSessionParams adds needs-form answers to metadata when provid
   assert.equal(params.metadata?.needsProgress, "in_progress");
   assert.equal(params.metadata?.needsDeadline, "fin du mois");
   assert.equal(params.metadata?.needsOther, "aucune");
+  assert.equal(params.metadata?.needsWhatsapp, "+33612345678");
 });
 
 test("createCheckoutSessionForOrder refuses a pack order without needs-form answers", async () => {
@@ -813,6 +815,7 @@ test("createCheckoutSessionForOrder creates a session for a pack order once need
       vehicle: "Voilier 10m",
       description: "Refonte tableau electrique",
       progress: "not_started",
+      whatsapp: "+33612345678",
     },
   });
 

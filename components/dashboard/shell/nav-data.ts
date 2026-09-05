@@ -1,15 +1,14 @@
 import type { ComponentType, SVGProps } from "react";
 import {
-  AccountingIcon,
+  AccompagnementIcon,
+  CrmIcon,
   CustomersIcon,
   DashboardIcon,
   DiscountIcon,
   ErrorsIcon,
   FilesIcon,
-  InvoicesIcon,
   OrdersIcon,
   ProductsIcon,
-  QuotesIcon,
   TestimonialsIcon,
 } from "@/components/dashboard/shell/icons";
 
@@ -55,29 +54,35 @@ export function resolveActiveNavHref(pathname: string | null): string | null {
   return best;
 }
 
-// Structure V1 validee (voir le lot d'integration dashboard). Devis et
-// Facturation restent des routes/pages/donnees intactes, simplement
-// relocalisees dans une section secondaire avec un badge "Inactif" : la
-// facturation et les devis operationnels sont geres hors de FabSystem.
+// Structure V2 (refonte dashboard, retour utilisateur : "je veux que le
+// dashboard soit utilisé pour uniquement toute les presta du site virtuel").
+// Devis, Facturation et Récap URSSAF ont été retirés entièrement (pas
+// seulement relégués en "Inactif" comme en V1) : la facturation et les
+// devis opérationnels sont désormais gérés hors de FabSystem (Indy), et le
+// dashboard se recentre sur les seules prestations du site (projets,
+// clients, boutique, contenu, support technique).
 export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Tableau de bord",
     items: [{ label: "Vue d'ensemble", href: "/dashboard", icon: DashboardIcon }],
   },
   {
-    title: "Pilotage",
+    title: "Clients & projets",
     items: [
-      { label: "Projets", href: "/dashboard/projects", icon: FilesIcon },
       { label: "Clients", href: "/dashboard/customers", icon: CustomersIcon },
+      { label: "Projets", href: "/dashboard/projects", icon: FilesIcon },
+      // Suivi des prestations d'accompagnement achetees (lib/services/dossier-client.ts)
+      // — independant des Project de l'editeur de schema.
+      { label: "Accompagnements", href: "/dashboard/accompagnements", icon: AccompagnementIcon },
+      // Bundles d'achat assignables a un projet (lib/services/kit.ts) —
+      // corrige le suivi qui affichait a tort la liste AFERIY P280 partout.
+      { label: "Kits", href: "/dashboard/kits", icon: ProductsIcon },
     ],
   },
   {
-    title: "Ventes",
-    items: [{ label: "Commandes", href: "/dashboard/orders", icon: OrdersIcon }],
-  },
-  {
-    title: "Boutique",
+    title: "Commandes & catalogue",
     items: [
+      { label: "Commandes", href: "/dashboard/orders", icon: OrdersIcon },
       { label: "Produits", href: "/dashboard/catalog", icon: ProductsIcon },
       { label: "Fichiers numériques", href: "/dashboard/catalog/assets", icon: FilesIcon },
       { label: "Codes réduction", href: "/dashboard/discounts", icon: DiscountIcon },
@@ -85,24 +90,21 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: "Contenu",
-    items: [{ label: "Témoignages", href: "/dashboard/content/testimonials", icon: TestimonialsIcon }],
-  },
-  {
-    title: "Gestion",
+    title: "Contenu & support",
     items: [
-      { label: "Éditeur de schémas", href: "/outils/schema/editeur", icon: FilesIcon },
-      { label: "Récap URSSAF", href: "/dashboard/accounting", icon: AccountingIcon },
+      { label: "Témoignages", href: "/dashboard/content/testimonials", icon: TestimonialsIcon },
       // Retour utilisateur : "avoir les remontées d'erreur avec l'id du
       // client directement dans mon dashboard" — voir lib/services/error-reports.ts.
       { label: "Erreurs", href: "/dashboard/errors", icon: ErrorsIcon },
     ],
   },
   {
-    title: "Historique",
+    title: "CRM & opérations",
     items: [
-      { label: "Devis", href: "/dashboard/quotes", icon: QuotesIcon, badge: "Inactif" },
-      { label: "Facturation", href: "/dashboard/invoices", icon: InvoicesIcon, badge: "Inactif" },
+      // Retour utilisateur : "un visu des compte crm pour pouvoir faire des
+      // opée" — segment "utilise l'éditeur, jamais souscrit Éditeur Plus",
+      // voir lib/services/editor-crm.ts.
+      { label: "Éditeur sans abonnement", href: "/dashboard/crm/editor-sans-abonnement", icon: CrmIcon },
     ],
   },
 ];

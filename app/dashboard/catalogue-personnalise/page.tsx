@@ -2,6 +2,7 @@ import { formatDate } from "@/lib/format";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { listAllCustomCatalogItems } from "@/lib/services/custom-catalog-item";
 import {
+  DashboardPageShell,
   AdminEmptyState,
   AdminPageHeader,
   AdminTable,
@@ -25,10 +26,11 @@ export default async function DashboardCustomCatalogItemsPage() {
   const items = await listAllCustomCatalogItems();
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell>
         <AdminPageHeader
           title="Catalogue personnalisé"
+          backHref="/dashboard/catalog"
+          backLabel="Retour au catalogue"
           description="Items créés par les utilisateurs dans l'éditeur de schémas (marque/référence manquante du catalogue officiel) — à regarder pour repérer ceux qui mériteraient d'être ajoutés en dur au catalogue partagé."
         />
 
@@ -67,7 +69,6 @@ export default async function DashboardCustomCatalogItemsPage() {
             </tbody>
           </AdminTable>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

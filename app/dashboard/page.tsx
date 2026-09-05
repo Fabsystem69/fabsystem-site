@@ -1,6 +1,6 @@
 import { getSessionFromCookies } from "@/lib/require-session";
 import { prisma } from "@/lib/prisma";
-import { formatEuroFromCents } from "@/lib/format";
+import { formatCustomerDisplayName, formatEuroFromCents } from "@/lib/format";
 import { getEcommerceStatsSummary } from "@/lib/services/ecommerce-stats";
 import { listPendingOrdersForPurge } from "@/lib/services/order-purge";
 import { KpiTile } from "@/components/dashboard/shell/KpiTile";
@@ -74,6 +74,33 @@ async function getPendingTestimonialAttentionItems(): Promise<AttentionItem[]> {
     priorityLabel: "À faire",
     actionLabel: "Voir le témoignage",
     actionHref: "/dashboard/content/testimonials",
+  }));
+}
+
+// Meme donnee que la carte "A revoir" de /dashboard/projects (un projet dont
+// la derniere revue FabSystem est CHANGES_REQUESTED) — remontee ici aussi
+// pour que la page d'accueil serve vraiment de vue d'ensemble.
+async function getProjectsToRevisitAttentionItems(): Promise<AttentionItem[]> {
+  const projects = await prisma.project
+    .findMany({
+      where: {
+        customer: { dataShareConsent: true },
+        followUpReviews: { some: { status: "CHANGES_REQUESTED" } },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+      select: { id: true, name: true, customer: { select: { name: true, email: true } } },
+    })
+    .catch(() => []);
+
+  return projects.map((project) => ({
+    id: `project-${project.id}`,
+    title: `Projet à revoir — ${project.name}`,
+    context: formatCustomerDisplayName(project.customer),
+    priority: "attention",
+    priorityLabel: "Changements demandés",
+    actionLabel: "Ouvrir le projet",
+    actionHref: `/dashboard/projects/${project.id}`,
   }));
 }
 
@@ -229,7 +256,8 @@ export default async function DashboardPage() {
     previousMonthRevenue,
     totalCustomers,
     ecommerceStats,
-    attentionItems,
+    pendingTestimonialItems,
+    projectsToRevisitItems,
     purgeableStalePendingOrdersCount,
     recentActivity,
     revenuePoints,
@@ -239,10 +267,13 @@ export default async function DashboardPage() {
     prisma.customer.count(),
     getEcommerceStatsSummary(now),
     getPendingTestimonialAttentionItems(),
+    getProjectsToRevisitAttentionItems(),
     getPurgeableStalePendingOrdersCount(),
     getRecentActivity(now),
     getRevenueLast30Days(now),
   ]);
+
+  const attentionItems = [...projectsToRevisitItems, ...pendingTestimonialItems];
 
   const greetingName = getGreetingName(session?.sub);
   const todayLabel = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long" }).format(now);

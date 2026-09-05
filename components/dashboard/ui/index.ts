@@ -1,5 +1,7 @@
 export { AdminPageHeader } from "./AdminPageHeader";
 export { AdminCard } from "./AdminCard";
+export { AdminPagination } from "./AdminPagination";
+export { DashboardPageShell } from "./DashboardPageShell";
 export { AdminBadge, type AdminBadgeTone } from "./AdminBadge";
 export { AdminButton, type AdminButtonVariant } from "./AdminButton";
 export { AdminEmptyState, AdminAlert } from "./AdminEmptyState";
