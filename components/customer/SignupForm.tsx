@@ -14,7 +14,13 @@ const inputClass =
 // l'éditeur de schéma (InlineSignupForm.tsx), formulaire dédié ici pour
 // suivre le style de carte pleine page de PasswordLoginForm plutôt que le
 // format compact des popups de l'éditeur.
-export function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
+export function SignupForm({
+  onSwitchToLogin,
+  returnTo,
+}: {
+  onSwitchToLogin: () => void;
+  returnTo?: string | null;
+}) {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -41,7 +47,7 @@ export function SignupForm({ onSwitchToLogin }: { onSwitchToLogin: () => void })
         throw new Error(body?.error || "Impossible de créer le compte.");
       }
 
-      router.push("/mon-compte");
+      router.push(returnTo || "/mon-compte");
       router.refresh();
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Impossible de créer le compte.");

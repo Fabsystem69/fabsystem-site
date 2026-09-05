@@ -3,7 +3,8 @@ import { formatCustomerDisplayName } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { listCatalogProductsForAdmin } from "@/lib/services/catalog";
 import { grantResourceAction } from "../../actions";
-import { AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
+import {
+  DashboardPageShell, AdminAlert, AdminPageHeader } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +29,16 @@ export default async function GrantCustomerResourcePage({ params, searchParams }
   // Seuls les produits telechargeables ont un fichier a offrir directement —
   // BUNDLE/SCHEMA_UNLOCK/COACHING_30MIN n'ont pas d'asset unitaire pertinent
   // pour ce flux (cf. lib/services/download-grant.ts, meme filtrage implicite
-  // par la presence d'assets ACTIVE).
+  // par la presence d'assets ACTIVE). Retour utilisateur : les anciens packs
+  // archives (nomenclature Amarrage/Cap/Passerelle/Grand Large) polluaient
+  // ce selecteur — listCatalogProductsForAdmin() ne filtre pas par statut,
+  // status === "ACTIVE" exclut donc les produits archives/brouillon ici.
   const options = products
-    .filter((product) => product.productType === "EBOOK" || product.productType === "DIGITAL_DOWNLOAD")
+    .filter(
+      (product) =>
+        product.status === "ACTIVE" &&
+        (product.productType === "EBOOK" || product.productType === "DIGITAL_DOWNLOAD")
+    )
     .flatMap((product) =>
       product.assets
         .filter((productAsset) => productAsset.asset.status === "ACTIVE")
@@ -41,8 +49,7 @@ export default async function GrantCustomerResourcePage({ params, searchParams }
     );
 
   return (
-    <div className="min-h-full bg-[#0a0a0b] text-neutral-100">
-      <main className="mx-auto max-w-2xl space-y-6 px-4 py-6 sm:px-6 sm:py-7 lg:px-8">
+    <DashboardPageShell maxWidth="2xl">
         <AdminPageHeader
           title="Offrir une ressource"
           description={`Octroi direct a ${formatCustomerDisplayName(customer)}, sans commande — visible immediatement dans son espace client.`}
@@ -103,7 +110,6 @@ export default async function GrantCustomerResourcePage({ params, searchParams }
             </button>
           </form>
         )}
-      </main>
-    </div>
+  </DashboardPageShell>
   );
 }

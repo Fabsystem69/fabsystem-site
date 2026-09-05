@@ -8,7 +8,7 @@ import { SignupForm } from "@/components/customer/SignupForm";
 // v2.1 : bascule à trois états — retour utilisateur : "la possibilité d'en
 // créer un [compte], genre un popup de connexion et si pas inscrit bascule
 // sur une inscription" ("c'est un montage basique de beaucoup de site").
-export function ConnexionClientForms() {
+export function ConnexionClientForms({ returnTo }: { returnTo?: string | null }) {
   const [mode, setMode] = useState<"password" | "magic-link" | "signup">("password");
 
   if (mode === "magic-link") {
@@ -16,12 +16,12 @@ export function ConnexionClientForms() {
   }
 
   if (mode === "signup") {
-    return <SignupForm onSwitchToLogin={() => setMode("password")} />;
+    return <SignupForm onSwitchToLogin={() => setMode("password")} returnTo={returnTo} />;
   }
 
   return (
     <div className="space-y-3">
-      <PasswordLoginForm onSwitchToMagicLink={() => setMode("magic-link")} />
+      <PasswordLoginForm onSwitchToMagicLink={() => setMode("magic-link")} returnTo={returnTo} />
       <button
         type="button"
         onClick={() => setMode("signup")}

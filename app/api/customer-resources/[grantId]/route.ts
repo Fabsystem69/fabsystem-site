@@ -51,7 +51,9 @@ export async function GET(request: Request, { params }: Params) {
     const session = await getCustomerSessionFromCookie();
 
     if (!session) {
-      return NextResponse.redirect(new URL("/connexion-client", request.url));
+      const loginUrl = new URL("/connexion-client", request.url);
+      loginUrl.searchParams.set("returnTo", `/api/customer-resources/${grantId}`);
+      return NextResponse.redirect(loginUrl);
     }
 
     const customer = {

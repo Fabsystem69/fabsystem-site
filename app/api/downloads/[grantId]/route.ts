@@ -51,7 +51,15 @@ export async function GET(request: Request, { params }: Params) {
     const session = await getCustomerSessionFromCookie();
 
     if (!session) {
-      return NextResponse.redirect(new URL("/connexion-client", request.url));
+      // Bug remonte par un client : le lien de telechargement (email ou
+      // /mon-compte/achats) renvoyait vers une page de connexion generique,
+      // sans contexte ni retour automatique vers le fichier une fois
+      // connecte — le client comprenait "ca ne marche pas" et contactait
+      // Fabien pour un envoi manuel. returnTo ramene directement ici apres
+      // connexion/creation de compte.
+      const loginUrl = new URL("/connexion-client", request.url);
+      loginUrl.searchParams.set("returnTo", `/api/downloads/${grantId}`);
+      return NextResponse.redirect(loginUrl);
     }
 
     const customer = {

@@ -8,7 +8,13 @@ import { FormEvent, useState } from "react";
 // magique reste utilise, mais uniquement pour definir/reinitialiser le mot
 // de passe — voir LoginRequestForm, desormais accessible via
 // onSwitchToMagicLink plutot qu'en mode de connexion principal.
-export function PasswordLoginForm({ onSwitchToMagicLink }: { onSwitchToMagicLink: () => void }) {
+export function PasswordLoginForm({
+  onSwitchToMagicLink,
+  returnTo,
+}: {
+  onSwitchToMagicLink: () => void;
+  returnTo?: string | null;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +40,7 @@ export function PasswordLoginForm({ onSwitchToMagicLink }: { onSwitchToMagicLink
         throw new Error(body?.error || "Email ou mot de passe incorrect.");
       }
 
-      router.push("/mon-compte");
+      router.push(returnTo || "/mon-compte");
       router.refresh();
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Impossible de se connecter.");
