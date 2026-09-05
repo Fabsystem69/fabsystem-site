@@ -24,7 +24,7 @@ import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-s
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Boutique",
+  title: "Ebooks électricité embarquée van et bateau",
   description:
     "Des guides pratiques FabSystem pour comprendre, concevoir et fiabiliser votre installation électrique embarquée. Bateau, van ou camping-car.",
   alternates: {

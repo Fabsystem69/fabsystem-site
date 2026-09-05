@@ -41,6 +41,10 @@ const ROUTE_FILE_MAP = {
     "app/prestations/accompagnement/page.tsx",
     "components/services/OnFaitEnsemble.tsx",
   ],
+  "/prestations/appel-decouverte": ["app/prestations/appel-decouverte/page.tsx"],
+  "/prestations/appel-conseil": ["app/prestations/appel-conseil/page.tsx"],
+  "/prestations/accompagnement-guide": ["app/prestations/accompagnement-guide/page.tsx"],
+  "/prestations/conception-electrique": ["app/prestations/conception-electrique/page.tsx"],
   "/prestations/intervention": [
     "app/prestations/intervention/page.tsx",
     "components/services/JeConfie.tsx",
@@ -71,6 +75,7 @@ const ROUTE_FILE_MAP = {
   "/vcard": ["app/vcard/page.tsx"],
   "/mentions-legales": ["app/mentions-legales/page.tsx"],
   "/confidentialite": ["app/confidentialite/page.tsx"],
+  "/conditions-generales-de-vente": ["app/conditions-generales-de-vente/page.tsx"],
 } as const;
 
 const STABLE_FALLBACK_PATH = "app/layout.tsx";
@@ -168,6 +173,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     await createEntry(baseUrl, "/", "monthly", 1),
     await createEntry(baseUrl, "/prestations", "monthly", 0.8),
     await createEntry(baseUrl, "/prestations/accompagnement", "monthly", 0.8),
+    await createEntry(baseUrl, "/prestations/appel-decouverte", "monthly", 0.9),
+    await createEntry(baseUrl, "/prestations/appel-conseil", "monthly", 0.9),
+    await createEntry(baseUrl, "/prestations/accompagnement-guide", "monthly", 0.9),
+    await createEntry(baseUrl, "/prestations/conception-electrique", "monthly", 0.9),
     await createEntry(baseUrl, "/prestations/intervention", "monthly", 0.8),
     await createEntry(baseUrl, "/formations", "monthly", 0.8),
     ...formationEntries,
@@ -190,5 +199,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     await createEntry(baseUrl, "/vcard", "yearly", 0.2),
     await createEntry(baseUrl, "/mentions-legales", "yearly", 0.2),
     await createEntry(baseUrl, "/confidentialite", "yearly", 0.2),
+    await createEntry(baseUrl, "/conditions-generales-de-vente", "yearly", 0.2),
   ];
 }

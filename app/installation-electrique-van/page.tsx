@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { VoltaGuide } from "@/components/volta/VoltaGuide";
 
 export const metadata: Metadata = {
-  title:
-    "Installation électrique de van : comment bien dimensionner batterie, recharge et protections",
+  // Titre raccourci (audit : 104 caracteres avec le suffixe " | FabSystem",
+  // tronque dans les resultats Google) tout en gardant l'intention de
+  // recherche "installation electrique van".
+  title: "Installation électrique van : le guide complet",
   description:
     "Comment planifier l'installation électrique de votre van : batterie, recharge par alternateur ou solaire, convertisseur 230V, câbles, fusibles et points de vigilance.",
   alternates: {

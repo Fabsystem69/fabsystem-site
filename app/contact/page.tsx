@@ -56,7 +56,18 @@ const emailHref = "mailto:contact@fabsystem.fr";
 const websiteHref = "https://www.fabsystem.fr";
 const vcardPageUrl = "https://www.fabsystem.fr/vcard";
 
-export default async function ContactPage() {
+const SUJET_DEFAULT_MESSAGES: Record<string, string> = {
+  "appel-decouverte":
+    "Bonjour, je souhaite réserver l'appel découverte gratuit pour présenter mon projet électrique. Voici mon projet : ",
+};
+
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sujet?: string }>;
+}) {
+  const { sujet } = await searchParams;
+  const defaultMessage = sujet ? SUJET_DEFAULT_MESSAGES[sujet] : undefined;
   const qrDataUrl = await generateQrDataUrl(vcardPageUrl, {
     margin: 1,
     width: 200,
@@ -86,8 +97,15 @@ export default async function ContactPage() {
                 Plus c’est précis, plus la réponse est rapide et utile.
               </p>
 
+              {sujet === "appel-decouverte" ? (
+                <p className="mt-4 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2 text-sm text-neutral-900">
+                  Vous réservez votre appel découverte gratuit — précisez juste votre projet
+                  ci-dessous, Fabien vous recontacte pour caler un créneau.
+                </p>
+              ) : null}
+
               <div className="mt-6">
-                <ContactForm />
+                <ContactForm defaultMessage={defaultMessage} />
               </div>
             </div>
           </div>

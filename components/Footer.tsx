@@ -108,11 +108,13 @@ export default function Footer() {
         </div>
 
         {/* Ligne basse */}
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 border-t border-neutral-900 pt-6 text-xs text-neutral-500 sm:flex-row">
+        {/* text-neutral-400 (pas -500/-600) : audit accessibilite, contraste
+            insuffisant sous WCAG AA sur ce fond quasi noir (#0A0A0A). */}
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 border-t border-neutral-900 pt-6 text-xs text-neutral-400 sm:flex-row">
           <p>
             © {year} FabSystem — Tous droits réservés
-            <span className="mx-2 text-neutral-700">·</span>
-            <Link href="/login" className="text-neutral-600 transition-colors duration-150 hover:text-neutral-300">
+            <span className="mx-2 text-neutral-600">·</span>
+            <Link href="/login" className="text-neutral-400 transition-colors duration-150 hover:text-neutral-200">
               Accès interne
             </Link>
           </p>

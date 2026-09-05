@@ -19,7 +19,7 @@ import { Accompagnement } from "@/components/outils/Accompagnement";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Outils & Calculateurs électricité embarquée — bateau, van, camping-car",
+  title: "Outils & calculateurs électricité embarquée",
   description:
     "Calculateurs gratuits : section de câble 12V, bilan de consommation et autonomie, banque de batteries, régulateur MPPT, table AWG/mm² avec usages typiques bateau. Dimensionnez votre installation électrique embarquée.",
   alternates: { canonical: "/outils" },

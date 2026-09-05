@@ -19,7 +19,7 @@ import { OUTILS_CALCULATEURS } from "@/lib/outils-catalog";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Les bases",
+  title: "Les bases de l'électricité embarquée",
   description:
     "Les fondamentaux de l'électricité embarquée, expliqués simplement et gratuitement : modules, guides pratiques, bons gestes, outils et quiz.",
   alternates: {

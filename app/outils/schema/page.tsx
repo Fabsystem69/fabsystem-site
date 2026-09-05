@@ -229,7 +229,7 @@ function LandingPage() {
                 href="/mon-compte/editeur"
                 className="rounded-xl border border-amber-400 bg-amber-500/10 px-4 py-2.5 text-sm font-semibold text-amber-300 transition-base hover:bg-amber-500/20"
               >
-                59 € / an <span className="font-normal text-neutral-400">(4,92 € / mois)</span>
+                59 € / an <span className="font-normal text-amber-200">(4,92 € / mois)</span>
               </Link>
               <Button href="/mon-compte/editeur" variant="primary">
                 Voir Éditeur Plus →

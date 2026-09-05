@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { PageIntro } from "@/components/public/PageIntro";
 
 export const metadata: Metadata = {
-  title: "À propos",
+  title: "À propos de Fabien, électricien embarqué à Lyon",
   description:
     "FabSystem : diagnostic et sécurisation d’installations électriques embarquées (bateau, van, camping-car).",
   alternates: {

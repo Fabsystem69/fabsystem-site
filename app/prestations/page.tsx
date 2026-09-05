@@ -15,7 +15,7 @@ import { resolvePrestationsCategorie, prestationsUniversQuery } from "@/lib/pres
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Services électricité embarquée — accompagnement à distance et terrain",
+  title: "Services électricité embarquée à distance ou sur site",
   description:
     "Fabien vous accompagne à distance ou sur le terrain pour concevoir, vérifier et sécuriser votre installation électrique embarquée : bateau, van, camping-car.",
   alternates: {

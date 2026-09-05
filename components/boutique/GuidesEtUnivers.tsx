@@ -16,7 +16,7 @@ function ComingSoonCard() {
   return (
     <article className="flex h-full flex-col rounded-card border border-dashed border-neutral-300 bg-neutral-50 p-6">
       <div className="mb-4 flex h-60 w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-white">
-        <span className="text-sm font-medium text-neutral-400">Visuel à venir</span>
+        <span className="text-sm font-medium text-neutral-600">Visuel à venir</span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Badge tone="neutral">Camping-car</Badge>

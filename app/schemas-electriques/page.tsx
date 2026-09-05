@@ -212,8 +212,10 @@ const faqJsonLd = {
 };
 
 export const metadata: Metadata = {
-  title:
-    "Exemples de schémas électriques van, bateau et camping-car | FabSystem",
+  // Pas de "| FabSystem" ici : app/layout.tsx applique deja le template
+  // "%s | FabSystem" a tout titre de page, un suffixe ici le dupliquait
+  // dans la balise <title> reelle (audit : "marque en double", 82 car.).
+  title: "Exemples de schémas électriques van, bateau et camping-car",
   description: collectionDescription,
   alternates: {
     canonical: "/schemas-electriques",
