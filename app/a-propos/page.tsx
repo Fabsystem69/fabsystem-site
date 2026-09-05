@@ -88,6 +88,36 @@ export default function AProposPage() {
           </p>
         </div>
       </section>
+
+      <section className="mx-auto max-w-6xl px-6 pb-10 sm:pb-14">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6">
+            <h2 className="text-lg font-semibold tracking-tight text-neutral-950">
+              Où et comment j&apos;interviens
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+              Basé à Neuville-sur-Saône, j&apos;interviens sur site dans le Rhône et les secteurs
+              environnants (Auvergne-Rhône-Alpes), et j&apos;accompagne à distance des projets partout
+              en France par visio, quel que soit votre niveau de départ. Les deux formats répondent au
+              même objectif : une installation électrique embarquée que vous comprenez et pouvez
+              entretenir, pas une boîte noire.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6">
+            <h2 className="text-lg font-semibold tracking-tight text-neutral-950">
+              Une méthode documentée, pas un savoir-faire oral
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+              FabSystem a développé son propre{" "}
+              <a href="/outils/schema" className="font-medium text-neutral-900 underline underline-offset-4">
+                éditeur de schéma électrique
+              </a>{" "}
+              pour que chaque installation reste lisible et modifiable dans le temps — la même
+              logique qui structure les accompagnements à distance et les interventions sur site.
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
