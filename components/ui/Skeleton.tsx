@@ -1,9 +1,12 @@
 // UI-12 — Primitives de squelette de chargement, factorisées pour éviter de
 // répéter le même motif "bloc gris pulsant" dans chaque loading.tsx
-// (app/mon-compte/**, app/boutique/[slug]). Purement visuel : aucune donnée
-// affichée, jamais de faux texte pouvant passer pour du contenu réel
+// (app/mon-compte/**, app/boutique/(catalog)). Purement visuel : aucune
+// donnée affichée, jamais de faux texte pouvant passer pour du contenu réel
 // (MASTER-06 §22). Reprend la palette neutral déjà utilisée par
-// app/boutique/loading.tsx (seul loading.tsx existant avant UI-12).
+// app/boutique/(catalog)/loading.tsx (seul loading.tsx existant avant UI-12).
+// app/boutique/[slug] n'a volontairement plus de loading.tsx (voir ce
+// fichier) : un loading.tsx a ce niveau ou au-dessus empêche notFound()
+// de renvoyer un vrai statut 404 pour un slug inexistant.
 
 import type { HTMLAttributes } from "react";
 

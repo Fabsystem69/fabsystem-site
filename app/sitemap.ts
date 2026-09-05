@@ -54,7 +54,7 @@ const ROUTE_FILE_MAP = {
   ],
   "/realisations": ["app/realisations/page.tsx"],
   "/schemas-electriques": ["app/schemas-electriques/page.tsx", "lib/schema-examples-data.ts"],
-  "/boutique": ["app/boutique/page.tsx"],
+  "/boutique": ["app/boutique/(catalog)/page.tsx"],
   "/a-propos": ["app/a-propos/page.tsx"],
   "/contact": ["app/contact/page.tsx"],
   "/temoignage": ["app/temoignage/page.tsx"],

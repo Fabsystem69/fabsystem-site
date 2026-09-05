@@ -9,7 +9,7 @@ const root = join(__dirname, "..");
 // x-vercel-cache: HIT en prod), donc les produits activés après le déploiement
 // n'apparaissaient jamais tant qu'aucun redeploy n'avait lieu. Ces pages doivent
 // toujours lire le catalogue en base à chaque requête.
-const dynamicPages = ["app/boutique/page.tsx", "app/boutique/[slug]/page.tsx"];
+const dynamicPages = ["app/boutique/(catalog)/page.tsx", "app/boutique/[slug]/page.tsx"];
 
 test("boutique catalog pages opt out of static prerendering", () => {
   for (const relativePath of dynamicPages) {

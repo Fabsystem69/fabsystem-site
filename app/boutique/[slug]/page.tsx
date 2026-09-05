@@ -24,6 +24,15 @@ import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-s
 // à tout moment dans le dashboard, la fiche doit toujours lire la base.
 export const dynamic = "force-dynamic";
 
+// Pas de loading.tsx sur ce segment (volontaire, retiré) : un loading.tsx
+// force Next.js à streamer un shell 200 immédiatement, avant que
+// getPublicProduct() n'ait eu la chance d'appeler notFound() — un slug
+// inexistant répondait alors 200 avec le contenu de la page 404 dans le
+// corps (audit : "soft 404", indexable à tort par les moteurs). Sans
+// loading.tsx, le rendu attend la resolution complète (y compris le 404)
+// avant d'envoyer le premier octet, au prix d'un flash blanc bref le temps
+// de la requête Prisma plutôt qu'un squelette animé.
+
 type BoutiqueProductPageProps = {
   params: Promise<{
     slug: string;
@@ -89,24 +98,23 @@ export async function generateMetadata({
 }: BoutiqueProductPageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  try {
-    const { product } = await getPublicProduct(slug);
+  // Pas de try/catch generique ici : un produit introuvable doit laisser
+  // l'erreur notFound() de getPublicProduct() se propager telle quelle, pour
+  // que Next.js renvoie un vrai statut 404 (voir /app/not-found.tsx). Un
+  // catch attrapait auparavant cette erreur speciale et la remplacait par un
+  // titre de repli, ce qui faisait repondre la page en 200 (audit : "soft
+  // 404" sur /boutique/[slug], indexable a tort par les moteurs).
+  const { product } = await getPublicProduct(slug);
 
-    return {
-      title: product.name,
-      description:
-        product.shortDescription ||
-        "Fiche produit du catalogue numérique FabSystem.",
-      alternates: {
-        canonical: `/boutique/${product.slug}`,
-      },
-    };
-  } catch {
-    return {
-      title: "Produit introuvable",
-      description: "Le produit demandé n'est pas disponible dans la boutique FabSystem.",
-    };
-  }
+  return {
+    title: product.name,
+    description:
+      product.shortDescription ||
+      "Fiche produit du catalogue numérique FabSystem.",
+    alternates: {
+      canonical: `/boutique/${product.slug}`,
+    },
+  };
 }
 
 export default async function BoutiqueProductPage({ params }: BoutiqueProductPageProps) {
