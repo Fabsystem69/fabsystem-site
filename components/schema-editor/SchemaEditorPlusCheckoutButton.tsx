@@ -7,7 +7,7 @@ export function SchemaEditorPlusCheckoutButton({
   children,
   className,
 }: {
-  plan: "monthly" | "yearly";
+  plan: "weekly" | "monthly" | "yearly";
   children: React.ReactNode;
   className?: string;
 }) {

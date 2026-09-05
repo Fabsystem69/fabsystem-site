@@ -2,7 +2,6 @@ import type Stripe from "stripe";
 import { badRequest, notFound } from "@/lib/http-errors";
 import { getDossierSteps } from "@/lib/dossier-client";
 import { prisma } from "@/lib/prisma";
-import { offerIncludesBonusAccess } from "@/lib/prestations-offers";
 import { PRESTATIONS_BENEFIT_REASON } from "@/lib/services/prestations-benefits";
 import { logServerEvent } from "@/lib/server-log";
 
@@ -125,9 +124,13 @@ export async function createDossierClientForOrder(
 
   const sendMailImpl = deps?.sendMailImpl ?? (await getDefaultSendMail());
   try {
+    const purchasedProduct = await prisma.product.findUnique({
+      where: { slug: offerItem.productSlug },
+      select: { includedEditorAccessDays: true },
+    });
     await sendDossierConfirmationEmail(
       { id: dossier.id, offre, customerEmail: order.customerEmail, customerName: order.customerName },
-      offerIncludesBonusAccess(offerItem.productSlug),
+      Boolean(purchasedProduct?.includedEditorAccessDays && purchasedProduct.includedEditorAccessDays > 0),
       sendMailImpl
     );
   } catch (error) {

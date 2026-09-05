@@ -1,19 +1,28 @@
 import type Stripe from "stripe";
 import { hasCapability } from "@/lib/entitlements";
 import { notFound } from "@/lib/http-errors";
+import { SCHEMA_EDITOR_UNLIMITED_CAPABILITY } from "@/lib/services/schema-unlock";
 
 export const SCHEMA_EDITOR_PLUS_CAPABILITY = "schema-editor-plus";
 export const SCHEMA_EDITOR_PLUS_MONTHLY_PRICE_ENV = "STRIPE_PRICE_ID_SCHEMA_EDITOR_PLUS_MONTHLY";
 export const SCHEMA_EDITOR_PLUS_YEARLY_PRICE_ENV = "STRIPE_PRICE_ID_SCHEMA_EDITOR_PLUS_YEARLY";
 
-export type SchemaEditorPlusPlan = "monthly" | "yearly";
+export const SCHEMA_EDITOR_PLUS_WEEKLY_PRICE_ENV = "STRIPE_PRICE_ID_SCHEMA_EDITOR_PLUS_WEEKLY";
+
+export type SchemaEditorPlusPlan = "weekly" | "monthly" | "yearly";
 
 export const SCHEMA_EDITOR_PLUS_PLANS: Record<SchemaEditorPlusPlan, {
   label: string;
   priceCents: number;
-  interval: "month" | "year";
+  interval: "week" | "month" | "year";
   priceEnv: string;
 }> = {
+  weekly: {
+    label: "Éditeur Plus hebdomadaire",
+    priceCents: 290,
+    interval: "week",
+    priceEnv: SCHEMA_EDITOR_PLUS_WEEKLY_PRICE_ENV,
+  },
   monthly: {
     label: "Éditeur Plus mensuel",
     priceCents: 690,
@@ -192,4 +201,69 @@ export async function createSchemaEditorPlusPortalSession(params: { customerId: 
     return_url: `${params.baseUrl}/mon-compte/editeur`,
   });
   return { url: portal.url };
+}
+
+// --- Octroi manuel (dashboard) ---
+// Offrir de l'accès Éditeur Plus à un client sans passer par Stripe, en
+// réutilisant le même mécanisme que l'accès inclus avec un accompagnement
+// (CustomerCapability, capability="schema-editor-unlimited") plutôt que
+// d'inventer un système parallèle — hasSchemaEditorPlusAccess le voit donc
+// automatiquement.
+const MANUAL_GRANT_SOURCE_PREFIX = "manual-grant:";
+
+export async function grantSchemaEditorPlusManually(params: {
+  customerId: string;
+  days: number;
+  note?: string | null;
+}) {
+  const { prisma } = await import("@/lib/prisma");
+
+  if (!Number.isInteger(params.days) || params.days <= 0) {
+    throw notFound("Invalid grant duration");
+  }
+
+  const customer = await prisma.customer.findUnique({ where: { id: params.customerId }, select: { id: true } });
+  if (!customer) throw notFound("Customer not found");
+
+  const now = new Date();
+  return prisma.customerCapability.create({
+    data: {
+      customerId: customer.id,
+      capability: SCHEMA_EDITOR_UNLIMITED_CAPABILITY,
+      scope: "CUSTOMER",
+      source: `${MANUAL_GRANT_SOURCE_PREFIX}${now.getTime()}`,
+      startsAt: now,
+      expiresAt: new Date(now.getTime() + params.days * 24 * 60 * 60 * 1000),
+    },
+  });
+}
+
+export async function revokeSchemaEditorPlusManualGrant(capabilityId: string) {
+  const { prisma } = await import("@/lib/prisma");
+  const capability = await prisma.customerCapability.findUnique({ where: { id: capabilityId } });
+
+  if (!capability || !capability.source?.startsWith(MANUAL_GRANT_SOURCE_PREFIX)) {
+    throw notFound("Manual grant not found");
+  }
+
+  return prisma.customerCapability.update({
+    where: { id: capabilityId },
+    data: { status: "REVOKED", revokedAt: new Date() },
+  });
+}
+
+// Toutes les capabilities editeur (incluses avec accompagnement + octrois
+// manuels) d'un client, pour affichage admin sur sa fiche — distingue
+// l'origine via le prefixe de `source` plutot que de dupliquer un flag.
+export async function listSchemaEditorAccessGrantsForCustomer(customerId: string) {
+  const { prisma } = await import("@/lib/prisma");
+  const capabilities = await prisma.customerCapability.findMany({
+    where: { customerId, capability: SCHEMA_EDITOR_UNLIMITED_CAPABILITY },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return capabilities.map((capability) => ({
+    ...capability,
+    isManual: capability.source?.startsWith(MANUAL_GRANT_SOURCE_PREFIX) ?? false,
+  }));
 }

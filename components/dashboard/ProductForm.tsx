@@ -13,6 +13,7 @@ type ProductFormProps = {
     purchaseMode?: "BUY_NOW" | "REQUEST_ONLY";
     status?: "DRAFT" | "ACTIVE" | "ARCHIVED";
     activePriceEuros?: string;
+    includedEditorAccessDays?: number | null;
   };
   showPriceField?: boolean;
 };
@@ -123,6 +124,25 @@ export function ProductForm({
             />
           </label>
         ) : null}
+
+        <label className="space-y-2 text-sm md:col-span-2">
+          <span className="font-medium text-neutral-200">
+            Jours d&apos;accès Éditeur Plus inclus à l&apos;achat
+          </span>
+          <input
+            name="includedEditorAccessDays"
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Aucun (laisser vide)"
+            defaultValue={initialValues?.includedEditorAccessDays ?? ""}
+            className="h-11 w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base text-neutral-100 outline-none focus:border-neutral-500 md:max-w-xs"
+          />
+          <span className="block text-xs text-neutral-500">
+            Ex. 365 pour un an. Laisser vide si l&apos;achat de ce produit ne donne pas accès à
+            l&apos;éditeur.
+          </span>
+        </label>
       </div>
 
       <button className="h-11 rounded-lg bg-brand-400 px-4 text-sm font-semibold text-neutral-950 transition-colors duration-150 hover:bg-brand-300">

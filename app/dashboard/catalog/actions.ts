@@ -123,6 +123,7 @@ function getRequiredString(formData: FormData, key: string) {
 }
 
 function getProductFormPayload(formData: FormData) {
+  const includedEditorAccessDaysRaw = getRequiredString(formData, "includedEditorAccessDays").trim();
   return {
     name: getRequiredString(formData, "name"),
     slug: getRequiredString(formData, "slug"),
@@ -132,6 +133,7 @@ function getProductFormPayload(formData: FormData) {
     productType: getEnumFormValue(ProductType, formData, "productType"),
     purchaseMode: getEnumFormValue(PurchaseMode, formData, "purchaseMode"),
     status: getEnumFormValue(ProductStatus, formData, "status"),
+    includedEditorAccessDays: includedEditorAccessDaysRaw ? Number(includedEditorAccessDaysRaw) : null,
   };
 }
 

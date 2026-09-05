@@ -10,7 +10,7 @@ import { createSchemaEditorPlusCheckoutSession } from "@/lib/services/schema-edi
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const bodySchema = z.object({ plan: z.enum(["monthly", "yearly"]) });
+const bodySchema = z.object({ plan: z.enum(["weekly", "monthly", "yearly"]) });
 
 export async function POST(request: Request) {
   try {

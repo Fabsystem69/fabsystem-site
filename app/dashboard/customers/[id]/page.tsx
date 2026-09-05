@@ -8,8 +8,14 @@ import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { listDashboardOrdersForCustomer } from "@/lib/services/admin-orders";
 import { listResourceGrantsForCustomer } from "@/lib/services/customer-resource-grants";
+import { listSchemaEditorAccessGrantsForCustomer } from "@/lib/services/schema-editor-plus";
 import { getOrderStatusLabel, getOrderStatusTone } from "@/lib/dashboard-status-labels";
-import { inviteCustomerToPortalAction, revokeResourceGrantAction } from "./actions";
+import {
+  grantSchemaEditorPlusAction,
+  inviteCustomerToPortalAction,
+  revokeResourceGrantAction,
+  revokeSchemaEditorPlusGrantAction,
+} from "./actions";
 import {
   DashboardPageShell, AdminAlert, AdminBadge, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
 
@@ -42,7 +48,7 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
     notFound();
   }
 
-  const [resourceGrants, projects, orders] = await Promise.all([
+  const [resourceGrants, projects, orders, editorAccessGrants] = await Promise.all([
     listResourceGrantsForCustomer(customer.id),
     customer.dataShareConsent
       ? prisma.project.findMany({
@@ -51,7 +57,12 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
         })
       : Promise.resolve([]),
     listDashboardOrdersForCustomer(customer.id),
+    listSchemaEditorAccessGrantsForCustomer(customer.id),
   ]);
+  const now = new Date();
+  const activeEditorAccessGrants = editorAccessGrants.filter(
+    (grant) => grant.status === "ACTIVE" && (!grant.expiresAt || grant.expiresAt > now)
+  );
 
   const activeGrants = resourceGrants.filter((grant) => grant.status === "ACTIVE");
 
@@ -126,6 +137,64 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
                           </span>
                         </div>
                       </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AdminCard>
+
+            <AdminCard
+              title="Éditeur Plus"
+              description="Accès inclus avec un accompagnement, ou offert manuellement."
+            >
+              <form action={grantSchemaEditorPlusAction} className="mb-4 flex flex-wrap items-end gap-3">
+                <input type="hidden" name="customerId" value={customer.id} />
+                <label className="space-y-1 text-sm">
+                  <span className="block text-neutral-400">Offrir un accès de</span>
+                  <span className="flex items-center gap-2">
+                    <input
+                      name="days"
+                      type="number"
+                      min="1"
+                      step="1"
+                      defaultValue={30}
+                      required
+                      className="h-9 w-20 rounded-lg border border-neutral-700 bg-neutral-900 px-2 text-sm text-neutral-100 outline-none focus:border-neutral-500"
+                    />
+                    <span className="text-neutral-400">jour(s)</span>
+                  </span>
+                </label>
+                <AdminButton type="submit" variant="secondary" size="sm">
+                  Offrir l&apos;accès
+                </AdminButton>
+              </form>
+
+              {activeEditorAccessGrants.length === 0 ? (
+                <p className="text-sm text-neutral-500">Aucun accès éditeur actif pour l&apos;instant.</p>
+              ) : (
+                <ul className="divide-y divide-neutral-800/80">
+                  {activeEditorAccessGrants.map((grant) => (
+                    <li key={grant.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-neutral-100">
+                          {grant.isManual ? "Offert manuellement" : "Inclus avec un accompagnement"}
+                        </p>
+                        <p className="truncate text-neutral-500">
+                          {grant.expiresAt ? `Jusqu'au ${formatDate(grant.expiresAt)}` : "Sans date d'expiration"}
+                        </p>
+                      </div>
+                      {grant.isManual ? (
+                        <form action={revokeSchemaEditorPlusGrantAction}>
+                          <input type="hidden" name="customerId" value={customer.id} />
+                          <input type="hidden" name="capabilityId" value={grant.id} />
+                          <button
+                            type="submit"
+                            className="shrink-0 text-sm font-medium text-red-400 underline underline-offset-2 hover:text-red-300"
+                          >
+                            Révoquer
+                          </button>
+                        </form>
+                      ) : null}
                     </li>
                   ))}
                 </ul>

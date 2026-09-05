@@ -776,6 +776,11 @@ model Product {
   productType         ProductType
   purchaseMode        PurchaseMode            @default(BUY_NOW)
   featuredImage       String?
+  // Nombre de jours d'accès Éditeur Plus offerts à l'achat de ce produit
+  // (null = aucun bonus). Configurable depuis le dashboard catalogue plutôt
+  // que codé en dur par slug — un même mécanisme sert aussi bien un
+  // accompagnement qu'un ebook. Lu par grantPrestationsBenefitsForOrder.
+  includedEditorAccessDays Int?
   prices              ProductPrice[]
   assets              ProductAsset[]
   cartItems           CartItem[]

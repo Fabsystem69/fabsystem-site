@@ -11,6 +11,11 @@ export type PrestationsOfferDefinition = {
   priceCents: number;
   shortDescription: string;
   description: string;
+  // Jours d'accès Éditeur Plus offerts à l'achat (undefined = aucun). Valeur
+  // de seed initiale uniquement : la source de vérité au moment de l'achat
+  // est Product.includedEditorAccessDays en base, modifiable depuis le
+  // dashboard catalogue sans redéploiement (voir grantPrestationsBenefitsForOrder).
+  includedEditorAccessDays?: number;
 };
 
 export const PRESTATIONS_OFFERS: readonly PrestationsOfferDefinition[] = [
@@ -27,6 +32,7 @@ export const PRESTATIONS_OFFERS: readonly PrestationsOfferDefinition[] = [
     priceCents: 19900,
     shortDescription: "90 jours pour vérifier vos choix, corriger votre schéma et avancer aux étapes sensibles.",
     description: "Vous préparez le projet ; FabSystem vérifie la cohérence, corrige le schéma et vous accompagne aux jalons définis.",
+    includedEditorAccessDays: PRESTATIONS_EDITOR_ACCESS_DAYS,
   },
   {
     slug: "accompagnement-conception-complete",
@@ -34,21 +40,12 @@ export const PRESTATIONS_OFFERS: readonly PrestationsOfferDefinition[] = [
     priceCents: 49900,
     shortDescription: "Cahier des charges, schéma et liste d'achat structurée pour votre installation.",
     description: "FabSystem conçoit l'installation à partir de vos besoins, puis livre un dossier technique clair avant les achats.",
+    includedEditorAccessDays: PRESTATIONS_EDITOR_ACCESS_DAYS,
   },
 ];
 
 export function isPrestationsOfferSlug(slug: string) {
   return PRESTATIONS_OFFERS.some((offer) => offer.slug === slug);
-}
-
-// Decision validee (CDC v3 §3.1) : l'acces inclus (365j editeur + ebook
-// offert) est retire de l'Appel conseil (69€, un simple appel), conserve
-// pour Guide et Conception. Avant cette decision, grantPrestationsBenefitsForOrder
-// utilisait isPrestationsOfferSlug seul et accordait le meme bonus aux 3 offres.
-const BONUS_ACCESS_EXCLUDED_SLUGS = new Set(["accompagnement-appel-conseil"]);
-
-export function offerIncludesBonusAccess(slug: string) {
-  return isPrestationsOfferSlug(slug) && !BONUS_ACCESS_EXCLUDED_SLUGS.has(slug);
 }
 
 export function getPrestationsOfferBySlug(slug: string) {

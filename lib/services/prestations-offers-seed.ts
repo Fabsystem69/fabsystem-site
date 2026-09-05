@@ -11,6 +11,10 @@ export type SeedPrestationsOffersResult = {
 async function seedOffer(db: PrismaClientLike, offer: PrestationsOfferDefinition) {
   const product = await db.product.upsert({
     where: { slug: offer.slug },
+    // includedEditorAccessDays est volontairement absent du update : une
+    // fois le produit créé, sa valeur devient modifiable depuis le
+    // dashboard catalogue et un re-seed (ex. bouton "réparer" relancé plus
+    // tard) ne doit jamais écraser un réglage fait à la main.
     update: {
       name: offer.name,
       shortDescription: offer.shortDescription,
@@ -29,6 +33,7 @@ async function seedOffer(db: PrismaClientLike, offer: PrestationsOfferDefinition
       productType: "DIGITAL_DOWNLOAD",
       purchaseMode: "BUY_NOW",
       featuredImage: null,
+      includedEditorAccessDays: offer.includedEditorAccessDays ?? null,
     },
   });
 

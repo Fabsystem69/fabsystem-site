@@ -111,6 +111,14 @@ const productPriceInputSchema = z.object({
   currency: z.literal("EUR").default("EUR"),
 });
 
+const includedEditorAccessDaysSchema = z.coerce
+  .number()
+  .int()
+  .min(0)
+  .optional()
+  .nullable()
+  .transform((value) => (value ? value : null));
+
 const productDetailsInputSchema = z.object({
   name: z.string().trim().min(1),
   slug: slugSchema,
@@ -120,6 +128,7 @@ const productDetailsInputSchema = z.object({
   productType: productTypeSchema,
   purchaseMode: purchaseModeSchema,
   status: productStatusSchema.default("DRAFT"),
+  includedEditorAccessDays: includedEditorAccessDaysSchema,
 });
 
 const digitalAssetInputSchema = z.object({
@@ -149,6 +158,7 @@ type CatalogProductCreateData = {
   productType: ProductType;
   purchaseMode: PurchaseMode;
   featuredImage: string | null;
+  includedEditorAccessDays?: number | null;
 };
 
 type CatalogPriceCreateData = {
@@ -760,6 +770,7 @@ export function createCatalogService(db: CatalogDb) {
           productType: details.productType,
           purchaseMode: details.purchaseMode,
           featuredImage: normalizeNullableString(details.featuredImage),
+          includedEditorAccessDays: details.includedEditorAccessDays,
         });
 
         await tx.createProductPrice({
@@ -822,6 +833,7 @@ export function createCatalogService(db: CatalogDb) {
           purchaseMode: parsed.purchaseMode,
           featuredImage: normalizeNullableString(parsed.featuredImage),
           status: nextStatus,
+          includedEditorAccessDays: parsed.includedEditorAccessDays,
         });
 
         if (parsed.status === "ACTIVE") {

@@ -67,6 +67,7 @@ export default async function DashboardCatalogEditPage({
             productType: product.productType,
             purchaseMode: product.purchaseMode,
             status: product.status,
+            includedEditorAccessDays: product.includedEditorAccessDays,
           }}
         />
 

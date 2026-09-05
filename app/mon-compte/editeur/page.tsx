@@ -49,15 +49,22 @@ export default async function EditeurPlusPage({ searchParams }: { searchParams?:
           {subscription ? <div className="mt-5"><SchemaEditorPlusPortalButton /></div> : null}
         </Card>
       ) : (
-        <section className="grid gap-4 lg:grid-cols-2">
-          <Card className="order-2 p-6 lg:order-1">
+        <section className="grid gap-4 lg:grid-cols-3">
+          <Card className="p-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Hebdomadaire</p>
+            <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.weekly.label}</h2>
+            <p className="mt-2 text-3xl font-semibold text-neutral-950">2,90 € <span className="text-base font-medium text-neutral-500">/ semaine</span></p>
+            <p className="mt-3 text-sm leading-relaxed text-neutral-600">Pour tester sur un projet ponctuel, sans engagement.</p>
+            <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="weekly" className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50">Choisir l&apos;hebdomadaire</SchemaEditorPlusCheckoutButton></div>
+          </Card>
+          <Card className="p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Mensuel</p>
             <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.monthly.label}</h2>
             <p className="mt-2 text-3xl font-semibold text-neutral-950">6,90 € <span className="text-base font-medium text-neutral-500">/ mois</span></p>
             <p className="mt-3 text-sm leading-relaxed text-neutral-600">Pour avancer sans engagement sur votre installation.</p>
             <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="monthly" className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50">Choisir le mensuel</SchemaEditorPlusCheckoutButton></div>
           </Card>
-          <Card className="order-1 border-amber-300 bg-amber-50 p-6 lg:order-2">
+          <Card className="border-amber-300 bg-amber-50 p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Le plus choisi</p>
             <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.yearly.label}</h2>
             <p className="mt-2 text-3xl font-semibold text-neutral-950">59 € <span className="text-base font-medium text-neutral-600">/ an</span></p>

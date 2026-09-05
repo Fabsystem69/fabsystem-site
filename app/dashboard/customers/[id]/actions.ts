@@ -9,6 +9,10 @@ import { requestMagicLoginLink } from "@/lib/services/customer-auth";
 import { createCustomerAuthRequestLinkService } from "@/lib/services/customer-auth-request-link";
 import { sendCustomerMagicLoginEmail } from "@/lib/services/customer-email";
 import { grantResourceToCustomer, revokeResourceGrant } from "@/lib/services/customer-resource-grants";
+import {
+  grantSchemaEditorPlusManually,
+  revokeSchemaEditorPlusManualGrant,
+} from "@/lib/services/schema-editor-plus";
 import { prisma } from "@/lib/prisma";
 
 function getErrorMessage(error: unknown) {
@@ -84,6 +88,49 @@ export async function revokeResourceGrantAction(formData: FormData) {
     await revokeResourceGrant(grantId);
     revalidatePath(`/dashboard/customers/${customerId}`);
     redirectTarget = buildCustomerRedirect(customerId, { success: "Ressource revoquee." });
+  } catch (error) {
+    redirectTarget = buildCustomerRedirect(customerId, { error: getErrorMessage(error) });
+  }
+
+  redirect(redirectTarget);
+}
+
+export async function grantSchemaEditorPlusAction(formData: FormData) {
+  await requireSession();
+
+  const customerId = getString(formData, "customerId");
+  const days = Number(getString(formData, "days"));
+
+  let redirectTarget: string;
+
+  try {
+    if (!Number.isInteger(days) || days <= 0) {
+      throw new Error("Nombre de jours invalide.");
+    }
+    await grantSchemaEditorPlusManually({ customerId, days });
+    revalidatePath(`/dashboard/customers/${customerId}`);
+    redirectTarget = buildCustomerRedirect(customerId, {
+      success: `${days} jour(s) d'accès Éditeur Plus offert(s) au client.`,
+    });
+  } catch (error) {
+    redirectTarget = buildCustomerRedirect(customerId, { error: getErrorMessage(error) });
+  }
+
+  redirect(redirectTarget);
+}
+
+export async function revokeSchemaEditorPlusGrantAction(formData: FormData) {
+  await requireSession();
+
+  const customerId = getString(formData, "customerId");
+  const capabilityId = getString(formData, "capabilityId");
+
+  let redirectTarget: string;
+
+  try {
+    await revokeSchemaEditorPlusManualGrant(capabilityId);
+    revalidatePath(`/dashboard/customers/${customerId}`);
+    redirectTarget = buildCustomerRedirect(customerId, { success: "Accès Éditeur Plus révoqué." });
   } catch (error) {
     redirectTarget = buildCustomerRedirect(customerId, { error: getErrorMessage(error) });
   }
