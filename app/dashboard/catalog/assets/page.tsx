@@ -2,6 +2,7 @@ import { formatDate } from "@/lib/format";
 import {
   activateDigitalAssetAction,
   archiveDigitalAssetAction,
+  migrateEbookAssetsAction,
 } from "@/app/dashboard/catalog/assets/actions";
 import { listDashboardAssets } from "@/lib/services/catalog";
 import { getDigitalAssetStatusLabel, getDigitalAssetStatusTone } from "@/lib/dashboard-status-labels";
@@ -22,6 +23,7 @@ export default async function DashboardCatalogAssetsPage({
 }: DashboardCatalogAssetsPageProps) {
   const assets = await listDashboardAssets();
   const { error, success } = await searchParams;
+  const hasSupabaseAssets = assets.some((asset) => asset.provider === "SUPABASE");
 
   return (
     <DashboardPageShell>
@@ -39,6 +41,22 @@ export default async function DashboardCatalogAssetsPage({
 
         {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
         {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
+
+        {hasSupabaseAssets ? (
+          <AdminAlert tone="warning">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                Des assets sont encore hébergés sur Supabase (pause possible après 7 jours
+                d&apos;inactivité sur le plan gratuit). Migration vers Vercel Blob recommandée.
+              </p>
+              <form action={migrateEbookAssetsAction}>
+                <AdminButton type="submit" variant="warning" size="sm">
+                  Migrer vers Vercel Blob
+                </AdminButton>
+              </form>
+            </div>
+          </AdminAlert>
+        ) : null}
 
         {assets.length === 0 ? (
           <AdminEmptyState title="Aucun asset numérique n'est encore référencé dans le dashboard." />

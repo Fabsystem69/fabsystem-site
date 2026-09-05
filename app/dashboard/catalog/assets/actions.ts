@@ -14,6 +14,7 @@ import {
   unlinkAssetFromProduct,
   updateDigitalAsset,
 } from "@/lib/services/catalog";
+import { migrateEbookAssetsToVercelBlob } from "@/lib/services/ebook-migration";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof ZodError) {
@@ -193,6 +194,43 @@ export async function linkAssetToProductAction(formData: FormData) {
       })
     );
   }
+}
+
+export async function migrateEbookAssetsAction() {
+  await requireSession();
+
+  let target: string;
+
+  try {
+    const results = await migrateEbookAssetsToVercelBlob();
+    const migrated = results.filter((r) => r.status === "migrated").length;
+    const failed = results.length - migrated;
+    revalidatePath("/dashboard/catalog/assets");
+
+    if (results.length === 0) {
+      target = buildAssetsRedirect("/dashboard/catalog/assets", {
+        success: "Aucun asset sur Supabase a migrer.",
+      });
+    } else if (failed === 0) {
+      target = buildAssetsRedirect("/dashboard/catalog/assets", {
+        success: `${migrated} asset(s) migre(s) vers Vercel Blob.`,
+      });
+    } else {
+      const failedDetails = results
+        .filter((r) => r.status !== "migrated")
+        .map((r) => `${r.filename} (${r.status})`)
+        .join(", ");
+      target = buildAssetsRedirect("/dashboard/catalog/assets", {
+        error: `${migrated} migre(s), ${failed} echec(s) : ${failedDetails}`,
+      });
+    }
+  } catch (error) {
+    target = buildAssetsRedirect("/dashboard/catalog/assets", {
+      error: getErrorMessage(error),
+    });
+  }
+
+  redirect(target);
 }
 
 export async function unlinkAssetFromProductAction(formData: FormData) {
