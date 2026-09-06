@@ -92,6 +92,8 @@ function getOptionalDate(formData: FormData, key: string) {
 export async function createDiscountCodeAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     const type = getRequiredString(formData, "type") === "PERCENTAGE" ? "PERCENTAGE" : "FIXED_AMOUNT";
 
@@ -108,32 +110,42 @@ export async function createDiscountCodeAction(formData: FormData) {
       reason: getOptionalString(formData, "reason"),
     });
     revalidatePath("/dashboard/discounts");
-    redirect(buildDiscountsRedirect({ success: "Code de réduction créé." }));
+    target = buildDiscountsRedirect({ success: "Code de réduction créé." });
   } catch (error) {
-    redirect(buildDiscountsNewRedirect({ error: getErrorMessage(error) }));
+    target = buildDiscountsNewRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }
 
 export async function disableDiscountCodeAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     await disableDiscountCode(getRequiredString(formData, "discountCodeId"));
     revalidatePath("/dashboard/discounts");
-    redirect(buildDiscountsRedirect({ success: "Code désactivé." }));
+    target = buildDiscountsRedirect({ success: "Code désactivé." });
   } catch (error) {
-    redirect(buildDiscountsRedirect({ error: getErrorMessage(error) }));
+    target = buildDiscountsRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }
 
 export async function activateDiscountCodeAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     await activateDiscountCode(getRequiredString(formData, "discountCodeId"));
     revalidatePath("/dashboard/discounts");
-    redirect(buildDiscountsRedirect({ success: "Code réactivé." }));
+    target = buildDiscountsRedirect({ success: "Code réactivé." });
   } catch (error) {
-    redirect(buildDiscountsRedirect({ error: getErrorMessage(error) }));
+    target = buildDiscountsRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }

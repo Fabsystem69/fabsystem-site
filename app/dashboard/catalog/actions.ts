@@ -96,13 +96,17 @@ async function runCatalogAction(
 ) {
   await requireSession();
 
+  let target: string;
+
   try {
     await action(getProductId(formData));
     revalidatePath("/dashboard/catalog");
-    redirect(buildCatalogRedirect({ success: successMessage }));
+    target = buildCatalogRedirect({ success: successMessage });
   } catch (error) {
-    redirect(buildCatalogRedirect({ error: getErrorMessage(error) }));
+    target = buildCatalogRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }
 
 export async function archiveProductAction(formData: FormData) {
@@ -140,6 +144,8 @@ function getProductFormPayload(formData: FormData) {
 export async function createProductAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     const payload = getProductFormPayload(formData);
     const amountEuros = Number(getRequiredString(formData, "amountEuros"));
@@ -150,25 +156,30 @@ export async function createProductAction(formData: FormData) {
     });
 
     revalidatePath("/dashboard/catalog");
-    redirect(buildCatalogEditRedirect(created.id, { success: "Produit cree." }));
+    target = buildCatalogEditRedirect(created.id, { success: "Produit cree." });
   } catch (error) {
-    redirect(buildCatalogNewRedirect({ error: getErrorMessage(error) }));
+    target = buildCatalogNewRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }
 
 export async function updateProductAction(formData: FormData) {
   await requireSession();
 
   const productId = getProductId(formData);
+  let target: string;
 
   try {
     await updateProductDetails(productId, getProductFormPayload(formData));
     revalidatePath("/dashboard/catalog");
     revalidatePath(`/dashboard/catalog/${productId}/edit`);
-    redirect(buildCatalogEditRedirect(productId, { success: "Produit mis a jour." }));
+    target = buildCatalogEditRedirect(productId, { success: "Produit mis a jour." });
   } catch (error) {
-    redirect(buildCatalogEditRedirect(productId, { error: getErrorMessage(error) }));
+    target = buildCatalogEditRedirect(productId, { error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }
 
 export async function seedPrestationsOffersAction() {
@@ -195,6 +206,7 @@ export async function updateProductPriceAction(formData: FormData) {
   await requireSession();
 
   const productId = getProductId(formData);
+  let target: string;
 
   try {
     const amountEuros = Number(getRequiredString(formData, "amountEuros"));
@@ -204,8 +216,10 @@ export async function updateProductPriceAction(formData: FormData) {
     });
     revalidatePath("/dashboard/catalog");
     revalidatePath(`/dashboard/catalog/${productId}/edit`);
-    redirect(buildCatalogEditRedirect(productId, { success: "Prix mis a jour." }));
+    target = buildCatalogEditRedirect(productId, { success: "Prix mis a jour." });
   } catch (error) {
-    redirect(buildCatalogEditRedirect(productId, { error: getErrorMessage(error) }));
+    target = buildCatalogEditRedirect(productId, { error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }

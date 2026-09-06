@@ -45,6 +45,8 @@ function getString(formData: FormData, key: string) {
 export async function createTrialAccessCodeAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     const durationDays = Number(getString(formData, "durationDays") || "7");
     const maxRedemptions = Number(getString(formData, "maxRedemptions") || "1");
@@ -59,32 +61,42 @@ export async function createTrialAccessCodeAction(formData: FormData) {
     });
 
     revalidatePath("/dashboard/schema-unlock-codes");
-    redirect(buildListRedirect({ success: "Code promo créé." }));
+    target = buildListRedirect({ success: "Code promo créé." });
   } catch (error) {
-    redirect(buildNewRedirect({ error: getErrorMessage(error) }));
+    target = buildNewRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }
 
 export async function revokeTrialAccessCodeAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     await revokeTrialAccessCode(getString(formData, "codeId"));
     revalidatePath("/dashboard/schema-unlock-codes");
-    redirect(buildListRedirect({ success: "Code désactivé." }));
+    target = buildListRedirect({ success: "Code désactivé." });
   } catch (error) {
-    redirect(buildListRedirect({ error: getErrorMessage(error) }));
+    target = buildListRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }
 
 export async function activateTrialAccessCodeAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     await activateTrialAccessCode(getString(formData, "codeId"));
     revalidatePath("/dashboard/schema-unlock-codes");
-    redirect(buildListRedirect({ success: "Code réactivé." }));
+    target = buildListRedirect({ success: "Code réactivé." });
   } catch (error) {
-    redirect(buildListRedirect({ error: getErrorMessage(error) }));
+    target = buildListRedirect({ error: getErrorMessage(error) });
   }
+
+  redirect(target);
 }

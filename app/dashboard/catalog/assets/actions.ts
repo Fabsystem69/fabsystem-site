@@ -76,46 +76,45 @@ function getAssetFormPayload(formData: FormData) {
 export async function createDigitalAssetAction(formData: FormData) {
   await requireSession();
 
+  let target: string;
+
   try {
     const asset = await createDigitalAsset(getAssetFormPayload(formData));
     revalidatePath("/dashboard/catalog");
     revalidatePath("/dashboard/catalog/assets");
-    redirect(
-      buildAssetsRedirect(`/dashboard/catalog/assets/${asset.id}/edit`, {
-        success: "Asset cree.",
-      })
-    );
+    target = buildAssetsRedirect(`/dashboard/catalog/assets/${asset.id}/edit`, {
+      success: "Asset cree.",
+    });
   } catch (error) {
-    redirect(
-      buildAssetsRedirect("/dashboard/catalog/assets/new", {
-        error: getErrorMessage(error),
-      })
-    );
+    target = buildAssetsRedirect("/dashboard/catalog/assets/new", {
+      error: getErrorMessage(error),
+    });
   }
+
+  redirect(target);
 }
 
 export async function updateDigitalAssetAction(formData: FormData) {
   await requireSession();
 
   const assetId = getRequiredId(formData, "assetId", "Asset ID");
+  let target: string;
 
   try {
     await updateDigitalAsset(assetId, getAssetFormPayload(formData));
     revalidatePath("/dashboard/catalog");
     revalidatePath("/dashboard/catalog/assets");
     revalidatePath(`/dashboard/catalog/assets/${assetId}/edit`);
-    redirect(
-      buildAssetsRedirect(`/dashboard/catalog/assets/${assetId}/edit`, {
-        success: "Asset mis a jour.",
-      })
-    );
+    target = buildAssetsRedirect(`/dashboard/catalog/assets/${assetId}/edit`, {
+      success: "Asset mis a jour.",
+    });
   } catch (error) {
-    redirect(
-      buildAssetsRedirect(`/dashboard/catalog/assets/${assetId}/edit`, {
-        error: getErrorMessage(error),
-      })
-    );
+    target = buildAssetsRedirect(`/dashboard/catalog/assets/${assetId}/edit`, {
+      error: getErrorMessage(error),
+    });
   }
+
+  redirect(target);
 }
 
 async function runAssetStatusAction(
@@ -128,6 +127,8 @@ async function runAssetStatusAction(
   const assetId = getRequiredId(formData, "assetId", "Asset ID");
   const productId = getRequiredString(formData, "productId").trim();
 
+  let target: string;
+
   try {
     await setDigitalAssetStatus(assetId, status);
     revalidatePath("/dashboard/catalog");
@@ -135,33 +136,25 @@ async function runAssetStatusAction(
     revalidatePath(`/dashboard/catalog/assets/${assetId}/edit`);
     if (productId) {
       revalidatePath(`/dashboard/catalog/${productId}/edit`);
-      redirect(
-        buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
-          success: successMessage,
-        })
-      );
-    }
-
-    redirect(
-      buildAssetsRedirect("/dashboard/catalog/assets", {
+      target = buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
         success: successMessage,
-      })
-    );
+      });
+    } else {
+      target = buildAssetsRedirect("/dashboard/catalog/assets", {
+        success: successMessage,
+      });
+    }
   } catch (error) {
-    if (productId) {
-      redirect(
-        buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
+    target = productId
+      ? buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
           error: getErrorMessage(error),
         })
-      );
-    }
-
-    redirect(
-      buildAssetsRedirect("/dashboard/catalog/assets", {
-        error: getErrorMessage(error),
-      })
-    );
+      : buildAssetsRedirect("/dashboard/catalog/assets", {
+          error: getErrorMessage(error),
+        });
   }
+
+  redirect(target);
 }
 
 export async function activateDigitalAssetAction(formData: FormData) {
@@ -176,6 +169,7 @@ export async function linkAssetToProductAction(formData: FormData) {
   await requireSession();
 
   const productId = getRequiredId(formData, "productId", "Product ID");
+  let target: string;
 
   try {
     const assetId = getRequiredId(formData, "assetId", "Asset ID");
@@ -183,18 +177,16 @@ export async function linkAssetToProductAction(formData: FormData) {
     revalidatePath("/dashboard/catalog");
     revalidatePath("/dashboard/catalog/assets");
     revalidatePath(`/dashboard/catalog/${productId}/edit`);
-    redirect(
-      buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
-        success: "Asset lie au produit.",
-      })
-    );
+    target = buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
+      success: "Asset lie au produit.",
+    });
   } catch (error) {
-    redirect(
-      buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
-        error: getErrorMessage(error),
-      })
-    );
+    target = buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
+      error: getErrorMessage(error),
+    });
   }
+
+  redirect(target);
 }
 
 export async function createDigitalAssetFromUploadAction(input: {
@@ -265,6 +257,7 @@ export async function unlinkAssetFromProductAction(formData: FormData) {
   await requireSession();
 
   const productId = getRequiredId(formData, "productId", "Product ID");
+  let target: string;
 
   try {
     const assetId = getRequiredId(formData, "assetId", "Asset ID");
@@ -272,16 +265,14 @@ export async function unlinkAssetFromProductAction(formData: FormData) {
     revalidatePath("/dashboard/catalog");
     revalidatePath("/dashboard/catalog/assets");
     revalidatePath(`/dashboard/catalog/${productId}/edit`);
-    redirect(
-      buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
-        success: "Asset delie du produit.",
-      })
-    );
+    target = buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
+      success: "Asset delie du produit.",
+    });
   } catch (error) {
-    redirect(
-      buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
-        error: getErrorMessage(error),
-      })
-    );
+    target = buildAssetsRedirect(`/dashboard/catalog/${productId}/edit`, {
+      error: getErrorMessage(error),
+    });
   }
+
+  redirect(target);
 }
