@@ -47,13 +47,19 @@ const bucketSchema = z
     "Le bucket ne doit contenir que des minuscules, des chiffres et des tirets, sans accent ni espace."
   );
 
+// Un DigitalAsset Vercel Blob stocke une URL absolue complète comme path
+// (https://xxx.blob.vercel-storage.com/...), pas un chemin relatif de bucket
+// comme Supabase — le format segmenté ci-dessous ne peut pas la valider
+// (deux-points et majuscules du suffixe aleatoire Vercel la font toujours
+// échouer). Les deux formats sont donc acceptés : chemin relatif (Supabase)
+// ou URL absolue (Vercel Blob).
 const storagePathSchema = z
   .string()
   .trim()
   .min(1)
-  .regex(
-    STORAGE_PATH_PATTERN,
-    "Le storage path ne doit contenir que des minuscules, des chiffres et les séparateurs - _ . /, sans accent ni espace."
+  .refine(
+    (value) => STORAGE_PATH_PATTERN.test(value) || z.url().safeParse(value).success,
+    "Le storage path doit être soit un chemin relatif (minuscules, chiffres, séparateurs - _ . /, sans accent ni espace), soit une URL complète (Vercel Blob)."
   );
 
 export const createDigitalProductInputSchema = z.object({
