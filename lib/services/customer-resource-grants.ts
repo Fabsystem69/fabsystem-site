@@ -12,7 +12,7 @@ import { badRequest, conflict, notFound } from "@/lib/http-errors";
 type PrismaClientLike = PrismaClient;
 
 type ProductWithAssets = Product & {
-  assets: ProductAsset[];
+  assets: (ProductAsset & { asset: DigitalAsset })[];
 };
 
 type CustomerResourceGrantWithRelations = CustomerResourceGrant & {
@@ -66,7 +66,7 @@ function createPrismaCustomerResourceGrantDb(client: PrismaClientLike): Customer
     async findProductWithAssets(productId) {
       return client.product.findUnique({
         where: { id: productId },
-        include: { assets: true },
+        include: { assets: { include: { asset: true } } },
       }) as Promise<ProductWithAssets | null>;
     },
     async createResourceGrant(data) {
@@ -152,6 +152,58 @@ export function createCustomerResourceGrantService(
       return created;
     },
 
+    // Retour utilisateur : offrir un produit devait donner le meme resultat
+    // qu'un achat reel (tous les fichiers actifs du produit), pas obliger a
+    // choisir un fichier precis un par un — meme logique que
+    // createDownloadGrantsForOrder (lib/services/download-grant.ts) pour un
+    // vrai achat, adaptee a un octroi sans commande.
+    async grantAllProductAssetsToCustomer(input: {
+      customerId: string;
+      productId: string;
+      note?: string;
+      maxDownloads?: number;
+      expiresAt?: Date | null;
+    }) {
+      const customerId = assertNonEmptyId(input.customerId, "Customer id");
+      const productId = assertNonEmptyId(input.productId, "Product id");
+
+      const customer = await db.findCustomerById(customerId);
+      if (!customer) {
+        throw notFound("Customer not found");
+      }
+
+      const product = await db.findProductWithAssets(productId);
+      if (!product) {
+        throw notFound("Product not found");
+      }
+
+      const activeAssets = product.assets.filter((productAsset) => productAsset.asset.status === "ACTIVE");
+
+      if (activeAssets.length === 0) {
+        throw conflict("Ce produit n'a aucun fichier actif à offrir.");
+      }
+
+      const maxDownloads = input.maxDownloads ?? DEFAULT_RESOURCE_GRANT_MAX_DOWNLOADS;
+      if (!Number.isInteger(maxDownloads) || maxDownloads <= 0) {
+        throw badRequest("maxDownloads must be a positive integer");
+      }
+
+      const grants = [];
+      for (const productAsset of activeAssets) {
+        const grant = await db.createResourceGrant({
+          customerId,
+          productId,
+          assetId: productAsset.assetId,
+          note: input.note?.trim() || null,
+          maxDownloads,
+          expiresAt: input.expiresAt ?? null,
+        });
+        grants.push(grant);
+      }
+
+      return grants;
+    },
+
     async listResourceGrantsForCustomer(customerId: string) {
       const normalizedCustomerId = assertNonEmptyId(customerId, "Customer id");
       return db.findResourceGrantsForCustomer(normalizedCustomerId);
@@ -194,6 +246,17 @@ export async function grantResourceToCustomer(input: {
 }) {
   const service = await getDefaultCustomerResourceGrantService();
   return service.grantResourceToCustomer(input);
+}
+
+export async function grantAllProductAssetsToCustomer(input: {
+  customerId: string;
+  productId: string;
+  note?: string;
+  maxDownloads?: number;
+  expiresAt?: Date | null;
+}) {
+  const service = await getDefaultCustomerResourceGrantService();
+  return service.grantAllProductAssetsToCustomer(input);
 }
 
 export async function listResourceGrantsForCustomer(customerId: string) {

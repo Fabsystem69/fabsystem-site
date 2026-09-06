@@ -8,7 +8,7 @@ import { getRequiredBaseUrl } from "@/lib/server/env";
 import { requestMagicLoginLink } from "@/lib/services/customer-auth";
 import { createCustomerAuthRequestLinkService } from "@/lib/services/customer-auth-request-link";
 import { sendCustomerMagicLoginEmail } from "@/lib/services/customer-email";
-import { grantResourceToCustomer, revokeResourceGrant } from "@/lib/services/customer-resource-grants";
+import { grantAllProductAssetsToCustomer, revokeResourceGrant } from "@/lib/services/customer-resource-grants";
 import {
   grantSchemaEditorPlusManually,
   revokeSchemaEditorPlusManualGrant,
@@ -57,18 +57,20 @@ export async function grantResourceAction(formData: FormData) {
   await requireSession();
 
   const customerId = getString(formData, "customerId");
-  const [productId, assetId] = getString(formData, "resource").split(":");
+  const productId = getString(formData, "productId");
   const note = getString(formData, "note");
 
   let redirectTarget: string;
 
   try {
-    if (!productId || !assetId) {
-      throw new Error("Choisissez une ressource.");
+    if (!productId) {
+      throw new Error("Choisissez un produit.");
     }
-    await grantResourceToCustomer({ customerId, productId, assetId, note: note || undefined });
+    const grants = await grantAllProductAssetsToCustomer({ customerId, productId, note: note || undefined });
     revalidatePath(`/dashboard/customers/${customerId}`);
-    redirectTarget = buildCustomerRedirect(customerId, { success: "Ressource offerte au client." });
+    redirectTarget = buildCustomerRedirect(customerId, {
+      success: `Produit offert au client (${grants.length} fichier(s)).`,
+    });
   } catch (error) {
     redirectTarget = buildNewResourceRedirect(customerId, { error: getErrorMessage(error) });
   }
