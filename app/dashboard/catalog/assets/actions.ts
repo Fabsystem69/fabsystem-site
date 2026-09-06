@@ -15,6 +15,7 @@ import {
   updateDigitalAsset,
 } from "@/lib/services/catalog";
 import { migrateEbookAssetsToVercelBlob } from "@/lib/services/ebook-migration";
+import { prisma } from "@/lib/prisma";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof ZodError) {
@@ -193,6 +194,33 @@ export async function linkAssetToProductAction(formData: FormData) {
         error: getErrorMessage(error),
       })
     );
+  }
+}
+
+export async function createDigitalAssetFromUploadAction(input: {
+  path: string;
+  filename: string;
+  contentType: string;
+  sizeBytes: number;
+}): Promise<{ assetId: string } | { error: string }> {
+  await requireSession();
+
+  try {
+    const asset = await prisma.digitalAsset.create({
+      data: {
+        provider: "VERCEL_BLOB",
+        bucket: "vercel-blob",
+        path: input.path,
+        filename: input.filename,
+        contentType: input.contentType,
+        sizeBytes: input.sizeBytes,
+        status: "ACTIVE",
+      },
+    });
+    revalidatePath("/dashboard/catalog/assets");
+    return { assetId: asset.id };
+  } catch (error) {
+    return { error: getErrorMessage(error) };
   }
 }
 
