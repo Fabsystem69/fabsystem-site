@@ -94,6 +94,10 @@ export const NAV_GROUPS: NavGroup[] = [
     title: "Contenu & support",
     items: [
       { label: "Témoignages", href: "/dashboard/content/testimonials", icon: TestimonialsIcon },
+      // Retour utilisateur : "montre moi les template de mail client ou
+      // creer un menu dans le dashboard ou je peux les visualiser et
+      // modifier" — voir lib/services/email-templates.ts.
+      { label: "Modèles d'emails", href: "/dashboard/content/email-templates", icon: FilesIcon },
       // Retour utilisateur : "avoir les remontées d'erreur avec l'id du
       // client directement dans mon dashboard" — voir lib/services/error-reports.ts.
       { label: "Erreurs", href: "/dashboard/errors", icon: ErrorsIcon },

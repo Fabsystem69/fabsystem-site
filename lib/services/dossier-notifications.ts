@@ -1,6 +1,7 @@
 import { tryAcquireCooldown } from "@/lib/rate-limit";
 import { logServerEvent } from "@/lib/server-log";
 import { prisma } from "@/lib/prisma";
+import { renderEmailTemplate } from "@/lib/services/email-templates";
 
 // Cron quotidien (voir app/api/internal/jobs/dossier-notifications/route.ts),
 // meme structure que lib/services/schema-unlock-reminders.ts : chaque
@@ -36,23 +37,18 @@ function resolveFromAddress() {
   return process.env.CONTACT_FROM?.trim() || process.env.SMTP_USER?.trim() || "fabien.lages@fabsystem.fr";
 }
 
-function toHtmlParagraphs(lines: string[]) {
-  return lines.map((line) => (line === "" ? "" : `<p style="margin:0 0 12px;">${line}</p>`)).join("");
+function greetingFor(name: string | null) {
+  return name ? `Bonjour ${name},` : "Bonjour,";
 }
 
-async function sendEmail(
+async function sendTemplatedEmail(
   sendMailImpl: SendMailImpl,
   to: string,
-  subject: string,
-  bodyLines: string[]
+  templateKey: string,
+  variables: Record<string, string>
 ) {
-  await sendMailImpl({
-    to,
-    from: resolveFromAddress(),
-    subject,
-    text: bodyLines.join("\n"),
-    html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#171717;">${toHtmlParagraphs(bodyLines)}</div>`,
-  });
+  const { subject, text, html } = await renderEmailTemplate(templateKey, variables);
+  await sendMailImpl({ to, from: resolveFromAddress(), subject, text, html });
 }
 
 export type DossierNotificationsResult = {
@@ -91,11 +87,9 @@ export async function runDossierNotifications(
     if (!canSend) continue;
 
     try {
-      await sendEmail(sendMailImpl, dossier.customer.email, "Des nouvelles de votre dossier FabSystem ?", [
-        dossier.customer.name ? `Bonjour ${dossier.customer.name},` : "Bonjour,",
-        "",
-        "Votre dossier d'accompagnement n'a pas bougé depuis un moment — si vous êtes bloqué sur quelque chose, ou si vous préférez qu'on avance ensemble par WhatsApp, n'hésitez pas à répondre à cet email.",
-      ]);
+      await sendTemplatedEmail(sendMailImpl, dossier.customer.email, "dossier-relance-inactif", {
+        greeting: greetingFor(dossier.customer.name),
+      });
       result.inactivityRemindersSent += 1;
     } catch (error) {
       logServerEvent("error", "failed to send dossier inactivity reminder", { error, dossierId: dossier.id });
@@ -113,11 +107,9 @@ export async function runDossierNotifications(
 
   for (const dossier of j30Candidates) {
     try {
-      await sendEmail(sendMailImpl, dossier.customer.email, "Comment se passe votre installation ?", [
-        dossier.customer.name ? `Bonjour ${dossier.customer.name},` : "Bonjour,",
-        "",
-        "Ça fait maintenant un mois que votre dossier a été livré — comment se passe le chantier ? Si un point vous bloque, mieux vaut le voir maintenant que plus tard, n'hésitez pas à me répondre.",
-      ]);
+      await sendTemplatedEmail(sendMailImpl, dossier.customer.email, "dossier-j30", {
+        greeting: greetingFor(dossier.customer.name),
+      });
       await prisma.dossierClient.update({ where: { id: dossier.id }, data: { j30MessageEnvoye: true } });
       result.j30FollowUpsSent += 1;
     } catch (error) {
@@ -136,13 +128,9 @@ export async function runDossierNotifications(
 
   for (const dossier of testimonialCandidates) {
     try {
-      await sendEmail(sendMailImpl, dossier.customer.email, "Un mot sur votre accompagnement FabSystem ?", [
-        dossier.customer.name ? `Bonjour ${dossier.customer.name},` : "Bonjour,",
-        "",
-        "Si vous avez deux minutes, votre témoignage aide d'autres personnes à se lancer sur leur installation électrique.",
-        "",
-        "https://www.fabsystem.fr/temoignage",
-      ]);
+      await sendTemplatedEmail(sendMailImpl, dossier.customer.email, "dossier-temoignage-demande", {
+        greeting: greetingFor(dossier.customer.name),
+      });
       await prisma.dossierClient.update({ where: { id: dossier.id }, data: { temoignageDemande: true } });
       result.testimonialRemindersSent += 1;
     } catch (error) {
@@ -167,13 +155,9 @@ export async function runDossierNotifications(
     if (!canSend) continue;
 
     try {
-      await sendEmail(sendMailImpl, dossier.customer.email, "Vos documents FabSystem seront bientôt retirés", [
-        dossier.customer.name ? `Bonjour ${dossier.customer.name},` : "Bonjour,",
-        "",
-        "Les documents partagés sur votre dossier (schémas, photos) seront retirés dans environ 30 jours pour libérer de la place. Téléchargez-les dès maintenant si vous voulez les conserver.",
-        "",
-        "https://www.fabsystem.fr/mon-compte/mon-accompagnement",
-      ]);
+      await sendTemplatedEmail(sendMailImpl, dossier.customer.email, "dossier-purge-warning", {
+        greeting: greetingFor(dossier.customer.name),
+      });
       result.purgeWarningsSent += 1;
     } catch (error) {
       logServerEvent("error", "failed to send dossier purge warning", { error, dossierId: dossier.id });

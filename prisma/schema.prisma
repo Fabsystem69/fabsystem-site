@@ -1204,6 +1204,22 @@ model TrialAccessCodeRedemption {
 // depuis CustomerCapability/DiscountCode (source de verite existante,
 // lib/services/prestations-benefits.ts) via getIncludedAccessForCustomer().
 
+// Personnalisation des emails clients depuis le dashboard (retour
+// utilisateur : "je veux visualiser et modifier les templates de mail
+// client") — une ligne par cle de template (voir lib/email-templates-defaults.ts
+// pour la liste des cles et leur contenu par defaut). L'absence de ligne
+// pour une cle = contenu par defaut utilise tel quel ; "Reinitialiser"
+// supprime simplement la ligne plutot que de restaurer une valeur figee,
+// pour que les deux restent toujours synchronises.
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  subject   String
+  bodyText  String   @db.Text
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
 enum DossierOffre {
   DECOUVERTE
   CONSEIL

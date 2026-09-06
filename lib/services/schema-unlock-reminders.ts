@@ -1,6 +1,7 @@
 import { tryAcquireCooldown } from "@/lib/rate-limit";
 import { logServerEvent } from "@/lib/server-log";
 import { SCHEMA_EDITOR_UNLIMITED_CAPABILITY } from "@/lib/services/schema-unlock";
+import { renderEmailTemplate } from "@/lib/services/email-templates";
 
 // v2.1 : relance email avant expiration d'un deblocage editeur de schema —
 // deux tons distincts (decision produit) :
@@ -78,33 +79,22 @@ const SIGNATURE_HTML = `
   </table>
 `;
 
-function toHtmlParagraphs(lines: string[]) {
-  return lines
-    .map((line) => (line === "" ? "" : `<p style="margin:0 0 12px;">${line}</p>`))
-    .join("");
-}
-
 async function sendProjectUnlockExpiryReminder(
   params: { customerEmail: string; projectName: string; expiresAt: Date; now: Date },
   sendMailImpl: SendMailImpl
 ) {
   const daysLeft = daysUntil(params.expiresAt, params.now);
-  const bodyLines = [
-    "Bonjour,",
-    "",
-    `L'accès illimité de votre projet "${params.projectName}" dans l'éditeur de schéma FabSystem expire dans ${daysLeft} jour(s).`,
-    "",
-    "Vous êtes bloqué sur votre installation, ou besoin d'un coup de main pour la suite ? Répondez simplement à cet email, je suis là pour vous aider.",
-    "",
-    "Vous pouvez aussi renouveler l'accès directement depuis l'éditeur, sur ce projet.",
-  ];
+  const { subject, text, html } = await renderEmailTemplate("schema-unlock-project-expiry", {
+    project_name: params.projectName,
+    days_left: String(daysLeft),
+  });
 
   await sendMailImpl({
     to: params.customerEmail,
     from: resolveFromAddress(params.customerEmail),
-    subject: `Votre déblocage "${params.projectName}" expire dans ${daysLeft} jour(s)`,
-    text: [...bodyLines, SIGNATURE_TEXT].join("\n"),
-    html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#171717;">${toHtmlParagraphs(bodyLines)}${SIGNATURE_HTML}</div>`,
+    subject,
+    text: `${text}\n${SIGNATURE_TEXT}`,
+    html: `${html}${SIGNATURE_HTML}`,
   });
 }
 
@@ -113,22 +103,16 @@ async function sendTrialExpiryReminder(
   sendMailImpl: SendMailImpl
 ) {
   const daysLeft = daysUntil(params.expiresAt, params.now);
-  const bodyLines = [
-    "Bonjour,",
-    "",
-    `Votre accès illimité gratuit à l'éditeur de schéma électrique FabSystem se termine dans ${daysLeft} jour(s) !`,
-    "",
-    "Si vous avez besoin de poursuivre une installation plus complète, Éditeur Plus donne accès aux projets et consommateurs illimités, à l'historique des versions et au partage de schéma.",
-    "",
-    "Ou passez directement à l'accompagnement pour être guidé de A à Z sur votre installation électrique.",
-  ];
+  const { subject, text, html } = await renderEmailTemplate("schema-unlock-trial-expiry", {
+    days_left: String(daysLeft),
+  });
 
   await sendMailImpl({
     to: params.customerEmail,
     from: resolveFromAddress(params.customerEmail),
-    subject: `Plus que ${daysLeft} jour(s) d'accès complet offert sur l'éditeur de schéma`,
-    text: [...bodyLines, SIGNATURE_TEXT].join("\n"),
-    html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#171717;">${toHtmlParagraphs(bodyLines)}${SIGNATURE_HTML}</div>`,
+    subject,
+    text: `${text}\n${SIGNATURE_TEXT}`,
+    html: `${html}${SIGNATURE_HTML}`,
   });
 }
 

@@ -3,6 +3,7 @@ import { getRequiredBaseUrl } from "@/lib/server/env";
 import { signDownloadEmailToken } from "@/lib/server/download-email-token";
 import { getOrderById } from "@/lib/services/order";
 import { listDownloadGrantsForOrder } from "@/lib/services/download-grant";
+import { renderEmailTemplate } from "@/lib/services/email-templates";
 import { logServerEvent } from "@/lib/server-log";
 
 type OrderForEmail = Awaited<ReturnType<typeof getOrderById>>;
@@ -29,10 +30,6 @@ async function getDefaultSendMail() {
 
 function resolveFromAddress() {
   return process.env.CONTACT_FROM?.trim() || process.env.SMTP_USER?.trim() || "contact@fabsystem.fr";
-}
-
-function toHtmlParagraphs(lines: string[]) {
-  return lines.map((line) => (line === "" ? "" : `<p style="margin:0 0 12px;">${line}</p>`)).join("");
 }
 
 // Declenchee apres chaque commande payee contenant au moins un telechargement
@@ -65,25 +62,20 @@ export async function sendCustomerDownloadEmail(orderId: string, deps?: Customer
       return `${grant.product.name} : ${url}`;
     });
 
-    const bodyLines = [
+    const { subject, text, html } = await renderEmailTemplate("ebook-download-links", {
       greeting,
-      "",
-      `Merci pour votre achat (commande ${order.orderNumber}, ${formatEuroFromCents(order.totalCents)}).`,
-      "",
-      "Vous pouvez télécharger directement vos fichiers ci-dessous :",
-      "",
-      ...downloadLines,
-      "",
-      "Ces liens restent valables 30 jours. Vous pouvez aussi retrouver vos achats à tout moment depuis votre espace client, rubrique \"Mes achats\".",
-    ];
+      order_number: order.orderNumber,
+      total: formatEuroFromCents(order.totalCents),
+      download_links: downloadLines.join("\n"),
+    });
 
     const sendMailImpl = deps?.sendMailImpl ?? (await getDefaultSendMail());
     await sendMailImpl({
       to: order.customerEmail,
       from: resolveFromAddress(),
-      subject: `Votre commande ${order.orderNumber} — liens de téléchargement`,
-      text: bodyLines.join("\n"),
-      html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#171717;">${toHtmlParagraphs(bodyLines)}</div>`,
+      subject,
+      text,
+      html,
     });
 
     return { status: "sent" as const, grantCount: activeGrants.length };

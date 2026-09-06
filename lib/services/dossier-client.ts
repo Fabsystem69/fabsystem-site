@@ -3,6 +3,7 @@ import { badRequest, notFound } from "@/lib/http-errors";
 import { getDossierSteps } from "@/lib/dossier-client";
 import { prisma } from "@/lib/prisma";
 import { PRESTATIONS_BENEFIT_REASON } from "@/lib/services/prestations-benefits";
+import { renderEmailTemplate } from "@/lib/services/email-templates";
 import { logServerEvent } from "@/lib/server-log";
 
 const OFFER_SLUG_TO_DOSSIER_OFFRE: Record<string, "CONSEIL" | "GUIDE" | "CONCEPTION"> = {
@@ -20,10 +21,6 @@ function resolveFromAddress() {
   return process.env.CONTACT_FROM?.trim() || process.env.SMTP_USER?.trim() || "fabien.lages@fabsystem.fr";
 }
 
-function toHtmlParagraphs(lines: string[]) {
-  return lines.map((line) => (line === "" ? "" : `<p style="margin:0 0 12px;">${line}</p>`)).join("");
-}
-
 async function getDefaultSendMail() {
   const { sendMail } = await import("@/lib/server/nodemailer");
   return sendMail;
@@ -38,32 +35,22 @@ async function sendDossierConfirmationEmail(
     dossier.offre === "CONSEIL" ? "Appel conseil" : dossier.offre === "GUIDE" ? "Accompagnement guidé" : "Conception complète";
   const greeting = dossier.customerName ? `Bonjour ${dossier.customerName},` : "Bonjour,";
 
-  const bodyLines = [
+  const bonusAccessBlock = includesBonusAccess
+    ? "\n\nVotre commande inclut un an d'accès complet à l'éditeur de schéma FabSystem ainsi que l'ebook correspondant à votre catégorie — vous trouverez le détail dans votre espace client."
+    : "";
+
+  const { subject, text, html } = await renderEmailTemplate("dossier-confirmation", {
     greeting,
-    "",
-    `Merci pour votre commande "${offerLabel}" — votre dossier est bien enregistré.`,
-    "",
-    "Fabien étudie votre dossier et revient vers vous rapidement pour la suite (premier retour ou proposition de visio selon la clarté du besoin).",
-  ];
-
-  if (includesBonusAccess) {
-    bodyLines.push(
-      "",
-      "Votre commande inclut un an d'accès complet à l'éditeur de schéma FabSystem ainsi que l'ebook correspondant à votre catégorie — vous trouverez le détail dans votre espace client."
-    );
-  }
-
-  bodyLines.push(
-    "",
-    "Vous pouvez suivre l'avancement de votre dossier à tout moment depuis votre espace client, rubrique \"Mon accompagnement\"."
-  );
+    offer_label: offerLabel,
+    bonus_access_block: bonusAccessBlock,
+  });
 
   await sendMailImpl({
     to: dossier.customerEmail,
     from: resolveFromAddress(),
-    subject: `Votre dossier "${offerLabel}" est enregistré`,
-    text: bodyLines.join("\n"),
-    html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#171717;">${toHtmlParagraphs(bodyLines)}</div>`,
+    subject,
+    text,
+    html,
   });
 }
 
