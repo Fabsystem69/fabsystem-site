@@ -5,6 +5,7 @@ import {
   consumeDownloadGrant,
   getDownloadAccessForGrant,
 } from "@/lib/services/download-access";
+import { buildDownloadContentDisposition } from "@/lib/server/asset-download";
 import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
 import { logServerEvent } from "@/lib/server-log";
 
@@ -79,7 +80,7 @@ export async function GET(request: Request, { params }: Params) {
     return new NextResponse(access.stream, {
       headers: {
         "Content-Type": access.contentType,
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(access.grant.asset.filename)}"`,
+        "Content-Disposition": buildDownloadContentDisposition(access.contentType, access.grant.asset.filename),
       },
     });
   } catch (error) {

@@ -256,6 +256,54 @@ export function createDownloadAccessService(
 
       return db.findDownloadGrantById(grant.id);
     },
+
+    // Variante appelee depuis le lien signe envoye par email
+    // (lib/server/download-email-token.ts) : la possession d'un token valide
+    // (signe, non expire) fait office d'authentification a la place d'une
+    // session client — assertGrantBelongsToCustomer n'a donc pas lieu d'etre
+    // ici. Mêmes verifications d'eligibilite que le chemin session par
+    // ailleurs (grant actif, non expire, quota non atteint, commande payee).
+    async getDownloadAccessForGrantViaEmailToken(grantId: string): Promise<DownloadAccessResult> {
+      const normalizedGrantId = assertNonEmptyId(grantId, "Grant id");
+      const currentTime = now();
+      const grant = assertDownloadGrantIsEligible(
+        await db.findDownloadGrantById(normalizedGrantId),
+        currentTime,
+        resolveExpectedBucket
+      );
+
+      let resolution: AssetDownloadResolution;
+      try {
+        resolution = await resolveAssetDownload(grant.asset);
+      } catch {
+        throw serviceUnavailable("Download link generation failed");
+      }
+
+      return { ...resolution, grant };
+    },
+
+    async consumeDownloadGrantViaEmailToken(grantId: string) {
+      const normalizedGrantId = assertNonEmptyId(grantId, "Grant id");
+      const currentTime = now();
+      assertDownloadGrantIsEligible(
+        await db.findDownloadGrantById(normalizedGrantId),
+        currentTime,
+        resolveExpectedBucket
+      );
+
+      const consumed = await db.tryConsumeDownloadGrant(normalizedGrantId, currentTime);
+
+      if (!consumed) {
+        assertDownloadGrantIsEligible(
+          await db.findDownloadGrantById(normalizedGrantId),
+          currentTime,
+          resolveExpectedBucket
+        );
+        throw conflict("Maximum download count reached");
+      }
+
+      return db.findDownloadGrantById(normalizedGrantId);
+    },
   };
 }
 
@@ -273,4 +321,14 @@ export async function consumeDownloadGrant(
 ) {
   const service = await getDefaultDownloadAccessService();
   return service.consumeDownloadGrant(grantId, customer);
+}
+
+export async function getDownloadAccessForGrantViaEmailToken(grantId: string) {
+  const service = await getDefaultDownloadAccessService();
+  return service.getDownloadAccessForGrantViaEmailToken(grantId);
+}
+
+export async function consumeDownloadGrantViaEmailToken(grantId: string) {
+  const service = await getDefaultDownloadAccessService();
+  return service.consumeDownloadGrantViaEmailToken(grantId);
 }

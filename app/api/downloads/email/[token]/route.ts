@@ -2,25 +2,25 @@ import { NextResponse } from "next/server";
 import { isHttpError } from "@/lib/http-errors";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import {
-  consumeResourceGrant,
-  getResourceAccessForGrant,
-} from "@/lib/services/customer-resource-access";
+  consumeDownloadGrantViaEmailToken,
+  getDownloadAccessForGrantViaEmailToken,
+} from "@/lib/services/download-access";
+import { verifyDownloadEmailToken } from "@/lib/server/download-email-token";
 import { buildDownloadContentDisposition } from "@/lib/server/asset-download";
-import { getCustomerSessionFromCookie } from "@/lib/server/customer-session";
 import { logServerEvent } from "@/lib/server-log";
 
+// Lien de telechargement direct envoye par email (voir
+// lib/server/download-email-token.ts) : aucune session client requise, le
+// token signe fait foi. Meme structure de reponse que
+// /api/downloads/[grantId] (redirect Supabase / stream Vercel Blob).
 export const dynamic = "force-dynamic";
 
-type Params = {
-  params: Promise<{
-    grantId: string;
-  }>;
-};
-
-const MAX_DOWNLOADS_REACHED_MESSAGE =
-  "La limite de telechargement est atteinte. Contactez FabSystem pour reactiver l'acces.";
+const EXPIRED_OR_INVALID_MESSAGE =
+  "Ce lien de telechargement n'est plus valide. Connectez-vous a votre espace client pour retrouver vos achats, ou contactez FabSystem.";
 const DOWNLOAD_UNAVAILABLE_MESSAGE =
   "Ce telechargement n'est plus disponible. Contactez FabSystem si besoin.";
+const MAX_DOWNLOADS_REACHED_MESSAGE =
+  "La limite de telechargement est atteinte. Contactez FabSystem pour reactiver l'acces.";
 const DOWNLOAD_GENERIC_ERROR_MESSAGE =
   "Le telechargement a echoue. Reessayez dans un instant ou contactez FabSystem.";
 
@@ -38,31 +38,33 @@ function getDownloadErrorMessage(error: unknown) {
   return DOWNLOAD_GENERIC_ERROR_MESSAGE;
 }
 
+type Params = {
+  params: Promise<{
+    token: string;
+  }>;
+};
+
 export async function GET(request: Request, { params }: Params) {
-  const { grantId } = await params;
+  const { token } = await params;
 
   try {
     await enforceRateLimit(request, {
-      name: "commerce-customer-resources",
+      name: "commerce-downloads-email",
       limit: 20,
       windowMs: 15 * 60 * 1000,
       blockDurationMs: 15 * 60 * 1000,
     });
 
-    const session = await getCustomerSessionFromCookie();
+    const grantId = verifyDownloadEmailToken(token);
 
-    if (!session) {
-      const loginUrl = new URL("/connexion-client", request.url);
-      loginUrl.searchParams.set("returnTo", `/api/customer-resources/${grantId}`);
-      return NextResponse.redirect(loginUrl);
+    if (!grantId) {
+      const redirectUrl = new URL("/mon-compte", request.url);
+      redirectUrl.searchParams.set("downloadError", EXPIRED_OR_INVALID_MESSAGE);
+      return NextResponse.redirect(redirectUrl);
     }
 
-    const customer = {
-      customerId: session.customer.id,
-      customerEmail: session.customer.email,
-    };
-    const access = await getResourceAccessForGrant(grantId, customer);
-    await consumeResourceGrant(grantId, customer);
+    const access = await getDownloadAccessForGrantViaEmailToken(grantId);
+    await consumeDownloadGrantViaEmailToken(grantId);
 
     if (access.mode === "redirect") {
       return NextResponse.redirect(access.url, { status: 302 });
@@ -76,27 +78,21 @@ export async function GET(request: Request, { params }: Params) {
     });
   } catch (error) {
     if (isHttpError(error) && error.status >= 500) {
-      logServerEvent("error", "api.customer-resources.get: http error", {
-        grantId,
+      logServerEvent("error", "api.downloads.email.get: http error", {
         status: error.status,
         code: error.code,
       });
     } else if (isHttpError(error)) {
-      logServerEvent("warn", "api.customer-resources.get: http error", {
-        grantId,
+      logServerEvent("warn", "api.downloads.email.get: http error", {
         status: error.status,
         code: error.code,
       });
     } else {
-      logServerEvent("error", "api.customer-resources.get: unexpected error", {
-        grantId,
-        error,
-      });
+      logServerEvent("error", "api.downloads.email.get: unexpected error", { error });
     }
 
     const redirectUrl = new URL("/mon-compte", request.url);
     redirectUrl.searchParams.set("downloadError", getDownloadErrorMessage(error));
-
     return NextResponse.redirect(redirectUrl);
   }
 }

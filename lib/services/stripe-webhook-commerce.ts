@@ -79,6 +79,7 @@ type CommerceWebhookDeps = {
     sessionMetadata: Stripe.Metadata | null | undefined
   ) => Promise<unknown>;
   sendPurchaseNotification?: (orderId: string) => Promise<unknown>;
+  sendCustomerDownloadEmail?: (orderId: string) => Promise<unknown>;
   grantProjectUnlockForOrder?: (orderId: string) => Promise<unknown>;
   createAutomaticSchemaUnlockDiscountCodesForOrder?: (orderId: string) => Promise<unknown>;
   createAutomaticSchemaEditorTrialForOrder?: (orderId: string) => Promise<unknown>;
@@ -262,6 +263,7 @@ async function getDefaultCommerceWebhookService() {
     { grantPrestationsBenefitsForOrder },
     { sendPrestationsPackNotification },
     { sendPurchaseNotification },
+    { sendCustomerDownloadEmail },
     { grantProjectUnlockForOrder },
     { createDossierClientForOrder },
   ] = await Promise.all([
@@ -272,6 +274,7 @@ async function getDefaultCommerceWebhookService() {
     import("@/lib/services/prestations-benefits"),
     import("@/lib/services/prestations-notify"),
     import("@/lib/services/purchase-notify"),
+    import("@/lib/services/customer-download-email"),
     import("@/lib/services/schema-unlock"),
     import("@/lib/services/dossier-client"),
   ]);
@@ -284,6 +287,7 @@ async function getDefaultCommerceWebhookService() {
     grantPrestationsBenefitsForOrder,
     sendPrestationsPackNotification,
     sendPurchaseNotification,
+    sendCustomerDownloadEmail,
     grantProjectUnlockForOrder: (orderId) => grantProjectUnlockForOrder({ orderId }),
     createDossierClientForOrder,
   });
@@ -300,6 +304,7 @@ export function createStripeWebhookCommerceService(
   const sendPrestationsPackNotification =
     deps?.sendPrestationsPackNotification ?? (async () => {});
   const sendPurchaseNotification = deps?.sendPurchaseNotification ?? (async () => {});
+  const sendCustomerDownloadEmail = deps?.sendCustomerDownloadEmail ?? (async () => {});
   const grantProjectUnlockForOrder = deps?.grantProjectUnlockForOrder ?? (async () => {});
   const createAutomaticSchemaUnlockDiscountCodesForOrder =
     deps?.createAutomaticSchemaUnlockDiscountCodesForOrder ?? (async () => {});
@@ -403,6 +408,11 @@ export function createStripeWebhookCommerceService(
 
       if (result.status === "processed" || result.status === "already_processed") {
         await createDownloadGrantsForOrder(result.orderId);
+        // Retour utilisateur : deux clients payants n'ont pas su retrouver
+        // leur ebook depuis /mon-compte. Sans effet si la commande n'a aucun
+        // DownloadGrant actif (ex. commande accompagnement pure) — voir
+        // lib/services/customer-download-email.ts.
+        await sendCustomerDownloadEmail(result.orderId);
         // Genere le(s) code(s) coaching automatique(s) pour chaque ebook de
         // la commande (miroir cote paye de createAutomaticEbookDiscountCodesForFreeOrder
         // pour le chemin gratuit). Idempotent (code deterministe + upsert),
