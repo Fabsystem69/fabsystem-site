@@ -267,3 +267,63 @@ export async function listSchemaEditorAccessGrantsForCustomer(customerId: string
     isManual: capability.source?.startsWith(MANUAL_GRANT_SOURCE_PREFIX) ?? false,
   }));
 }
+
+// Retrouve la formule (hebdo/mensuel/annuel) a partir du Stripe Price ID
+// stocke sur l'abonnement — les plans eux-memes ne sont jamais persistes,
+// seul le price ID Stripe l'est (voir syncSchemaEditorPlusSubscription).
+function resolvePlanFromPriceId(stripePriceId: string): SchemaEditorPlusPlan | null {
+  for (const [plan, config] of Object.entries(SCHEMA_EDITOR_PLUS_PLANS) as [
+    SchemaEditorPlusPlan,
+    (typeof SCHEMA_EDITOR_PLUS_PLANS)[SchemaEditorPlusPlan],
+  ][]) {
+    if (process.env[config.priceEnv]?.trim() === stripePriceId) {
+      return plan;
+    }
+  }
+  return null;
+}
+
+// Vue d'ensemble admin (retour utilisateur : "je vois ou les autres
+// abonnements ?" — aucune page ne listait les abonnements Stripe reels,
+// seulement visibles un par un sur la fiche de chaque client). Combine les
+// deux sources d'acces editeur, comme sur la fiche client, mais pour tous
+// les clients a la fois.
+export async function listAllSchemaEditorAccess() {
+  const { prisma } = await import("@/lib/prisma");
+
+  const [subscriptions, capabilities] = await Promise.all([
+    prisma.editorSubscription.findMany({
+      include: { customer: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.customerCapability.findMany({
+      where: { capability: SCHEMA_EDITOR_UNLIMITED_CAPABILITY },
+      include: { customer: true },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  const subscriptionRows = subscriptions.map((subscription) => ({
+    kind: "subscription" as const,
+    id: subscription.id,
+    customer: subscription.customer,
+    plan: resolvePlanFromPriceId(subscription.stripePriceId),
+    status: subscription.status,
+    cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+    currentPeriodEndsAt: subscription.currentPeriodEndsAt,
+    createdAt: subscription.createdAt,
+  }));
+
+  const capabilityRows = capabilities.map((capability) => ({
+    kind: (capability.source?.startsWith(MANUAL_GRANT_SOURCE_PREFIX)
+      ? "manual"
+      : "included") as "manual" | "included",
+    id: capability.id,
+    customer: capability.customer,
+    status: capability.status,
+    expiresAt: capability.expiresAt,
+    createdAt: capability.createdAt,
+  }));
+
+  return { subscriptionRows, capabilityRows };
+}

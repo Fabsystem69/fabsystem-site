@@ -7,6 +7,7 @@ import type {
   DossierOffre,
   DossierStatutSimple,
   DownloadGrantStatus,
+  EditorSubscriptionStatus,
   OrderStatus,
   PaymentStatus,
   ProductStatus,
@@ -196,4 +197,30 @@ export function getDossierActivityTone(derniereActivite: Date, now: Date = new D
   if (days < 7) return "success";
   if (days < 14) return "warning";
   return "danger";
+}
+
+export const EDITOR_SUBSCRIPTION_STATUS_LABELS: Record<EditorSubscriptionStatus, string> = {
+  ACTIVE: "Actif",
+  TRIALING: "Période d'essai",
+  PAST_DUE: "Paiement en retard",
+  UNPAID: "Impayé",
+  INCOMPLETE: "Incomplet",
+  CANCELED: "Annulé",
+};
+
+export const EDITOR_SUBSCRIPTION_STATUS_TONES: Record<EditorSubscriptionStatus, AdminBadgeTone> = {
+  ACTIVE: "success",
+  TRIALING: "info",
+  PAST_DUE: "warning",
+  UNPAID: "danger",
+  INCOMPLETE: "warning",
+  CANCELED: "neutral",
+};
+
+export function getEditorSubscriptionStatusLabel(status: EditorSubscriptionStatus) {
+  return EDITOR_SUBSCRIPTION_STATUS_LABELS[status];
+}
+
+export function getEditorSubscriptionStatusTone(status: EditorSubscriptionStatus) {
+  return EDITOR_SUBSCRIPTION_STATUS_TONES[status];
 }
