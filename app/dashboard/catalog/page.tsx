@@ -18,8 +18,32 @@ type DashboardCatalogPageProps = {
   searchParams: Promise<{
     error?: string;
     success?: string;
+    type?: string;
+    status?: string;
   }>;
 };
+
+const PRODUCT_TYPE_LABELS: Record<string, string> = {
+  EBOOK: "Ebooks",
+  DIGITAL_DOWNLOAD: "Téléchargements",
+  BUNDLE: "Bundles",
+  SCHEMA_UNLOCK: "Déblocage éditeur",
+  COACHING_30MIN: "Coaching",
+};
+
+const PRODUCT_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: "Actif",
+  DRAFT: "Brouillon",
+  ARCHIVED: "Archivé",
+};
+
+function buildCatalogFilterHref(params: { type?: string; status?: string }) {
+  const searchParams = new URLSearchParams();
+  if (params.type) searchParams.set("type", params.type);
+  if (params.status) searchParams.set("status", params.status);
+  const query = searchParams.toString();
+  return query ? `/dashboard/catalog?${query}` : "/dashboard/catalog";
+}
 
 function getPriceSummary(
   prices: Array<{
@@ -82,12 +106,27 @@ function ProductStatusActions({
 export default async function DashboardCatalogPage({
   searchParams,
 }: DashboardCatalogPageProps) {
-  const products = await listDashboardProducts();
-  const { error, success } = await searchParams;
+  const allProducts = await listDashboardProducts();
+  const { error, success, type: typeFilter, status: statusFilter } = await searchParams;
   const activeSlugs = new Set(
-    products.filter((product) => product.status === "ACTIVE").map((product) => product.slug)
+    allProducts.filter((product) => product.status === "ACTIVE").map((product) => product.slug)
   );
   const missingOffers = PRESTATIONS_OFFERS.filter((offer) => !activeSlugs.has(offer.slug));
+
+  const products = allProducts.filter((product) => {
+    if (typeFilter && product.productType !== typeFilter) return false;
+    if (statusFilter && product.status !== statusFilter) return false;
+    return true;
+  });
+
+  const typeCounts = allProducts.reduce<Record<string, number>>((acc, product) => {
+    acc[product.productType] = (acc[product.productType] ?? 0) + 1;
+    return acc;
+  }, {});
+  const statusCounts = allProducts.reduce<Record<string, number>>((acc, product) => {
+    acc[product.status] = (acc[product.status] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <DashboardPageShell>
@@ -126,8 +165,62 @@ export default async function DashboardCatalogPage({
           </AdminAlert>
         ) : null}
 
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Type :</span>
+            <Link
+              href={buildCatalogFilterHref({ status: statusFilter })}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                !typeFilter ? "border-brand-400 bg-brand-400/10 text-brand-300" : "border-neutral-700 text-neutral-400 hover:border-neutral-600"
+              }`}
+            >
+              Tous ({allProducts.length})
+            </Link>
+            {Object.entries(PRODUCT_TYPE_LABELS).map(([value, label]) => (
+              <Link
+                key={value}
+                href={buildCatalogFilterHref({ type: value, status: statusFilter })}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  typeFilter === value ? "border-brand-400 bg-brand-400/10 text-brand-300" : "border-neutral-700 text-neutral-400 hover:border-neutral-600"
+                }`}
+              >
+                {label} ({typeCounts[value] ?? 0})
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Statut :</span>
+            <Link
+              href={buildCatalogFilterHref({ type: typeFilter })}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                !statusFilter ? "border-brand-400 bg-brand-400/10 text-brand-300" : "border-neutral-700 text-neutral-400 hover:border-neutral-600"
+              }`}
+            >
+              Tous ({allProducts.length})
+            </Link>
+            {Object.entries(PRODUCT_STATUS_LABELS).map(([value, label]) => (
+              <Link
+                key={value}
+                href={buildCatalogFilterHref({ type: typeFilter, status: value })}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  statusFilter === value ? "border-brand-400 bg-brand-400/10 text-brand-300" : "border-neutral-700 text-neutral-400 hover:border-neutral-600"
+                }`}
+              >
+                {label} ({statusCounts[value] ?? 0})
+              </Link>
+            ))}
+          </div>
+        </div>
+
         {products.length === 0 ? (
-          <AdminEmptyState title="Aucun produit numérique n'est encore disponible dans le catalogue." />
+          <AdminEmptyState
+            title={
+              typeFilter || statusFilter
+                ? "Aucun produit ne correspond à ce filtre."
+                : "Aucun produit numérique n'est encore disponible dans le catalogue."
+            }
+          />
         ) : (
           <div className="space-y-4">
             {products.map((product) => {
