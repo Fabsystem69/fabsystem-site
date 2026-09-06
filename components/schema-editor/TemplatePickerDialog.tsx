@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { getSchemaTemplate, getSchemaTemplatesByVehicleGroup } from "@/features/schemas/templates";
 import { getComponentDefinition, getNodeIcon } from "@/lib/electrical-components/definitions";
 import { buildStructuredCanvas } from "@/lib/schema-editor/guided-plan";
+import { useIsMobileViewport } from "@/lib/schema-editor/viewport";
 import { useSchemaStore, type SchemaEdge, type SchemaNode } from "@/features/schemas/store/useSchemaStore";
 import type { DraftEnvelope } from "@/features/schemas/storage/localDraftStorage";
 
@@ -14,6 +15,35 @@ type StartOptions = {
   onChooseTemplate: (id: string) => void;
   onChooseStructured: () => void;
   onChooseBlank: () => void;
+};
+
+type TemplateGroups = ReturnType<typeof getSchemaTemplatesByVehicleGroup>;
+type TemplateSnapshot = ReturnType<typeof buildStructuredCanvas>;
+
+// Etat et logique partages par les deux mises en page (mobile et bureau) —
+// seul le rendu differe, jamais les donnees ou le comportement.
+type PickerViewProps = {
+  darkMode: boolean;
+  panelClass: string;
+  mutedClass: string;
+  controlClass: string;
+  groups: TemplateGroups;
+  activeGroup: "all" | TemplateGroups[number]["id"];
+  setActiveGroup: (group: "all" | TemplateGroups[number]["id"]) => void;
+  visibleTemplates: TemplateGroups[number]["templates"];
+  selectedId: string;
+  setSelectedId: (id: string) => void;
+  showHelp: boolean;
+  setShowHelp: (updater: (value: boolean) => boolean) => void;
+  snapshot: TemplateSnapshot | undefined;
+  selectedTemplate: ReturnType<typeof getSchemaTemplate> | undefined;
+  zones: string[];
+  componentLabels: string[];
+  isGuestStart: boolean;
+  primaryLabel: string;
+  startOptions?: StartOptions;
+  onClose: () => void;
+  handleUseSelection: () => void;
 };
 
 function TemplateDiagramPreview({ nodes, edges, darkMode }: { nodes: SchemaNode[]; edges: SchemaEdge[]; darkMode: boolean }) {
@@ -74,6 +104,7 @@ export function TemplatePickerDialog({ onClose, startOptions }: { onClose: () =>
   const [selectedId, setSelectedId] = useState("structured");
   const [activeGroup, setActiveGroup] = useState<"all" | (typeof groups)[number]["id"]>("all");
   const [showHelp, setShowHelp] = useState(false);
+  const isMobile = useIsMobileViewport();
   const selectedTemplate = selectedId === "blank" || selectedId === "structured" ? undefined : getSchemaTemplate(selectedId);
   const snapshot = useMemo(() => selectedId === "structured" ? buildStructuredCanvas() : selectedTemplate?.build(), [selectedId, selectedTemplate]);
   const zones = snapshot?.nodes.filter((node) => node.type === "zone").map((node) => String(node.data.label ?? "Zone")) ?? [];
@@ -116,6 +147,60 @@ export function TemplatePickerDialog({ onClose, startOptions }: { onClose: () =>
         ? "Découvrir le canevas vierge"
         : "Créer un schéma vierge";
 
+  const viewProps: PickerViewProps = {
+    darkMode,
+    panelClass,
+    mutedClass,
+    controlClass,
+    groups,
+    activeGroup,
+    setActiveGroup,
+    visibleTemplates,
+    selectedId,
+    setSelectedId,
+    showHelp,
+    setShowHelp,
+    snapshot,
+    selectedTemplate,
+    zones,
+    componentLabels,
+    isGuestStart,
+    primaryLabel,
+    startOptions,
+    onClose,
+    handleUseSelection,
+  };
+
+  // Deux mises en page entièrement séparées plutôt qu'une seule version
+  // hybride à coups de classes responsive : le bureau (déjà éprouvé, ne pas
+  // retoucher) et le mobile (plein écran, une seule zone de défilement,
+  // pensé spécifiquement pour un usage au pouce sur petit écran).
+  return isMobile ? <MobilePickerDialog {...viewProps} /> : <DesktopPickerDialog {...viewProps} />;
+}
+
+function DesktopPickerDialog({
+  darkMode,
+  panelClass,
+  mutedClass,
+  controlClass,
+  groups,
+  activeGroup,
+  setActiveGroup,
+  visibleTemplates,
+  selectedId,
+  setSelectedId,
+  showHelp,
+  setShowHelp,
+  snapshot,
+  selectedTemplate,
+  zones,
+  componentLabels,
+  isGuestStart,
+  primaryLabel,
+  startOptions,
+  onClose,
+  handleUseSelection,
+}: PickerViewProps) {
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-labelledby="template-picker-title">
       <div className={`flex max-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border shadow-2xl ${panelClass}`}>
@@ -201,6 +286,128 @@ export function TemplatePickerDialog({ onClose, startOptions }: { onClose: () =>
         <footer className={`flex flex-wrap items-center justify-end gap-3 border-t px-5 py-4 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}>
           <button type="button" onClick={onClose} className={`rounded-lg border px-4 py-2 text-sm font-semibold ${controlClass}`}>Annuler</button>
           <button type="button" onClick={handleUseSelection} className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition-base hover:bg-brand-600">{primaryLabel}</button>
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+// Mise en page mobile dédiée : plein écran, une seule zone de défilement
+// (jamais deux ascenseurs imbriqués comme sur bureau, source du chevauchement
+// remonté par l'utilisateur), en-tête et pied de page pensés pour un pouce
+// (boutons pleine largeur, bouton fermer toujours visible en haut à droite).
+function MobilePickerDialog({
+  darkMode,
+  mutedClass,
+  controlClass,
+  groups,
+  activeGroup,
+  setActiveGroup,
+  visibleTemplates,
+  selectedId,
+  setSelectedId,
+  showHelp,
+  setShowHelp,
+  snapshot,
+  selectedTemplate,
+  zones,
+  componentLabels,
+  isGuestStart,
+  primaryLabel,
+  startOptions,
+  onClose,
+  handleUseSelection,
+}: PickerViewProps) {
+  const surfaceClass = darkMode ? "bg-neutral-900 text-neutral-100" : "bg-white text-slate-900";
+  const borderClass = darkMode ? "border-neutral-800" : "border-slate-200";
+
+  return (
+    <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-labelledby="template-picker-title-mobile">
+      <div className={`flex h-[100dvh] w-full flex-col ${surfaceClass}`}>
+        <header className={`flex items-start justify-between gap-3 border-b px-4 py-3 ${borderClass}`}>
+          <div className="min-w-0">
+            <h2 id="template-picker-title-mobile" className="text-lg font-semibold">Démarrer un schéma électrique</h2>
+            <p className={`mt-0.5 text-sm ${mutedClass}`}>{isGuestStart ? "Choisissez un point de départ." : "Choisissez, vérifiez, puis chargez-le."}</p>
+          </div>
+          <button type="button" onClick={onClose} className={`shrink-0 rounded-lg px-2 py-1 text-xl leading-none ${darkMode ? "text-neutral-400 hover:bg-neutral-800 hover:text-white" : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"}`} aria-label="Fermer">×</button>
+        </header>
+
+        <div className={`flex gap-2 border-b px-4 py-3 ${borderClass}`}>
+          <button type="button" onClick={() => setSelectedId("structured")} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${selectedId === "structured" ? "border-brand-500 bg-brand-50 text-brand-700" : controlClass}`}>Canevas structuré</button>
+          <button type="button" onClick={() => setSelectedId("blank")} className={`flex-1 rounded-lg border px-3 py-2 text-sm font-semibold ${selectedId === "blank" ? "border-brand-500 bg-brand-50 text-brand-700" : controlClass}`}>Canevas vierge</button>
+          <button type="button" onClick={() => setShowHelp((value) => !value)} className="shrink-0 rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white" aria-label="M’aider à choisir">?</button>
+        </div>
+
+        {startOptions?.draft ? (
+          <div className={`border-b px-4 py-3 ${darkMode ? "border-neutral-800 bg-amber-400/10" : "border-amber-100 bg-amber-50/70"}`}>
+            <button
+              type="button"
+              onClick={startOptions.onChooseContinue}
+              className={`flex w-full flex-col gap-2 rounded-xl border px-4 py-3 text-left ${
+                darkMode ? "border-amber-700/70 bg-neutral-950/40" : "border-amber-300 bg-white"
+              }`}
+            >
+              <span>
+                <span className={`block text-[10px] font-semibold uppercase tracking-wide ${darkMode ? "text-amber-300" : "text-amber-700"}`}>Votre brouillon</span>
+                <span className="mt-1 block text-base font-semibold">{startOptions.draft.projectName || "Mon schéma"}</span>
+                <span className={`mt-1 block text-xs ${mutedClass}`}>{startOptions.draft.nodes.length} composants · modifié le {new Date(startOptions.draft.updatedAt).toLocaleDateString("fr-FR")}</span>
+              </span>
+              <span className={`inline-block rounded-lg px-3 py-2 text-center text-sm font-semibold ${darkMode ? "bg-amber-300 text-neutral-950" : "bg-amber-500 text-white"}`}>Reprendre mon schéma</span>
+            </button>
+          </div>
+        ) : null}
+
+        {showHelp ? <div className={`border-b px-4 py-3 text-sm ${darkMode ? "border-neutral-800 bg-amber-400/10 text-amber-100" : "border-amber-100 bg-amber-50 text-amber-900"}`}>Pour un véhicule aménagé, commencez par <strong>Vans & camping-cars</strong>; pour un circuit de bord, choisissez <strong>Bateaux</strong>. Vous pourrez modifier chaque composant après chargement.</div> : null}
+
+        {/* Un seul flux qui défile pour tout le corps : filtres, liste des
+            modèles, puis aperçu — jamais deux ascenseurs imbriqués. */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className={`flex gap-1 overflow-x-auto border-b p-3 ${borderClass}`}>
+            <button type="button" onClick={() => setActiveGroup("all")} className={`shrink-0 rounded-md px-2.5 py-1.5 text-xs font-semibold ${activeGroup === "all" ? "bg-brand-500 text-white" : controlClass}`}>Tous</button>
+            {groups.map((group) => <button key={group.id} type="button" onClick={() => setActiveGroup(group.id)} className={`shrink-0 rounded-md px-2.5 py-1.5 text-xs font-semibold ${activeGroup === group.id ? "bg-brand-500 text-white" : controlClass}`}>{group.label}</button>)}
+          </div>
+
+          <div className="space-y-2 p-3">
+            {visibleTemplates.map((template) => {
+              const selected = template.id === selectedId;
+              return <button key={template.id} type="button" onClick={() => setSelectedId(template.id)} className={`w-full rounded-xl border p-3 text-left ${selected ? "border-amber-500 ring-2 ring-amber-400/40" : darkMode ? "border-neutral-700 bg-neutral-950" : "border-slate-200"}`}>
+                <span className="block text-sm font-semibold">{template.label}</span>
+                <span className={`mt-1 line-clamp-2 block text-xs leading-relaxed ${mutedClass}`}>{template.description}</span>
+                <span className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${darkMode ? "bg-neutral-800 text-neutral-400" : "bg-slate-100 text-slate-500"}`}>{groups.find((group) => group.templates.some((item) => item.id === template.id))?.label}</span>
+              </button>;
+            })}
+          </div>
+
+          <div className="border-t p-4" style={{ borderColor: darkMode ? "rgb(38 38 38)" : "rgb(226 232 240)" }}>
+            {snapshot ? (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div><p className={`text-xs font-semibold uppercase tracking-wide ${mutedClass}`}>{selectedTemplate ? "Aperçu du modèle" : "Point de départ"}</p><h3 className="mt-1 text-lg font-semibold">{selectedTemplate?.label ?? "Canevas structuré"}</h3></div>
+                    <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${darkMode ? "border-neutral-700 text-neutral-300" : "border-slate-200 text-slate-600"}`}>{snapshot.nodes.filter((node) => node.type !== "zone").length} composants · {snapshot.edges.length} liaisons</span>
+                  </div>
+                  <p className={`mt-2 text-sm leading-relaxed ${mutedClass}`}>{selectedTemplate?.description ?? "Les zones techniques structurent la lecture du schéma sans ajouter de composant ni de câble."}</p>
+                  <div className="mt-4"><TemplateDiagramPreview nodes={snapshot.nodes} edges={snapshot.edges} darkMode={darkMode} /></div>
+                </div>
+                <div className={`rounded-xl border p-4 ${darkMode ? "border-neutral-700 bg-neutral-950" : "border-slate-200 bg-slate-50"}`}>
+                  <h4 className="text-sm font-semibold">Ce que contient ce modèle</h4>
+                  <p className={`mt-3 text-xs font-semibold uppercase tracking-wide ${mutedClass}`}>Zones</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">{zones.length > 0 ? zones.slice(0, 8).map((zone) => <span key={zone} className={`rounded-md px-2 py-1 text-xs ${darkMode ? "bg-neutral-800 text-neutral-300" : "bg-white text-slate-600 shadow-sm"}`}>{zone}</span>) : <span className={`text-xs ${mutedClass}`}>Organisation libre</span>}</div>
+                  <p className={`mt-4 text-xs font-semibold uppercase tracking-wide ${mutedClass}`}>Équipements principaux</p>
+                  <ul className={`mt-2 space-y-1.5 text-xs ${mutedClass}`}>{componentLabels.map((label) => <li key={label}>• {label}</li>)}</ul>
+                </div>
+              </div>
+            ) : (
+              <div className={`flex min-h-[16rem] flex-col items-center justify-center rounded-xl border border-dashed text-center ${darkMode ? "border-neutral-700 bg-neutral-950" : "border-slate-300 bg-slate-50"}`}>
+                <span className="text-4xl">✎</span><h3 className="mt-3 text-lg font-semibold">Schéma vierge</h3><p className={`mt-2 max-w-xs text-sm leading-relaxed ${mutedClass}`}>Un canevas vide pour construire votre installation à votre rythme.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className={`flex flex-col-reverse gap-2 border-t px-4 py-3 ${borderClass}`}>
+          <button type="button" onClick={onClose} className={`w-full rounded-lg border px-4 py-2.5 text-sm font-semibold ${controlClass}`}>Annuler</button>
+          <button type="button" onClick={handleUseSelection} className="w-full rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white">{primaryLabel}</button>
         </footer>
       </div>
     </div>

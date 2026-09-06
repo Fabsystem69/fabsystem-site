@@ -36,7 +36,7 @@ export function ProductCard({ entry }: { entry: BoutiqueGuideEntry }) {
           />
           {entry.slug === "ebook-schema-electrique" ? (
             <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/90 via-black/55 to-transparent px-5 pb-12 pt-5 text-white">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-amber-300">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-300">
                 Guide FabSystem
               </p>
               <p className="mt-2 text-xl font-semibold leading-[0.95] tracking-tight">

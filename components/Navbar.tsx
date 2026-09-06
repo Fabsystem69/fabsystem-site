@@ -298,7 +298,7 @@ export default function Navbar() {
               aria-label="Ouvrir le menu"
               aria-expanded={open}
               aria-controls="mobile-menu"
-              className="rounded-md p-1.5 text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
               onClick={() => setOpen(true)}
             >
               <MenuIcon />
@@ -340,22 +340,29 @@ export default function Navbar() {
               <button
                 type="button"
                 aria-label="Fermer le menu"
-                className="rounded-md p-1.5 text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+                className="flex h-11 w-11 items-center justify-center rounded-md text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
                 onClick={() => setOpen(false)}
               >
                 <CloseIcon />
               </button>
             </div>
 
-            {/* Rubriques principales */}
+            {/* Rubriques principales — "Accueil" est volontairement absent
+                ici (contrairement à la nav desktop) : le logo, juste
+                au-dessus, y ramène déjà en un tap, et c'est le geste le plus
+                deviné sur mobile ; le garder en plus n'ajoutait qu'une ligne
+                redondante (retour audit mobile). Le CTA est aussi reformulé
+                en action ("Créer mon schéma" plutôt que "Éditeur de schéma")
+                pour ne plus se lire comme un doublon de la rubrique "Outils"
+                juste en dessous. */}
             <nav className="mt-6 flex flex-col gap-1 text-base font-medium text-neutral-900" aria-label="Rubriques principales">
               <Link
                 href={editorNavItem.href}
                 className="mb-2 rounded-lg bg-brand-400 px-3 py-3 font-semibold text-neutral-900 transition-colors duration-150 hover:bg-brand-300"
               >
-                Éditeur de schéma
+                Créer mon schéma
               </Link>
-              {nav.map((item) => {
+              {nav.filter((item) => item.href !== "/").map((item) => {
                 const active = isActive(item.href);
                 return (
                   <Link

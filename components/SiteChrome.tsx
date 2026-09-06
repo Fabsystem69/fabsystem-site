@@ -10,11 +10,14 @@ import Footer from "@/components/Footer";
 // n'affiche pas la navigation marketing du site public autour de son
 // panneau d'administration. Sur toutes les autres routes, le comportement
 // reste strictement identique a avant (Navbar + contenu + Footer).
-// /outils/schema suit la meme logique : l'editeur de schema occupe tout le
-// viewport (CDC §6, 4 zones plein ecran) et gere son propre retour vers
-// /outils dans sa Toolbar — un header/footer marketing par-dessus casserait
-// la mise en page desktop.
-const ISOLATED_CHROME_PREFIXES = ["/dashboard", "/outils/schema", "/outils/ebook-schema-fabsystem"];
+// /outils/schema/editeur suit la meme logique : l'editeur de schema occupe
+// tout le viewport (CDC §6, 4 zones plein ecran) et gere son propre retour
+// vers /outils dans sa Toolbar — un header/footer marketing par-dessus
+// casserait la mise en page desktop. Bug corrige : le prefixe couvrait aussi
+// /outils/schema (page marketing publique, un niveau au-dessus), qui perdait
+// ainsi header/footer/burger sans aucun lien de retour sur mobile — un
+// veritable cul-de-sac de navigation (retour audit mobile).
+const ISOLATED_CHROME_PREFIXES = ["/dashboard", "/outils/schema/editeur", "/outils/ebook-schema-fabsystem"];
 
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

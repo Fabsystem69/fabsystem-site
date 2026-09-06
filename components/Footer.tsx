@@ -43,10 +43,14 @@ function FooterLinkGroup({ title, links }: { title: string; links: { href: strin
   return (
     <div>
       <h3 className="text-sm font-semibold text-white">{title}</h3>
-      <ul className="mt-4 space-y-2.5 text-sm text-neutral-400">
+      {/* py-1 sur chaque lien : la zone tactile réelle dépassait à peine
+          18px sur mobile, en dessous du confort tactile — les mentions
+          légales/CGV/confidentialité en pâtissaient le plus (retour audit
+          mobile). */}
+      <ul className="mt-4 space-y-1 text-sm text-neutral-400">
         {links.map((link) => (
           <li key={link.href}>
-            <Link className="transition-colors duration-150 hover:text-white" href={link.href}>
+            <Link className="inline-block py-1 transition-colors duration-150 hover:text-white" href={link.href}>
               {link.label}
             </Link>
           </li>
@@ -62,12 +66,18 @@ export default function Footer() {
   return (
     <footer className="border-t border-neutral-900 bg-neutral-950 text-neutral-300">
       <Container className="py-section">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 2 colonnes dès mobile (au lieu d'un simple empilement) : le
+            footer occupait 972px, plus d'un écran complet de défilement
+            (retour audit mobile) — la colonne Marque reste seule sur sa
+            ligne (col-span-2), les 3 groupes de liens se répartissent à
+            côté. gap-10 (desktop d'origine) redevient actif à partir de sm,
+            inchangé. */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-4">
           {/* Marque — logo officiel sur un fond clair dédié (voir
               UI-2-LAYOUT-PUBLIC.md, Visuels à produire : aucune variante
               officielle du logo pour fond sombre n'existe aujourd'hui ; le
               fichier /FabSystem-Logo.svg n'est ni recoloré ni redessiné). */}
-          <div>
+          <div className="col-span-2 sm:col-span-1">
             <div className="flex items-center gap-3">
               {/* Détourage non parfait sur fond sombre (léger liseré clair
                   visible sur la fourrure) : posé sur un badge clair, comme
