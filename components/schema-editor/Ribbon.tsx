@@ -243,10 +243,18 @@ function EditorMenuBar({
   useEffect(() => {
     if (!openMenu && !accountOpen && !mobileActionsOpen) return;
     const close = (event: MouseEvent) => {
+      // menuRef ne couvre que le menubar desktop (<nav ... max-md:hidden>) —
+      // le sheet d'actions mobile est un frère de ce nav, jamais un
+      // descendant, donc "menuRef.current?.contains(target)" est toujours
+      // faux pour un tap dedans. Fermer mobileActionsOpen ici le fermait
+      // sur le mousedown, avant que le click sur un item n'ait pu aboutir :
+      // plus aucune action du menu mobile ne fonctionnait (bug prod). Le
+      // sheet gère déjà sa propre fermeture via le fond (onMouseDown sur le
+      // backdrop, arrêté par stopPropagation sur son contenu) — inutile et
+      // dangereux de dupliquer cette logique ici.
       if (!menuRef.current?.contains(event.target as Node)) {
         setOpenMenu(null);
         setAccountOpen(false);
-        setMobileActionsOpen(false);
       }
     };
     const closeWithEscape = (event: KeyboardEvent) => {
