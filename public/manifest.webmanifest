@@ -3,7 +3,7 @@
   "short_name": "FabSystem",
   "description": "Créez vos schémas électriques pour van, camping-car et bateau.",
   "start_url": "/outils/schema/editeur",
-  "scope": "/",
+  "scope": "/outils/schema",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#111111",
