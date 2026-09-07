@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-session";
+import { hasSchemaEditorPlusAccess } from "@/lib/services/schema-editor-plus";
 import { PageIntro } from "@/components/public/PageIntro";
 import { Section } from "@/components/layout/Section";
 import { Badge } from "@/components/ui/Badge";
@@ -363,14 +364,19 @@ export default async function SchemaPage({ searchParams }: SchemaEditorPageProps
     return <SchemaEditorRuntime />;
   }
 
-  // Retour utilisateur : "si il est inscrit et logué, appuyer sur le
-  // bouton envoie direct jusqu'à l'accueil de l'éditeur" — un client déjà
-  // identifié n'a plus besoin de la page marketing, seul un visiteur
-  // anonyme y atterrit. Variante "OrAnonymous" (jamais requireCustomerActor
-  // ici) : une panne de résolution de session ne doit jamais faire planter
-  // cette page publique, juste dégrader vers l'affichage anonyme.
+  // Retour utilisateur : "je veux qu'on passe tous sur cette page,
+  // uniquement les personnes qui ont un abonnement en cours passent
+  // directement sur l'éditeur" — restreint depuis la version précédente,
+  // qui redirigeait tout client identifié sans regarder son accès. Seul un
+  // abonné Éditeur Plus actif (abonnement Stripe ou accès inclus/offert —
+  // même définition que le reste du site, hasSchemaEditorPlusAccess) saute
+  // directement à l'éditeur ; tous les autres (anonymes ET clients inscrits
+  // sans accès actif) voient d'abord cette page. Variante "OrAnonymous"
+  // (jamais requireCustomerActor ici) : une panne de résolution de session
+  // ne doit jamais faire planter cette page publique, juste dégrader vers
+  // l'affichage anonyme.
   const session = await getCustomerSessionFromCookieOrAnonymous();
-  if (session) {
+  if (session && (await hasSchemaEditorPlusAccess(session.customer.id))) {
     redirect(EDITOR_PATH);
   }
 

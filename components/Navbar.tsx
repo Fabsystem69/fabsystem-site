@@ -21,11 +21,11 @@ const nav = [
   { href: "/outils", label: "Outils" },
 ];
 
-// Retour utilisateur : "quand je clique sur ouvrir l'editeur dans le home
-// je suis direct dirigé vers /outils/schema/editeur et non /outils/schema" —
-// pointe vers la page marketing publique, qui redirige elle-même un client
-// déjà connecté droit vers l'éditeur (voir app/outils/schema/page.tsx) ; un
-// visiteur anonyme doit toujours voir cette page d'abord.
+// Pointe vers la page marketing publique, qui redirige elle-même droit vers
+// l'éditeur uniquement les clients ayant un accès Éditeur Plus actif (voir
+// app/outils/schema/page.tsx, hasSchemaEditorPlusAccess) ; tous les autres
+// (anonymes ET clients inscrits sans accès actif) voient toujours cette
+// page d'abord.
 const editorNavItem = { href: "/outils/schema", label: "Éditeur de schéma" };
 
 const ICON_LINK_CLASS =
