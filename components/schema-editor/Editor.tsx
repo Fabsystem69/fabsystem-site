@@ -25,7 +25,7 @@ import { Canvas } from "./Canvas";
 import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
-import { CoachingOfferWidget } from "./CoachingOfferWidget";
+import { HelpNudgeWidget } from "./HelpNudgeWidget";
 import { ProjectSharingConsentBanner } from "./ProjectSharingConsentBanner";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
@@ -399,7 +399,7 @@ export function Editor() {
       <BatteryPairPopup />
       <GuidedTutorial />
       <InstallAssistant />
-      <CoachingOfferWidget />
+      <HelpNudgeWidget />
       <PwaInstallPrompt />
     </ReactFlowProvider>
   );

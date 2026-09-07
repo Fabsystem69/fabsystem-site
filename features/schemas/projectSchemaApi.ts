@@ -188,8 +188,8 @@ export async function createProjectApi(input: CreateProjectInput): Promise<Creat
 // encore enregistré côté cloud) ne doit plus jamais rester orphelin après
 // une inscription, un déblocage payant ou une redemption de code : ce
 // helper compose createProjectApi + saveProjectSchemaApi en un seul appel,
-// réutilisé par SignupPromptWidget, FreemiumLimitModal et
-// CoachingOfferWidget plutôt que dupliqué trois fois. Valeurs par défaut
+// réutilisé par SignupPromptWidget et FreemiumLimitModal plutôt que
+// dupliqué. Valeurs par défaut
 // neutres (assetType/voltage) : l'utilisateur les précisera plus tard dans
 // la fiche projet s'il le souhaite, jamais bloquant ici.
 export async function saveDraftAsNewProjectApi(input: {

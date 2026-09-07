@@ -2,9 +2,14 @@ import { badRequest, notFound, unauthorized } from "@/lib/http-errors";
 import type { OwnershipActor } from "@/lib/ownership";
 
 // v2.1 : checkout express pour un créneau de conseil ponctuel (30 min, visio
-// ou téléphone, 59€) — proposé dans l'éditeur de schéma quand l'utilisateur
-// semble bloqué (voir CoachingOfferWidget.tsx). Produit hors panier
-// générique : price_data Stripe construit depuis le Product/Price local
+// ou téléphone, 59€). N'est plus proposé automatiquement dans l'éditeur de
+// schéma (retour utilisateur : vendre un rendez-vous payant pendant un
+// moment de blocage était trop agressif, en plus de mal se positionner
+// face à l'Appel conseil à 69€/1h — voir HelpNudgeWidget.tsx, qui propose
+// désormais de l'aide gratuite puis l'appel découverte gratuit). Ce
+// endpoint et ce produit restent actifs si Fabien veut le proposer par un
+// autre chemin. Produit hors panier générique : price_data Stripe
+// construit depuis le Product/Price local
 // plutôt qu'un Price Stripe pré-créé, sans Project à rattacher —
 // n'importe quel client connecté peut l'acheter. Aucun octroi automatique
 // (pas de DownloadGrant, pas de capability) — sendPurchaseNotification
