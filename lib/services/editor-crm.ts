@@ -1,4 +1,3 @@
-import { badRequest } from "@/lib/http-errors";
 import { prisma } from "@/lib/prisma";
 import { logServerEvent } from "@/lib/server-log";
 
@@ -94,55 +93,6 @@ function toHtmlParagraphs(lines: string[]) {
 async function getDefaultSendMail() {
   const { sendMail } = await import("@/lib/server/nodemailer");
   return sendMail;
-}
-
-export type SendEditorCrmMailingResult = {
-  sentCount: number;
-  totalRequested: number;
-};
-
-export async function sendEditorCrmMailing(
-  input: { customerIds: string[]; subject: string; message: string; sentBy?: string },
-  deps?: { sendMailImpl?: Awaited<ReturnType<typeof getDefaultSendMail>> }
-): Promise<SendEditorCrmMailingResult> {
-  const subject = input.subject.trim();
-  const message = input.message.trim();
-  const customerIds = [...new Set(input.customerIds.map((id) => id.trim()).filter(Boolean))];
-
-  if (!subject) throw badRequest("Objet requis.");
-  if (!message) throw badRequest("Message requis.");
-  if (customerIds.length === 0) throw badRequest("Aucun destinataire sélectionné.");
-
-  const customers = await prisma.customer.findMany({
-    where: { id: { in: customerIds } },
-    select: { id: true, email: true },
-  });
-
-  const sendMailImpl = deps?.sendMailImpl ?? (await getDefaultSendMail());
-  const sentBy = input.sentBy?.trim() || "FabSystem";
-  let sentCount = 0;
-
-  for (const customer of customers) {
-    try {
-      await sendMailImpl({
-        to: customer.email,
-        from: resolveFromAddress(),
-        subject,
-        text: message,
-        html: `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#171717;">${toHtmlParagraphs(message.split("\n"))}</div>`,
-      });
-
-      await prisma.customerContactLog.create({
-        data: { customerId: customer.id, subject, message, sentBy },
-      });
-
-      sentCount += 1;
-    } catch (error) {
-      logServerEvent("error", "failed to send editor CRM mailing", { error, customerId: customer.id });
-    }
-  }
-
-  return { sentCount, totalRequested: customers.length };
 }
 
 // Relance automatique (cron quotidien, voir

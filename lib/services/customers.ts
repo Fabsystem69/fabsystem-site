@@ -3,6 +3,12 @@ import { type z } from "zod";
 import { customerInputSchema, normalizeCustomerData } from "@/lib/customer-payload";
 import { badRequest, notFound } from "@/lib/http-errors";
 import { prisma } from "@/lib/prisma";
+import {
+  computeCustomerSegmentSets,
+  getCustomerSegments,
+  type CustomerSegment,
+  type CustomerSegmentSets,
+} from "@/lib/services/customer-segments";
 
 const DEFAULT_CUSTOMERS_PAGE_SIZE = 20;
 const MAX_CUSTOMERS_PAGE_SIZE = 100;
@@ -49,10 +55,24 @@ function buildCustomerSearchWhere(search: string): Prisma.CustomerWhereInput {
   };
 }
 
+export function parseCustomerSegmentParam(value: string | null | undefined): CustomerSegment | null {
+  const candidates: CustomerSegment[] = ["editeur-plus", "accompagnement", "ebook", "juste-inscrit"];
+  return candidates.find((segment) => segment === value) ?? null;
+}
+
+function segmentCustomerIds(segment: CustomerSegment, sets: CustomerSegmentSets, allCustomerIds: string[]) {
+  if (segment === "juste-inscrit") {
+    const engaged = new Set([...sets["editeur-plus"], ...sets.accompagnement, ...sets.ebook]);
+    return allCustomerIds.filter((id) => !engaged.has(id));
+  }
+  return [...sets[segment]];
+}
+
 export async function getCustomersPage(options?: {
   search?: string | null;
   page?: number;
   limit?: number;
+  segment?: CustomerSegment | null;
 }) {
   const search = normalizeCustomerSearchQuery(options?.search);
   const requestedPage = Math.max(options?.page ?? 1, 1);
@@ -60,7 +80,27 @@ export async function getCustomersPage(options?: {
     Math.max(options?.limit ?? DEFAULT_CUSTOMERS_PAGE_SIZE, 1),
     MAX_CUSTOMERS_PAGE_SIZE
   );
-  const where = buildCustomerSearchWhere(search);
+
+  // Segments toujours recalculés en une passe (voir customer-segments.ts) —
+  // jamais de champ dupliqué sur Customer qui pourrait diverger de l'état
+  // réel (abonnement, capability, dossier, commande).
+  const [segmentSets, allCustomerIds] = await Promise.all([
+    computeCustomerSegmentSets(),
+    prisma.customer.findMany({ select: { id: true } }).then((rows) => rows.map((row) => row.id)),
+  ]);
+  const segmentCounts: Record<CustomerSegment, number> = {
+    "editeur-plus": segmentSets["editeur-plus"].size,
+    accompagnement: segmentSets.accompagnement.size,
+    ebook: segmentSets.ebook.size,
+    "juste-inscrit": segmentCustomerIds("juste-inscrit", segmentSets, allCustomerIds).length,
+  };
+
+  let where = buildCustomerSearchWhere(search);
+  if (options?.segment) {
+    const matchingIds = segmentCustomerIds(options.segment, segmentSets, allCustomerIds);
+    where = { ...where, id: { in: matchingIds } };
+  }
+
   const totalCount = await prisma.customer.count({ where });
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const currentPage = Math.min(requestedPage, totalPages);
@@ -74,12 +114,16 @@ export async function getCustomersPage(options?: {
   });
 
   return {
-    customers,
+    customers: customers.map((customer) => ({
+      ...customer,
+      segments: getCustomerSegments(customer.id, segmentSets),
+    })),
     totalCount,
     totalPages,
     currentPage,
     pageSize,
     search,
+    segmentCounts,
   };
 }
 

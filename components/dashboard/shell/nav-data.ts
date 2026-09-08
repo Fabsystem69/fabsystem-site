@@ -1,7 +1,6 @@
 import type { ComponentType, SVGProps } from "react";
 import {
   AccompagnementIcon,
-  CrmIcon,
   CustomersIcon,
   DashboardIcon,
   DiscountIcon,
@@ -104,15 +103,6 @@ export const NAV_GROUPS: NavGroup[] = [
       // Retour utilisateur : "avoir les remontées d'erreur avec l'id du
       // client directement dans mon dashboard" — voir lib/services/error-reports.ts.
       { label: "Erreurs", href: "/dashboard/errors", icon: ErrorsIcon },
-    ],
-  },
-  {
-    title: "CRM & opérations",
-    items: [
-      // Retour utilisateur : "un visu des compte crm pour pouvoir faire des
-      // opée" — segment "utilise l'éditeur, jamais souscrit Éditeur Plus",
-      // voir lib/services/editor-crm.ts.
-      { label: "Éditeur sans abonnement", href: "/dashboard/crm/editor-sans-abonnement", icon: CrmIcon },
     ],
   },
 ];
