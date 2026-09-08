@@ -27,6 +27,14 @@ export async function listEditorUsersWithoutSubscription(): Promise<EditorCrmEnt
       editorSubscriptions: {
         none: { status: { in: [...ACTIVE_SUBSCRIPTION_STATUSES] } },
       },
+      // Un client déjà suivi personnellement (accompagnement en cours, pas
+      // encore livré) ne doit jamais recevoir cette relance générique "vous
+      // n'avez pas souscrit Éditeur Plus [...] si vous préférez être
+      // accompagné" — retour client réel : un client en accompagnement l'a
+      // reçue et l'a vécue comme absurde/blessante ("c'est plus du
+      // maternage que de l'accompagnement pour moi"). Redevient éligible
+      // une fois son dossier livré (dateLivraison renseignée).
+      dossiers: { none: { dateLivraison: null } },
     },
     select: {
       id: true,
