@@ -1281,8 +1281,9 @@ model DossierClient {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  events    DossierEvent[]
-  documents DossierDocument[]
+  events       DossierEvent[]
+  documents    DossierDocument[]
+  appointments DossierAppointment[]
 
   @@index([customerId])
   @@index([offre])
@@ -1321,6 +1322,27 @@ model DossierDocument {
 
   @@unique([bucket, path])
   @@index([dossierId, createdAt])
+}
+
+// Rendez-vous visio/telephone lies a un dossier (retour utilisateur : "un
+// calendrier pour caler les visio... les avoir sur le suivi d'accompagnement
+// avec date et duree et un espace pour ecrire un resume"). Un dossier peut
+// avoir plusieurs rendez-vous au fil du suivi (cadrage, points d'etape...).
+// Alimente le flux ICS prive expose par app/api/calendar/accompagnements.ics
+// (abonnement webcal cote iPhone) — jamais l'inverse, ce modele reste la
+// seule source de verite, aucun etat calendrier duplique.
+model DossierAppointment {
+  id              String        @id @default(cuid())
+  dossierId       String
+  dossier         DossierClient @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+  scheduledAt     DateTime
+  durationMinutes Int           @default(30)
+  compteRendu     String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([dossierId])
+  @@index([scheduledAt])
 }
 
 // --- Kit (bundles d'achat assignables a un Project) -----------------------

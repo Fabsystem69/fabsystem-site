@@ -6,15 +6,20 @@ import { badRequest, isHttpError } from "@/lib/http-errors";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/require-session";
 import { deleteDossierDocumentFile, uploadDossierDocument } from "@/lib/server/dossier-storage";
+import { parseLocalDateTimeInTimeZone } from "@/lib/timezone";
 import {
   addDossierDocument,
   addDossierIteration,
   advanceDossierStep,
   assertDossierStorageQuota,
+  createDossierAppointment,
   createManualDossierClient,
+  deleteDossierAppointment,
   deleteDossierDocumentRecord,
+  setDossierAppointmentSummary,
   setDossierDelivered,
   setDossierWhatsapp,
+  updateDossierAppointment,
   updateDossierNotesInternes,
   updateDossierSimpleStatus,
 } from "@/lib/services/dossier-client";
@@ -154,6 +159,81 @@ export async function setDossierDeliveredAction(formData: FormData) {
     target = `/dashboard/accompagnements/${dossierId}?success=${encodeURIComponent(
       delivered ? "Dossier marqué comme livré." : "Marquage \"livré\" annulé."
     )}`;
+  } catch (error) {
+    target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  redirect(target);
+}
+
+export async function createDossierAppointmentAction(formData: FormData) {
+  await requireSession();
+
+  const dossierId = getString(formData, "dossierId");
+  let target: string;
+  try {
+    await createDossierAppointment({
+      dossierId,
+      scheduledAt: parseLocalDateTimeInTimeZone(getString(formData, "scheduledAt")),
+      durationMinutes: Number(getString(formData, "durationMinutes")) || 30,
+    });
+    revalidatePath(`/dashboard/accompagnements/${dossierId}`);
+    revalidatePath("/mon-compte/mon-accompagnement");
+    target = `/dashboard/accompagnements/${dossierId}?success=${encodeURIComponent("Rendez-vous ajouté.")}`;
+  } catch (error) {
+    target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  redirect(target);
+}
+
+export async function updateDossierAppointmentAction(formData: FormData) {
+  await requireSession();
+
+  const dossierId = getString(formData, "dossierId");
+  const appointmentId = getString(formData, "appointmentId");
+  let target: string;
+  try {
+    await updateDossierAppointment({
+      appointmentId,
+      scheduledAt: parseLocalDateTimeInTimeZone(getString(formData, "scheduledAt")),
+      durationMinutes: Number(getString(formData, "durationMinutes")) || 30,
+    });
+    revalidatePath(`/dashboard/accompagnements/${dossierId}`);
+    revalidatePath("/mon-compte/mon-accompagnement");
+    target = `/dashboard/accompagnements/${dossierId}?success=${encodeURIComponent("Rendez-vous mis à jour.")}`;
+  } catch (error) {
+    target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  redirect(target);
+}
+
+export async function setDossierAppointmentSummaryAction(formData: FormData) {
+  await requireSession();
+
+  const dossierId = getString(formData, "dossierId");
+  const appointmentId = getString(formData, "appointmentId");
+  let target: string;
+  try {
+    await setDossierAppointmentSummary({ appointmentId, compteRendu: getString(formData, "compteRendu") });
+    revalidatePath(`/dashboard/accompagnements/${dossierId}`);
+    revalidatePath("/mon-compte/mon-accompagnement");
+    target = `/dashboard/accompagnements/${dossierId}?success=${encodeURIComponent("Compte-rendu enregistré.")}`;
+  } catch (error) {
+    target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  redirect(target);
+}
+
+export async function deleteDossierAppointmentAction(formData: FormData) {
+  await requireSession();
+
+  const dossierId = getString(formData, "dossierId");
+  const appointmentId = getString(formData, "appointmentId");
+  let target: string;
+  try {
+    await deleteDossierAppointment(appointmentId);
+    revalidatePath(`/dashboard/accompagnements/${dossierId}`);
+    revalidatePath("/mon-compte/mon-accompagnement");
+    target = `/dashboard/accompagnements/${dossierId}?success=${encodeURIComponent("Rendez-vous supprimé.")}`;
   } catch (error) {
     target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
   }

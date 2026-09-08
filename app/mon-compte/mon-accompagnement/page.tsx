@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { buildWhatsAppLink, getDossierStepStatuses, isTimelineOffre } from "@/lib/dossier-client";
 import {
   getDossierForCustomer,
@@ -88,6 +88,15 @@ export default async function MonAccompagnementPage({
 
   const offerLabel = OFFER_LABELS[dossier.offre] ?? dossier.offre;
   const whatsappMessage = `Bonjour, j'ai une question sur mon projet ${offerLabel.toLowerCase()}.`;
+  const now = Date.now();
+  // dossier.appointments est trié desc (le plus récent d'abord) — le
+  // prochain rendez-vous à venir est donc le PLUS ANCIEN parmi les futurs.
+  const nextAppointment = [...dossier.appointments]
+    .filter((appointment) => appointment.scheduledAt.getTime() >= now)
+    .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())[0];
+  const pastAppointmentsWithSummary = dossier.appointments.filter(
+    (appointment) => appointment.scheduledAt.getTime() < now && appointment.compteRendu
+  );
 
   return (
     <div className="space-y-6">
@@ -108,6 +117,32 @@ export default async function MonAccompagnementPage({
       ) : null}
       {error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>
+      ) : null}
+
+      {nextAppointment || pastAppointmentsWithSummary.length > 0 ? (
+        <Card className="p-5">
+          <h2 className="text-lg font-semibold text-neutral-950">Rendez-vous</h2>
+          {nextAppointment ? (
+            <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-sm font-semibold text-neutral-950">Prochain appel</p>
+              <p className="mt-1 text-sm text-neutral-700">
+                {formatDateTime(nextAppointment.scheduledAt)} · {nextAppointment.durationMinutes} min
+              </p>
+            </div>
+          ) : null}
+          {pastAppointmentsWithSummary.length > 0 ? (
+            <div className="mt-3 space-y-3">
+              {pastAppointmentsWithSummary.map((appointment) => (
+                <div key={appointment.id} className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                  <p className="text-sm font-semibold text-neutral-950">
+                    Compte-rendu du {formatDateTime(appointment.scheduledAt)}
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-neutral-700">{appointment.compteRendu}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </Card>
       ) : null}
 
       {isTimelineOffre(dossier.offre) ? (

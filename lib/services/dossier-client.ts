@@ -280,6 +280,7 @@ export async function getDossierForDetail(dossierId: string) {
     include: {
       customer: true,
       events: { orderBy: { createdAt: "desc" }, take: 30 },
+      appointments: { orderBy: { scheduledAt: "desc" } },
     },
   });
   if (!dossier) throw notFound("Dossier introuvable.");
@@ -356,8 +357,102 @@ export async function deleteDossierDocumentRecord(documentId: string) {
 export async function getDossierForCustomer(customerId: string) {
   return prisma.dossierClient.findFirst({
     where: { customerId },
-    include: { events: { orderBy: { createdAt: "desc" }, take: 30 } },
+    include: {
+      events: { orderBy: { createdAt: "desc" }, take: 30 },
+      appointments: { orderBy: { scheduledAt: "desc" } },
+    },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+// Rendez-vous visio/telephone (retour utilisateur : "un calendrier pour
+// caler les visio... avec date et duree et un espace pour ecrire un
+// resume"). Un dossier peut en avoir plusieurs au fil du suivi.
+export async function createDossierAppointment(input: {
+  dossierId: string;
+  scheduledAt: Date;
+  durationMinutes: number;
+}) {
+  const dossier = await prisma.dossierClient.findUnique({ where: { id: input.dossierId }, select: { id: true } });
+  if (!dossier) throw notFound("Dossier introuvable.");
+  if (Number.isNaN(input.scheduledAt.getTime())) throw badRequest("Date de rendez-vous invalide.");
+  if (!Number.isInteger(input.durationMinutes) || input.durationMinutes <= 0) {
+    throw badRequest("Durée invalide.");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const appointment = await tx.dossierAppointment.create({
+      data: {
+        dossierId: input.dossierId,
+        scheduledAt: input.scheduledAt,
+        durationMinutes: input.durationMinutes,
+      },
+    });
+
+    await tx.dossierClient.update({
+      where: { id: input.dossierId },
+      data: { derniereActivite: new Date() },
+    });
+
+    await tx.dossierEvent.create({
+      data: {
+        dossierId: input.dossierId,
+        type: "NOTE",
+        note: `Rendez-vous calé le ${input.scheduledAt.toLocaleString("fr-FR")} (${input.durationMinutes} min).`,
+      },
+    });
+
+    return appointment;
+  });
+}
+
+export async function updateDossierAppointment(input: {
+  appointmentId: string;
+  scheduledAt: Date;
+  durationMinutes: number;
+}) {
+  const appointment = await prisma.dossierAppointment.findUnique({ where: { id: input.appointmentId } });
+  if (!appointment) throw notFound("Rendez-vous introuvable.");
+  if (Number.isNaN(input.scheduledAt.getTime())) throw badRequest("Date de rendez-vous invalide.");
+  if (!Number.isInteger(input.durationMinutes) || input.durationMinutes <= 0) {
+    throw badRequest("Durée invalide.");
+  }
+
+  return prisma.dossierAppointment.update({
+    where: { id: input.appointmentId },
+    data: { scheduledAt: input.scheduledAt, durationMinutes: input.durationMinutes },
+  });
+}
+
+export async function setDossierAppointmentSummary(input: { appointmentId: string; compteRendu: string }) {
+  const appointment = await prisma.dossierAppointment.findUnique({ where: { id: input.appointmentId } });
+  if (!appointment) throw notFound("Rendez-vous introuvable.");
+
+  return prisma.dossierAppointment.update({
+    where: { id: input.appointmentId },
+    data: { compteRendu: input.compteRendu.trim() || null },
+  });
+}
+
+export async function deleteDossierAppointment(appointmentId: string) {
+  const appointment = await prisma.dossierAppointment.findUnique({ where: { id: appointmentId } });
+  if (!appointment) throw notFound("Rendez-vous introuvable.");
+
+  return prisma.dossierAppointment.delete({ where: { id: appointmentId } });
+}
+
+// Alimente le flux ICS prive (app/api/calendar/accompagnements.ics) — fenetre
+// large (passe recent + futur) pour que Calendrier iPhone retrouve aussi les
+// rendez-vous tout juste passes sans compte-rendu.
+export async function listCalendarAppointments(now: Date = new Date()) {
+  const windowStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+  return prisma.dossierAppointment.findMany({
+    where: { scheduledAt: { gte: windowStart } },
+    include: {
+      dossier: { include: { customer: { select: { name: true, email: true } } } },
+    },
+    orderBy: { scheduledAt: "asc" },
   });
 }
 

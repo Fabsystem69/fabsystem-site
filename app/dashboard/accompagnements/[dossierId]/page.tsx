@@ -6,7 +6,7 @@ import {
   AdminCard,
   AdminPageHeader,
 } from "@/components/dashboard/ui";
-import { formatCustomerDisplayName, formatDate } from "@/lib/format";
+import { formatCustomerDisplayName, formatDate, formatDateTime, formatDateTimeForInput } from "@/lib/format";
 import {
   getDossierOffreLabel,
   getDossierStatutSimpleLabel,
@@ -18,9 +18,13 @@ import { getDossierForDetail, listDossierDocuments } from "@/lib/services/dossie
 import {
   addDossierIterationAction,
   advanceDossierStepAction,
+  createDossierAppointmentAction,
+  deleteDossierAppointmentAction,
   deleteDossierDocumentAction,
+  setDossierAppointmentSummaryAction,
   setDossierDeliveredAction,
   setDossierWhatsappAction,
+  updateDossierAppointmentAction,
   updateDossierNotesInternesAction,
   updateDossierSimpleStatusAction,
   uploadDossierDocumentAction,
@@ -221,6 +225,106 @@ export default async function DashboardDossierDetailPage({
           </form>
         </AdminCard>
       ) : null}
+
+      <AdminCard title="Rendez-vous" description="Visio ou téléphone — synchronisés automatiquement sur le calendrier iPhone (voir /dashboard/calendrier).">
+        {dossier.appointments.length === 0 ? (
+          <p className="text-sm text-neutral-500">Aucun rendez-vous pour l&apos;instant.</p>
+        ) : (
+          <div className="space-y-3">
+            {dossier.appointments.map((appointment) => {
+              const isPast = appointment.scheduledAt.getTime() < Date.now();
+              return (
+                <div key={appointment.id} className="rounded-xl border border-neutral-800 bg-neutral-950/40 p-3">
+                  <form action={updateDossierAppointmentAction} className="flex flex-wrap items-end gap-3">
+                    <input type="hidden" name="dossierId" value={dossier.id} />
+                    <input type="hidden" name="appointmentId" value={appointment.id} />
+                    <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Date et heure
+                      <input
+                        name="scheduledAt"
+                        type="datetime-local"
+                        required
+                        defaultValue={formatDateTimeForInput(appointment.scheduledAt)}
+                        className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                      />
+                    </label>
+                    <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Durée
+                      <select
+                        name="durationMinutes"
+                        defaultValue={appointment.durationMinutes}
+                        className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                      >
+                        <option value={15}>15 min</option>
+                        <option value={30}>30 min</option>
+                        <option value={45}>45 min</option>
+                        <option value={60}>1 h</option>
+                        <option value={90}>1 h 30</option>
+                      </select>
+                    </label>
+                    <AdminButton type="submit" variant="secondary" size="sm">Mettre à jour</AdminButton>
+                    <AdminBadge tone={isPast ? "neutral" : "info"}>{isPast ? "Passé" : "À venir"}</AdminBadge>
+                  </form>
+
+                  <form action={setDossierAppointmentSummaryAction} className="mt-3 grid gap-2 border-t border-neutral-800 pt-3">
+                    <input type="hidden" name="dossierId" value={dossier.id} />
+                    <input type="hidden" name="appointmentId" value={appointment.id} />
+                    <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Compte-rendu {formatDateTime(appointment.scheduledAt)}
+                      <textarea
+                        name="compteRendu"
+                        rows={2}
+                        defaultValue={appointment.compteRendu ?? ""}
+                        placeholder="Ex. Point fait sur le dimensionnement batterie, prochaine étape : câblage."
+                        className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm normal-case tracking-normal text-white placeholder:text-neutral-500 outline-none focus:border-brand-400"
+                      />
+                    </label>
+                    <div className="flex items-center justify-between gap-3">
+                      <AdminButton type="submit" variant="secondary" size="sm">Enregistrer le compte-rendu</AdminButton>
+                    </div>
+                  </form>
+
+                  <form action={deleteDossierAppointmentAction} className="mt-2">
+                    <input type="hidden" name="dossierId" value={dossier.id} />
+                    <input type="hidden" name="appointmentId" value={appointment.id} />
+                    <button type="submit" className="text-xs font-medium text-red-400 underline underline-offset-2 hover:text-red-300">
+                      Supprimer ce rendez-vous
+                    </button>
+                  </form>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <form action={createDossierAppointmentAction} className="mt-4 flex flex-wrap items-end gap-3 border-t border-neutral-800 pt-4">
+          <input type="hidden" name="dossierId" value={dossier.id} />
+          <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Nouveau rendez-vous
+            <input
+              name="scheduledAt"
+              type="datetime-local"
+              required
+              className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm normal-case tracking-normal text-white outline-none focus:border-brand-400"
+            />
+          </label>
+          <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Durée
+            <select
+              name="durationMinutes"
+              defaultValue={30}
+              className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+            >
+              <option value={15}>15 min</option>
+              <option value={30}>30 min</option>
+              <option value={45}>45 min</option>
+              <option value={60}>1 h</option>
+              <option value={90}>1 h 30</option>
+            </select>
+          </label>
+          <AdminButton type="submit" variant="primary" size="sm">Ajouter</AdminButton>
+        </form>
+      </AdminCard>
 
       <AdminCard title="Documents" description="Partagés avec le client — visibles sur sa page de suivi.">
         {documents.length === 0 ? (

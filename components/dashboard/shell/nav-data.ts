@@ -74,6 +74,9 @@ export const NAV_GROUPS: NavGroup[] = [
       // Suivi des prestations d'accompagnement achetees (lib/services/dossier-client.ts)
       // — independant des Project de l'editeur de schema.
       { label: "Accompagnements", href: "/dashboard/accompagnements", icon: AccompagnementIcon },
+      // Reglage ponctuel (lien d'abonnement webcal) — voir
+      // app/api/calendar/accompagnements.ics.
+      { label: "Calendrier", href: "/dashboard/calendrier", icon: AccompagnementIcon },
       // Bundles d'achat assignables a un projet (lib/services/kit.ts) —
       // corrige le suivi qui affichait a tort la liste AFERIY P280 partout.
       { label: "Kits", href: "/dashboard/kits", icon: ProductsIcon },
