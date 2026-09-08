@@ -240,6 +240,33 @@ export async function setDossierWhatsapp(input: { dossierId: string; whatsapp: s
   });
 }
 
+// Marque le dossier comme livré (ou annule ce marquage) — retour utilisateur
+// (bug réel : un client déjà en accompagnement a reçu la relance "vous
+// n'avez pas souscrit Éditeur Plus" automatisée) : ce champ était utilisé
+// par plusieurs jobs (dossier-notifications.ts, editor-crm.ts) sans jamais
+// pouvoir être renseigné nulle part dans l'interface.
+export async function setDossierDelivered(input: { dossierId: string; delivered: boolean }) {
+  const dossier = await prisma.dossierClient.findUnique({ where: { id: input.dossierId }, select: { id: true } });
+  if (!dossier) throw notFound("Dossier introuvable.");
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.dossierClient.update({
+      where: { id: input.dossierId },
+      data: { dateLivraison: input.delivered ? new Date() : null, derniereActivite: new Date() },
+    });
+
+    await tx.dossierEvent.create({
+      data: {
+        dossierId: input.dossierId,
+        type: "NOTE",
+        note: input.delivered ? "Dossier marqué comme livré." : "Marquage \"livré\" annulé.",
+      },
+    });
+
+    return updated;
+  });
+}
+
 export async function listDossiers() {
   return prisma.dossierClient.findMany({
     include: { customer: { select: { id: true, name: true, email: true } } },

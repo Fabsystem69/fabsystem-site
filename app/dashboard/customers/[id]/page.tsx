@@ -9,7 +9,14 @@ import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { listDashboardOrdersForCustomer } from "@/lib/services/admin-orders";
 import { listResourceGrantsForCustomer } from "@/lib/services/customer-resource-grants";
 import { listSchemaEditorAccessGrantsForCustomer } from "@/lib/services/schema-editor-plus";
-import { getOrderStatusLabel, getOrderStatusTone } from "@/lib/dashboard-status-labels";
+import {
+  getDossierOffreLabel,
+  getDossierStatutSimpleLabel,
+  getDossierStatutSimpleTone,
+  getOrderStatusLabel,
+  getOrderStatusTone,
+} from "@/lib/dashboard-status-labels";
+import { getDossierStepStatuses, isTimelineOffre } from "@/lib/dossier-client";
 import {
   grantSchemaEditorPlusAction,
   inviteCustomerToPortalAction,
@@ -48,7 +55,7 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
     notFound();
   }
 
-  const [resourceGrants, projects, orders, editorAccessGrants] = await Promise.all([
+  const [resourceGrants, projects, orders, editorAccessGrants, dossiers, contactLogs] = await Promise.all([
     listResourceGrantsForCustomer(customer.id),
     customer.dataShareConsent
       ? prisma.project.findMany({
@@ -58,6 +65,15 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
       : Promise.resolve([]),
     listDashboardOrdersForCustomer(customer.id),
     listSchemaEditorAccessGrantsForCustomer(customer.id),
+    prisma.dossierClient.findMany({
+      where: { customerId: customer.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.customerContactLog.findMany({
+      where: { customerId: customer.id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
   ]);
   const now = new Date();
   const activeEditorAccessGrants = editorAccessGrants.filter(
@@ -233,6 +249,76 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
                           Révoquer
                         </button>
                       </form>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </AdminCard>
+
+            <AdminCard
+              title="Accompagnement"
+              description="Prestations d'accompagnement achetées ou créées manuellement pour ce client."
+            >
+              {dossiers.length === 0 ? (
+                <p className="text-sm text-neutral-500">Aucun dossier d&apos;accompagnement pour l&apos;instant.</p>
+              ) : (
+                <ul className="divide-y divide-neutral-800/80">
+                  {dossiers.map((dossier) => {
+                    const currentStep = isTimelineOffre(dossier.offre)
+                      ? getDossierStepStatuses(dossier.offre, dossier.etapeOverride ?? dossier.etapeActuelle).find(
+                          (step) => step.status === "current"
+                        )
+                      : null;
+                    return (
+                      <li key={dossier.id}>
+                        <Link
+                          href={`/dashboard/accompagnements/${dossier.id}`}
+                          className="flex items-center justify-between gap-4 py-3 text-sm hover:opacity-80"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-neutral-100">{getDossierOffreLabel(dossier.offre)}</p>
+                            <p className="truncate text-neutral-500">
+                              {dossier.dateLivraison
+                                ? `Livré le ${formatDate(dossier.dateLivraison)}`
+                                : `Dernière activité le ${formatDate(dossier.derniereActivite)}`}
+                            </p>
+                          </div>
+                          <div className="shrink-0">
+                            {dossier.dateLivraison ? (
+                              <AdminBadge tone="success">Livré</AdminBadge>
+                            ) : dossier.statutSimple ? (
+                              <AdminBadge tone={getDossierStatutSimpleTone(dossier.statutSimple)}>
+                                {getDossierStatutSimpleLabel(dossier.statutSimple)}
+                              </AdminBadge>
+                            ) : currentStep ? (
+                              <AdminBadge tone="info">{currentStep.title}</AdminBadge>
+                            ) : (
+                              <AdminBadge tone="neutral">En cours</AdminBadge>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </AdminCard>
+
+            <AdminCard
+              title="Historique des contacts"
+              description="Mailings manuels et relances automatiques envoyés à ce client."
+            >
+              {contactLogs.length === 0 ? (
+                <p className="text-sm text-neutral-500">Aucun email envoyé pour l&apos;instant.</p>
+              ) : (
+                <ul className="divide-y divide-neutral-800/80">
+                  {contactLogs.map((log) => (
+                    <li key={log.id} className="py-3 text-sm">
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="truncate font-medium text-neutral-100">{log.subject}</p>
+                        <span className="shrink-0 text-xs text-neutral-500">{formatDate(log.createdAt)}</span>
+                      </div>
+                      <p className="mt-0.5 text-xs text-neutral-500">{log.sentBy}</p>
                     </li>
                   ))}
                 </ul>

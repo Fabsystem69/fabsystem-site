@@ -13,6 +13,7 @@ import {
   assertDossierStorageQuota,
   createManualDossierClient,
   deleteDossierDocumentRecord,
+  setDossierDelivered,
   setDossierWhatsapp,
   updateDossierNotesInternes,
   updateDossierSimpleStatus,
@@ -133,6 +134,26 @@ export async function setDossierWhatsappAction(formData: FormData) {
     await setDossierWhatsapp({ dossierId, whatsapp: getString(formData, "whatsapp") });
     revalidatePath(`/dashboard/accompagnements/${dossierId}`);
     target = `/dashboard/accompagnements/${dossierId}?success=${encodeURIComponent("Numéro WhatsApp mis à jour.")}`;
+  } catch (error) {
+    target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  redirect(target);
+}
+
+export async function setDossierDeliveredAction(formData: FormData) {
+  await requireSession();
+
+  const dossierId = getString(formData, "dossierId");
+  const delivered = getString(formData, "delivered") === "true";
+  let target: string;
+  try {
+    await setDossierDelivered({ dossierId, delivered });
+    revalidatePath("/dashboard/accompagnements");
+    revalidatePath(`/dashboard/accompagnements/${dossierId}`);
+    revalidatePath("/mon-compte/mon-accompagnement");
+    target = `/dashboard/accompagnements/${dossierId}?success=${encodeURIComponent(
+      delivered ? "Dossier marqué comme livré." : "Marquage \"livré\" annulé."
+    )}`;
   } catch (error) {
     target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
   }

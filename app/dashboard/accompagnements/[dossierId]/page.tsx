@@ -19,6 +19,7 @@ import {
   addDossierIterationAction,
   advanceDossierStepAction,
   deleteDossierDocumentAction,
+  setDossierDeliveredAction,
   setDossierWhatsappAction,
   updateDossierNotesInternesAction,
   updateDossierSimpleStatusAction,
@@ -66,13 +67,26 @@ export default async function DashboardDossierDetailPage({
         title={formatCustomerDisplayName(dossier.customer)}
         backHref="/dashboard/accompagnements"
         backLabel="Retour aux accompagnements"
-        description={`${getDossierOffreLabel(dossier.offre)} · Dernière activité le ${formatDate(dossier.derniereActivite)}`}
+        description={
+          dossier.dateLivraison
+            ? `${getDossierOffreLabel(dossier.offre)} · Livré le ${formatDate(dossier.dateLivraison)}`
+            : `${getDossierOffreLabel(dossier.offre)} · Dernière activité le ${formatDate(dossier.derniereActivite)}`
+        }
         actions={
-          dossier.whatsapp ? (
-            <AdminButton href={buildWhatsAppLink(dossier.whatsapp, whatsappMessage)} variant="primary">
-              Discuter sur WhatsApp
-            </AdminButton>
-          ) : null
+          <>
+            {dossier.whatsapp ? (
+              <AdminButton href={buildWhatsAppLink(dossier.whatsapp, whatsappMessage)} variant="primary">
+                Discuter sur WhatsApp
+              </AdminButton>
+            ) : null}
+            <form action={setDossierDeliveredAction}>
+              <input type="hidden" name="dossierId" value={dossier.id} />
+              <input type="hidden" name="delivered" value={dossier.dateLivraison ? "false" : "true"} />
+              <AdminButton type="submit" variant="secondary">
+                {dossier.dateLivraison ? "Annuler le marquage \"livré\"" : "Marquer comme livré"}
+              </AdminButton>
+            </form>
+          </>
         }
       />
 
