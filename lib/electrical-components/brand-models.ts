@@ -226,6 +226,21 @@ export const BRAND_MODELS: BrandModel[] = [
   // courant de charge batterie et donc utilisees par le controle des strings.
   { id: "mastervolt-mppt-scm25", brand: "Mastervolt", model: "SCM25 MPPT", componentType: "mppt", defaults: { amperage: 25, systemVoltage: 12, maxPvVoltage: 75, maxPvInputCurrentA: 18, maxPvPower12V: 360 }, iconPro: "/schema-icons/pro/brand/mastervolt-mppt-scm25.jpg" },
   { id: "mastervolt-mppt-scm60", brand: "Mastervolt", model: "SCM60 MPPT-MB", componentType: "mppt", defaults: { amperage: 60, systemVoltage: 12, maxPvVoltage: 145, maxPvInputCurrentA: 50, maxPvPower12V: 900 }, iconPro: "/schema-icons/pro/brand/mastervolt-mppt-scm25.jpg" },
+  // Antarion — marque très présente chez Solaris Store, retour utilisateur :
+  // "tu a rien ajouter en antarion aussi c'est dommage une marque tres
+  // presente chez solaris". Gamme d'entrée de gamme camping-car/van, sortie
+  // simple ou double (2 branches PV indépendantes), certaines en Bluetooth
+  // (appli propriétaire, pas VE.Direct Victron — communicationPorts laissé
+  // vide).
+  { id: "antarion-mppt-50v-10a", brand: "Antarion", model: "MPPT 50V-10A", componentType: "mppt", defaults: { amperage: 10, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 5500, url: "https://www.solaris-store.com/9012-regulateur-solaire-mppt-antarion-50v-10a-12v.html" } },
+  { id: "antarion-mppt-50v-15a", brand: "Antarion", model: "MPPT 50V-15A", componentType: "mppt", defaults: { amperage: 15, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 5900, url: "https://www.solaris-store.com/9013-regulateur-solaire-mppt-antarion-50v-15a-12v.html" } },
+  { id: "antarion-mppt-50v-20a", brand: "Antarion", model: "MPPT 50V-20A", componentType: "mppt", defaults: { amperage: 20, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 8500, url: "https://www.solaris-store.com/9014-regulateur-solaire-mppt-antarion-50v-15a-12v.html" } },
+  { id: "antarion-mppt-double-50v-12a", brand: "Antarion", model: "MPPT double sortie 50V-12A", componentType: "mppt", defaults: { amperage: 12, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 7900, url: "https://www.solaris-store.com/8402-regulateur-solaire-antarion-double-sortie-mppt-5010-50v-10a-12v.html" } },
+  { id: "antarion-mppt-double-50v-25a", brand: "Antarion", model: "MPPT double sortie 50V-25A", componentType: "mppt", defaults: { amperage: 25, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 10900, url: "https://www.solaris-store.com/8403-regulateur-solaire-antarion-double-sortie-mppt-5020-50v-20a-12v.html" } },
+  { id: "antarion-mppt-bt-double-50v-12a", brand: "Antarion", model: "MPPT Bluetooth double sortie 50V-12A", componentType: "mppt", defaults: { amperage: 12, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 9900, url: "https://www.solaris-store.com/8405-regulateur-solaire-antarion-double-sortie-mppt-bluetooth-5010-50v-10a-12v.html" } },
+  { id: "antarion-mppt-bt-double-50v-25a", brand: "Antarion", model: "MPPT Bluetooth double sortie 50V-25A", componentType: "mppt", defaults: { amperage: 25, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 12900, url: "https://www.solaris-store.com/8407-regulateur-solaire-antarion-double-sortie-mppt-bluetooth-5020-50v-20a-12v.html" } },
+  { id: "antarion-mppt-bt-double-50v-35a", brand: "Antarion", model: "MPPT Bluetooth double sortie 50V-35A", componentType: "mppt", defaults: { amperage: 35, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 18900, url: "https://www.solaris-store.com/8408-regulateur-solaire-antarion-double-sortie-mppt-bluetooth-5030-50v-30a-12v.html" } },
+  { id: "antarion-mppt-bt-double-50v-40a", brand: "Antarion", model: "MPPT Bluetooth double sortie 50V-40A", componentType: "mppt", defaults: { amperage: 40, systemVoltage: 12, maxPvVoltage: 50 }, supplier: { name: "Solaris Store", priceCents: 19900, url: "https://www.solaris-store.com/9015-regulateur-solaire-mppt-bluetooth-double-sortie-antarion-50v-40a-12v.html" } },
 
   // PWM (retour utilisateur : "chaque item détaillé pareil" — 0 modèle
   // jusqu'ici alors que le MPPT, son jumeau, en a 10). maxPvVoltage : les
@@ -254,6 +269,12 @@ export const BRAND_MODELS: BrandModel[] = [
   // Photo précédente cassée (rendu quasi blanc, produit illisible) — retour
   // utilisateur : "l'autre est une image blanche".
   { id: "victron-orion-tr-30a", brand: "Victron", model: "Orion-Tr Smart 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-30a.jpg", supplier: { name: "Solaris Store", priceCents: 26623, url: "https://www.solaris-store.com/2184-convertisseur-dc-victron-orion-tr-smart-isole-12-12-30a.html" } },
+  // Variantes "non Smart" (moins chères, pas de Bluetooth/réglages fins) et
+  // non isolée du même calibre — produits distincts chez Solaris, retour
+  // utilisateur : liste filtrée 12V/12V de leur site.
+  { id: "victron-orion-tr-18a-standard", brand: "Victron", model: "Orion-Tr 12/12-18A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 18 }, supplier: { name: "Solaris Store", priceCents: 12444, url: "https://www.solaris-store.com/489-convertisseur-dc-victron-orion-tr-isole-12-12-18a.html" } },
+  { id: "victron-orion-tr-30a-standard", brand: "Victron", model: "Orion-Tr 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, supplier: { name: "Solaris Store", priceCents: 21929, url: "https://www.solaris-store.com/490-orion-tr-12-12-30a-360w-isolated-dc-dc-converter-victron-ori121240110.html" } },
+  { id: "victron-orion-tr-smart-30a-non-isolated", brand: "Victron", model: "Orion-Tr Smart 12/12-30A (non isolé)", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30, topology: "non-isolated" }, supplier: { name: "Solaris Store", priceCents: 23460, url: "https://www.solaris-store.com/3737-chargeur-dc-victron-orion-tr-smart-non-isole-12-12-30a.html" } },
   // Non isolé (masse commune, une seule borne −) — sérigraphie du boîtier
   // "IN / GND / OUT", à la différence de l'Orion-Tr Smart (isolé, IN/OUT
   // chacun avec son propre −).
@@ -416,11 +437,11 @@ export const BRAND_MODELS: BrandModel[] = [
   // photo partagée. Les vraies photos d'écran ont été redéployées sur des
   // entrées "system-monitor" dédiées ci-dessous, reliées automatiquement au
   // shunt à la sélection (voir BMV_DISPLAY_SHUNT_IDS dans useSchemaStore.ts).
-  { id: "victron-smartshunt-500a", brand: "Victron", model: "SmartShunt 500A", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-500a.png" },
-  { id: "victron-smartshunt-300a", brand: "Victron", model: "SmartShunt 300A", componentType: "shunt", defaults: { amperage: 300, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-300a.webp" },
-  { id: "victron-bmv-712", brand: "Victron", model: "BMV-712 Smart", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp" },
-  { id: "victron-bmv-702", brand: "Victron", model: "BMV-702", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp" },
-  { id: "victron-bmv-700", brand: "Victron", model: "BMV-700", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp" },
+  { id: "victron-smartshunt-500a", brand: "Victron", model: "SmartShunt 500A", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-500a.png", supplier: { name: "Solaris Store", priceCents: 10913, url: "https://www.solaris-store.com/2780-smartshunt-500a-50mv-victron-shu050150050.html" } },
+  { id: "victron-smartshunt-300a", brand: "Victron", model: "SmartShunt 300A", componentType: "shunt", defaults: { amperage: 300, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-smartshunt-300a.webp", supplier: { name: "Solaris Store", priceCents: 7752, url: "https://www.solaris-store.com/8724-smartshunt-300a-victron-vi-shu050130050.html" } },
+  { id: "victron-bmv-712", brand: "Victron", model: "BMV-712 Smart", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp", supplier: { name: "Solaris Store", priceCents: 15504, url: "https://www.solaris-store.com/1977-indicateur-controleur-de-charge-batterie-bmv-712-smart.html" } },
+  { id: "victron-bmv-702", brand: "Victron", model: "BMV-702", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp", supplier: { name: "Solaris Store", priceCents: 13464, url: "https://www.solaris-store.com/1121-indicateur-controleur-de-charge-batterie-bmv-702.html" } },
+  { id: "victron-bmv-700", brand: "Victron", model: "BMV-700", componentType: "shunt", defaults: { amperage: 500, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-shunt.webp", supplier: { name: "Solaris Store", priceCents: 10812, url: "https://www.solaris-store.com/649-indicateur-controleur-de-charge-batterie-bmv-700.html" } },
   { id: "renogy-rbm500", brand: "Renogy", model: "Battery Monitor RBM500", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/renogy-rbm500.webp" },
 
   // Combineur de batteries
@@ -475,11 +496,11 @@ export const BRAND_MODELS: BrandModel[] = [
   // calculateur/hub sans écran, gamme antérieure au Cerbo (pas de WiFi/
   // Bluetooth intégré, davantage d'E/S filaires en façade).
   { id: "victron-venus-gx", brand: "Victron", model: "Venus GX", componentType: "system-controller", defaults: { powerW: 2.6, communicationPorts: "ve-direct,ve-bus", displayOutput: "gx-touch" }, iconPro: "/schema-icons/pro/brand/victron-venus-gx.png" },
-  { id: "victron-gx-touch-70", brand: "Victron", model: "GX Touch 70", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp" },
+  { id: "victron-gx-touch-70", brand: "Victron", model: "GX Touch 70", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-70.webp", supplier: { name: "Solaris Store", priceCents: 35292, url: "https://www.solaris-store.com/3561-gx-touch-70-victron-bpp900455070.html" } },
   // GX Touch 50 : même principe que le 70 ci-dessus (retour utilisateur) —
   // écran seul, sans aucune intelligence propre, toujours jumelé à un
   // Cerbo/Venus GX (voir GX_TOUCH_MODEL_IDS dans useSchemaStore.ts).
-  { id: "victron-gx-touch-50", brand: "Victron", model: "GX Touch 50", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-50.webp" },
+  { id: "victron-gx-touch-50", brand: "Victron", model: "GX Touch 50", componentType: "system-monitor", defaults: { connection: "communication-only" }, iconPro: "/schema-icons/pro/brand/victron-gx-touch-50.webp", supplier: { name: "Solaris Store", priceCents: 23969, url: "https://www.solaris-store.com/2305-ecran-gx-touch-50-hdmi.html" } },
   // Ekrano GX (retour utilisateur : "écran tout-en-1") — contrairement aux
   // GX Touch ci-dessus, combine l'écran ET le calculateur GX dans le même
   // boîtier : autonome, ne nécessite pas de Cerbo/Venus séparé.
@@ -489,9 +510,9 @@ export const BRAND_MODELS: BrandModel[] = [
   // vraies photos d'écran, déplacées ici depuis les entrées "shunt". Le
   // 702 réutilise la photo du 712 (même boîtier, retour bêta : "beaucoup
   // ont un 702").
-  { id: "victron-bmv-712-display", brand: "Victron", model: "BMV-712 Smart (écran)", componentType: "system-monitor", defaults: { communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
-  { id: "victron-bmv-702-display", brand: "Victron", model: "BMV-702 (écran)", componentType: "system-monitor", defaults: { communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp" },
-  { id: "victron-bmv-700-display", brand: "Victron", model: "BMV-700 (écran)", componentType: "system-monitor", defaults: { communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-700.webp" },
+  { id: "victron-bmv-712-display", brand: "Victron", model: "BMV-712 Smart (écran)", componentType: "system-monitor", defaults: { communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp", supplier: { name: "Solaris Store", priceCents: 15504, url: "https://www.solaris-store.com/1977-indicateur-controleur-de-charge-batterie-bmv-712-smart.html" } },
+  { id: "victron-bmv-702-display", brand: "Victron", model: "BMV-702 (écran)", componentType: "system-monitor", defaults: { communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-712.webp", supplier: { name: "Solaris Store", priceCents: 13464, url: "https://www.solaris-store.com/1121-indicateur-controleur-de-charge-batterie-bmv-702.html" } },
+  { id: "victron-bmv-700-display", brand: "Victron", model: "BMV-700 (écran)", componentType: "system-monitor", defaults: { communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-bmv-700.webp", supplier: { name: "Solaris Store", priceCents: 10812, url: "https://www.solaris-store.com/649-indicateur-controleur-de-charge-batterie-bmv-700.html" } },
 
   // Connecteur Y MC4 (2 vers 1) : jonction de deux chaînes de panneaux
   // solaires en parallèle — même rôle qu'une "Épissure" générique, juste un
