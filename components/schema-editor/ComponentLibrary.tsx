@@ -10,6 +10,7 @@ import { CategoryIcon } from "./icons/CategoryIcons";
 import { CreateCustomItemModal } from "./CreateCustomItemModal";
 import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
 import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
+import { SolarisBadge } from "./SolarisBadge";
 
 interface LibraryItem {
   key: string;
@@ -510,15 +511,7 @@ export function ComponentLibrary() {
                                   <img src={item.icon} alt="" className="h-4 w-4 shrink-0 object-contain max-md:h-5 max-md:w-5" />
                                 ) : null}
                                 <span className="font-medium">{item.label}</span>
-                                {item.hasSolarisModels ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img
-                                    src={darkMode ? "/partners/solaris-store-logo-on-dark.svg" : "/partners/solaris-store-logo-on-light.svg"}
-                                    alt="Modèle(s) disponible(s) chez Solaris Store"
-                                    title="Modèle(s) disponible(s) chez Solaris Store"
-                                    className="h-3 w-auto shrink-0"
-                                  />
-                                ) : null}
+                                {item.hasSolarisModels ? <SolarisBadge darkMode={darkMode} /> : null}
                               </span>
                               {item.subtitle ? (
                                 <span className={`text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{item.subtitle}</span>

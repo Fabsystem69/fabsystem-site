@@ -7,6 +7,7 @@ import { FuseBlockOutputs, useBrandModelSelector, useNodeFieldChange } from "./I
 import type { ComponentHandleDef, HandleKind } from "@/types/schema";
 import { CABLE_SECTIONS } from "@/types/schema";
 import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
+import { SolarisBadge } from "./SolarisBadge";
 
 type PanelTab = "properties" | "ports" | "protection" | "fuses" | "display";
 type PortSide = ComponentHandleDef["side"];
@@ -109,12 +110,14 @@ export function PropertiesSidebar() {
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
   const [tab, setTab] = useState<PanelTab>("properties");
   const [labelMenuOpen, setLabelMenuOpen] = useState(false);
+  const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const { ref: scrollRef, hasMoreContent, updateScrollHint } = useScrollHint();
 
   const node = selectedNodeId ? nodes.find((item) => item.id === selectedNodeId) : undefined;
   const edge = selectedEdgeId ? edges.find((item) => item.id === selectedEdgeId) : undefined;
   useEffect(() => setMobileExpanded(false), [selectedNodeId, selectedEdgeId]);
+  useEffect(() => setModelMenuOpen(false), [selectedNodeId, selectedEdgeId]);
   const isZone = node?.data.componentType === "zone";
   const definition = node && !isZone ? getComponentDefinition(node.data.componentType) : undefined;
   const { brandModels, brandModelsByBrand, handleBrandModelChange } = useBrandModelSelector(node);
@@ -168,7 +171,62 @@ export function PropertiesSidebar() {
         </div>
 
         {node && !isZone && brandModels.length > 0 ? (
-          <label className="mt-5 block"><span className={`mb-1.5 block text-[10px] font-bold uppercase tracking-[0.18em] ${darkMode ? "text-amber-300" : "text-amber-600"}`}>Modèle</span><select value={String(node.data.brandModelId ?? "")} onChange={(event) => handleBrandModelChange(event.target.value)} className={`${inputClass(darkMode)} border-dashed ${darkMode ? "border-amber-600/70" : "border-amber-300"}`}><option value="">Choisir un modèle…</option>{Array.from(brandModelsByBrand.entries()).sort(([a], [b]) => a.localeCompare(b, "fr")).map(([brand, models]) => <optgroup key={brand} label={brand}>{models.map((model) => <option key={model.id} value={model.id}>{model.model}{model.supplier ? ` — disponible chez ${model.supplier.name}` : ""}</option>)}</optgroup>)}</select></label>
+          <div className="relative mt-5">
+            <span className={`mb-1.5 block text-[10px] font-bold uppercase tracking-[0.18em] ${darkMode ? "text-amber-300" : "text-amber-600"}`}>Modèle</span>
+            {(() => {
+              const selectedModel = brandModels.find((m) => m.id === String(node.data.brandModelId ?? ""));
+              return (
+                <button
+                  type="button"
+                  onClick={() => setModelMenuOpen((open) => !open)}
+                  className={`${inputClass(darkMode)} flex w-full items-center justify-between gap-2 border-dashed text-left ${darkMode ? "border-amber-600/70" : "border-amber-300"}`}
+                >
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate">{selectedModel ? selectedModel.model : "Choisir un modèle…"}</span>
+                    {selectedModel?.supplier ? <SolarisBadge darkMode={darkMode} /> : null}
+                  </span>
+                  <span className="shrink-0 text-xs opacity-60">▾</span>
+                </button>
+              );
+            })()}
+            {modelMenuOpen ? (
+              <div className={`absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-xl border p-2 shadow-xl ${darkMode ? "border-neutral-700 bg-neutral-900" : "border-slate-200 bg-white"}`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleBrandModelChange("");
+                    setModelMenuOpen(false);
+                  }}
+                  className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-sm ${darkMode ? "text-neutral-400 hover:bg-neutral-800" : "text-slate-500 hover:bg-slate-50"}`}
+                >
+                  Choisir un modèle…
+                </button>
+                {Array.from(brandModelsByBrand.entries())
+                  .sort(([a], [b]) => a.localeCompare(b, "fr"))
+                  .map(([brand, models]) => (
+                    <div key={brand} className="mt-1.5">
+                      <p className={`px-2.5 text-[10px] font-semibold uppercase tracking-wide ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{brand}</p>
+                      {models.map((model) => (
+                        <button
+                          key={model.id}
+                          type="button"
+                          onClick={() => {
+                            handleBrandModelChange(model.id);
+                            setModelMenuOpen(false);
+                          }}
+                          className={`flex w-full items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-left text-sm ${
+                            darkMode ? "text-neutral-100 hover:bg-neutral-800" : "text-slate-800 hover:bg-slate-50"
+                          }`}
+                        >
+                          <span className="truncate">{model.model}</span>
+                          {model.supplier ? <SolarisBadge darkMode={darkMode} /> : null}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+              </div>
+            ) : null}
+          </div>
         ) : null}
 
         {node ? <div className={`relative mt-5 flex items-center gap-2 border-y py-3 ${darkMode ? "border-neutral-800" : "border-slate-200"}`}><div className="relative"><button type="button" className={`${actionClass} ${labelMenuOpen ? "bg-amber-500 text-white" : ""}`} onClick={() => setLabelMenuOpen((open) => !open)} title="Position du libellé">⌑</button>{labelMenuOpen ? <div className={`absolute left-0 top-11 z-30 w-56 rounded-xl border p-3 shadow-xl ${darkMode ? "border-neutral-700 bg-neutral-900" : "border-slate-200 bg-white"}`}><p className={`text-[10px] font-bold uppercase tracking-[0.16em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Position du libellé</p><select value={String(node.data.labelPosition ?? "auto")} onChange={(event) => updateNodeData(node.id, { labelPosition: event.target.value })} className={`${inputClass(darkMode)} mt-2`}><option value="auto">Automatique</option><option value="top">Au-dessus</option><option value="right">À droite</option><option value="bottom">En dessous</option><option value="left">À gauche</option></select><p className={`mt-3 text-[10px] font-bold uppercase tracking-[0.16em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>Angle</p><div className="mt-2 grid grid-cols-3 gap-1">{[0, 90, 270].map((angle) => <button key={angle} type="button" onClick={() => updateNodeData(node.id, { labelAngle: angle })} className={`rounded-md px-2 py-1.5 text-xs font-semibold ${Number(node.data.labelAngle) === angle ? "bg-amber-100 text-amber-700" : darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-100"}`}>{angle}°</button>)}</div></div> : null}</div><button type="button" className={actionClass} onClick={() => duplicateNode(node.id)} title="Dupliquer">⧉</button>{!isZone ? <><button type="button" className={actionClass} onClick={() => rotateNode(node.id)} title="Pivoter">↻</button><button type="button" className={actionClass} onClick={() => updateNodeData(node.id, { mirrored: !node.data.mirrored })} title="Miroir">⇋</button></> : null}</div> : null}

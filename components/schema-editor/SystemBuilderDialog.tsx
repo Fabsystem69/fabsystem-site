@@ -6,6 +6,7 @@ import { getBrandModelsForType } from "@/lib/electrical-components/brand-models"
 import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 import { useSchemaStore, type SystemBuilderConfig } from "@/features/schemas/store/useSchemaStore";
+import { SolarisBadge } from "./SolarisBadge";
 
 type BuilderKind = "solar" | "battery";
 type Arrangement = SystemBuilderConfig["arrangement"];
@@ -160,7 +161,7 @@ function FilterButton({ active, onClick, children }: { active: boolean; onClick:
 }
 
 function ModelRow({ active, title, detail, hasSupplier, onClick }: { active: boolean; title: string; detail: string; hasSupplier?: boolean; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left last:border-0 ${active ? "bg-amber-50" : "hover:bg-slate-50"}`}><span><span className="flex items-center gap-1.5 font-medium text-slate-800">{title}{hasSupplier ? <img src="/partners/solaris-store-logo-on-light.svg" alt="Disponible chez Solaris Store" title="Disponible chez Solaris Store" className="h-3 w-auto shrink-0" /> : null}</span><span className="block text-sm text-slate-500">{detail}</span></span>{active ? <span className="text-sm font-semibold text-amber-600">Choisi</span> : null}</button>;
+  return <button type="button" onClick={onClick} className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left last:border-0 ${active ? "bg-amber-50" : "hover:bg-slate-50"}`}><span><span className="flex items-center gap-1.5 font-medium text-slate-800">{title}{hasSupplier ? <SolarisBadge /> : null}</span><span className="block text-sm text-slate-500">{detail}</span></span>{active ? <span className="text-sm font-semibold text-amber-600">Choisi</span> : null}</button>;
 }
 
 function OptionGroup<T extends string>({ title, value, onChange, options, disabled }: { title: string; value: T; onChange: (value: T) => void; options: { value: T; label: string; disabled?: boolean }[]; disabled?: boolean }) {
