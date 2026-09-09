@@ -66,7 +66,7 @@ test("les MPPT utilisent une illustration par marque et le visuel Victron validÃ
 });
 
 test("BatteryProtect est un composant distinct du coupe-batterie manuel", () => {
-  assert.equal(getBrandModelsForType("battery-switch").length, 0);
+  assert.equal(getBrandModelsForType("battery-switch").length, 3);
   assert.equal(getBrandModelsForType("battery-protect").length, 3);
 
   const protect = getComponentDefinition("battery-protect");

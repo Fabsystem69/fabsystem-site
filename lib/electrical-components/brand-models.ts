@@ -493,6 +493,11 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-smart-batteryprotect-100a", brand: "Victron", model: "Smart BatteryProtect 12/24V-100A", componentType: "battery-protect", defaults: { amperage: 100, communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-smart-batteryprotect-100a.png" },
   { id: "victron-smart-batteryprotect-220a", brand: "Victron", model: "Smart BatteryProtect 12/24V-220A", componentType: "battery-protect", defaults: { amperage: 220, communicationPorts: "ve-direct" } , iconPro: "/schema-icons/pro/brand/victron-smart-batteryprotect-220a.webp" },
 
+  // Coupe-batterie manuel (sectionneur) — premiers modèles de ce type.
+  { id: "solaris-sectionneur-batterie-300a", brand: "Solaris Store", model: "Sectionneur batterie unipolaire 300A", componentType: "battery-switch", defaults: { amperage: 300 }, supplier: { name: "Solaris Store", priceCents: 3890, url: "https://www.solaris-store.com/1002-sectionneur-batterie-300a-continu-unipolaire-.html" } },
+  { id: "uniteck-unibatswitch-150a", brand: "Uniteck", model: "UNIBATSWITCH 150A unipolaire cadenassable", componentType: "battery-switch", defaults: { amperage: 150 }, supplier: { name: "Solaris Store", priceCents: 2900, url: "https://www.solaris-store.com/8998-coupe-batterie-unipolaire-cadenassable-unibatswitch-150a-12-24v.html" } },
+  { id: "uniteck-unibatswitch-300a-bipolaire", brand: "Uniteck", model: "UNIBATSWITCH 300A bipolaire cadenassable", componentType: "battery-switch", defaults: { amperage: 300 }, supplier: { name: "Solaris Store", priceCents: 7900, url: "https://www.solaris-store.com/9000-coupe-batterie-bipolaire-cadenassable-unibatswitch-300a-12-24v.html" } },
+
   // Centrales GX : elles collectent et pilotent le système. Certaines ont
   // un écran intégré (CCGX/Ekrano), mais restent des centrales, pas de
   // simples afficheurs.
