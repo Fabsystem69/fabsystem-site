@@ -7,7 +7,8 @@ import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { downloadPortableSchemaFile } from "@/features/schemas/file-transfer";
 import { openPrintableBom } from "@/features/schemas/export";
-import { computeBom } from "@/lib/electrical-components/bom";
+import { computeBom, buildMaterialListText } from "@/lib/electrical-components/bom";
+import { MaterialListDialog } from "./MaterialListDialog";
 import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
 import { SaveMenu } from "./SaveMenu";
@@ -216,6 +217,7 @@ function EditorMenuBar({
   const [systemBuilder, setSystemBuilder] = useState<"solar" | "battery" | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [materialListText, setMaterialListText] = useState<string | null>(null);
   const adminMode = useSchemaStore((s) => s.isAdmin);
   const accountInitials = useSchemaStore((s) => s.accountInitials);
   const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
@@ -303,6 +305,11 @@ function EditorMenuBar({
     report("Liste de matériel prête à imprimer");
   }
 
+  function exportMaterialListForQuote() {
+    if (nodes.length === 0) return;
+    setMaterialListText(buildMaterialListText(computeBom(getNodes(), getEdges()), projectName));
+  }
+
   function runCableRecalculation() {
     const count = recalculateAllCableSections();
     report(count > 0 ? `${count} section${count > 1 ? "s" : ""} de câble recalculée${count > 1 ? "s" : ""}` : "Aucune section de câble à modifier");
@@ -350,6 +357,7 @@ function EditorMenuBar({
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="export" />} title="Imprimer en PDF" detail="Choisir le cadrage avant impression" onClick={() => { setExportPreviewKind("pdf"); setOpenMenu(null); }} />
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="save" />} title="Télécharger le schéma" detail="Copie complète au format .fabschema" onClick={() => { exportSchemaFile(); setOpenMenu(null); }} />
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="folder" />} title="Liste de matériel" detail="Équipements et quantités à imprimer" onClick={() => { exportBom(); setOpenMenu(null); }} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="export" />} title="Demande de devis fournisseur" detail="Liste de matériel à copier dans un email" onClick={() => { exportMaterialListForQuote(); setOpenMenu(null); }} />
             </MenubarSection>
             <MenubarSection darkMode={darkMode}>
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="new" />} title="Vider le canevas" detail="Repartir d'un schéma vierge après confirmation" onClick={() => { onNewProject(); setOpenMenu(null); }} />
@@ -479,7 +487,8 @@ function EditorMenuBar({
         ) : null}
       </div>
     </nav>
-    {mobileActionsOpen ? <MobileActionsSheet darkMode={darkMode} onClose={() => setMobileActionsOpen(false)} onNew={() => { setTemplatePickerOpen(true); setMobileActionsOpen(false); }} onOpen={() => { setOpenSchemaDialogOpen(true); setMobileActionsOpen(false); }} onSave={openMobileSave} onShare={() => { setShareOpen(true); setMobileActionsOpen(false); }} onExportPng={() => { setExportPreviewKind("png"); setMobileActionsOpen(false); }} onExportPdf={() => { setExportPreviewKind("pdf"); setMobileActionsOpen(false); }} onCableSizing={() => { runCableRecalculation(); setMobileActionsOpen(false); }} onProtectionSizing={() => { runProtectionRecalculation(); setMobileActionsOpen(false); }} onSolarBuilder={() => { setSystemBuilder("solar"); setMobileActionsOpen(false); }} onBatteryBuilder={() => { setSystemBuilder("battery"); setMobileActionsOpen(false); }} /> : null}
+    {mobileActionsOpen ? <MobileActionsSheet darkMode={darkMode} onClose={() => setMobileActionsOpen(false)} onNew={() => { setTemplatePickerOpen(true); setMobileActionsOpen(false); }} onOpen={() => { setOpenSchemaDialogOpen(true); setMobileActionsOpen(false); }} onSave={openMobileSave} onShare={() => { setShareOpen(true); setMobileActionsOpen(false); }} onExportPng={() => { setExportPreviewKind("png"); setMobileActionsOpen(false); }} onExportPdf={() => { setExportPreviewKind("pdf"); setMobileActionsOpen(false); }} onMaterialListForQuote={() => { exportMaterialListForQuote(); setMobileActionsOpen(false); }} onCableSizing={() => { runCableRecalculation(); setMobileActionsOpen(false); }} onProtectionSizing={() => { runProtectionRecalculation(); setMobileActionsOpen(false); }} onSolarBuilder={() => { setSystemBuilder("solar"); setMobileActionsOpen(false); }} onBatteryBuilder={() => { setSystemBuilder("battery"); setMobileActionsOpen(false); }} /> : null}
+    {materialListText !== null ? <MaterialListDialog text={materialListText} onClose={() => setMaterialListText(null)} /> : null}
     {exportPreviewKind ? <ExportPreviewDialog initialKind={exportPreviewKind} initialShowGrid={showGrid} onClose={() => setExportPreviewKind(null)} /> : null}
     {templatePickerOpen ? <TemplatePickerDialog onClose={() => setTemplatePickerOpen(false)} /> : null}
     {openSchemaDialogOpen ? <OpenSchemaDialog onClose={() => setOpenSchemaDialogOpen(false)} onNew={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} onTemplates={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} /> : null}
@@ -490,7 +499,7 @@ function EditorMenuBar({
   );
 }
 
-function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare, onExportPng, onExportPdf, onCableSizing, onProtectionSizing, onSolarBuilder, onBatteryBuilder }: { darkMode: boolean; onClose: () => void; onNew: () => void; onOpen: () => void; onSave: () => void; onShare: () => void; onExportPng: () => void; onExportPdf: () => void; onCableSizing: () => void; onProtectionSizing: () => void; onSolarBuilder: () => void; onBatteryBuilder: () => void }) {
+function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare, onExportPng, onExportPdf, onMaterialListForQuote, onCableSizing, onProtectionSizing, onSolarBuilder, onBatteryBuilder }: { darkMode: boolean; onClose: () => void; onNew: () => void; onOpen: () => void; onSave: () => void; onShare: () => void; onExportPng: () => void; onExportPdf: () => void; onMaterialListForQuote: () => void; onCableSizing: () => void; onProtectionSizing: () => void; onSolarBuilder: () => void; onBatteryBuilder: () => void }) {
   const itemClass = `flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-base font-semibold transition-base ${darkMode ? "text-neutral-100 hover:bg-neutral-800" : "text-slate-800 hover:bg-slate-50"}`;
   const headingClass = `px-4 pt-5 text-[11px] font-bold uppercase tracking-[0.24em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`;
   return <div className="schema-mobile-actions-backdrop fixed inset-0 z-[80] hidden items-end bg-slate-950/65 max-md:flex" role="dialog" aria-modal="true" aria-label="Actions du schéma" onMouseDown={onClose}>
@@ -498,7 +507,7 @@ function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare,
       <div className={`sticky top-0 z-10 border-b px-5 pb-4 pt-3 ${darkMode ? "border-neutral-800 bg-neutral-950" : "border-slate-200 bg-white"}`}><div className={`mx-auto mb-4 h-1.5 w-20 rounded-full ${darkMode ? "bg-neutral-800" : "bg-slate-100"}`} /><div className="flex items-center justify-between"><h2 className="text-2xl font-semibold">Actions</h2><button type="button" onClick={onClose} className={`rounded-full px-3 py-1 text-2xl ${darkMode ? "text-neutral-400 hover:bg-neutral-800" : "text-slate-500 hover:bg-slate-100"}`} aria-label="Fermer">×</button></div></div>
       <p className={headingClass}>Fichier</p><div className="px-2"><button type="button" onClick={onNew} className={itemClass}><span>▧</span>Nouveau schéma</button><button type="button" onClick={onSave} className={itemClass}><span>▣</span>Sauvegarder</button><button type="button" onClick={onOpen} className={itemClass}><span>▱</span>Ouvrir mes schémas</button><button type="button" onClick={onShare} className={itemClass}><span>⌘</span>Partager</button></div>
       <p className={headingClass}>Outils</p><div className="px-2"><button type="button" onClick={onCableSizing} className={itemClass}><span>⌁</span>Recalculer les sections</button><button type="button" onClick={onProtectionSizing} className={itemClass}><span>▣</span>Recalculer les protections</button><button type="button" onClick={onSolarBuilder} className={itemClass}><span>☀</span>Créer un champ solaire</button><button type="button" onClick={onBatteryBuilder} className={itemClass}><span>▰</span>Créer un parc batteries</button></div>
-      <p className={headingClass}>Export</p><div className="px-2"><button type="button" onClick={onExportPng} className={itemClass}><span>▧</span>Exporter en PNG</button><button type="button" onClick={onExportPdf} className={itemClass}><span>▤</span>Imprimer en PDF</button></div>
+      <p className={headingClass}>Export</p><div className="px-2"><button type="button" onClick={onExportPng} className={itemClass}><span>▧</span>Exporter en PNG</button><button type="button" onClick={onExportPdf} className={itemClass}><span>▤</span>Imprimer en PDF</button><button type="button" onClick={onMaterialListForQuote} className={itemClass}><span>▤</span>Demande de devis fournisseur</button></div>
       <p className={headingClass}>Compte</p><div className="px-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"><a href="/mon-compte/profil" className={itemClass}><span>⚙</span>Paramètres du compte</a><form action="/api/client-auth/logout" method="post"><button type="submit" className={itemClass}><span>⇥</span>Se déconnecter</button></form></div>
     </section>
   </div>;

@@ -1,5 +1,6 @@
 import { getComponentDefinition, getConsumerPreset, CATEGORY_LABELS } from "./definitions";
 import { getCableType } from "./cable-types";
+import { lookupSolarisProduct, type SolarisProductMatch } from "./solaris-catalog";
 import type { Node, Edge } from "@xyflow/react";
 
 // Récapitulatif matériel (retour utilisateur : "un dossier récap des
@@ -11,6 +12,7 @@ export interface BomComponentRow {
   name: string;
   spec: string;
   count: number;
+  solaris: SolarisProductMatch | null;
 }
 
 export interface BomCategoryGroup {
@@ -75,14 +77,14 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     if (!def) continue;
     const name = displayName(def.type, String(node.data.label ?? def.label), node.data);
     const spec = specLabel(node.data);
-    const key = `${name}__${spec}`;
+    const key = `${def.type}__${name}__${spec}`;
     const categoryLabel = CATEGORY_LABELS[def.category] ?? def.category;
 
     if (!byCategory.has(categoryLabel)) byCategory.set(categoryLabel, new Map());
     const rows = byCategory.get(categoryLabel)!;
     const existing = rows.get(key);
     if (existing) existing.count += 1;
-    else rows.set(key, { name, spec, count: 1 });
+    else rows.set(key, { name, spec, count: 1, solaris: lookupSolarisProduct(def.type) });
   }
 
   const componentGroups: BomCategoryGroup[] = Array.from(byCategory.entries())
@@ -133,4 +135,47 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
   });
 
   return { componentGroups, cableRows, dataBusRows, totalComponents: nodes.length, totalCables: edges.length };
+}
+
+// Texte simple, prêt à copier-coller dans un email de demande de devis
+// fournisseur (retour utilisateur : "le but est de simplifier toute la
+// démarche") — reprend le même regroupement que la liste de matériel
+// imprimable, mais en texte brut plutôt qu'un document à imprimer. Utilise
+// le nom/référence fournisseur quand une correspondance existe
+// (solaris-catalog.ts), sinon le nom générique déjà affiché dans l'éditeur.
+export function buildMaterialListText(bom: Bom, projectName: string): string {
+  const lines: string[] = [`Liste de matériel — ${projectName || "Schéma"}`, ""];
+
+  for (const group of bom.componentGroups) {
+    lines.push(group.category);
+    for (const row of group.rows) {
+      const label = row.solaris?.solarisName ?? row.name;
+      const ref = row.solaris?.solarisRef ? ` (réf. ${row.solaris.solarisRef})` : "";
+      const spec = row.spec ? ` — ${row.spec}` : "";
+      lines.push(`- ${row.count}x ${label}${ref}${spec}`);
+    }
+    lines.push("");
+  }
+
+  if (bom.cableRows.length > 0) {
+    lines.push("Câbles");
+    for (const row of bom.cableRows) {
+      const metrage =
+        row.totalLengthM !== null
+          ? `${String(row.totalLengthM).replace(".", ",")} m`
+          : `métrage non renseigné`;
+      lines.push(`- Section ${row.section} : ${row.count} câble${row.count > 1 ? "s" : ""} (${metrage})`);
+    }
+    lines.push("");
+  }
+
+  if (bom.dataBusRows.length > 0) {
+    lines.push("Câbles de données");
+    for (const row of bom.dataBusRows) {
+      lines.push(`- ${row.label} : ${row.count} câble${row.count > 1 ? "s" : ""}`);
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n").trim();
 }
