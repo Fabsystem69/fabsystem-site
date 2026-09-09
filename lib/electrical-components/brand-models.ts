@@ -491,6 +491,8 @@ export const BRAND_MODELS: BrandModel[] = [
   // câblé sur le type "fuse-block" générique).
   { id: "fuse-block-6way", brand: "Générique", model: "Boîte à fusibles 6 circuits 12/24V", componentType: "fuse-block", defaults: { outputCount: 6, layout: "positive-negative" }, iconPro: "/schema-icons/pro/brand/fuse-block-6way.webp" },
   { id: "fuse-block-12way", brand: "Générique", model: "Boîte à fusibles 12 circuits 12/24V", componentType: "fuse-block", defaults: { outputCount: 12, layout: "positive-negative" }, iconPro: "/schema-icons/pro/brand/fuse-block-12way.webp" },
+  { id: "uniteck-unifusebox-6way-140a", brand: "Uniteck", model: "UNIFUSEBOX 6 fusibles 140A", componentType: "fuse-block", defaults: { outputCount: 6, layout: "positive-negative" }, supplier: { name: "Solaris Store", priceCents: 5500, url: "https://www.solaris-store.com/8995-busbar-6-fusibles-de-protection-unifusebox-12-24v-140a.html" } },
+  { id: "uniteck-unifusebox-12way-160a", brand: "Uniteck", model: "UNIFUSEBOX 12 fusibles 160A", componentType: "fuse-block", defaults: { outputCount: 12, layout: "positive-negative" }, supplier: { name: "Solaris Store", priceCents: 7500, url: "https://www.solaris-store.com/8994-busbar-12-fusibles-de-protection-unifusebox-12-24v-160a.html" } },
 
   // Lynx Distributor / Power In / Shunt VE.Can : regroupés dans leur propre
   // famille de composants dédiés (type "lynx-distributor" etc., voir
