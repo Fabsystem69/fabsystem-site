@@ -249,17 +249,17 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "mastervolt-pwm-scm40", brand: "Mastervolt", model: "SCM40 PWM 40A", componentType: "pwm", defaults: { amperage: 40, systemVoltage: 12, maxPvInputCurrentA: 40, maxPvPower12V: 720 }, iconPro: "/schema-icons/pro/brand/mastervolt-pwm-scm20.jpg" },
 
   // DC-DC
-  { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png" },
-  { id: "victron-orion-tr-18a", brand: "Victron", model: "Orion-Tr Smart 12/12-18A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 18 } , iconPro: "/schema-icons/pro/brand/victron-orion-tr-18a.webp" },
+  { id: "victron-orion-tr-9a", brand: "Victron", model: "Orion-Tr 12/12-9A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 9 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-9a.png", supplier: { name: "Solaris Store", priceCents: 6936, url: "https://www.solaris-store.com/488-orion-tr-12-12-9a-110w-isolated-dc-dc-converter-victron-ori121210110.html" } },
+  { id: "victron-orion-tr-18a", brand: "Victron", model: "Orion-Tr Smart 12/12-18A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 18 } , iconPro: "/schema-icons/pro/brand/victron-orion-tr-18a.webp", supplier: { name: "Solaris Store", priceCents: 17441, url: "https://www.solaris-store.com/3733-chargeur-dc-victron-orion-tr-smart-isole-12-12-18a.html" } },
   // Photo précédente cassée (rendu quasi blanc, produit illisible) — retour
   // utilisateur : "l'autre est une image blanche".
-  { id: "victron-orion-tr-30a", brand: "Victron", model: "Orion-Tr Smart 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-30a.jpg" },
+  { id: "victron-orion-tr-30a", brand: "Victron", model: "Orion-Tr Smart 12/12-30A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 30 }, iconPro: "/schema-icons/pro/brand/victron-orion-tr-30a.jpg", supplier: { name: "Solaris Store", priceCents: 26623, url: "https://www.solaris-store.com/2184-convertisseur-dc-victron-orion-tr-smart-isole-12-12-30a.html" } },
   // Non isolé (masse commune, une seule borne −) — sérigraphie du boîtier
   // "IN / GND / OUT", à la différence de l'Orion-Tr Smart (isolé, IN/OUT
   // chacun avec son propre −).
-  { id: "victron-orion-xs-12-12-50", brand: "Victron", model: "Orion XS 12/12-50A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50, topology: "non-isolated", communicationPorts: "ve-direct" } , iconPro: "/schema-icons/pro/brand/victron-orion-xs-12-12-50.webp" },
+  { id: "victron-orion-xs-12-12-50", brand: "Victron", model: "Orion XS 12/12-50A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 50, topology: "non-isolated", communicationPorts: "ve-direct" } , iconPro: "/schema-icons/pro/brand/victron-orion-xs-12-12-50.webp", supplier: { name: "Solaris Store", priceCents: 33864, url: "https://www.solaris-store.com/8887-orion-xs-1212-50a-dc-dc-chargeur-batterie-radios-vhf-12-12v-50a.html" } },
   // Ajout catalogue Victron 2026 : 70A continu, 1 000W a 14,3V.
-  { id: "victron-orion-xs-12-12-70", brand: "Victron", model: "Orion XS 12/12-70A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 70, topology: "non-isolated", communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-orion-xs-12-12-50.webp" },
+  { id: "victron-orion-xs-12-12-70", brand: "Victron", model: "Orion XS 12/12-70A", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 70, topology: "non-isolated", communicationPorts: "ve-direct" }, iconPro: "/schema-icons/pro/brand/victron-orion-xs-12-12-50.webp", supplier: { name: "Solaris Store", priceCents: 40800, url: "https://www.solaris-store.com/9141-chargeur-cc-orion-xs-1212-70-700w-victron-12v-12v-70a.html" } },
   { id: "renogy-dcdc-20a-gen2", brand: "Renogy", model: "Chargeur DC-DC 12V/20A (2e gen.)", componentType: "dcdc", defaults: { voltageIn: 12, voltageOut: 12, amperage: 20, topology: "non-isolated" }, iconPro: "/schema-icons/pro/brand/renogy-dcc20s.webp" },
   // Gamme dual-input actuelle, avec MPPT integre :
   // https://www.renogy.com/products/dcc50s-12v-50a-dc-dc-on-board-battery-charger-with-mppt
