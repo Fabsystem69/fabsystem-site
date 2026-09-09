@@ -509,6 +509,7 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "solaris-sectionneur-batterie-300a", brand: "Solaris Store", model: "Sectionneur batterie unipolaire 300A", componentType: "battery-switch", defaults: { amperage: 300 }, supplier: { name: "Solaris Store", priceCents: 3890, url: "https://www.solaris-store.com/1002-sectionneur-batterie-300a-continu-unipolaire-.html" } },
   { id: "uniteck-unibatswitch-150a", brand: "Uniteck", model: "UNIBATSWITCH 150A unipolaire cadenassable", componentType: "battery-switch", defaults: { amperage: 150 }, supplier: { name: "Solaris Store", priceCents: 2900, url: "https://www.solaris-store.com/8998-coupe-batterie-unipolaire-cadenassable-unibatswitch-150a-12-24v.html" } },
   { id: "uniteck-unibatswitch-300a-bipolaire", brand: "Uniteck", model: "UNIBATSWITCH 300A bipolaire cadenassable", componentType: "battery-switch", defaults: { amperage: 300 }, supplier: { name: "Solaris Store", priceCents: 7900, url: "https://www.solaris-store.com/9000-coupe-batterie-bipolaire-cadenassable-unibatswitch-300a-12-24v.html" } },
+  { id: "victron-battery-switch-275a", brand: "Victron", model: "Battery Switch ON/OFF 275A", componentType: "battery-switch", defaults: { amperage: 275 }, supplier: { name: "Solaris Store", priceCents: 3775, url: "https://www.solaris-store.com/3464-battery-switch-on-off-275a-victron-vbs127010010.html" } },
 
   // Centrales GX : elles collectent et pilotent le système. Certaines ont
   // un écran intégré (CCGX/Ekrano), mais restent des centrales, pas de
