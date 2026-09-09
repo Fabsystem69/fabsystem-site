@@ -20,6 +20,14 @@ interface LibraryItem {
   subcategory?: string;
   presetValue?: string;
   icon?: string;
+  // Au moins un modèle Solaris Store existe pour ce type (ou ce préréglage) —
+  // retour utilisateur : la bibliothèque doit guider avant même d'ouvrir le
+  // choix de modèle, pas seulement une fois dedans (voir ModelPickerModal).
+  hasSolarisModels?: boolean;
+}
+
+function typeHasSolarisModels(type: string): boolean {
+  return getBrandModelsForType(type).some((m) => m.supplier?.name === "Solaris Store");
 }
 
 // Ordre d'affichage des familles (indépendant de l'ordre d'apparition dans
@@ -210,6 +218,7 @@ export function ComponentLibrary() {
             subcategory: def.subcategory,
             presetValue: preset.value,
             icon: getNodeIcon(def, { presetType: preset.value }, iconStyle),
+            hasSolarisModels: preset.supplier?.name === "Solaris Store",
           });
         }
         continue;
@@ -223,6 +232,7 @@ export function ComponentLibrary() {
         category: def.category,
         subcategory: def.subcategory,
         icon: getComponentIcon(def, iconStyle),
+        hasSolarisModels: typeHasSolarisModels(def.type),
       });
     }
     // Zone en tête de liste (V2, retour utilisateur) — pas dans
@@ -500,6 +510,15 @@ export function ComponentLibrary() {
                                   <img src={item.icon} alt="" className="h-4 w-4 shrink-0 object-contain max-md:h-5 max-md:w-5" />
                                 ) : null}
                                 <span className="font-medium">{item.label}</span>
+                                {item.hasSolarisModels ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={darkMode ? "/partners/solaris-store-logo-on-dark.svg" : "/partners/solaris-store-logo-on-light.svg"}
+                                    alt="Modèle(s) disponible(s) chez Solaris Store"
+                                    title="Modèle(s) disponible(s) chez Solaris Store"
+                                    className="h-3 w-auto shrink-0"
+                                  />
+                                ) : null}
                               </span>
                               {item.subtitle ? (
                                 <span className={`text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{item.subtitle}</span>
