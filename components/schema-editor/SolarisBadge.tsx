@@ -6,12 +6,10 @@
 export function SolarisBadge({ darkMode }: { darkMode?: boolean }) {
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
-        darkMode ? "bg-sky-400/15 text-sky-300" : "bg-sky-600/10 text-sky-700"
-      }`}
+      className={`shrink-0 text-[9px] font-medium ${darkMode ? "text-sky-400" : "text-sky-700"}`}
       title="Modèle disponible chez Solaris Store"
     >
-      Solaris
+      Solaris Store
     </span>
   );
 }

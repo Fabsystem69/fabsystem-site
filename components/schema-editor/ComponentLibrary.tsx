@@ -10,7 +10,6 @@ import { CategoryIcon } from "./icons/CategoryIcons";
 import { CreateCustomItemModal } from "./CreateCustomItemModal";
 import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
 import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
-import { SolarisBadge } from "./SolarisBadge";
 
 interface LibraryItem {
   key: string;
@@ -21,14 +20,6 @@ interface LibraryItem {
   subcategory?: string;
   presetValue?: string;
   icon?: string;
-  // Au moins un modèle Solaris Store existe pour ce type (ou ce préréglage) —
-  // retour utilisateur : la bibliothèque doit guider avant même d'ouvrir le
-  // choix de modèle, pas seulement une fois dedans (voir ModelPickerModal).
-  hasSolarisModels?: boolean;
-}
-
-function typeHasSolarisModels(type: string): boolean {
-  return getBrandModelsForType(type).some((m) => m.supplier?.name === "Solaris Store");
 }
 
 // Ordre d'affichage des familles (indépendant de l'ordre d'apparition dans
@@ -219,7 +210,6 @@ export function ComponentLibrary() {
             subcategory: def.subcategory,
             presetValue: preset.value,
             icon: getNodeIcon(def, { presetType: preset.value }, iconStyle),
-            hasSolarisModels: preset.supplier?.name === "Solaris Store",
           });
         }
         continue;
@@ -233,7 +223,6 @@ export function ComponentLibrary() {
         category: def.category,
         subcategory: def.subcategory,
         icon: getComponentIcon(def, iconStyle),
-        hasSolarisModels: typeHasSolarisModels(def.type),
       });
     }
     // Zone en tête de liste (V2, retour utilisateur) — pas dans
@@ -511,7 +500,6 @@ export function ComponentLibrary() {
                                   <img src={item.icon} alt="" className="h-4 w-4 shrink-0 object-contain max-md:h-5 max-md:w-5" />
                                 ) : null}
                                 <span className="font-medium">{item.label}</span>
-                                {item.hasSolarisModels ? <SolarisBadge darkMode={darkMode} /> : null}
                               </span>
                               {item.subtitle ? (
                                 <span className={`text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{item.subtitle}</span>
