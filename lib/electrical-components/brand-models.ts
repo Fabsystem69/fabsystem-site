@@ -428,6 +428,16 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-cyrix-ct-230a", brand: "Victron", model: "Cyrix-Ct 12/24V-230A", componentType: "battery-combiner", defaults: { amperage: 230 }, supplier: { name: "Solaris Store", priceCents: 13159, url: "https://www.solaris-store.com/851-cyrix-ct-12-24v-230a-intelligent-battery-combiner-victron-cyr010230010.html" } },
   { id: "victron-cyrix-li-ct-120a", brand: "Victron", model: "Cyrix-Li-ct 12/24V-120A", componentType: "battery-combiner", defaults: { amperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-cyrix-li-ct-120a.png" },
 
+  // Portes-fusibles (partenariat Solaris Store, 09/2026) — le calibre
+  // (amperage) n'est jamais fixé par ce modèle : chez Solaris comme dans
+  // l'éditeur, c'est un réglage libre choisi à la commande/pose, pas une
+  // caractéristique du porte-fusible lui-même (retour utilisateur : "il
+  // ajouterons le calibre que nous définirons").
+  { id: "victron-fuse-holder-mega", brand: "Victron", model: "Porte-fusible MEGA-fusible", componentType: "fuse", defaults: { fuseType: "mega" }, supplier: { name: "Solaris Store", priceCents: 1224, url: "https://www.solaris-store.com/1478-porte-fusible-pour-mega-fusible.html" } },
+  { id: "victron-fuse-holder-mega-6way", brand: "Victron", model: "Porte-fusible 6 voies MEGA-fusible", componentType: "fuse", defaults: { fuseType: "mega" }, supplier: { name: "Solaris Store", priceCents: 3060, url: "https://www.solaris-store.com/3169-fuse-holder-6-way-for-mega-fuse-victron-cip050060000.html" } },
+  { id: "victron-fuse-holder-midi", brand: "Victron", model: "Porte-fusible MIDI-fusible", componentType: "fuse", defaults: { fuseType: "midi" }, supplier: { name: "Solaris Store", priceCents: 1020, url: "https://www.solaris-store.com/1968-porte-fusible-pour-midi-fusible.html" } },
+  { id: "victron-fuse-holder-anl", brand: "Victron", model: "Porte-fusible ANL-fusible", componentType: "fuse", defaults: { fuseType: "anl" }, supplier: { name: "Solaris Store", priceCents: 1020, url: "https://www.solaris-store.com/2029-porte-fusible-pour-anl-fusible.html" } },
+
   // Répartiteurs de charge (isolateurs à diodes, retour utilisateur :
   // "rajoute des composants si tu en estimes utile" — ce type n'avait
   // encore aucun modèle de marque).
