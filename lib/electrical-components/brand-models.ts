@@ -433,8 +433,18 @@ export const BRAND_MODELS: BrandModel[] = [
   // 2400W / 3014,4Wh lus directement sur l'écran du boîtier (visuel
   // fourni), pas une estimation.
   { id: "bluetti-elite-300", brand: "Bluetti", model: "Elite 300", componentType: "power-station", defaults: { powerW: 2400, capacityWh: 3014.4 }, iconPro: "/schema-icons/pro/brand/bluetti-elite-300.webp" },
-  { id: "ecoflow-delta-3", brand: "EcoFlow", model: "Delta 3", componentType: "power-station", defaults: { powerW: 1600, capacityWh: 1024 }, iconPro: "/schema-icons/pro/brand/ecoflow-delta-3.webp" },
+  // 1800 W confirmé sur la fiche Solaris Store (au lieu de 1600 W) — corrigé
+  // en même temps que l'ajout du fournisseur.
+  { id: "ecoflow-delta-3", brand: "EcoFlow", model: "Delta 3", componentType: "power-station", defaults: { powerW: 1800, capacityWh: 1024 }, iconPro: "/schema-icons/pro/brand/ecoflow-delta-3.webp", supplier: { name: "Solaris Store", priceCents: 75816, url: "https://www.solaris-store.com/8972-station-energie-portable-ecoflow-delta-3-1800w-1kwh.html" } },
   { id: "aferiy-p280", brand: "AFERIY", model: "P280", componentType: "power-station", defaults: { powerW: 2800, capacityWh: 2048, connectorLayout: "dual-xt90-xt60" }, iconPro: "/schema-icons/pro/brand/aferiy-p280.webp" },
+  { id: "ecoflow-river-3", brand: "EcoFlow", model: "River 3", componentType: "power-station", defaults: { powerW: 300, capacityWh: 245 }, supplier: { name: "Solaris Store", priceCents: 26244, url: "https://www.solaris-store.com/8851-station-energie-portable-ecoflow-river-3-300w-245wh.html" } },
+  { id: "ecoflow-river-3-ups", brand: "EcoFlow", model: "River 3 UPS/ASI", componentType: "power-station", defaults: { powerW: 300, capacityWh: 245 }, supplier: { name: "Solaris Store", priceCents: 27298, url: "https://www.solaris-store.com/8892-station-energie-portable-ecoflow-river-3-ups-asi-300w-245wh.html" } },
+  { id: "ecoflow-river-3-plus", brand: "EcoFlow", model: "River 3 Plus", componentType: "power-station", defaults: { powerW: 600, capacityWh: 286 }, supplier: { name: "Solaris Store", priceCents: 31914, url: "https://www.solaris-store.com/8973-station-energie-portable-ecoflow-river-3-plus-600w-286wh.html" } },
+  { id: "ecoflow-river-3-max", brand: "EcoFlow", model: "River 3 Max", componentType: "power-station", defaults: { powerW: 600, capacityWh: 572 }, supplier: { name: "Solaris Store", priceCents: 46656, url: "https://www.solaris-store.com/8974-station-energie-portable-ecoflow-river-3-max-600w-572wh.html" } },
+  { id: "ecoflow-river-3-max-plus", brand: "EcoFlow", model: "River 3 Max Plus", componentType: "power-station", defaults: { powerW: 600, capacityWh: 858 }, supplier: { name: "Solaris Store", priceCents: 55566, url: "https://www.solaris-store.com/8975-station-energie-portable-ecoflow-river-3-max-plus-600w-858wh.html" } },
+  { id: "ecoflow-delta-3-max", brand: "EcoFlow", model: "Delta 3 Max", componentType: "power-station", defaults: { powerW: 2400, capacityWh: 2048 }, supplier: { name: "Solaris Store", priceCents: 131382, url: "https://www.solaris-store.com/9021-station-energie-portable-ecoflow-delta-3-max-2400w-2kwh.html" } },
+  { id: "ecoflow-delta-3-max-plus", brand: "EcoFlow", model: "Delta 3 Max Plus", componentType: "power-station", defaults: { powerW: 3000, capacityWh: 2048 }, supplier: { name: "Solaris Store", priceCents: 151794, url: "https://www.solaris-store.com/9047-station-energie-portable-ecoflow-delta-3-max-plus-3000w-2kwh.html" } },
+  { id: "ecoflow-delta-pro-3", brand: "EcoFlow", model: "Delta Pro 3", componentType: "power-station", defaults: { powerW: 4000, capacityWh: 4096 }, supplier: { name: "Solaris Store", priceCents: 333720, url: "https://www.solaris-store.com/8738-station-energie-portable-ecoflow-delta-pro-3-4000w-4kwh.html" } },
 
   // Shunt / monitoring — retour utilisateur : "ce que tu as maintenant en
   // item ce sont les écrans d'affichage et non le shunt en lui-même... dans
