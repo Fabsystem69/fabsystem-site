@@ -424,7 +424,8 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "renogy-rbm500", brand: "Renogy", model: "Battery Monitor RBM500", componentType: "shunt", defaults: { amperage: 500 }, iconPro: "/schema-icons/pro/brand/renogy-rbm500.webp" },
 
   // Combineur de batteries
-  { id: "victron-cyrix-ct-120a", brand: "Victron", model: "Cyrix-Ct 12/24V-120A", componentType: "battery-combiner", defaults: { amperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-cyrix-ct-120a.png" },
+  { id: "victron-cyrix-ct-120a", brand: "Victron", model: "Cyrix-Ct 12/24V-120A", componentType: "battery-combiner", defaults: { amperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-cyrix-ct-120a.png", supplier: { name: "Solaris Store", priceCents: 5304, url: "https://www.solaris-store.com/849-coupleur-de-batteries-cyrix-i-120.html" } },
+  { id: "victron-cyrix-ct-230a", brand: "Victron", model: "Cyrix-Ct 12/24V-230A", componentType: "battery-combiner", defaults: { amperage: 230 }, supplier: { name: "Solaris Store", priceCents: 13159, url: "https://www.solaris-store.com/851-cyrix-ct-12-24v-230a-intelligent-battery-combiner-victron-cyr010230010.html" } },
   { id: "victron-cyrix-li-ct-120a", brand: "Victron", model: "Cyrix-Li-ct 12/24V-120A", componentType: "battery-combiner", defaults: { amperage: 120 }, iconPro: "/schema-icons/pro/brand/victron-cyrix-li-ct-120a.png" },
 
   // Répartiteurs de charge (isolateurs à diodes, retour utilisateur :
@@ -491,6 +492,9 @@ export const BRAND_MODELS: BrandModel[] = [
   // via la terre du 230V de quai) — voir type "galvanic-isolator" dans
   // definitions.ts.
   { id: "sterling-zincsaver-ii", brand: "Sterling", model: "Zinc Saver II", componentType: "galvanic-isolator", defaults: {}, iconPro: "/schema-icons/pro/brand/sterling-zincsaver-ii.jpg" },
+  { id: "victron-vdi-16", brand: "Victron", model: "VDI-16 (16A)", componentType: "galvanic-isolator", defaults: {}, supplier: { name: "Solaris Store", priceCents: 11935, url: "https://www.solaris-store.com/2000-galvanic-isolator-vdi-16-a-victron-gdi000016000.html" } },
+  { id: "victron-vdi-32", brand: "Victron", model: "VDI-32 (32A)", componentType: "galvanic-isolator", defaults: {}, supplier: { name: "Solaris Store", priceCents: 27132, url: "https://www.solaris-store.com/2002-galvanic-isolator-vdi-32-a-victron-gdi000032000.html" } },
+  { id: "victron-vdi-64", brand: "Victron", model: "VDI-64 (64A)", componentType: "galvanic-isolator", defaults: {}, supplier: { name: "Solaris Store", priceCents: 33252, url: "https://www.solaris-store.com/2271-galvanic-isolator-vdi-64-a-victron-gdi000064000.html" } },
 
   // Éolienne (voir type "wind-turbine" dans definitions.ts).
   { id: "silentwind-pro-420w", brand: "Silent Wind", model: "Wind Generator Pro 12V/420W", componentType: "wind-turbine", defaults: { powerW: 420, voltage: 12 }, iconPro: "/schema-icons/pro/brand/silentwind-pro-420w.jpg" },
