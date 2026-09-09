@@ -46,7 +46,7 @@ export const BRAND_MODELS: BrandModel[] = [
   // Le busbar FabSystem représente un rail a la fois, donc le plafond est
   // applique individuellement au + ou au - selectionne dans le schema.
   { id: "victron-lynx-power-in-m8", brand: "Victron", model: "Lynx Power In M8 (4 connexions par rail)", componentType: "busbar", defaults: { maxConnectionPoints: 4, outputCount: 3, leftPoints: 0, topPoints: 0, rightPoints: 4, bottomPoints: 0 } },
-  { id: "victron-lynx-power-in-m10", brand: "Victron", model: "Lynx Power In M10 (4 connexions par rail)", componentType: "busbar", defaults: { maxConnectionPoints: 4, outputCount: 3, leftPoints: 0, topPoints: 0, rightPoints: 4, bottomPoints: 0 } },
+  { id: "victron-lynx-power-in-m10", brand: "Victron", model: "Lynx Power In M10 (4 connexions par rail)", componentType: "busbar", defaults: { maxConnectionPoints: 4, outputCount: 3, leftPoints: 0, topPoints: 0, rightPoints: 4, bottomPoints: 0 }, supplier: { name: "Solaris Store", priceCents: 15300, url: "https://www.solaris-store.com/8425-lynx-power-in-m10-lyn020102010.html" } },
 
   // Batteries
   { id: "victron-lithium-smart-100ah", brand: "Victron", model: "Lithium Smart 12,8V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/victron-lithium-smart-100ah.png", supplier: { name: "Solaris Store", priceCents: 74359, url: "https://www.solaris-store.com/1986-lifepo4-battery-128v-100ah-smart-victron-bat512110610.html" } },
@@ -495,6 +495,13 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-vdi-16", brand: "Victron", model: "VDI-16 (16A)", componentType: "galvanic-isolator", defaults: {}, supplier: { name: "Solaris Store", priceCents: 11935, url: "https://www.solaris-store.com/2000-galvanic-isolator-vdi-16-a-victron-gdi000016000.html" } },
   { id: "victron-vdi-32", brand: "Victron", model: "VDI-32 (32A)", componentType: "galvanic-isolator", defaults: {}, supplier: { name: "Solaris Store", priceCents: 27132, url: "https://www.solaris-store.com/2002-galvanic-isolator-vdi-32-a-victron-gdi000032000.html" } },
   { id: "victron-vdi-64", brand: "Victron", model: "VDI-64 (64A)", componentType: "galvanic-isolator", defaults: {}, supplier: { name: "Solaris Store", priceCents: 33252, url: "https://www.solaris-store.com/2271-galvanic-isolator-vdi-64-a-victron-gdi000064000.html" } },
+  // Disjoncteurs DC (partenariat Solaris Store, 09/2026) — bipolaire "maison"
+  // Solaris (protège + et − ensemble, courant en sortie directe de panneau
+  // solaire) et Schneider (usage général).
+  { id: "solaris-disjoncteur-bipolaire-20a", brand: "Solaris Store", model: "Disjoncteur bipolaire DC 250Vcc 20A", componentType: "circuit-breaker", defaults: { amperage: 20, poles: "bipolar" }, supplier: { name: "Solaris Store", priceCents: 2100, url: "https://www.solaris-store.com/1422-disjoncteur-bipolaire-dc-courant-continu-20a.html" } },
+  { id: "solaris-disjoncteur-bipolaire-40a", brand: "Solaris Store", model: "Disjoncteur bipolaire DC 250Vcc 40A", componentType: "circuit-breaker", defaults: { amperage: 40, poles: "bipolar" }, supplier: { name: "Solaris Store", priceCents: 2400, url: "https://www.solaris-store.com/1424-disjoncteur-bipolaire-dc-courant-continu-40a.html" } },
+  { id: "schneider-disjoncteur-2p-16a", brand: "Schneider", model: "Disjoncteur 2 pôles 16A", componentType: "circuit-breaker", defaults: { amperage: 16, poles: "bipolar" }, supplier: { name: "Solaris Store", priceCents: 2500, url: "https://www.solaris-store.com/8008-disjoncteur-schneider-2-poles-230vca-72vcc-16a.html" } },
+  { id: "schneider-disjoncteur-2p-32a", brand: "Schneider", model: "Disjoncteur 2 pôles 32A", componentType: "circuit-breaker", defaults: { amperage: 32, poles: "bipolar" }, supplier: { name: "Solaris Store", priceCents: 3400, url: "https://www.solaris-store.com/8010-disjoncteur-schneider-2-poles-230vca-72vcc-32a.html" } },
 
   // Éolienne (voir type "wind-turbine" dans definitions.ts).
   { id: "silentwind-pro-420w", brand: "Silent Wind", model: "Wind Generator Pro 12V/420W", componentType: "wind-turbine", defaults: { powerW: 420, voltage: 12 }, iconPro: "/schema-icons/pro/brand/silentwind-pro-420w.jpg" },

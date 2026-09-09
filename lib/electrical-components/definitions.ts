@@ -17,6 +17,11 @@ export interface ConsumerPreset {
   // l'onglet Ajouter, jamais une donnée électrique. `undefined` (seulement
   // "Au choix") reste hors groupe, affiché à part.
   group?: string;
+  // Fournisseur partenaire chez qui ce modèle exact est commandable
+  // (partenariat Solaris Store, 09/2026) — même principe que
+  // BrandModel.supplier (brand-models.ts), mais pour un consommateur
+  // (pompe, réfrigérateur...) plutôt qu'un composant électrique.
+  supplier?: { name: string; ref?: string; priceCents?: number; url: string };
 }
 
 // Ordre d'affichage des sous-familles "Appareils" — reprend les
@@ -61,6 +66,15 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp", group: "Réfrigération" },
   { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp", group: "Réfrigération" },
   { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau" },
+  // Références réelles Pentair Shurflo (partenariat Solaris Store, 09/2026,
+  // retour utilisateur : "se modele peux etre utiliser en pompe a eau
+  // d'alimentation basique je l'utilise et je pense que toute la gamme
+  // pentair (remplace shurflo)"). Puissance dérivée du courant nominal
+  // documenté par Solaris (12V × A), arrondie au-dessus par prudence
+  // (dimensionnement câble/fusible) — jamais la valeur exacte datasheet.
+  { value: "pompe-eau-shurflo-deluxe-light", label: "Pompe à eau de surface Pentair Shurflo Deluxe Light (10,6 L/min)", typicalPowerW: 45, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau", supplier: { name: "Solaris Store", priceCents: 11084, url: "https://www.solaris-store.com/138-pompe-de-surface-shurflo-deluxe-light-2088-403-143.html" } },
+  { value: "pompe-eau-shurflo-standard-8000", label: "Pompe à eau de surface Pentair Shurflo Standard 8000 (6,5 L/min)", typicalPowerW: 50, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau", supplier: { name: "Solaris Store", priceCents: 12900, url: "https://www.solaris-store.com/134-pompe-de-surface-shurflo-standard-8000-443-136.html" } },
+  { value: "pompe-eau-shurflo-deluxe", label: "Pompe à eau de surface Pentair Shurflo Deluxe (13,2 L/min)", typicalPowerW: 65, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau", supplier: { name: "Solaris Store", priceCents: 12900, url: "https://www.solaris-store.com/135-pompe-de-surface-shurflo-deluxe-2088-443-144.html" } },
   // Retour utilisateur : "pompe immergée avec les deux possibilités" — deux
   // références réelles fournies plutôt qu'un seul préréglage générique.
   { value: "pompe-eau-immergee-25l", label: "Pompe à eau immergée 25L/min (type Reich Powerjet)", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau-immergee-25l.jpg", group: "Eau" },

@@ -201,7 +201,11 @@ export function ComponentLibrary() {
             key: `consumer-${preset.value}`,
             type: "consumer",
             label: preset.label,
-            subtitle: preset.value === "generique" ? "Modifiable" : undefined,
+            // Partenariat Solaris Store (09/2026) : la bibliothèque n'a pas
+            // la place pour un logo par tuile, contrairement au sélecteur de
+            // marque/modèle — un sous-titre texte reste le seul moyen de
+            // signaler qu'un modèle précis est commandable chez eux.
+            subtitle: preset.value === "generique" ? "Modifiable" : preset.supplier ? `Chez ${preset.supplier.name}` : undefined,
             category: def.category,
             subcategory: def.subcategory,
             presetValue: preset.value,
