@@ -92,7 +92,22 @@ export function ModelPickerModal() {
                         : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400 hover:bg-neutral-50"
                     }`}
                   >
-                    <span className="font-medium">{m.model}</span>
+                    <span className="flex items-center gap-1.5 font-medium">
+                      {m.model}
+                      {/* Partenariat Solaris Store (09/2026) : distingue les
+                          modèles réellement commandables chez eux des
+                          autres, retour utilisateur : "comment on va
+                          pouvoir différentier... des composant commandable
+                          sur solaris comparé au autre". */}
+                      {m.supplier ? (
+                        <img
+                          src={darkMode ? "/partners/solaris-store-logo-on-dark.svg" : "/partners/solaris-store-logo-on-light.svg"}
+                          alt={`Disponible chez ${m.supplier.name}`}
+                          title={`Disponible chez ${m.supplier.name}`}
+                          className="h-3 w-auto shrink-0"
+                        />
+                      ) : null}
+                    </span>
                     <span className={`shrink-0 text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
                       {Object.entries(m.defaults)
                         .filter(([k]) => k.toLowerCase().includes("power") || k.toLowerCase().includes("amperage"))

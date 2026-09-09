@@ -132,7 +132,7 @@ export function SystemBuilderDialog({ kind, onClose }: { kind: BuilderKind; onCl
             </div>
             <div className="mt-4 min-h-0 flex-1 overflow-y-auto rounded-xl border border-slate-200">
               <ModelRow active={modelId === null} title={kind === "solar" ? "Panneau solaire générique" : "Batterie générique"} detail="Valeurs typiques, à renseigner ensuite" onClick={() => setModelId(null)} />
-              {filteredModels.map((model) => <ModelRow key={model.id} active={modelId === model.id} title={model.model} detail={model.brand} onClick={() => setModelId(model.id)} />)}
+              {filteredModels.map((model) => <ModelRow key={model.id} active={modelId === model.id} title={model.model} detail={model.brand} hasSupplier={Boolean(model.supplier)} onClick={() => setModelId(model.id)} />)}
               {filteredModels.length === 0 ? <p className="p-4 text-sm text-slate-500">Aucun modèle ne correspond à cette recherche.</p> : null}
             </div>
             <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -159,8 +159,8 @@ function FilterButton({ active, onClick, children }: { active: boolean; onClick:
   return <button type="button" onClick={onClick} className={`rounded-lg border px-3 py-1.5 text-sm font-medium ${active ? "border-amber-500 bg-amber-500 text-white" : "border-slate-300 text-slate-600 hover:bg-slate-50"}`}>{children}</button>;
 }
 
-function ModelRow({ active, title, detail, onClick }: { active: boolean; title: string; detail: string; onClick: () => void }) {
-  return <button type="button" onClick={onClick} className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left last:border-0 ${active ? "bg-amber-50" : "hover:bg-slate-50"}`}><span><span className="block font-medium text-slate-800">{title}</span><span className="block text-sm text-slate-500">{detail}</span></span>{active ? <span className="text-sm font-semibold text-amber-600">Choisi</span> : null}</button>;
+function ModelRow({ active, title, detail, hasSupplier, onClick }: { active: boolean; title: string; detail: string; hasSupplier?: boolean; onClick: () => void }) {
+  return <button type="button" onClick={onClick} className={`flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-left last:border-0 ${active ? "bg-amber-50" : "hover:bg-slate-50"}`}><span><span className="flex items-center gap-1.5 font-medium text-slate-800">{title}{hasSupplier ? <img src="/partners/solaris-store-logo-on-light.svg" alt="Disponible chez Solaris Store" title="Disponible chez Solaris Store" className="h-3 w-auto shrink-0" /> : null}</span><span className="block text-sm text-slate-500">{detail}</span></span>{active ? <span className="text-sm font-semibold text-amber-600">Choisi</span> : null}</button>;
 }
 
 function OptionGroup<T extends string>({ title, value, onChange, options, disabled }: { title: string; value: T; onChange: (value: T) => void; options: { value: T; label: string; disabled?: boolean }[]; disabled?: boolean }) {

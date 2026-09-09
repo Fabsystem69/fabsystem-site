@@ -1,6 +1,6 @@
 import { getComponentDefinition, getConsumerPreset, CATEGORY_LABELS } from "./definitions";
 import { getCableType } from "./cable-types";
-import { lookupSolarisProduct, type SolarisProductMatch } from "./solaris-catalog";
+import { getBrandModel, type BrandModel } from "./brand-models";
 import type { Node, Edge } from "@xyflow/react";
 
 // Récapitulatif matériel (retour utilisateur : "un dossier récap des
@@ -12,7 +12,10 @@ export interface BomComponentRow {
   name: string;
   spec: string;
   count: number;
-  solaris: SolarisProductMatch | null;
+  // Fournisseur du modèle exact choisi (brand-models.ts, champ `supplier`) —
+  // null si aucun modèle précis n'a été choisi ou si ce modèle n'a pas de
+  // correspondance fournisseur vérifiée.
+  supplier: BrandModel["supplier"] | null;
 }
 
 export interface BomCategoryGroup {
@@ -66,6 +69,14 @@ function displayName(componentType: string, label: string, data: Record<string, 
     const preset = getConsumerPreset(data.presetType);
     if (preset && preset.value !== "generique") return preset.label;
   }
+  // Un modèle de marque choisi (brand-models.ts) ne changeait jusqu'ici que
+  // les caractéristiques numériques, jamais le nom affiché — la liste de
+  // matériel montrait "Régulateur MPPT" même pour un Victron SmartSolar
+  // précis. Nécessaire pour que l'export fournisseur porte un nom
+  // identifiable (retour utilisateur : "avec leur appellation").
+  if (typeof data.brand === "string" && data.brand && typeof data.model === "string" && data.model) {
+    return `${data.brand} ${data.model}`;
+  }
   return label;
 }
 
@@ -77,14 +88,20 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     if (!def) continue;
     const name = displayName(def.type, String(node.data.label ?? def.label), node.data);
     const spec = specLabel(node.data);
-    const key = `${def.type}__${name}__${spec}`;
+    const brandModelId = typeof node.data.brandModelId === "string" ? node.data.brandModelId : null;
+    const supplier = brandModelId ? getBrandModel(brandModelId)?.supplier ?? null : null;
+    // La clé inclut le modèle choisi : deux composants identiques en
+    // caractéristiques mais l'un avec modèle Solaris et l'autre générique ne
+    // doivent jamais fusionner en une seule ligne (le fournisseur serait
+    // perdu pour la moitié de la quantité réelle).
+    const key = `${def.type}__${name}__${spec}__${brandModelId ?? ""}`;
     const categoryLabel = CATEGORY_LABELS[def.category] ?? def.category;
 
     if (!byCategory.has(categoryLabel)) byCategory.set(categoryLabel, new Map());
     const rows = byCategory.get(categoryLabel)!;
     const existing = rows.get(key);
     if (existing) existing.count += 1;
-    else rows.set(key, { name, spec, count: 1, solaris: lookupSolarisProduct(def.type) });
+    else rows.set(key, { name, spec, count: 1, supplier });
   }
 
   const componentGroups: BomCategoryGroup[] = Array.from(byCategory.entries())
@@ -140,19 +157,24 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
 // Texte simple, prêt à copier-coller dans un email de demande de devis
 // fournisseur (retour utilisateur : "le but est de simplifier toute la
 // démarche") — reprend le même regroupement que la liste de matériel
-// imprimable, mais en texte brut plutôt qu'un document à imprimer. Utilise
-// le nom/référence fournisseur quand une correspondance existe
-// (solaris-catalog.ts), sinon le nom générique déjà affiché dans l'éditeur.
+// imprimable, mais en texte brut plutôt qu'un document à imprimer. Le nom
+// affiché est déjà celui de la marque/modèle choisi (voir displayName
+// ci-dessus) ; la référence fournisseur s'ajoute quand un modèle a une
+// correspondance vérifiée (brand-models.ts, champ `supplier`).
 export function buildMaterialListText(bom: Bom, projectName: string): string {
   const lines: string[] = [`Liste de matériel — ${projectName || "Schéma"}`, ""];
 
   for (const group of bom.componentGroups) {
     lines.push(group.category);
     for (const row of group.rows) {
-      const label = row.solaris?.solarisName ?? row.name;
-      const ref = row.solaris?.solarisRef ? ` (réf. ${row.solaris.solarisRef})` : "";
+      const label = row.name;
+      const ref = row.supplier?.ref ? ` (réf. ${row.supplier.ref})` : "";
       const spec = row.spec ? ` — ${row.spec}` : "";
       lines.push(`- ${row.count}x ${label}${ref}${spec}`);
+      // Lien produit sur sa propre ligne : reste lisible même repris tel
+      // quel dans un email, et le destinataire retrouve le bon produit sans
+      // ambiguïté (retour utilisateur : "simplifier toute la démarche").
+      if (row.supplier?.url) lines.push(`  ${row.supplier.url}`);
     }
     lines.push("");
   }

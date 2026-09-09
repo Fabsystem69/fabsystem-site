@@ -47,7 +47,7 @@ function useBrandModelSelector(node: SchemaNode | undefined) {
     : [];
   const brandModels = [
     ...officialBrandModels,
-    ...ownCustomItems.map((i) => ({ id: `custom:${i.id}`, brand: `${i.brand} (perso)`, model: i.model })),
+    ...ownCustomItems.map((i) => ({ id: `custom:${i.id}`, brand: `${i.brand} (perso)`, model: i.model, supplier: undefined })),
   ];
   const brandModelsByBrand = new Map<string, typeof brandModels>();
   for (const m of brandModels) {
