@@ -13,7 +13,6 @@ import type {
   PurchaseMode,
 } from "@/lib/generated/prisma/client";
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
-import { deletePrivateBlob } from "@/lib/server/vercel-blob-storage";
 import { logServerEvent } from "@/lib/server-log";
 
 const productStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
@@ -988,6 +987,7 @@ export function createCatalogService(db: CatalogDb) {
       // echouer la mise a jour, deja commitee en base.
       if (previous.provider === "VERCEL_BLOB" && (previous.bucket !== bucket || previous.path !== path)) {
         try {
+          const { deletePrivateBlob } = await import("@/lib/server/vercel-blob-storage");
           await deletePrivateBlob(previous.path);
         } catch (error) {
           logServerEvent("error", "catalog.updateDigitalAsset: failed to delete previous blob", {
