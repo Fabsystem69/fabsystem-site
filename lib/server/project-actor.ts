@@ -31,16 +31,21 @@ export function adminActor(): OwnershipActor {
 // Les routes de schéma sont communes à l'espace client et au dashboard : le
 // projet reste toujours protégé par son ownership côté service, mais un admin
 // authentifié peut l'ouvrir depuis la fiche du client pour l'accompagnement.
+// Priorité à la session admin (retour utilisateur) : Fabien crée un schéma
+// pour un client depuis le dashboard puis clique directement dans l'éditeur
+// — s'il a aussi une session client active dans le même navigateur (test
+// précédent, compte personnel), elle ne doit pas prendre le pas et le faire
+// passer, à son insu, pour ce client-là au lieu de rester admin.
 export async function requireProjectActor(): Promise<OwnershipActor> {
+  const adminSession = await getSessionFromCookies();
+  if (adminSession) {
+    return adminActor();
+  }
+
   const customerSession = await getCustomerSessionFromCookie();
   if (customerSession) {
     setRequestCustomerId(customerSession.customer.id);
     return { role: "customer", customerId: customerSession.customer.id };
-  }
-
-  const adminSession = await getSessionFromCookies();
-  if (adminSession) {
-    return adminActor();
   }
 
   throw unauthorized("Customer or admin session not found");

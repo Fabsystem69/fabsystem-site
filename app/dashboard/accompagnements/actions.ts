@@ -7,7 +7,6 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/require-session";
 import { deleteDossierDocumentFile, uploadDossierDocument } from "@/lib/server/dossier-storage";
 import { parseLocalDateTimeInTimeZone } from "@/lib/timezone";
-import { isProjectStarterId } from "@/lib/project-starter-contract";
 import { createProjectForCustomerByAdmin } from "@/lib/services/project";
 import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
 import {
@@ -80,13 +79,13 @@ export async function createProjectForDossierAction(formData: FormData) {
 
     const name = getString(formData, "name").trim();
     if (!name) throw badRequest("Nom du schéma requis.");
-    const starterRaw = getString(formData, "starter");
+    const templateId = getString(formData, "templateId");
 
     const project = await createProjectForCustomerByAdmin(dossier.customerId, {
       name,
       assetType: getString(formData, "assetType") as ProjectAssetType,
       voltage: getString(formData, "voltage") as ProjectVoltage,
-      starter: isProjectStarterId(starterRaw) ? starterRaw : undefined,
+      templateId: templateId || undefined,
     });
     revalidatePath(`/dashboard/accompagnements/${dossierId}`);
     revalidatePath("/dashboard/projects");

@@ -1,4 +1,5 @@
 import type {
+  Prisma,
   PrismaClient,
   Project,
   ProjectAssetType,
@@ -7,7 +8,6 @@ import type {
 } from "@/lib/generated/prisma/client";
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
 import { requireOwnerOrAdmin, type OwnershipActor } from "@/lib/ownership";
-import type { ProjectStarterId } from "@/lib/project-starter-contract";
 
 type PrismaClientLike = PrismaClient;
 
@@ -376,16 +376,17 @@ export async function deleteProject(
 // Création manuelle depuis le dashboard (fiche dossier accompagnement ou
 // fiche client) : l'admin construit le schéma lui-même pour le client
 // pendant une prestation payante, plutôt que d'attendre que le client le
-// crée de son côté. Même logique création + starter + rollback que
-// POST /api/projects (parcours client self-service), dupliquée volontairement
-// ici : les deux points d'entrée restent minces et indépendants plutôt que de
-// forcer l'API client à connaître un cas d'usage admin.
+// crée de son côté. `templateId` référence la vraie galerie de schémas
+// (features/schemas/templates.ts, SCHEMA_TEMPLATES) — nœuds/câbles/zones
+// complets — plutôt que PROJECT_STARTER_IDS qui ne fait que pré-remplir les
+// moteurs de calcul sans aucun schéma visuel (retour utilisateur : "pas de
+// zone ni materiel solaris" sur le choix initial, qui utilisait cette
+// dernière liste par erreur).
 export async function createProjectForCustomerByAdmin(
   customerId: string,
-  input: { name: string; assetType: ProjectAssetType; voltage: ProjectVoltage; starter?: ProjectStarterId }
+  input: { name: string; assetType: ProjectAssetType; voltage: ProjectVoltage; templateId?: string }
 ): Promise<Project> {
   const { adminActor } = await import("@/lib/server/project-actor");
-  const { applyProjectStarter } = await import("@/lib/project-starters");
   const actor = adminActor();
 
   const project = await createProject(actor, {
@@ -395,9 +396,20 @@ export async function createProjectForCustomerByAdmin(
     voltage: input.voltage,
   });
 
-  if (input.starter) {
+  if (input.templateId) {
     try {
-      await applyProjectStarter(actor, project, input.starter);
+      const { getSchemaTemplate } = await import("@/features/schemas/templates");
+      const template = getSchemaTemplate(input.templateId);
+      if (template) {
+        const { saveProjectSchema } = await import("@/lib/services/project-schema");
+        const built = template.build();
+        await saveProjectSchema(actor, project.id, {
+          projectName: project.name,
+          nodes: built.nodes as unknown as Prisma.InputJsonValue,
+          edges: built.edges as unknown as Prisma.InputJsonValue,
+          thumbnail: null,
+        });
+      }
     } catch (error) {
       await deleteProject(actor, project.id, { confirm: true }).catch(() => {});
       throw error;
