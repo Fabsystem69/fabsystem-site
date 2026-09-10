@@ -1,9 +1,11 @@
 import type { PrismaClient, ProjectSchema, Prisma } from "@/lib/generated/prisma/client";
-import { forbidden, serviceUnavailable } from "@/lib/http-errors";
+import { forbidden, notFound, serviceUnavailable } from "@/lib/http-errors";
 import type { OwnershipActor } from "@/lib/ownership";
 import { logServerEvent } from "@/lib/server-log";
 import { getProject } from "@/lib/services/project";
 import { isProjectReadOnly } from "@/lib/services/schema-unlock";
+import { getComponentDefinition } from "@/lib/electrical-components/definitions";
+import { displayName } from "@/lib/electrical-components/bom";
 import { randomBytes } from "crypto";
 
 type PrismaClientLike = PrismaClient;
@@ -111,6 +113,20 @@ async function getDefaultProjectSchemaService() {
   return createProjectSchemaService(createPrismaProjectSchemaDb(prisma));
 }
 
+type SchemaNodeLike = { id: string; data?: Record<string, unknown> };
+type SchemaEdgeLike = { id: string; source: string; target: string; data?: Record<string, unknown> };
+
+export type MissingCableLength = { edgeId: string; label: string };
+
+function nodeDisplayLabel(node: SchemaNodeLike | undefined): string {
+  if (!node) return "?";
+  const data = node.data ?? {};
+  const componentType = String(data.componentType ?? "");
+  const def = getComponentDefinition(componentType);
+  const fallback = typeof data.label === "string" ? data.label : def?.label ?? "Composant";
+  return displayName(componentType, fallback, data);
+}
+
 export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSchemaServiceDeps = {}) {
   // getProject() vérifie déjà la propriété du Project (jamais l'id seul,
   // MASTER-10 §40) — même garde réutilisée telle quelle, pas dupliquée.
@@ -154,6 +170,55 @@ export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSch
         }
         throw error;
       }
+    },
+
+    // Retour utilisateur : "rendre participatif (demande des distances de
+    // câble ou autre)" — cas régulier de l'accompagnement où l'admin
+    // construit la topologie mais ne connaît pas les distances réelles dans
+    // le véhicule du client. Dérivé de l'état existant des câbles (même
+    // logique que bom.ts:hasLength), aucun nouveau champ en base : un câble
+    // sans longueur renseignée apparaît dans la liste à compléter.
+    async listMissingCableLengths(actor: OwnershipActor, projectId: string): Promise<MissingCableLength[]> {
+      const project = await assertOwnedProject(actor, projectId);
+      const schema = await db.findByProjectId(project.id);
+      if (!schema) return [];
+      const nodes = (schema.nodes as unknown as SchemaNodeLike[]) ?? [];
+      const edges = (schema.edges as unknown as SchemaEdgeLike[]) ?? [];
+      const nodesById = new Map(nodes.map((n) => [n.id, n]));
+
+      return edges
+        .filter((edge) => {
+          const length = Number(edge.data?.length);
+          return !(Number.isFinite(length) && length > 0);
+        })
+        .map((edge) => ({
+          edgeId: edge.id,
+          label: `${nodeDisplayLabel(nodesById.get(edge.source))} → ${nodeDisplayLabel(nodesById.get(edge.target))}`,
+        }));
+    },
+
+    // Écrit uniquement les longueurs fournies (positives) — les câbles
+    // absents de `lengths`, ou avec une valeur invalide, restent inchangés
+    // plutôt que d'être écrasés par une saisie partielle du client.
+    async setCableLengths(actor: OwnershipActor, projectId: string, lengths: Record<string, number>): Promise<void> {
+      const project = await assertOwnedProject(actor, projectId);
+      if (actor.role !== "admin" && await checkProjectReadOnly(project.customerId, project.id)) {
+        throw forbidden("Project schema is read-only: unlock has expired");
+      }
+      const schema = await db.findByProjectId(project.id);
+      if (!schema) throw notFound("Schéma introuvable.");
+      const edges = (schema.edges as unknown as SchemaEdgeLike[]) ?? [];
+      const updatedEdges = edges.map((edge) => {
+        const value = lengths[edge.id];
+        if (value === undefined || !Number.isFinite(value) || value <= 0) return edge;
+        return { ...edge, data: { ...(edge.data ?? {}), length: value } };
+      });
+      await db.upsert(project.id, {
+        projectName: schema.projectName,
+        nodes: schema.nodes as Prisma.InputJsonValue,
+        edges: updatedEdges as unknown as Prisma.InputJsonValue,
+        thumbnail: schema.thumbnail,
+      });
     },
 
     // Pas de vérification de propriété ici : réservé à un appelant qui a
@@ -229,4 +294,18 @@ export async function disableProjectSchemaShare(actor: OwnershipActor, projectId
 export async function getSharedProjectSchema(token: string) {
   const service = await getDefaultProjectSchemaService();
   return service.getSharedSchema(token);
+}
+
+export async function listMissingCableLengths(actor: OwnershipActor, projectId: string) {
+  const service = await getDefaultProjectSchemaService();
+  return service.listMissingCableLengths(actor, projectId);
+}
+
+export async function setCableLengths(
+  actor: OwnershipActor,
+  projectId: string,
+  lengths: Record<string, number>
+) {
+  const service = await getDefaultProjectSchemaService();
+  return service.setCableLengths(actor, projectId, lengths);
 }

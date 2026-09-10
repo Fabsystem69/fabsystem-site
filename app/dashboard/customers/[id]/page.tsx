@@ -18,6 +18,7 @@ import {
 } from "@/lib/dashboard-status-labels";
 import { getDossierStepStatuses, isTimelineOffre } from "@/lib/dossier-client";
 import {
+  createProjectForCustomerAction,
   grantSchemaEditorPlusAction,
   inviteCustomerToPortalAction,
   revokeResourceGrantAction,
@@ -371,6 +372,56 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
                   ))}
                 </ul>
               )}
+              <form action={createProjectForCustomerAction} className="mt-4 flex flex-wrap items-end gap-3 border-t border-neutral-800 pt-4">
+                <input type="hidden" name="customerId" value={customer.id} />
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  Nom du schéma
+                  <input
+                    name="name"
+                    required
+                    defaultValue={`Schéma ${customer.name ?? ""}`.trim()}
+                    className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  Type
+                  <select
+                    name="assetType"
+                    defaultValue="VAN"
+                    className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                  >
+                    <option value="VAN">Van</option>
+                    <option value="MOTORHOME">Camping-car</option>
+                    <option value="BOAT">Bateau</option>
+                    <option value="OTHER">Autre</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  Tension
+                  <select
+                    name="voltage"
+                    defaultValue="V12"
+                    className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                  >
+                    <option value="V12">12V</option>
+                    <option value="V24">24V</option>
+                    <option value="UNKNOWN">Je ne sais pas</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  Pré-remplissage
+                  <select
+                    name="starter"
+                    defaultValue=""
+                    className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+                  >
+                    <option value="">Aucun (schéma vide)</option>
+                    <option value="aferiy-p280-guide">Guide AFERIY P280</option>
+                    <option value="victron-light-guide">Guide Victron léger</option>
+                  </select>
+                </label>
+                <AdminButton type="submit" variant="primary" size="sm">Créer et ouvrir l&apos;éditeur</AdminButton>
+              </form>
             </AdminCard>
           </div>
         </div>

@@ -64,7 +64,7 @@ function specLabel(data: Record<string, unknown>): string {
   return parts.join(" · ");
 }
 
-function displayName(componentType: string, label: string, data: Record<string, unknown>): string {
+export function displayName(componentType: string, label: string, data: Record<string, unknown>): string {
   if (componentType === "consumer" && typeof data.presetType === "string") {
     const preset = getConsumerPreset(data.presetType);
     if (preset && preset.value !== "generique") return preset.label;

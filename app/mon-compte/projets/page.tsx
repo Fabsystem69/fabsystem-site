@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/format";
 import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/project";
 import { getProjectValues } from "@/lib/services/project-values";
-import { listProjectSchemaSummaries } from "@/lib/services/project-schema";
+import { listMissingCableLengths, listProjectSchemaSummaries } from "@/lib/services/project-schema";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { listRegisteredEngineIds } from "@/lib/engines/index";
 import type { RegisteredEngineId } from "@/lib/engine-payload";
@@ -66,6 +66,21 @@ export default async function MesProjetsPage() {
   // n'arrive même pas à retrouver mon schéma directement dans dashboard") —
   // une seule requête groupée, pas de N+1.
   const schemaSummaries = await listProjectSchemaSummaries(projects.map((p) => p.id));
+
+  // Cas régulier de l'accompagnement (retour utilisateur : "rendre
+  // participatif, demande des distances de câble") — signale au client
+  // qu'il reste des distances à préciser sur un schéma déjà enregistré,
+  // sans qu'il ait à ouvrir l'éditeur complet pour le découvrir.
+  const missingCountByProjectId = new Map(
+    await Promise.all(
+      active
+        .filter((p) => schemaSummaries.has(p.id))
+        .map(async (project) => {
+          const missing = await listMissingCableLengths(actor, project.id);
+          return [project.id, missing.length] as const;
+        })
+    )
+  );
 
   return (
     <div className="space-y-8">
@@ -158,6 +173,12 @@ export default async function MesProjetsPage() {
                           Schéma enregistré le {formatDate(schema.updatedAt)}
                         </p>
                       ) : null}
+                      {(missingCountByProjectId.get(project.id) ?? 0) > 0 ? (
+                        <p className="mt-1 text-xs font-medium text-amber-700">
+                          {missingCountByProjectId.get(project.id)} distance
+                          {missingCountByProjectId.get(project.id)! > 1 ? "s" : ""} de câble à préciser
+                        </p>
+                      ) : null}
                       {project.status === "DELETE_SCHEDULED" && project.deleteScheduledAt ? (
                         <p className="mt-2 text-xs font-semibold text-red-700">
                           Suppression programmée le {formatDate(project.deleteScheduledAt)}
@@ -171,6 +192,15 @@ export default async function MesProjetsPage() {
                       ) : null}
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
+                      {(missingCountByProjectId.get(project.id) ?? 0) > 0 ? (
+                        <Button
+                          href={`/mon-compte/projets/${project.id}/completer`}
+                          variant="primary"
+                          className="h-9 min-h-9 px-3 text-xs"
+                        >
+                          Compléter les distances
+                        </Button>
+                      ) : null}
                       <Button
                         href={`/mon-compte/projets/${project.id}/suivi`}
                         variant="secondary"

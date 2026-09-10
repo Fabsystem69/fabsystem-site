@@ -6,6 +6,7 @@ import {
   AdminCard,
   AdminPageHeader,
 } from "@/components/dashboard/ui";
+import Link from "next/link";
 import { formatCustomerDisplayName, formatDate, formatDateTime, formatDateTimeForInput } from "@/lib/format";
 import {
   getDossierOffreLabel,
@@ -15,10 +16,14 @@ import {
 import { buildWhatsAppLink, getDossierStepStatuses, isTimelineOffre } from "@/lib/dossier-client";
 import { PRESTATIONS_NEEDS_PROGRESS_LABELS } from "@/lib/prestations-needs";
 import { getDossierForDetail, listDossierDocuments } from "@/lib/services/dossier-client";
+import { getProjectAssetTypeLabel, getProjectStatusLabel } from "@/lib/project-labels";
+import { listProjectsForCustomer } from "@/lib/services/project";
+import { adminActor } from "@/lib/server/project-actor";
 import {
   addDossierIterationAction,
   advanceDossierStepAction,
   createDossierAppointmentAction,
+  createProjectForDossierAction,
   deleteDossierAppointmentAction,
   deleteDossierDocumentAction,
   setDossierAppointmentSummaryAction,
@@ -62,6 +67,7 @@ export default async function DashboardDossierDetailPage({
     getDossierForDetail(dossierId),
     listDossierDocuments(dossierId),
   ]);
+  const projects = await listProjectsForCustomer(adminActor(), dossier.customerId);
 
   const whatsappMessage = `Bonjour ${dossier.customer.name ?? ""}, ici Fabien de FabSystem au sujet de votre ${getDossierOffreLabel(dossier.offre).toLowerCase()}.`.trim();
 
@@ -138,6 +144,81 @@ export default async function DashboardDossierDetailPage({
           )}
         </AdminCard>
       </section>
+
+      <AdminCard title="Schéma électrique" description="Créez le schéma directement sur le compte du client pendant la prestation.">
+        {projects.length > 0 ? (
+          <ul className="divide-y divide-neutral-800/80">
+            {projects.map((project) => (
+              <li key={project.id} className="flex items-center justify-between gap-4 py-3 text-sm">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-neutral-100">{project.name}</p>
+                  <p className="truncate text-neutral-500">
+                    {getProjectAssetTypeLabel(project.assetType)} · {getProjectStatusLabel(project.status)}
+                  </p>
+                </div>
+                <Link
+                  href={`/outils/schema/editeur?projectId=${project.id}`}
+                  className="shrink-0 rounded-md border border-neutral-700 px-2.5 py-1.5 text-xs font-semibold text-neutral-200 hover:border-brand-400 hover:text-white"
+                >
+                  Ouvrir le schéma
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-neutral-500">Aucun schéma pour l&apos;instant.</p>
+        )}
+        <form action={createProjectForDossierAction} className="mt-4 flex flex-wrap items-end gap-3 border-t border-neutral-800 pt-4">
+          <input type="hidden" name="dossierId" value={dossier.id} />
+          <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Nom du schéma
+            <input
+              name="name"
+              required
+              defaultValue={`Schéma ${dossier.customer.name ?? ""}`.trim()}
+              className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm normal-case tracking-normal text-white outline-none focus:border-brand-400"
+            />
+          </label>
+          <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Type
+            <select
+              name="assetType"
+              defaultValue="VAN"
+              className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+            >
+              <option value="VAN">Van</option>
+              <option value="MOTORHOME">Camping-car</option>
+              <option value="BOAT">Bateau</option>
+              <option value="OTHER">Autre</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Tension
+            <select
+              name="voltage"
+              defaultValue="V12"
+              className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+            >
+              <option value="V12">12V</option>
+              <option value="V24">24V</option>
+              <option value="UNKNOWN">Je ne sais pas</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            Pré-remplissage
+            <select
+              name="starter"
+              defaultValue=""
+              className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
+            >
+              <option value="">Aucun (schéma vide)</option>
+              <option value="aferiy-p280-guide">Guide AFERIY P280</option>
+              <option value="victron-light-guide">Guide Victron léger</option>
+            </select>
+          </label>
+          <AdminButton type="submit" variant="primary" size="sm">Créer et ouvrir l&apos;éditeur</AdminButton>
+        </form>
+      </AdminCard>
 
       {dossier.offre === "DECOUVERTE" || dossier.offre === "CONSEIL" ? (
         <AdminCard title="Statut" description="Suivi simple — pas de timeline pour cette offre.">

@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/require-session";
 import { deleteDossierDocumentFile, uploadDossierDocument } from "@/lib/server/dossier-storage";
 import { parseLocalDateTimeInTimeZone } from "@/lib/timezone";
+import { isProjectStarterId } from "@/lib/project-starter-contract";
+import { createProjectForCustomerByAdmin } from "@/lib/services/project";
+import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
 import {
   addDossierDocument,
   addDossierIteration,
@@ -54,6 +57,42 @@ export async function createManualDossierAction(formData: FormData) {
     target = `/dashboard/accompagnements/${dossier.id}`;
   } catch (error) {
     target = `/dashboard/accompagnements/new?error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  redirect(target);
+}
+
+// Cas régulier de l'accompagnement (retour utilisateur) : l'admin construit
+// le schéma directement pendant la prestation, plutôt que d'attendre que le
+// client le crée lui-même. Redirige droit dans l'éditeur une fois créé —
+// requireProjectActor() (voir app/api/projects/[projectId]/schema/route.ts)
+// accepte une session admin, pas seulement le client propriétaire.
+export async function createProjectForDossierAction(formData: FormData) {
+  await requireSession();
+
+  const dossierId = getString(formData, "dossierId");
+  let target: string;
+  try {
+    const dossier = await prisma.dossierClient.findUnique({
+      where: { id: dossierId },
+      select: { customerId: true },
+    });
+    if (!dossier) throw badRequest("Dossier introuvable.");
+
+    const name = getString(formData, "name").trim();
+    if (!name) throw badRequest("Nom du schéma requis.");
+    const starterRaw = getString(formData, "starter");
+
+    const project = await createProjectForCustomerByAdmin(dossier.customerId, {
+      name,
+      assetType: getString(formData, "assetType") as ProjectAssetType,
+      voltage: getString(formData, "voltage") as ProjectVoltage,
+      starter: isProjectStarterId(starterRaw) ? starterRaw : undefined,
+    });
+    revalidatePath(`/dashboard/accompagnements/${dossierId}`);
+    revalidatePath("/dashboard/projects");
+    target = `/outils/schema/editeur?projectId=${project.id}`;
+  } catch (error) {
+    target = `/dashboard/accompagnements/${dossierId}?error=${encodeURIComponent(errorMessage(error))}`;
   }
   redirect(target);
 }

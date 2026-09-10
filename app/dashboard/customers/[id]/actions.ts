@@ -14,6 +14,9 @@ import {
   revokeSchemaEditorPlusManualGrant,
 } from "@/lib/services/schema-editor-plus";
 import { prisma } from "@/lib/prisma";
+import { isProjectStarterId } from "@/lib/project-starter-contract";
+import { createProjectForCustomerByAdmin } from "@/lib/services/project";
+import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
 
 function getErrorMessage(error: unknown) {
   if (isHttpError(error)) {
@@ -133,6 +136,34 @@ export async function revokeSchemaEditorPlusGrantAction(formData: FormData) {
     await revokeSchemaEditorPlusManualGrant(capabilityId);
     revalidatePath(`/dashboard/customers/${customerId}`);
     redirectTarget = buildCustomerRedirect(customerId, { success: "Accès Éditeur Plus révoqué." });
+  } catch (error) {
+    redirectTarget = buildCustomerRedirect(customerId, { error: getErrorMessage(error) });
+  }
+
+  redirect(redirectTarget);
+}
+
+// Même geste que sur la fiche dossier accompagnement, disponible ici aussi
+// pour tout client (accompagnement ou non) — retour utilisateur.
+export async function createProjectForCustomerAction(formData: FormData) {
+  await requireSession();
+  const customerId = getString(formData, "customerId");
+  let redirectTarget: string;
+
+  try {
+    const name = getString(formData, "name").trim();
+    if (!name) throw new Error("Nom du schéma requis.");
+    const starterRaw = getString(formData, "starter");
+
+    const project = await createProjectForCustomerByAdmin(customerId, {
+      name,
+      assetType: getString(formData, "assetType") as ProjectAssetType,
+      voltage: getString(formData, "voltage") as ProjectVoltage,
+      starter: isProjectStarterId(starterRaw) ? starterRaw : undefined,
+    });
+    revalidatePath(`/dashboard/customers/${customerId}`);
+    revalidatePath("/dashboard/projects");
+    redirectTarget = `/outils/schema/editeur?projectId=${project.id}`;
   } catch (error) {
     redirectTarget = buildCustomerRedirect(customerId, { error: getErrorMessage(error) });
   }

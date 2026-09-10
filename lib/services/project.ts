@@ -7,6 +7,7 @@ import type {
 } from "@/lib/generated/prisma/client";
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
 import { requireOwnerOrAdmin, type OwnershipActor } from "@/lib/ownership";
+import type { ProjectStarterId } from "@/lib/project-starter-contract";
 
 type PrismaClientLike = PrismaClient;
 
@@ -370,6 +371,40 @@ export async function deleteProject(
 ) {
   const service = await getDefaultProjectService();
   return service.deleteProject(actor, projectId, options);
+}
+
+// Création manuelle depuis le dashboard (fiche dossier accompagnement ou
+// fiche client) : l'admin construit le schéma lui-même pour le client
+// pendant une prestation payante, plutôt que d'attendre que le client le
+// crée de son côté. Même logique création + starter + rollback que
+// POST /api/projects (parcours client self-service), dupliquée volontairement
+// ici : les deux points d'entrée restent minces et indépendants plutôt que de
+// forcer l'API client à connaître un cas d'usage admin.
+export async function createProjectForCustomerByAdmin(
+  customerId: string,
+  input: { name: string; assetType: ProjectAssetType; voltage: ProjectVoltage; starter?: ProjectStarterId }
+): Promise<Project> {
+  const { adminActor } = await import("@/lib/server/project-actor");
+  const { applyProjectStarter } = await import("@/lib/project-starters");
+  const actor = adminActor();
+
+  const project = await createProject(actor, {
+    customerId,
+    name: input.name,
+    assetType: input.assetType,
+    voltage: input.voltage,
+  });
+
+  if (input.starter) {
+    try {
+      await applyProjectStarter(actor, project, input.starter);
+    } catch (error) {
+      await deleteProject(actor, project.id, { confirm: true }).catch(() => {});
+      throw error;
+    }
+  }
+
+  return project;
 }
 
 export async function scheduleDeletion(
