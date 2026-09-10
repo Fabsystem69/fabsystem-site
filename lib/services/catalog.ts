@@ -13,6 +13,8 @@ import type {
   PurchaseMode,
 } from "@/lib/generated/prisma/client";
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
+import { deletePrivateBlob } from "@/lib/server/vercel-blob-storage";
+import { logServerEvent } from "@/lib/server-log";
 
 const productStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
 const productTypeSchema = z.enum(["EBOOK", "DIGITAL_DOWNLOAD", "BUNDLE", "SCHEMA_UNLOCK", "COACHING_30MIN"]);
@@ -953,7 +955,7 @@ export function createCatalogService(db: CatalogDb) {
       const path = normalizeAssetField(parsed.path, "Path");
       const filename = normalizeAssetField(parsed.filename, "Filename");
 
-      return db.transaction(async (tx) => {
+      const { previous, updated } = await db.transaction(async (tx) => {
         const existing = await tx.findAssetById(normalizedAssetId);
 
         if (!existing) {
@@ -966,7 +968,7 @@ export function createCatalogService(db: CatalogDb) {
           throw conflict("Digital asset bucket/path already exists");
         }
 
-        return tx.updateDigitalAsset(existing.id, {
+        const updated = await tx.updateDigitalAsset(existing.id, {
           provider: parsed.provider,
           bucket,
           path,
@@ -974,7 +976,29 @@ export function createCatalogService(db: CatalogDb) {
           contentType: inferAssetContentType(filename),
           status: parsed.status,
         });
+
+        return { previous: existing, updated };
       });
+
+      // Le fichier remplace n'est plus reference par aucune ligne DigitalAsset
+      // une fois le pointeur bucket/path deplace ci-dessus — sans ce nettoyage
+      // il reste orphelin sur Vercel Blob indefiniment (cause identifiee d'une
+      // consommation de stockage Blob sans rapport avec le nombre d'ebooks
+      // actifs). Best-effort : un echec de suppression ne doit pas faire
+      // echouer la mise a jour, deja commitee en base.
+      if (previous.provider === "VERCEL_BLOB" && (previous.bucket !== bucket || previous.path !== path)) {
+        try {
+          await deletePrivateBlob(previous.path);
+        } catch (error) {
+          logServerEvent("error", "catalog.updateDigitalAsset: failed to delete previous blob", {
+            assetId: normalizedAssetId,
+            previousPath: previous.path,
+            error,
+          });
+        }
+      }
+
+      return updated;
     },
 
     async setDigitalAssetStatus(assetId: string, status: DigitalAssetStatus) {
