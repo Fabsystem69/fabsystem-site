@@ -23,6 +23,7 @@ import { VersionHistoryDialog } from "./VersionHistoryDialog";
 import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
 import { PropertiesTab } from "./PropertiesTab";
 import { MenubarHeading, MenubarIcon, MenubarItem, MenubarPanel, MenubarSection, RibbonButton, RibbonDivider, RibbonGroup, RibbonPanel } from "./RibbonControls";
+import { AdminProjectSwitcher } from "./AdminProjectSwitcher";
 import { getComponentDefinition, CATEGORY_LABELS } from "@/lib/electrical-components/definitions";
 
 // Bandeau type ruban (retour utilisateur : "chargé sans avoir beaucoup de
@@ -474,6 +475,11 @@ function EditorMenuBar({
                 </Link>
               ) : null}
             </div>
+            {adminMode ? (
+              <div className={`border-b ${darkMode ? "border-neutral-800" : "border-slate-100"}`}>
+                <AdminProjectSwitcher darkMode={darkMode} />
+              </div>
+            ) : null}
             <div className="p-2">
               <Link href={adminMode ? "/dashboard" : "/mon-compte/profil"} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⚙</span> {adminMode ? "Retour au dashboard" : "Paramètres du compte"}</Link>
               <Link href={adminMode ? "/dashboard/customers" : "/mon-compte/projets"} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">▣</span> {adminMode ? "Projets clients" : "Mes projets"}</Link>
