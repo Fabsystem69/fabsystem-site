@@ -8,7 +8,7 @@ import type { ComponentHandleDef, HandleKind } from "@/types/schema";
 import { CABLE_SECTIONS } from "@/types/schema";
 import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
 import { getAwgEquivalent } from "@/lib/electrical-components/section-to-awg";
-import { SolarisBadge } from "./SolarisBadge";
+import { SupplierBadge } from "./SupplierBadge";
 
 type PanelTab = "properties" | "ports" | "protection" | "fuses" | "display";
 type PortSide = ComponentHandleDef["side"];
@@ -184,7 +184,7 @@ export function PropertiesSidebar() {
                 >
                   <span className="flex min-w-0 items-center gap-1.5">
                     <span className="truncate">{selectedModel ? selectedModel.model : "Choisir un modèle…"}</span>
-                    {selectedModel?.supplier ? <SolarisBadge darkMode={darkMode} /> : null}
+                    {selectedModel?.supplier ? <SupplierBadge name={selectedModel.supplier.name} darkMode={darkMode} /> : null}
                   </span>
                   <span className="shrink-0 text-xs opacity-60">▾</span>
                 </button>
@@ -220,7 +220,7 @@ export function PropertiesSidebar() {
                           }`}
                         >
                           <span className="truncate">{model.model}</span>
-                          {model.supplier ? <SolarisBadge darkMode={darkMode} /> : null}
+                          {model.supplier ? <SupplierBadge name={model.supplier.name} darkMode={darkMode} /> : null}
                         </button>
                       ))}
                     </div>

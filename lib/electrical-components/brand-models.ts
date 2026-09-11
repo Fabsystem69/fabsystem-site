@@ -498,6 +498,17 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "uniteck-unifusebox-6way-140a", brand: "Uniteck", model: "UNIFUSEBOX 6 fusibles 140A", componentType: "fuse-block", defaults: { outputCount: 6, layout: "positive-negative" }, supplier: { name: "Solaris Store", priceCents: 5500, url: "https://www.solaris-store.com/8995-busbar-6-fusibles-de-protection-unifusebox-12-24v-140a.html" } },
   { id: "uniteck-unifusebox-12way-160a", brand: "Uniteck", model: "UNIFUSEBOX 12 fusibles 160A", componentType: "fuse-block", defaults: { outputCount: 12, layout: "positive-negative" }, supplier: { name: "Solaris Store", priceCents: 7500, url: "https://www.solaris-store.com/8994-busbar-12-fusibles-de-protection-unifusebox-12-24v-160a.html" } },
 
+  // Tableaux électriques Osculati "Wave" (photos fournies par l'utilisateur)
+  // — disjoncteurs thermiques réarmables par circuit, pas des fusibles à
+  // proprement parler, mais modélisés via le même layout "with-fuses" que le
+  // tableau de distribution générique (une entrée commune, une sortie
+  // protégée par circuit) : la seule distinction utile ici est le calibre
+  // par sortie, pas le mécanisme de protection physique. Calibres assignés
+  // dans l'ordre croissant, la fiche produit ne précisant pas la position
+  // physique de chaque valeur.
+  { id: "osculati-wave-5-voltmetre", brand: "Osculati", model: "Wave 5 interrupteurs + voltmètre 12V", componentType: "distribution-panel", defaults: { outputCount: 5, layout: "with-fuses", outAmp1: 5, outAmp2: 10, outAmp3: 10, outAmp4: 15, outAmp5: 15 }, iconPro: "/schema-icons/pro/brand/osculati-wave-5-voltmetre.webp", supplier: { name: "Vancore", priceCents: 3590, url: "https://vancore.fr/electricite/tableau-electrique-wave-5-voltmetre-12v" } },
+  { id: "osculati-wave-8", brand: "Osculati", model: "Wave 8 interrupteurs", componentType: "distribution-panel", defaults: { outputCount: 8, layout: "with-fuses", outAmp1: 4, outAmp2: 5, outAmp3: 5, outAmp4: 6, outAmp5: 6, outAmp6: 8, outAmp7: 8, outAmp8: 10 }, iconPro: "/schema-icons/pro/brand/osculati-wave-8.webp", supplier: { name: "Vancore", priceCents: 3990, url: "https://vancore.fr/electricite/tableau-electrique-wave-8" } },
+
   // Lynx Distributor / Power In / Shunt VE.Can : regroupés dans leur propre
   // famille de composants dédiés (type "lynx-distributor" etc., voir
   // definitions.ts) plutôt qu'en modèles de marque d'un type générique —

@@ -4,7 +4,7 @@ import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
-import { SolarisBadge } from "./SolarisBadge";
+import { SupplierBadge } from "./SupplierBadge";
 
 // Popup de choix de marque/modèle, deux déclencheurs distincts :
 // - Glisser-déposer (`pendingModelPickerNodeId`) : le nœud existe déjà,
@@ -100,7 +100,7 @@ export function ModelPickerModal() {
                           autres, retour utilisateur : "comment on va
                           pouvoir différentier... des composant commandable
                           sur solaris comparé au autre". */}
-                      {m.supplier ? <SolarisBadge darkMode={darkMode} /> : null}
+                      {m.supplier ? <SupplierBadge name={m.supplier.name} darkMode={darkMode} /> : null}
                     </span>
                     <span className={`shrink-0 text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
                       {Object.entries(m.defaults)
