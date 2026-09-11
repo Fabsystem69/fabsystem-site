@@ -954,7 +954,7 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
   const cableTable = `
     <h2>Câbles</h2>
     <table>
-      <thead><tr><th>Section</th><th>Nombre de câbles</th><th>Métrage total</th></tr></thead>
+      <thead><tr><th>Section</th><th>Équivalent AWG</th><th>Nombre de câbles</th><th>Métrage total</th></tr></thead>
       <tbody>
         ${bom.cableRows
           .map((row) => {
@@ -962,7 +962,7 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
               row.totalLengthM !== null
                 ? `${String(row.totalLengthM).replace(".", ",")} m${row.missingLengthCount > 0 ? ` (+ ${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""} sans longueur)` : ""}`
                 : `Longueur non renseignée (${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""})`;
-            return `<tr><td>${escapeHtml(row.section)}</td><td>${row.count}</td><td>${escapeHtml(metrage)}</td></tr>`;
+            return `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.awg ?? "—")}</td><td>${row.count}</td><td>${escapeHtml(metrage)}</td></tr>`;
           })
           .join("")}
       </tbody>

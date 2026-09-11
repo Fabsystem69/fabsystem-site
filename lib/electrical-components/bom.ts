@@ -2,6 +2,7 @@ import { getComponentDefinition, getConsumerPreset, CATEGORY_LABELS } from "./de
 import { getCableType } from "./cable-types";
 import { getBrandModel, type BrandModel } from "./brand-models";
 import { compareBySectionOrder, getRecommendedLugStudDiameter } from "./cable-lugs";
+import { getAwgEquivalent } from "./section-to-awg";
 import type { Node, Edge } from "@xyflow/react";
 
 // Récapitulatif matériel (retour utilisateur : "un dossier récap des
@@ -26,6 +27,10 @@ export interface BomCategoryGroup {
 
 export interface BomCableRow {
   section: string;
+  // Équivalent AWG (retour utilisateur : "un moteur pour passer de mm2 à
+  // awg") — null si la section n'est pas renseignée ou ne correspond à
+  // aucune entrée connue.
+  awg: string | null;
   count: number;
   totalLengthM: number | null;
   missingLengthCount: number;
@@ -161,11 +166,12 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
   const cableRows: BomCableRow[] = Array.from(bySection.entries())
     .map(([section, v]) => ({
       section,
+      awg: getAwgEquivalent(section),
       count: v.count,
       totalLengthM: v.totalLengthM > 0 ? Math.round(v.totalLengthM * 10) / 10 : null,
       missingLengthCount: v.missingLengthCount,
     }))
-    .sort((a, b) => a.section.localeCompare(b.section));
+    .sort((a, b) => compareBySectionOrder(a.section, b.section));
 
   const dataBusRows: BomDataBusRow[] = Array.from(byDataBus.entries()).map(([label, v]) => {
     const lengthedCount = v.count - v.missingLengthCount;
@@ -216,7 +222,8 @@ export function buildMaterialListText(bom: Bom, projectName: string): string {
         row.totalLengthM !== null
           ? `${String(row.totalLengthM).replace(".", ",")} m`
           : `métrage non renseigné`;
-      lines.push(`- Section ${row.section} : ${row.count} câble${row.count > 1 ? "s" : ""} (${metrage})`);
+      const awg = row.awg ? ` (AWG ${row.awg})` : "";
+      lines.push(`- Section ${row.section}${awg} : ${row.count} câble${row.count > 1 ? "s" : ""} (${metrage})`);
     }
     lines.push("");
   }

@@ -53,3 +53,25 @@ test("buildMaterialListText includes a lugs section with the indicative-diameter
   assert.match(text, /Cosses \(diamètre indicatif/);
   assert.match(text, /2x Cosse à œillet 16 mm² \/ M6/);
 });
+
+test("computeBom annotates each cable row with its AWG equivalent", () => {
+  const bom = computeBom(NO_NODES, [edge("e1", "16 mm²")]);
+
+  assert.equal(bom.cableRows.length, 1);
+  assert.equal(bom.cableRows[0]?.awg, "6");
+});
+
+test("computeBom leaves awg null for a cable with no section recorded", () => {
+  const bom = computeBom(NO_NODES, [edge("e1", undefined)]);
+
+  assert.equal(bom.cableRows[0]?.awg, null);
+});
+
+test("buildMaterialListText shows the AWG equivalent next to the section", async () => {
+  const { buildMaterialListText } = await import("@/lib/electrical-components/bom");
+  const bom = computeBom(NO_NODES, [edge("e1", "16 mm²")]);
+
+  const text = buildMaterialListText(bom, "Test");
+
+  assert.match(text, /Section 16 mm² \(AWG 6\)/);
+});
