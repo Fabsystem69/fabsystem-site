@@ -18,20 +18,28 @@ export const runtime = "nodejs";
 // Pas de `requireCustomerActor` ici (qui lève une erreur 401) : un visiteur
 // sans compte est un état normal de l'éditeur ("gratuit, sans compte"),
 // pas une erreur — on répond juste `unlimited: false`.
+//
+// Session admin vérifiée EN PREMIER (même ordre que requireProjectActor(),
+// lib/server/project-actor.ts) : retour utilisateur — Fabien ouvre l'éditeur
+// depuis le dashboard tout en restant connecté sur son compte client de
+// test dans le même navigateur, et se retrouvait traité comme ce client
+// (accès gratuit) au lieu d'admin (accès complet) tant qu'une session
+// client trainait, quel que soit le compte.
 export async function GET(request: Request) {
+  const adminSession = await getSessionFromCookies();
+  if (adminSession) {
+    // Le dashboard est un espace de préparation et d'accompagnement : ses
+    // schémas ne sont pas soumis à l'ancien palier consommateur client.
+    return NextResponse.json({
+      unlimited: true,
+      loggedIn: true,
+      isAdmin: true,
+      initials: computeAccountInitials(null, adminSession.sub),
+    });
+  }
+
   const session = await getCustomerSessionFromCookie();
   if (!session) {
-    const adminSession = await getSessionFromCookies();
-    if (adminSession) {
-      // Le dashboard est un espace de préparation et d'accompagnement : ses
-      // schémas ne sont pas soumis à l'ancien palier consommateur client.
-      return NextResponse.json({
-        unlimited: true,
-        loggedIn: true,
-        isAdmin: true,
-        initials: computeAccountInitials(null, adminSession.sub),
-      });
-    }
     return NextResponse.json({ unlimited: false, loggedIn: false, initials: null });
   }
 
