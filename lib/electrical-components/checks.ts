@@ -815,6 +815,24 @@ export function computeSchemaIssues(
     } else if (handles.length === 2 && connectedCount === 1) {
       structurallyBlockedNodeIds.add(node.id);
       issues.push({ id: `${node.id}-partial`, targetKind: "node", targetId: node.id, message: `« ${label} » n'a qu'une seule borne reliée.` });
+    } else if (handles.length > 2 && connectedCount < handles.length) {
+      // Bug corrigé (retour utilisateur : "le dcdc avait sa sortie masse non
+      // branché et zéro alerte") — cette règle ne portait que sur les
+      // composants à exactement 2 bornes, donc un DC-DC (IN+/GND/OUT+, 3
+      // bornes) pouvait avoir une borne non reliée sans jamais être signalé :
+      // connectedCount === 1 sur 3 bornes ne valait ni "isolé" (0 branché) ni
+      // "partiel" (handles.length === 2). Volontairement PAS ajouté à
+      // structurallyBlockedNodeIds contrairement aux deux cas ci-dessus : un
+      // MPPT dont seule la borne PV est reliée doit quand même déclencher ses
+      // propres contrôles électriques (ex. surintensité PV), pas les voir
+      // masqués par ce simple rappel de câblage incomplet.
+      const missing = handles.length - connectedCount;
+      issues.push({
+        id: `${node.id}-partial`,
+        targetKind: "node",
+        targetId: node.id,
+        message: `« ${label} » a ${missing} borne${missing > 1 ? "s" : ""} non reliée${missing > 1 ? "s" : ""} sur ${handles.length}.`,
+      });
     }
   }
 

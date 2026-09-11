@@ -10,6 +10,42 @@ import type { CableEdgeData, ElectricalNodeData } from "@/types/schema";
 type SchemaNode = Node<ElectricalNodeData>;
 type SchemaEdge = Edge<CableEdgeData>;
 
+test("un DC-DC dont la sortie négative (masse) n'est pas reliée est signalé (retour utilisateur)", () => {
+  const dcdc: SchemaNode = { id: "dcdc-1", position: { x: 0, y: 0 }, data: { componentType: "dcdc", label: "Orion-Tr Smart" } };
+  const battery: SchemaNode = { id: "bat-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie" } };
+  const load: SchemaNode = { id: "load-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie 2" } };
+  // Topologie isolée par défaut (pas de `topology`) : 4 bornes
+  // in-negative/in-positive/out-negative/out-positive. IN+/IN− et OUT+
+  // reliés, OUT− (la sortie masse) jamais câblée.
+  const edges: SchemaEdge[] = [
+    { id: "e1", source: "bat-1", sourceHandle: "positive", target: "dcdc-1", targetHandle: "in-positive", data: {} },
+    { id: "e2", source: "bat-1", sourceHandle: "negative", target: "dcdc-1", targetHandle: "in-negative", data: {} },
+    { id: "e3", source: "dcdc-1", sourceHandle: "out-positive", target: "load-1", targetHandle: "positive", data: {} },
+  ];
+
+  const issues = computeSchemaIssues([dcdc, battery, load], edges);
+
+  const partial = issues.find((issue) => issue.id === "dcdc-1-partial");
+  assert.ok(partial, "expected a partial-connection issue for the DC-DC");
+  assert.match(partial!.message, /1 borne non reliée sur 4/);
+});
+
+test("un DC-DC entièrement câblé (IN+/−, OUT+/−) ne déclenche aucune alerte de câblage incomplet", () => {
+  const dcdc: SchemaNode = { id: "dcdc-1", position: { x: 0, y: 0 }, data: { componentType: "dcdc", label: "Orion-Tr Smart" } };
+  const battery: SchemaNode = { id: "bat-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie" } };
+  const load: SchemaNode = { id: "load-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie 2" } };
+  const edges: SchemaEdge[] = [
+    { id: "e1", source: "bat-1", sourceHandle: "positive", target: "dcdc-1", targetHandle: "in-positive", data: {} },
+    { id: "e2", source: "bat-1", sourceHandle: "negative", target: "dcdc-1", targetHandle: "in-negative", data: {} },
+    { id: "e3", source: "dcdc-1", sourceHandle: "out-positive", target: "load-1", targetHandle: "positive", data: {} },
+    { id: "e4", source: "dcdc-1", sourceHandle: "out-negative", target: "load-1", targetHandle: "negative", data: {} },
+  ];
+
+  const issues = computeSchemaIssues([dcdc, battery, load], edges);
+
+  assert.equal(issues.some((issue) => issue.id === "dcdc-1-partial" || issue.id === "dcdc-1-isolated"), false);
+});
+
 test("une platine DC avec retours négatifs possède une entrée négative commune", () => {
   const definition = getComponentDefinition("fuse-block");
   assert.ok(definition);
