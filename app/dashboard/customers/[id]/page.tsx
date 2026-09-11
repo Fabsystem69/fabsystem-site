@@ -60,12 +60,14 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
 
   const [resourceGrants, projects, orders, editorAccessGrants, dossiers, contactLogs] = await Promise.all([
     listResourceGrantsForCustomer(customer.id),
-    customer.dataShareConsent
-      ? prisma.project.findMany({
-          where: { customerId: customer.id },
-          orderBy: { updatedAt: "desc" },
-        })
-      : Promise.resolve([]),
+    // Un projet que l'admin a créé lui-même reste visible même sans le
+    // consentement de partage du client (retour utilisateur) — ce
+    // consentement ne concerne que les projets que le client a créés de son
+    // côté.
+    prisma.project.findMany({
+      where: customer.dataShareConsent ? { customerId: customer.id } : { customerId: customer.id, createdByAdmin: true },
+      orderBy: { updatedAt: "desc" },
+    }),
     listDashboardOrdersForCustomer(customer.id),
     listSchemaEditorAccessGrantsForCustomer(customer.id),
     prisma.dossierClient.findMany({
@@ -346,10 +348,11 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
                 </p>
               ) : null}
               {!customer.dataShareConsent ? (
-                <p className="text-sm text-neutral-500">
-                  Le client n&apos;a pas autorisé le partage de son dossier projet.
+                <p className="mb-3 text-sm text-neutral-500">
+                  Le client n&apos;a pas autorisé le partage des projets qu&apos;il aurait créés lui-même — seuls les schémas créés depuis le dashboard apparaissent ci-dessous.
                 </p>
-              ) : projects.length === 0 ? (
+              ) : null}
+              {projects.length === 0 ? (
                 <p className="text-sm text-neutral-500">Aucun projet pour l&apos;instant.</p>
               ) : (
                 <ul className="divide-y divide-neutral-800/80">

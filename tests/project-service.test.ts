@@ -22,6 +22,9 @@ function createProjectRecord(overrides: Partial<Project> = {}): Project {
     archivedAt: overrides.archivedAt ?? null,
     deleteScheduledAt: overrides.deleteScheduledAt ?? null,
     preScheduleStatus: overrides.preScheduleStatus ?? null,
+    followUpStepOverride: overrides.followUpStepOverride ?? null,
+    kitId: overrides.kitId ?? null,
+    createdByAdmin: overrides.createdByAdmin ?? false,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
   };
@@ -109,6 +112,22 @@ test("createProject creates an ACTIVE project for its owner", async () => {
   assert.equal(project.customerId, "cust_1");
   assert.equal(project.status, "ACTIVE");
   assert.equal(state.created.length, 1);
+  assert.equal(project.createdByAdmin, false);
+});
+
+test("createProject marks a project as admin-created when requested", async () => {
+  const { db } = createMockProjectDb();
+  const service = createProjectService(db, { now: () => NOW });
+
+  const project = await service.createProject(ADMIN, {
+    customerId: "cust_1",
+    name: "Schéma préparé par Fabien",
+    assetType: "VAN",
+    voltage: "V12",
+    createdByAdmin: true,
+  });
+
+  assert.equal(project.createdByAdmin, true);
 });
 
 test("createProject accepts 'Je ne sais pas' (UNKNOWN) for voltage without blocking", async () => {

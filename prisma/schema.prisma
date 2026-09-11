@@ -457,6 +457,11 @@ model Project {
   // aucun kit assigne, les sections achats/budget restent masquees.
   kitId             String?
   kit               Kit?             @relation(fields: [kitId], references: [id], onDelete: SetNull)
+  // Cree par l'admin depuis le dashboard (accompagnement) plutot que par le
+  // client lui-meme — retour utilisateur : /dashboard/projects ne doit pas
+  // attendre que le client active dataShareConsent pour un schema que
+  // l'admin a deja construit et connait donc deja.
+  createdByAdmin    Boolean          @default(false)
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 

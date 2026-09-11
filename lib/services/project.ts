@@ -41,6 +41,10 @@ export type CreateProjectInput = {
   name: string;
   assetType: ProjectAssetType;
   voltage: ProjectVoltage;
+  // Cree par l'admin plutot que par le client lui-meme — voir
+  // createProjectForCustomerByAdmin ci-dessous. False par defaut (parcours
+  // client self-service normal, POST /api/projects).
+  createdByAdmin?: boolean;
 };
 
 export type UpdateProjectInput = Partial<{
@@ -55,6 +59,7 @@ export type ProjectDb = {
     name: string;
     assetType: ProjectAssetType;
     voltage: ProjectVoltage;
+    createdByAdmin: boolean;
   }): Promise<Project>;
   findProjectById(id: string): Promise<Project | null>;
   countCustomerProjects(customerId: string): Promise<number>;
@@ -188,6 +193,7 @@ export function createProjectService(db: ProjectDb, deps?: ProjectDeps) {
         name,
         assetType: input.assetType,
         voltage: input.voltage,
+        createdByAdmin: Boolean(input.createdByAdmin),
       });
     },
 
@@ -394,6 +400,7 @@ export async function createProjectForCustomerByAdmin(
     name: input.name,
     assetType: input.assetType,
     voltage: input.voltage,
+    createdByAdmin: true,
   });
 
   if (input.templateId) {

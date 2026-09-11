@@ -13,7 +13,11 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardProjectsPage() {
   const projects = await prisma.project.findMany({
-    where: { customer: { dataShareConsent: true } },
+    // Un schéma que l'admin a construit lui-même pour un client (retour
+    // utilisateur) reste visible même si ce client n'a jamais activé le
+    // partage de son dossier — cette condition n'a de sens que pour un
+    // projet que le client a créé de son côté.
+    where: { OR: [{ customer: { dataShareConsent: true } }, { createdByAdmin: true }] },
     include: {
       customer: true,
       retainedValues: true,
