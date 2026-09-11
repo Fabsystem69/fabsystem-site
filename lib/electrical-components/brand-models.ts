@@ -152,6 +152,9 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "bougerv-yuma-100w-adhesive", brand: "BougeRV", model: "Yuma 100W flexible (adhésif, ISE160)", componentType: "solar-panel", defaults: { panelStyle: "flexible", powerW: 100, voltage: 24, operatingCurrentA: 4.21, shortCircuitCurrentA: 4.71, vocVoltage: 30.5, vocTemperatureCoeffPctPerC: -0.28 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
   { id: "bougerv-yuma-100w-adhesive-long", brand: "BougeRV", model: "Yuma 100W flexible (adhésif long, ISE137)", componentType: "solar-panel", defaults: { panelStyle: "flexible", powerW: 100, voltage: 24, operatingCurrentA: 4.21, shortCircuitCurrentA: 4.71, vocVoltage: 30.5, vocTemperatureCoeffPctPerC: -0.28 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
   { id: "bougerv-yuma-100w-punched", brand: "BougeRV", model: "Yuma 100W flexible (perforé, ISE152)", componentType: "solar-panel", defaults: { panelStyle: "flexible", powerW: 100, voltage: 24, operatingCurrentA: 4.21, shortCircuitCurrentA: 4.71, vocVoltage: 30.5, vocTemperatureCoeffPctPerC: -0.28 }, iconPro: "/schema-icons/pro/brand/bougerv-200w-flexible.webp" },
+  // https://www.bluesunpv.com/fr/products/solar-panel/500w-solar-panel/ —
+  // coefficient de temperature Voc non documente sur la fiche, non inclus.
+  { id: "bluesun-500w-rigid", brand: "Bluesun", model: "BSM500PM5-72SB 500W monocristallin rigide", componentType: "solar-panel", defaults: { powerW: 500, voltage: 39, operatingCurrentA: 12.82, shortCircuitCurrentA: 13.4, vocVoltage: 46.8 } },
   // Gamme EcoWorthy actuellement referencee par le constructeur :
   // https://www.eco-worthy.com/collections/solar-panels
   // 195W : https://www.eco-worthy.com/products/eco-worthy-195w-n-type-18bb-bifacial-solar-panel-with-25-high-conversion-efficiency-ideal-for-rv-boat-roof-farm-home-off-grid-applications
