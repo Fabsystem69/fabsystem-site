@@ -47,6 +47,7 @@ export const BRAND_MODELS: BrandModel[] = [
   // applique individuellement au + ou au - selectionne dans le schema.
   { id: "victron-lynx-power-in-m8", brand: "Victron", model: "Lynx Power In M8 (4 connexions par rail)", componentType: "busbar", defaults: { maxConnectionPoints: 4, outputCount: 3, leftPoints: 0, topPoints: 0, rightPoints: 4, bottomPoints: 0 } },
   { id: "victron-lynx-power-in-m10", brand: "Victron", model: "Lynx Power In M10 (4 connexions par rail)", componentType: "busbar", defaults: { maxConnectionPoints: 4, outputCount: 3, leftPoints: 0, topPoints: 0, rightPoints: 4, bottomPoints: 0 }, supplier: { name: "Solaris Store", priceCents: 15300, url: "https://www.solaris-store.com/8425-lynx-power-in-m10-lyn020102010.html" } },
+  { id: "victron-busbar-250a-6p", brand: "Victron", model: "Busbar 250A 6P avec couvercle", componentType: "busbar", defaults: { maxConnectionPoints: 6, outputCount: 5, leftPoints: 0, topPoints: 0, rightPoints: 6, bottomPoints: 0 }, supplier: { name: "Solaris Store", priceCents: 6732, url: "https://www.solaris-store.com/5110-busbar-250a-6p-cover-victron-vbb125060020.html" } },
 
   // Batteries
   { id: "victron-lithium-smart-100ah", brand: "Victron", model: "Lithium Smart 12,8V/100Ah", componentType: "battery", defaults: { technology: "lifepo4", voltage: 12, capacityAh: 100 }, iconPro: "/schema-icons/pro/brand/victron-lithium-smart-100ah.png", supplier: { name: "Solaris Store", priceCents: 74359, url: "https://www.solaris-store.com/1986-lifepo4-battery-128v-100ah-smart-victron-bat512110610.html" } },

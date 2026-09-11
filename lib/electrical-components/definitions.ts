@@ -54,6 +54,8 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // meilleur usage ici qu'à la poubelle).
   { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3, iconPro: "/schema-icons/pro/consumer.webp", group: "Éclairage" },
   { value: "plafonnier-led", label: "Plafonnier LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage" },
+  { value: "plafonnier-led-uniteck-rond-18w", label: "Plafonnier rond LED 18W Uniteck (avec interrupteur, 12/24V)", typicalPowerW: 18, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage", supplier: { name: "Solaris Store", priceCents: 4500, url: "https://www.solaris-store.com/7980-plafonnier-rond-led-18w-avec-interrupteur-12v-24v-uniledlight-18-24rb.html" } },
+  { value: "plafonnier-led-uniteck-reglette-26w", label: "Plafonnier réglette LED 26W Uniteck (avec interrupteur, 12/24V)", typicalPowerW: 26, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage", supplier: { name: "Solaris Store", priceCents: 7900, url: "https://www.solaris-store.com/7984-plafonnier-reglette-led-26w-avec-interrupteur-12v-24v-uniledlight-26-24lb.html" } },
   { value: "eclairage-marche", label: "Éclairage de marche/passerelle", typicalPowerW: 2, iconPro: "/schema-icons/pro/eclairage-marche.jpg", group: "Éclairage" },
   { value: "projecteur-pont", label: "Projecteur de pont", typicalPowerW: 20, iconPro: "/schema-icons/pro/projecteur-pont.jpg", group: "Éclairage" },
   // Feux réglementaires bateau — chacun sur son propre circuit en usage réel
