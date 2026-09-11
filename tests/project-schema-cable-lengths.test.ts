@@ -18,6 +18,7 @@ function createProjectRecord(overrides: Partial<Project> = {}): Project {
     preScheduleStatus: overrides.preScheduleStatus ?? null,
     followUpStepOverride: overrides.followUpStepOverride ?? null,
     kitId: overrides.kitId ?? null,
+    createdByAdmin: overrides.createdByAdmin ?? false,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
   };

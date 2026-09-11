@@ -19,6 +19,7 @@ test("getAwgEquivalent maps every CABLE_SECTIONS entry to the WIRE_TABLE equival
 });
 
 test("getAwgEquivalent resolves a 3-conductor cable (3G...) from its per-conductor gauge", () => {
+  assert.equal(getAwgEquivalent("3G1,5 mm²"), getAwgEquivalent("1,5 mm²"));
   assert.equal(getAwgEquivalent("3G2,5 mm²"), getAwgEquivalent("2,5 mm²"));
 });
 
