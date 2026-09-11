@@ -13,7 +13,7 @@ import {
 } from "@/lib/electrical-components/definitions";
 import { getBrandModelsForType } from "@/lib/electrical-components/brand-models";
 import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
-import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
+import { computeCascadePosition, getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
 import { CategoryIcon } from "./icons/CategoryIcons";
 import { RibbonButton, RibbonDivider, RibbonPanel } from "./RibbonControls";
 
@@ -58,7 +58,7 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
   const addZone = useSchemaStore((s) => s.addZone);
   const guidedMode = useSchemaStore((s) => s.guidedMode);
   const iconStyle = useSchemaStore((s) => s.iconStyle);
-  const { screenToFlowPosition, getZoom } = useReactFlow();
+  const { screenToFlowPosition } = useReactFlow();
 
   const byCategory = useMemo(() => {
     const map = new Map<string, Item[]>();
@@ -97,7 +97,6 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
   // Même cascade que ComponentLibrary.handleClickAdd : évite d'empiler
   // plusieurs composants ajoutés d'affilée exactement au même endroit.
   function handleAdd(type: string, presetValue?: string) {
-    const center = screenToFlowPosition(getVisibleCanvasCenter());
     const selectedEdge = selectedEdgeId ? edges.find((edge) => edge.id === selectedEdgeId) : undefined;
     if (selectedEdge && SPLICEABLE_COMPONENT_TYPES.has(type)) {
       const source = nodes.find((node) => node.id === selectedEdge.source);
@@ -111,11 +110,8 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
         return;
       }
     }
-    const zoom = getZoom() || 1;
     const electricalCount = nodes.filter((n) => n.type === "electrical").length;
-    const col = electricalCount % 5;
-    const row = Math.floor(electricalCount / 5) % 4;
-    const position = { x: center.x + (col * 220) / zoom, y: center.y + (row * 160) / zoom };
+    const position = computeCascadePosition(screenToFlowPosition, electricalCount);
     const preset = presetValue ? CONSUMER_PRESETS.find((p) => p.value === presetValue) : undefined;
     const dataOverride = preset ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW } : undefined;
     const hasBrandModels = !guidedMode && getBrandModelsForType(type).length > 0;

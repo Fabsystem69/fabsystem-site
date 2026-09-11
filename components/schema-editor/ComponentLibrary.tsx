@@ -9,7 +9,7 @@ import { useGuidedStep } from "@/lib/schema-editor/useGuidedStep";
 import { CategoryIcon } from "./icons/CategoryIcons";
 import { CreateCustomItemModal } from "./CreateCustomItemModal";
 import { SPLICEABLE_COMPONENT_TYPES } from "@/lib/schema-editor/cable-splice";
-import { getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
+import { computeCascadePosition, getVisibleCanvasCenter } from "@/lib/schema-editor/viewport";
 
 interface LibraryItem {
   key: string;
@@ -121,7 +121,7 @@ export function ComponentLibrary() {
   const setLeftPanelCollapsed = useSchemaStore((s) => s.setLeftPanelCollapsed);
   const setDraggingComponentType = useSchemaStore((s) => s.setDraggingComponentType);
   const toggleLeftPanel = useSchemaStore((s) => s.toggleLeftPanel);
-  const { screenToFlowPosition, getZoom } = useReactFlow();
+  const { screenToFlowPosition } = useReactFlow();
 
   // Sur téléphone, le canevas est la surface principale. La bibliothèque
   // démarre donc fermée et ne s'ouvre qu'à la demande via le bouton compact.
@@ -290,21 +290,12 @@ export function ComponentLibrary() {
     // sans d'abord les déplacer à la main. Espacement large (220/160px) :
     // les boîtiers "gros" (batterie, MPPT…) font jusqu'à 84px de vignette
     // plus le libellé, un pas plus petit les fait quand même se chevaucher.
-    // Retour utilisateur : "certains composants s'ajoutent hors de la zone
-    // visible" — l'espacement de la cascade était fixe en unites flow, donc
-    // au-dela d'un certain zoom (canvas zoome), le meme decalage couvre une
-    // portion beaucoup plus grande de la zone visible et finit par pousser
-    // les nouveaux composants hors champ. On divise par le zoom courant pour
-    // que la cascade reste toujours dans la meme portion de l'ecran, quel
-    // que soit le niveau de zoom.
-    const zoom = getZoom() || 1;
+    // computeCascadePosition borne strictement le résultat à la zone
+    // réellement visible (voir son commentaire) — un clic dans la
+    // bibliothèque place le composant dans la vue en cours, jamais hors
+    // champ, quel que soit le zoom ou le nombre de composants déjà posés.
     const electricalCount = nodes.filter((n) => n.type === "electrical").length;
-    const col = electricalCount % 5;
-    const row = Math.floor(electricalCount / 5) % 4;
-    const cascadePosition = { x: center.x + (col * 220) / zoom, y: center.y + (row * 160) / zoom };
-    // Un clic dans la bibliothèque place le composant dans la vue en cours.
-    // Le placement reste toujours manuel et prévisible, sans réagencement.
-    const position = cascadePosition;
+    const position = computeCascadePosition(screenToFlowPosition, electricalCount);
     const preset = presetValue ? CONSUMER_PRESETS.find((p) => p.value === presetValue) : undefined;
     const dataOverride = preset ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW } : undefined;
 
