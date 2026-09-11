@@ -968,6 +968,25 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
       </tbody>
     </table>`;
 
+  // Cosses (retour utilisateur : "un moteur pour calculer les consommables
+  // cosses... avec les diamètres de vis et la section") — diamètre déduit
+  // uniquement de la section du câble (lib/electrical-components/cable-lugs.ts),
+  // donc indicatif : précisé dans le titre de la table plutôt que dans une
+  // colonne à part, pour rester visible même si le tableau est imprimé seul.
+  const lugTable =
+    bom.lugRows.length === 0
+      ? ""
+      : `
+    <h2>Cosses (diamètre indicatif — à vérifier selon la borne réelle)</h2>
+    <table>
+      <thead><tr><th>Section</th><th>Diamètre de vis</th><th>Quantité</th></tr></thead>
+      <tbody>
+        ${bom.lugRows
+          .map((row) => `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.studDiameter)}</td><td>${row.count}</td></tr>`)
+          .join("")}
+      </tbody>
+    </table>`;
+
   // Câbles de bus de données à part (retour utilisateur) : préconfectionnés,
   // achetés à l'unité — longueur moyenne + nombre plutôt qu'un métrage total.
   const dataBusTable =
@@ -1003,6 +1022,7 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
   <div class="disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)} Les quantités et métrages sont calculés à partir du schéma et doivent être vérifiés avant commande.</div>
   ${componentTables}
   ${cableTable}
+  ${lugTable}
   ${dataBusTable}
   <footer>Généré par FabSystem pour ${title} — fabsystem.fr</footer>
 </body>

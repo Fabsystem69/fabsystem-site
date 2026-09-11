@@ -1,6 +1,7 @@
 import { getComponentDefinition, getConsumerPreset, CATEGORY_LABELS } from "./definitions";
 import { getCableType } from "./cable-types";
 import { getBrandModel, type BrandModel } from "./brand-models";
+import { compareBySectionOrder, getRecommendedLugStudDiameter } from "./cable-lugs";
 import type { Node, Edge } from "@xyflow/react";
 
 // Récapitulatif matériel (retour utilisateur : "un dossier récap des
@@ -41,10 +42,24 @@ export interface BomDataBusRow {
   missingLengthCount: number;
 }
 
+// Cosses à œillet nécessaires pour sertir les câbles (retour utilisateur :
+// "un moteur pour calculer les consommables cosses... avec les diamètres de
+// vis et la section") — 2 cosses par câble (une à chaque extrémité), sauf
+// bus de données (connecteurs préconfectionnés, jamais de cosse à sertir).
+// Diamètre déduit uniquement de la section (voir cable-lugs.ts) : reste
+// indicatif, une même section existant couramment en plusieurs diamètres de
+// trou selon la borne réelle du composant.
+export interface BomLugRow {
+  section: string;
+  studDiameter: string;
+  count: number;
+}
+
 export interface Bom {
   componentGroups: BomCategoryGroup[];
   cableRows: BomCableRow[];
   dataBusRows: BomDataBusRow[];
+  lugRows: BomLugRow[];
   totalComponents: number;
   totalCables: number;
 }
@@ -110,6 +125,7 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
 
   const bySection = new Map<string, { count: number; totalLengthM: number; missingLengthCount: number }>();
   const byDataBus = new Map<string, { count: number; totalLengthM: number; missingLengthCount: number }>();
+  const byLug = new Map<string, { section: string; studDiameter: string; count: number }>();
   for (const edge of edges) {
     const length = Number(edge.data?.length);
     const hasLength = Number.isFinite(length) && length > 0;
@@ -130,6 +146,16 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     if (hasLength) entry.totalLengthM += length;
     else entry.missingLengthCount += 1;
     bySection.set(section, entry);
+
+    // 2 cosses par câble (une à chaque extrémité) — rien si la section n'est
+    // pas renseignée, impossible de recommander un diamètre sans elle.
+    const studDiameter = getRecommendedLugStudDiameter(section);
+    if (studDiameter) {
+      const lugKey = `${section}__${studDiameter}`;
+      const lugEntry = byLug.get(lugKey) ?? { section, studDiameter, count: 0 };
+      lugEntry.count += 2;
+      byLug.set(lugKey, lugEntry);
+    }
   }
 
   const cableRows: BomCableRow[] = Array.from(bySection.entries())
@@ -151,7 +177,11 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     };
   });
 
-  return { componentGroups, cableRows, dataBusRows, totalComponents: nodes.length, totalCables: edges.length };
+  const lugRows: BomLugRow[] = Array.from(byLug.values()).sort(
+    (a, b) => compareBySectionOrder(a.section, b.section) || a.studDiameter.localeCompare(b.studDiameter)
+  );
+
+  return { componentGroups, cableRows, dataBusRows, lugRows, totalComponents: nodes.length, totalCables: edges.length };
 }
 
 // Texte simple, prêt à copier-coller dans un email de demande de devis
@@ -195,6 +225,14 @@ export function buildMaterialListText(bom: Bom, projectName: string): string {
     lines.push("Câbles de données");
     for (const row of bom.dataBusRows) {
       lines.push(`- ${row.label} : ${row.count} câble${row.count > 1 ? "s" : ""}`);
+    }
+    lines.push("");
+  }
+
+  if (bom.lugRows.length > 0) {
+    lines.push("Cosses (diamètre indicatif, à vérifier selon la borne réelle)");
+    for (const row of bom.lugRows) {
+      lines.push(`- ${row.count}x Cosse à œillet ${row.section} / ${row.studDiameter}`);
     }
     lines.push("");
   }
