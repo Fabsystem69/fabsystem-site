@@ -53,7 +53,7 @@ export default async function EditeurPlusPage({ searchParams }: { searchParams?:
           <Card className="p-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Hebdomadaire</p>
             <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.weekly.label}</h2>
-            <p className="mt-2 text-3xl font-semibold text-neutral-950">2,90 € <span className="text-base font-medium text-neutral-500">/ semaine</span></p>
+            <p className="mt-2 text-3xl font-semibold text-neutral-950">1,99 € <span className="text-base font-medium text-neutral-500">/ semaine</span></p>
             <p className="mt-3 text-sm leading-relaxed text-neutral-600">Pour tester sur un projet ponctuel, sans engagement.</p>
             <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="weekly" className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50">Choisir l&apos;hebdomadaire</SchemaEditorPlusCheckoutButton></div>
           </Card>

@@ -22,7 +22,7 @@ export const SCHEMA_EDITOR_PLUS_PLANS: Record<SchemaEditorPlusPlan, {
 }> = {
   weekly: {
     label: "Éditeur Plus hebdomadaire",
-    priceCents: 290,
+    priceCents: 199,
     interval: "week",
     priceEnv: SCHEMA_EDITOR_PLUS_WEEKLY_PRICE_ENV,
   },
