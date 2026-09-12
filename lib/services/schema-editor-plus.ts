@@ -16,6 +16,9 @@ export const SCHEMA_EDITOR_PLUS_PLANS: Record<SchemaEditorPlusPlan, {
   priceCents: number;
   interval: "week" | "month" | "year";
   priceEnv: string;
+  // Essai gratuit avant le premier prélèvement (retour utilisateur) — pas
+  // sur l'hebdomadaire, déjà le point d'entrée le moins engageant côté prix.
+  trialDays?: number;
 }> = {
   weekly: {
     label: "Éditeur Plus hebdomadaire",
@@ -28,12 +31,14 @@ export const SCHEMA_EDITOR_PLUS_PLANS: Record<SchemaEditorPlusPlan, {
     priceCents: 690,
     interval: "month",
     priceEnv: SCHEMA_EDITOR_PLUS_MONTHLY_PRICE_ENV,
+    trialDays: 7,
   },
   yearly: {
     label: "Éditeur Plus annuel",
     priceCents: 5900,
     interval: "year",
     priceEnv: SCHEMA_EDITOR_PLUS_YEARLY_PRICE_ENV,
+    trialDays: 7,
   },
 };
 
@@ -165,6 +170,8 @@ export async function createSchemaEditorPlusCheckoutSession(params: {
   const active = await hasSchemaEditorPlusAccess(customer.id);
   if (active) throw new Error("Éditeur Plus is already active");
 
+  const trialDays = SCHEMA_EDITOR_PLUS_PLANS[params.plan].trialDays;
+
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer_email: customer.email,
@@ -173,6 +180,7 @@ export async function createSchemaEditorPlusCheckoutSession(params: {
     allow_promotion_codes: true,
     line_items: [{ price: getSchemaEditorPlusPriceId(params.plan), quantity: 1 }],
     subscription_data: {
+      ...(trialDays ? { trial_period_days: trialDays } : {}),
       metadata: {
         fabsystem_customer_id: customer.id,
         fabsystem_customer_email: customer.email,

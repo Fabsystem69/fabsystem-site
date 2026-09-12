@@ -61,6 +61,7 @@ export default async function EditeurPlusPage({ searchParams }: { searchParams?:
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Mensuel</p>
             <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.monthly.label}</h2>
             <p className="mt-2 text-3xl font-semibold text-neutral-950">6,90 € <span className="text-base font-medium text-neutral-500">/ mois</span></p>
+            {SCHEMA_EDITOR_PLUS_PLANS.monthly.trialDays ? <p className="mt-1 text-sm font-medium text-emerald-700">{SCHEMA_EDITOR_PLUS_PLANS.monthly.trialDays} jours d&apos;essai gratuit</p> : null}
             <p className="mt-3 text-sm leading-relaxed text-neutral-600">Pour avancer sans engagement sur votre installation.</p>
             <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="monthly" className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50">Choisir le mensuel</SchemaEditorPlusCheckoutButton></div>
           </Card>
@@ -69,6 +70,7 @@ export default async function EditeurPlusPage({ searchParams }: { searchParams?:
             <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.yearly.label}</h2>
             <p className="mt-2 text-3xl font-semibold text-neutral-950">59 € <span className="text-base font-medium text-neutral-600">/ an</span></p>
             <p className="mt-1 text-sm font-medium text-amber-900">4,92 € par mois · près de 4 mois offerts</p>
+            {SCHEMA_EDITOR_PLUS_PLANS.yearly.trialDays ? <p className="mt-1 text-sm font-medium text-emerald-700">{SCHEMA_EDITOR_PLUS_PLANS.yearly.trialDays} jours d&apos;essai gratuit</p> : null}
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">Le bon rythme pour concevoir, installer et ajuster sans pression.</p>
             <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="yearly" className="w-full rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800">Choisir l&apos;annuel</SchemaEditorPlusCheckoutButton></div>
           </Card>
