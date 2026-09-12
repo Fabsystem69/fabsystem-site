@@ -57,20 +57,20 @@ export default async function EditeurPlusPage({ searchParams }: { searchParams?:
             <p className="mt-3 text-sm leading-relaxed text-neutral-600">Pour tester sur un projet ponctuel, sans engagement.</p>
             <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="weekly" className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50">Choisir l&apos;hebdomadaire</SchemaEditorPlusCheckoutButton></div>
           </Card>
-          <Card className="p-6">
+          <Card className="relative overflow-hidden p-6">
+            {SCHEMA_EDITOR_PLUS_PLANS.monthly.trialDays ? <TrialBadge days={SCHEMA_EDITOR_PLUS_PLANS.monthly.trialDays} /> : null}
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Mensuel</p>
             <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.monthly.label}</h2>
             <p className="mt-2 text-3xl font-semibold text-neutral-950">6,90 € <span className="text-base font-medium text-neutral-500">/ mois</span></p>
-            {SCHEMA_EDITOR_PLUS_PLANS.monthly.trialDays ? <p className="mt-1 text-sm font-medium text-emerald-700">{SCHEMA_EDITOR_PLUS_PLANS.monthly.trialDays} jours d&apos;essai gratuit</p> : null}
             <p className="mt-3 text-sm leading-relaxed text-neutral-600">Pour avancer sans engagement sur votre installation.</p>
             <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="monthly" className="w-full rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50">Choisir le mensuel</SchemaEditorPlusCheckoutButton></div>
           </Card>
-          <Card className="border-amber-300 bg-amber-50 p-6">
+          <Card className="relative overflow-hidden border-amber-300 bg-amber-50 p-6">
+            {SCHEMA_EDITOR_PLUS_PLANS.yearly.trialDays ? <TrialBadge days={SCHEMA_EDITOR_PLUS_PLANS.yearly.trialDays} /> : null}
             <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Le plus choisi</p>
             <h2 className="mt-2 text-xl font-semibold text-neutral-950">{SCHEMA_EDITOR_PLUS_PLANS.yearly.label}</h2>
             <p className="mt-2 text-3xl font-semibold text-neutral-950">59 € <span className="text-base font-medium text-neutral-600">/ an</span></p>
             <p className="mt-1 text-sm font-medium text-amber-900">4,92 € par mois · près de 4 mois offerts</p>
-            {SCHEMA_EDITOR_PLUS_PLANS.yearly.trialDays ? <p className="mt-1 text-sm font-medium text-emerald-700">{SCHEMA_EDITOR_PLUS_PLANS.yearly.trialDays} jours d&apos;essai gratuit</p> : null}
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">Le bon rythme pour concevoir, installer et ajuster sans pression.</p>
             <div className="mt-5"><SchemaEditorPlusCheckoutButton plan="yearly" className="w-full rounded-lg bg-neutral-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800">Choisir l&apos;annuel</SchemaEditorPlusCheckoutButton></div>
           </Card>
@@ -82,5 +82,17 @@ export default async function EditeurPlusPage({ searchParams }: { searchParams?:
         <p className="mt-2 text-sm leading-relaxed text-neutral-600">Vous gardez tous vos schémas. Un projet compatible avec les limites gratuites (1 projet, 3 consommateurs) redevient modifiable ; les autres restent consultables.</p>
       </Card>
     </div>
+  );
+}
+
+// Vignette d'accroche pour l'essai gratuit (retour utilisateur : "une
+// vignette marketing") — coin de la carte plutôt qu'une simple ligne de
+// texte, même niveau de finition que le badge "Le plus choisi" déjà
+// présent sur l'annuel.
+function TrialBadge({ days }: { days: number }) {
+  return (
+    <span className="absolute right-4 top-4 rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+      {days} jours offerts
+    </span>
   );
 }
