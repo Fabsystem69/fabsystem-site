@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
 import { JeConfieUnivers } from "@/components/services/JeConfieUnivers";
@@ -77,7 +78,16 @@ export function JeConfie({ initialCategory }: { initialCategory?: PrestationsCat
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <p className="mt-6 text-sm">
+          <Link
+            href="/realisations"
+            className="font-semibold text-neutral-900 underline underline-offset-4 hover:text-neutral-700"
+          >
+            Voir des interventions déjà réalisées →
+          </Link>
+        </p>
+
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
           <Button href="/contact" variant="primary">
             Parler de mon projet
           </Button>

@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import LightboxImage from "@/components/LightboxImage";
 import { PageIntro } from "@/components/public/PageIntro";
+import { SelonVotreSituation } from "@/components/services/SelonVotreSituation";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -231,6 +232,8 @@ export default function Installation12VBateauPage() {
           </div>
         </section>
       ) : null}
+
+      <SelonVotreSituation current="installation-12v-bateau" />
 
       <section className="border-t border-neutral-200 bg-white py-8 sm:py-10">
         <div className="mx-auto max-w-6xl px-6">

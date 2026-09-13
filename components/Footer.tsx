@@ -29,6 +29,7 @@ const EXPLORE_LINKS = [
 
 const COMPANY_LINKS = [
   { href: "/a-propos", label: "À propos" },
+  { href: "/realisations", label: "Réalisations" },
   { href: "/contact", label: "Contact" },
   { href: "/mon-compte", label: "Mon compte" },
 ];

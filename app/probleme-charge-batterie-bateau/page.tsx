@@ -1,4 +1,5 @@
 import { PageIntro } from "@/components/public/PageIntro";
+import { SelonVotreSituation } from "@/components/services/SelonVotreSituation";
 import ServiceAssurance from "@/components/ServiceAssurance";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -121,6 +122,8 @@ export default function ProblemeChargeBatterieBateauPage() {
           </div>
         </div>
       </section>
+
+      <SelonVotreSituation current="probleme-charge-batterie-bateau" />
 
       <section className="border-t border-neutral-200 bg-white py-8 sm:py-10">
         <div className="mx-auto max-w-6xl px-6">
