@@ -53,9 +53,13 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   // générique — c'est en réalité une vraie liseuse LED articulée, un
   // meilleur usage ici qu'à la poubelle).
   { value: "liseuse-led", label: "Liseuse LED", typicalPowerW: 3, iconPro: "/schema-icons/pro/consumer.webp", group: "Éclairage" },
+  // Les Uniteck Wave (18W/26W) sont des modèles de marque rattachés à ce
+  // préréglage générique (voir brand-models.ts, componentType "consumer",
+  // presetType "plafonnier-led") — retour utilisateur : "pompe à eau...
+  // plus appareil pour la même chose et pas juste le choix du modèle",
+  // même correction appliquée ici pour ne pas dupliquer une tuile par
+  // référence commerciale.
   { value: "plafonnier-led", label: "Plafonnier LED", typicalPowerW: 5, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage" },
-  { value: "plafonnier-led-uniteck-rond-18w", label: "Plafonnier rond LED 18W Uniteck (avec interrupteur, 12/24V)", typicalPowerW: 18, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage", supplier: { name: "Solaris Store", priceCents: 4500, url: "https://www.solaris-store.com/7980-plafonnier-rond-led-18w-avec-interrupteur-12v-24v-uniledlight-18-24rb.html" } },
-  { value: "plafonnier-led-uniteck-reglette-26w", label: "Plafonnier réglette LED 26W Uniteck (avec interrupteur, 12/24V)", typicalPowerW: 26, iconPro: "/schema-icons/pro/plafonnier-led.jpg", group: "Éclairage", supplier: { name: "Solaris Store", priceCents: 7900, url: "https://www.solaris-store.com/7984-plafonnier-reglette-led-26w-avec-interrupteur-12v-24v-uniledlight-26-24lb.html" } },
   { value: "eclairage-marche", label: "Éclairage de marche/passerelle", typicalPowerW: 2, iconPro: "/schema-icons/pro/eclairage-marche.jpg", group: "Éclairage" },
   { value: "projecteur-pont", label: "Projecteur de pont", typicalPowerW: 20, iconPro: "/schema-icons/pro/projecteur-pont.jpg", group: "Éclairage" },
   // Feux réglementaires bateau — chacun sur son propre circuit en usage réel
@@ -67,16 +71,13 @@ export const CONSUMER_PRESETS: ConsumerPreset[] = [
   { value: "klaxon", label: "Klaxon / avertisseur sonore", typicalPowerW: 15, iconPro: "/schema-icons/pro/klaxon.webp", group: "Sécurité" },
   { value: "refrigerateur", label: "Réfrigérateur à compression", typicalPowerW: 45, iconPro: "/schema-icons/pro/refrigerateur.webp", group: "Réfrigération" },
   { value: "refrigerateur-trimix", label: "Réfrigérateur trimix (12V/230V/gaz)", typicalPowerW: 40, iconPro: "/schema-icons/pro/refrigerateur-trimix.webp", group: "Réfrigération" },
+  // Les Pentair Shurflo (Deluxe Light/Standard 8000/Deluxe) sont des
+  // modèles de marque rattachés à ce préréglage générique (voir
+  // brand-models.ts, componentType "consumer", presetType "pompe-eau") —
+  // retour utilisateur : "pompe à eau... plus appareil pour la même chose
+  // et pas juste le choix du modèle" — une tuile par référence commerciale
+  // polluait la bibliothèque au lieu d'un choix de modèle sur "Pompe à eau".
   { value: "pompe-eau", label: "Pompe à eau", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau" },
-  // Références réelles Pentair Shurflo (partenariat Solaris Store, 09/2026,
-  // retour utilisateur : "se modele peux etre utiliser en pompe a eau
-  // d'alimentation basique je l'utilise et je pense que toute la gamme
-  // pentair (remplace shurflo)"). Puissance dérivée du courant nominal
-  // documenté par Solaris (12V × A), arrondie au-dessus par prudence
-  // (dimensionnement câble/fusible) — jamais la valeur exacte datasheet.
-  { value: "pompe-eau-shurflo-deluxe-light", label: "Pompe à eau de surface Pentair Shurflo Deluxe Light (10,6 L/min)", typicalPowerW: 45, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau", supplier: { name: "Solaris Store", priceCents: 11084, url: "https://www.solaris-store.com/138-pompe-de-surface-shurflo-deluxe-light-2088-403-143.html" } },
-  { value: "pompe-eau-shurflo-standard-8000", label: "Pompe à eau de surface Pentair Shurflo Standard 8000 (6,5 L/min)", typicalPowerW: 50, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau", supplier: { name: "Solaris Store", priceCents: 12900, url: "https://www.solaris-store.com/134-pompe-de-surface-shurflo-standard-8000-443-136.html" } },
-  { value: "pompe-eau-shurflo-deluxe", label: "Pompe à eau de surface Pentair Shurflo Deluxe (13,2 L/min)", typicalPowerW: 65, iconPro: "/schema-icons/pro/pompe-eau.webp", group: "Eau", supplier: { name: "Solaris Store", priceCents: 12900, url: "https://www.solaris-store.com/135-pompe-de-surface-shurflo-deluxe-2088-443-144.html" } },
   // Retour utilisateur : "pompe immergée avec les deux possibilités" — deux
   // références réelles fournies plutôt qu'un seul préréglage générique.
   { value: "pompe-eau-immergee-25l", label: "Pompe à eau immergée 25L/min (type Reich Powerjet)", typicalPowerW: 60, iconPro: "/schema-icons/pro/pompe-eau-immergee-25l.jpg", group: "Eau" },

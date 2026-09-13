@@ -100,17 +100,22 @@ function specLabel(data: Record<string, unknown>): string {
 }
 
 export function displayName(componentType: string, label: string, data: Record<string, unknown>): string {
-  if (componentType === "consumer" && typeof data.presetType === "string") {
-    const preset = getConsumerPreset(data.presetType);
-    if (preset && preset.value !== "generique") return preset.label;
-  }
   // Un modèle de marque choisi (brand-models.ts) ne changeait jusqu'ici que
   // les caractéristiques numériques, jamais le nom affiché — la liste de
   // matériel montrait "Régulateur MPPT" même pour un Victron SmartSolar
   // précis. Nécessaire pour que l'export fournisseur porte un nom
-  // identifiable (retour utilisateur : "avec leur appellation").
+  // identifiable (retour utilisateur : "avec leur appellation"). Vérifié
+  // AVANT le préréglage générique ci-dessous : un appareil "consumer" avec
+  // à la fois un presetType (ex. "pompe-eau") ET un brandModelId (ex.
+  // Pentair Shurflo) doit afficher le produit précis, pas retomber sur le
+  // libellé générique du préréglage juste parce que presetType est déjà
+  // renseigné.
   if (typeof data.brand === "string" && data.brand && typeof data.model === "string" && data.model) {
     return `${data.brand} ${data.model}`;
+  }
+  if (componentType === "consumer" && typeof data.presetType === "string") {
+    const preset = getConsumerPreset(data.presetType);
+    if (preset && preset.value !== "generique") return preset.label;
   }
   return label;
 }

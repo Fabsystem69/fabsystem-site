@@ -89,7 +89,14 @@ test("getBrandModelsForType filtre les modèles 'consumer' par presetType, jamai
 
   // ...mais un appareil sans rapport n'en hérite plus.
   assert.deepEqual(getBrandModelsForType("consumer", "eclairage-led"), []);
-  assert.deepEqual(getBrandModelsForType("consumer", "pompe-eau"), []);
+  assert.deepEqual(getBrandModelsForType("consumer", "klaxon"), []);
+
+  // "pompe-eau" a ses propres modèles (Pentair Shurflo, migrés depuis
+  // d'anciens préréglages à part — retour utilisateur : "pompe à eau...
+  // plus appareil pour la même chose et pas juste le choix du modèle") —
+  // jamais les Pundmann du chauffe-eau ci-dessus.
+  assert.equal(getBrandModelsForType("consumer", "pompe-eau").length, 3);
+  assert.ok(getBrandModelsForType("consumer", "pompe-eau").every((m) => m.brand === "Pentair"));
 
   // Sans presetType du tout (l'ancien appel, avant le correctif), plus
   // aucun modèle ne doit ressortir — jamais un "générique" qui reviendrait

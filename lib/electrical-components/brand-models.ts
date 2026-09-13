@@ -590,6 +590,19 @@ export const BRAND_MODELS: BrandModel[] = [
   // puissance maximale d'un circuit est donc 500 W, pas 700 W. Les deux
   // résistances sont conservées séparément pour le calcul des réseaux DC/AC.
   { id: "pundmann-therm-6l-12v-230v", brand: "Pundmann", model: "Therm 6L double résistance 12V/200W + 230V/500W", componentType: "consumer", defaults: { presetType: "chauffe-eau-mixte-12-220", supplyType: "mixed", powerW: 200, power230VW: 500 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-mixte.jpg" },
+
+  // Pentair Shurflo (pompe à eau de surface) — anciennement des préréglages
+  // à part (retour utilisateur : "pompe à eau... plus appareil pour la
+  // même chose et pas juste le choix du modèle"), migrés en modèles de
+  // marque rattachés au préréglage générique "pompe-eau" (definitions.ts).
+  { id: "pentair-shurflo-deluxe-light", brand: "Pentair", model: "Shurflo Deluxe Light (10,6 L/min)", componentType: "consumer", defaults: { presetType: "pompe-eau", powerW: 45 }, iconPro: "/schema-icons/pro/pompe-eau.webp", supplier: { name: "Solaris Store", priceCents: 11084, url: "https://www.solaris-store.com/138-pompe-de-surface-shurflo-deluxe-light-2088-403-143.html" } },
+  { id: "pentair-shurflo-standard-8000", brand: "Pentair", model: "Shurflo Standard 8000 (6,5 L/min)", componentType: "consumer", defaults: { presetType: "pompe-eau", powerW: 50 }, iconPro: "/schema-icons/pro/pompe-eau.webp", supplier: { name: "Solaris Store", priceCents: 12900, url: "https://www.solaris-store.com/134-pompe-de-surface-shurflo-standard-8000-443-136.html" } },
+  { id: "pentair-shurflo-deluxe", brand: "Pentair", model: "Shurflo Deluxe (13,2 L/min)", componentType: "consumer", defaults: { presetType: "pompe-eau", powerW: 65 }, iconPro: "/schema-icons/pro/pompe-eau.webp", supplier: { name: "Solaris Store", priceCents: 12900, url: "https://www.solaris-store.com/135-pompe-de-surface-shurflo-deluxe-2088-443-144.html" } },
+
+  // Uniteck UNILEDLIGHT (plafonniers LED) — même migration, rattachés au
+  // préréglage générique "plafonnier-led".
+  { id: "uniteck-uniledlight-rond-18w", brand: "Uniteck", model: "UNILEDLIGHT rond 18W (interrupteur, 12/24V)", componentType: "consumer", defaults: { presetType: "plafonnier-led", powerW: 18 }, iconPro: "/schema-icons/pro/plafonnier-led.jpg", supplier: { name: "Solaris Store", priceCents: 4500, url: "https://www.solaris-store.com/7980-plafonnier-rond-led-18w-avec-interrupteur-12v-24v-uniledlight-18-24rb.html" } },
+  { id: "uniteck-uniledlight-reglette-26w", brand: "Uniteck", model: "UNILEDLIGHT réglette 26W (interrupteur, 12/24V)", componentType: "consumer", defaults: { presetType: "plafonnier-led", powerW: 26 }, iconPro: "/schema-icons/pro/plafonnier-led.jpg", supplier: { name: "Solaris Store", priceCents: 7900, url: "https://www.solaris-store.com/7984-plafonnier-reglette-led-26w-avec-interrupteur-12v-24v-uniledlight-26-24lb.html" } },
 ];
 
 // Bug corrigé (retour utilisateur : "quand je rajoute n'importe quel

@@ -207,7 +207,14 @@ export function ComponentLibrary() {
             // signaler qu'un modèle précis est commandable chez eux.
             subtitle: preset.value === "generique" ? "Modifiable" : preset.supplier ? `Chez ${preset.supplier.name}` : undefined,
             category: def.category,
-            subcategory: def.subcategory,
+            // Retour utilisateur : "dans appareil créer des sous-groupes
+            // genre éclairage, pompe, etc pour faciliter la recherche" —
+            // preset.group existait déjà dans les données (définitions.ts)
+            // mais n'était jusqu'ici jamais utilisé pour sous-grouper cette
+            // bibliothèque, réutilise le même mécanisme d'affichage que les
+            // sous-catégories des autres familles. "Au choix" (générique)
+            // reste hors groupe, en tête de la famille Consommateurs.
+            subcategory: preset.value === "generique" ? def.subcategory : (preset.group ?? def.subcategory),
             presetValue: preset.value,
             icon: getNodeIcon(def, { presetType: preset.value }, iconStyle),
           });
