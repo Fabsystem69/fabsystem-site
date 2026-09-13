@@ -81,7 +81,7 @@ test("les zones guidées agrandies restent strictement séparées", () => {
 });
 
 test("le gabarit Ducato implantation ne contient aucun câble vers une borne absente", () => {
-  const schema = getSchemaTemplate("reference-v3-atelier-ducato-implantation")?.build();
+  const schema = getSchemaTemplate("reference-v3-atelier-ducato")?.build();
   assert.ok(schema);
   const nodes = new Map(schema.nodes.map((item) => [item.id, item]));
 

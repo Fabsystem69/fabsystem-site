@@ -18,6 +18,9 @@ function createProjectRecord(overrides: Partial<Project> = {}): Project {
     archivedAt: overrides.archivedAt ?? null,
     deleteScheduledAt: overrides.deleteScheduledAt ?? null,
     preScheduleStatus: overrides.preScheduleStatus ?? null,
+    followUpStepOverride: overrides.followUpStepOverride ?? null,
+    kitId: overrides.kitId ?? null,
+    createdByAdmin: overrides.createdByAdmin ?? false,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
   };
@@ -101,7 +104,7 @@ test("applyProjectStarter pre-remplit le guide AFERIY P280 et rattache le schema
     OWNER,
     project,
     "aferiy-p280-guide",
-    createStarterDeps(project, calls, savedSchemas, "station-aferiy-p280", "AFERIY P280 dans un van")
+    createStarterDeps(project, calls, savedSchemas, "reference-v3-aferiy-p280", "AFERIY P280 dans un van")
   );
 
   assert.deepEqual(

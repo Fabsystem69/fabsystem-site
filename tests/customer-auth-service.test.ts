@@ -580,7 +580,11 @@ test("getCustomerSession returns the minimal customer payload", async () => {
     customers: [customer],
     customerSessions: [session],
   });
-  const service = createCustomerAuthService(db);
+  // Horloge figée à la même date de référence que la fixture (voir
+  // createCustomerSessionRecord) — la session par défaut expire le
+  // 2026-09-05 ; sans horloge fixée ici, ce test finit par échouer pour de
+  // vrai une fois cette date dépassée dans le calendrier réel.
+  const service = createCustomerAuthService(db, { now: () => new Date("2026-08-06T00:00:00.000Z") });
 
   const result = await service.getCustomerSession("session-token");
 

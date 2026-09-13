@@ -180,6 +180,9 @@ function createMockCustomerAccountDb(seed?: {
     async findEditorAccessCodesForOrders() {
       return [];
     },
+    async findEbookBenefitCodesForCustomer() {
+      return [];
+    },
   };
 }
 
