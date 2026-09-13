@@ -8,6 +8,7 @@ import { Confiance } from "@/components/home/Confiance";
 import { Accompagnement } from "@/components/home/Accompagnement";
 import { CtaFinal } from "@/components/home/CtaFinal";
 import { SchemaEditorSpotlight } from "@/components/home/SchemaEditorSpotlight";
+import { MethodeFabSystem } from "@/components/home/MethodeFabSystem";
 
 // Home V2 : le sélecteur d'univers est intégré au bloc parcours. Il ne
 // redirige pas : il préconfigure les CTA de la page d'accueil.
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Électricité embarquée bateau, van et camping-car",
   description:
-    "Diagnostic, conseil et installation en électricité embarquée pour bateaux, vans et camping-cars. Apprenez seul, avancez accompagné ou confiez votre installation à FabSystem.",
+    "Méthode, formations, outils, schémas et accompagnement en électricité embarquée pour bateaux, vans et camping-cars.",
   alternates: {
     canonical: "/",
   },
@@ -30,14 +31,15 @@ export default function HomePage() {
           <>
             L&apos;électricité embarquée,
             <br />
-            sans naviguer à vue.
+            avec une méthode claire.
           </>
         }
-        description="Bateau, van ou camping-car : apprenez à faire vous-même, avancez avec Fabien ou confiez votre installation."
-        primaryAction={{ href: "#parcours", label: "Comment Fabien peut m'aider" }}
+        description="Bateau, van ou camping-car : commencez par comprendre, dimensionner et dessiner, puis choisissez seulement l'aide dont vous avez besoin."
+        primaryAction={{ href: "/commencer-ici", label: "Commencer ici" }}
         secondaryAction={{ href: "/outils", label: "Découvrir les outils gratuits", variant: "secondary" }}
-        scrollTargetId="parcours"
+        scrollTargetId="methode"
       />
+      <MethodeFabSystem />
       <HomeUniverseProvider>
         <Parcours />
         <SchemaEditorSpotlight />

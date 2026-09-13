@@ -87,6 +87,9 @@ export default async function PrestationsPage({
             Les outils et Les Bases restent gratuits, sans compte.
           </p>
           <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <Link href="/commencer-ici" className="text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 hover:decoration-neutral-900">
+              Méthode FabSystem →
+            </Link>
             <Link href="/outils" className="text-sm font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 hover:decoration-neutral-900">
               Outils gratuits →
             </Link>

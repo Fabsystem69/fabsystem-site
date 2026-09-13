@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageIntro } from "@/components/public/PageIntro";
+import { Section } from "@/components/layout/Section";
 import { CalculateursIndex } from "@/components/outils/CalculateursIndex";
 import { BasiquesAtelier } from "@/components/outils/BasiquesAtelier";
 import { Guides } from "@/components/outils/Guides";
@@ -55,6 +57,17 @@ export default function OutilsPage() {
         title="Calculez, dimensionnez, vérifiez."
         description="Des outils simples et gratuits pour préparer une installation électrique fiable."
       />
+      <Section tone="light" size="narrow" className="py-6 text-center sm:py-8">
+        <p className="text-sm leading-relaxed text-neutral-600">
+          Les calculateurs font partie d&apos;un parcours plus large :{" "}
+          <Link
+            href="/commencer-ici"
+            className="font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 hover:decoration-neutral-900"
+          >
+            comprendre la méthode FabSystem →
+          </Link>
+        </p>
+      </Section>
       <CalculateursIndex />
       <BasiquesAtelier />
       <Guides />

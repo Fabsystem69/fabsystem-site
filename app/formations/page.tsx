@@ -59,6 +59,18 @@ export default function FormationsPage() {
         </div>
       </nav>
 
+      <Section tone="light" size="narrow" className="py-6 text-center sm:py-8">
+        <p className="text-sm leading-relaxed text-neutral-600">
+          Vous ne savez pas par quoi commencer ?{" "}
+          <Link
+            href="/commencer-ici"
+            className="font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 hover:decoration-neutral-900"
+          >
+            Suivre la méthode FabSystem →
+          </Link>
+        </p>
+      </Section>
+
       <Modules />
 
       <Section id="bons-gestes" tone="muted" className="scroll-mt-24">

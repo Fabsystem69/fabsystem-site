@@ -66,6 +66,12 @@ const groupedExamples = familyOrder.map((family) => ({
 
 const utilityLinks = [
   {
+    href: "/commencer-ici",
+    title: "Méthode FabSystem",
+    description:
+      "Replacez les schémas dans le parcours complet : comprendre, dimensionner, dessiner puis vérifier.",
+  },
+  {
     href: "/outils/schema",
     title: "Éditeur de schémas électriques",
     description:

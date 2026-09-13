@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageIntro } from "@/components/public/PageIntro";
+import { Section } from "@/components/layout/Section";
 import { GuidesEtUnivers } from "@/components/boutique/GuidesEtUnivers";
 import { UsageEtAcces } from "@/components/boutique/UsageEtAcces";
 import { PasserelleAccompagnement } from "@/components/boutique/PasserelleAccompagnement";
@@ -97,6 +99,17 @@ export default async function BoutiquePage() {
         title="Boutique"
         description="Des guides pratiques conçus à partir du terrain pour comprendre, concevoir et fiabiliser votre installation électrique. Bateau, van ou camping-car."
       />
+      <Section tone="light" size="narrow" className="py-6 text-center sm:py-8">
+        <p className="text-sm leading-relaxed text-neutral-600">
+          Les guides complètent les ressources gratuites. Pour choisir dans le bon ordre,{" "}
+          <Link
+            href="/commencer-ici"
+            className="font-semibold text-neutral-900 underline underline-offset-4 decoration-neutral-300 hover:decoration-neutral-900"
+          >
+            voyez la méthode FabSystem →
+          </Link>
+        </p>
+      </Section>
       <GuidesEtUnivers entries={entries} />
       <UsageEtAcces />
       <PasserelleAccompagnement />

@@ -36,6 +36,7 @@ const FORMATIONS_SLUGS = [
 
 const ROUTE_FILE_MAP = {
   "/": ["app/(home)/page.tsx"],
+  "/commencer-ici": ["app/commencer-ici/page.tsx", "components/home/MethodeFabSystem.tsx"],
   "/prestations": ["app/prestations/page.tsx"],
   "/prestations/accompagnement": [
     "app/prestations/accompagnement/page.tsx",
@@ -171,6 +172,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     await createEntry(baseUrl, "/", "monthly", 1),
+    await createEntry(baseUrl, "/commencer-ici", "monthly", 0.9),
     await createEntry(baseUrl, "/prestations", "monthly", 0.8),
     await createEntry(baseUrl, "/prestations/accompagnement", "monthly", 0.8),
     await createEntry(baseUrl, "/prestations/appel-decouverte", "monthly", 0.9),
