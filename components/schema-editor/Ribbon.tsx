@@ -302,12 +302,25 @@ function EditorMenuBar({
   }
 
   function exportBom() {
+    if (!adminMode && !hasUnlimitedConsumers) {
+      openFreemiumLimitPopup();
+      return;
+    }
     if (nodes.length === 0) return;
     openPrintableBom(computeBom(getNodes(), getEdges()), projectName);
     report("Liste de matériel prête à imprimer");
   }
 
+  // Retour utilisateur : "liste de matériel et demande de devis... visible
+  // en basique mais clic dessus ouvre le pop up pour souscrire et non la
+  // page" — le menu reste visible et cliquable pour tout le monde (jamais
+  // masqué ni désactivé), mais un compte gratuit obtient le popup
+  // d'abonnement au clic plutôt que le dialogue lui-même.
   function exportMaterialListForQuote() {
+    if (!adminMode && !hasUnlimitedConsumers) {
+      openFreemiumLimitPopup();
+      return;
+    }
     if (nodes.length === 0) return;
     setMaterialListBoms({
       real: computeBom(getNodes(), getEdges()),
