@@ -1,6 +1,7 @@
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { OfferPurchaseCta } from "@/components/prestations/OfferPurchaseCta";
+import { OfferTestimonials } from "@/components/prestations/OfferTestimonials";
 import Image from "next/image";
 
 type OfferDetailPageProps = {
@@ -148,6 +149,7 @@ export function OfferDetailPage({
             </ul>
           </article>
         </div>
+        {purchaseProductSlug ? <OfferTestimonials offerSlug={purchaseProductSlug} /> : null}
         <div className="mt-6 rounded-3xl bg-neutral-950 px-6 py-8 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:px-8">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-400">Prêt à avancer ?</p>

@@ -43,7 +43,7 @@ type TestimonialUpdateData = Partial<TestimonialCreateData> & {
 
 export type TestimonialsDb = {
   findAllTestimonials(): Promise<Testimonial[]>;
-  findPublishedTestimonials(): Promise<Testimonial[]>;
+  findPublishedTestimonials(relatedOffer?: string): Promise<Testimonial[]>;
   findTestimonialById(id: string): Promise<Testimonial | null>;
   createTestimonial(data: TestimonialCreateData): Promise<Testimonial>;
   updateTestimonial(id: string, data: TestimonialUpdateData): Promise<Testimonial>;
@@ -57,9 +57,9 @@ function createPrismaTestimonialsDb(client: PrismaClientLike): TestimonialsDb {
         orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
       });
     },
-    async findPublishedTestimonials() {
+    async findPublishedTestimonials(relatedOffer) {
       return client.testimonial.findMany({
-        where: { isPublished: true },
+        where: { isPublished: true, ...(relatedOffer ? { relatedOffer } : {}) },
         orderBy: [{ isFeatured: "desc" }, { displayOrder: "asc" }, { createdAt: "desc" }],
       });
     },
@@ -112,8 +112,8 @@ export function createTestimonialsService(db: TestimonialsDb) {
       return db.findAllTestimonials();
     },
 
-    async listPublishedTestimonials() {
-      return db.findPublishedTestimonials();
+    async listPublishedTestimonials(relatedOffer?: string) {
+      return db.findPublishedTestimonials(relatedOffer);
     },
 
     async createTestimonial(input: CreateTestimonialInput) {
@@ -208,9 +208,9 @@ export async function listAdminTestimonials() {
   return service.listAdminTestimonials();
 }
 
-export async function listPublishedTestimonials() {
+export async function listPublishedTestimonials(relatedOffer?: string) {
   const service = await getDefaultTestimonialsService();
-  return service.listPublishedTestimonials();
+  return service.listPublishedTestimonials(relatedOffer);
 }
 
 export async function createTestimonial(input: CreateTestimonialInput) {

@@ -101,7 +101,7 @@ export default async function DashboardTestimonialsNewPage({
 
         <label className="block space-y-2">
           <span className="text-sm font-medium text-neutral-200">
-            Offre concernée <span className="text-neutral-500">(optionnel, ex. PASSERELLE)</span>
+            Offre concernée <span className="text-neutral-500">(optionnel, ex. accompagnement-guide — doit correspondre au slug exact pour s&apos;afficher sur la page de l&apos;offre)</span>
           </span>
           <input
             name="relatedOffer"

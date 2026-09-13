@@ -34,9 +34,9 @@ function createMockTestimonialsDb(seed?: { testimonials?: Testimonial[] }) {
     async findAllTestimonials() {
       return [...state.testimonials].sort((a, b) => a.displayOrder - b.displayOrder);
     },
-    async findPublishedTestimonials() {
+    async findPublishedTestimonials(relatedOffer) {
       return state.testimonials
-        .filter((item) => item.isPublished)
+        .filter((item) => item.isPublished && (!relatedOffer || item.relatedOffer === relatedOffer))
         .sort((a, b) => {
           if (a.isFeatured !== b.isFeatured) return a.isFeatured ? -1 : 1;
           if (a.displayOrder !== b.displayOrder) return a.displayOrder - b.displayOrder;
@@ -170,6 +170,21 @@ test("listPublishedTestimonials prioritizes featured testimonials", async () => 
   const published = await service.listPublishedTestimonials();
 
   assert.equal(published[0]?.id, "t2");
+});
+
+test("listPublishedTestimonials filters by relatedOffer when provided", async () => {
+  const { db } = createMockTestimonialsDb({
+    testimonials: [
+      createTestimonialRecord({ id: "t1", isPublished: true, relatedOffer: "accompagnement-guide" }),
+      createTestimonialRecord({ id: "t2", isPublished: true, relatedOffer: "accompagnement-conception-complete" }),
+      createTestimonialRecord({ id: "t3", isPublished: true, relatedOffer: null }),
+    ],
+  });
+  const service = createTestimonialsService(db);
+
+  const published = await service.listPublishedTestimonials("accompagnement-guide");
+
+  assert.deepEqual(published.map((item) => item.id), ["t1"]);
 });
 
 test("setTestimonialPublished publishes a testimonial", async () => {
