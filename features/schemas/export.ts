@@ -991,7 +991,7 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
     <p>${bom.optimized ? "Regroupées ci-dessus" : "Regrouper évite d'acheter une bobine dédiée (50-100m) pour un petit métrage"} :</p>
     <ul>
       ${bom.cableHarmonizationSuggestions
-        .map((s) => `<li>${escapeHtml(s.section)} (${escapeHtml(String(Math.round(s.totalLengthM * 10) / 10).replace(".", ","))} m au total) → ${escapeHtml(s.targetSection)}</li>`)
+        .map((s) => `<li>${escapeHtml(s.section)} — ${escapeHtml(s.cableTypeLabel)} (${escapeHtml(String(Math.round(s.totalLengthM * 10) / 10).replace(".", ","))} m au total) → ${escapeHtml(s.targetSection)}</li>`)
         .join("")}
     </ul>`;
 

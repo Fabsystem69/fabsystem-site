@@ -147,26 +147,34 @@ export function computeBom(
     .map(([category, rows]) => ({ category, rows: Array.from(rows.values()).sort((a, b) => a.name.localeCompare(b.name)) }))
     .sort((a, b) => a.category.localeCompare(b.category));
 
-  // Passe 1 : total réel par section (câbles avec longueur connue,
-  // hors bus de données) — sert à décider quelles petites sections méritent
-  // d'être proposées à l'harmonisation (cable-harmonization.ts), et, si
-  // demandé, à rediriger ces sections vers leur cible dans la passe 2.
-  const rawTotalLengthBySection = new Map<string, number>();
+  // Passe 1 : total réel par section ET PAR COULEUR (câbles avec longueur
+  // connue, hors bus de données) — une bobine s'achète par couleur (retour
+  // utilisateur : "1mm² 18m mais en fait ça fait une bobine de rouge et une
+  // noire, la suggestion doit faire attention à la couleur pas juste la
+  // section"), donc le seuil doit s'évaluer par couleur, jamais sur le
+  // total toutes couleurs confondues.
+  const rawTotalsByColor = new Map<string, { section: string; cableTypeLabel: string; totalLengthM: number }>();
   for (const edge of edges) {
     if (edge.data?.cableType === "data-bus") continue;
     const length = Number(edge.data?.length);
     if (!(Number.isFinite(length) && length > 0)) continue;
     const section = String(edge.data?.section || "Section non renseignée");
-    rawTotalLengthBySection.set(section, (rawTotalLengthBySection.get(section) ?? 0) + length);
+    const cableTypeLabel = getCableType(String(edge.data?.cableType ?? ""))?.label ?? "Autre";
+    const key = `${section}__${cableTypeLabel}`;
+    const entry = rawTotalsByColor.get(key) ?? { section, cableTypeLabel, totalLengthM: 0 };
+    entry.totalLengthM += length;
+    rawTotalsByColor.set(key, entry);
   }
-  const cableHarmonizationSuggestions = getCableHarmonizationSuggestions(rawTotalLengthBySection);
+  const cableHarmonizationSuggestions = getCableHarmonizationSuggestions(rawTotalsByColor);
   // Vue "optimisée" (retour utilisateur : "possibilité du coup de passer
   // tout le schéma en version câble optimisé") : ici, purement un affichage
   // différent du même schéma — les sections réelles ne sont modifiées que
   // par l'action dédiée applyCableHarmonization (useSchemaStore.ts), jamais
-  // par un simple calcul d'affichage.
+  // par un simple calcul d'affichage. Clé section+couleur : ne redirige que
+  // la couleur réellement sous le seuil, jamais l'autre couleur de la même
+  // section si elle en a assez pour justifier sa propre bobine.
   const sectionRedirect = options?.harmonizeSmallSections
-    ? new Map(cableHarmonizationSuggestions.map((s) => [s.section, s.targetSection]))
+    ? new Map(cableHarmonizationSuggestions.map((s) => [`${s.section}__${s.cableTypeLabel}`, s.targetSection]))
     : new Map<string, string>();
 
   const bySection = new Map<string, { section: string; cableTypeLabel: string; count: number; totalLengthM: number; missingLengthCount: number }>();
@@ -187,8 +195,8 @@ export function computeBom(
     }
 
     const rawSection = String(edge.data?.section || "Section non renseignée");
-    const section = sectionRedirect.get(rawSection) ?? rawSection;
     const cableTypeLabel = getCableType(String(edge.data?.cableType ?? ""))?.label ?? "Autre";
+    const section = sectionRedirect.get(`${rawSection}__${cableTypeLabel}`) ?? rawSection;
     const key = `${section}__${cableTypeLabel}`;
     const entry = bySection.get(key) ?? { section, cableTypeLabel, count: 0, totalLengthM: 0, missingLengthCount: 0 };
     entry.count += 1;
@@ -290,7 +298,7 @@ export function buildMaterialListText(bom: Bom, projectName: string): string {
     );
     for (const suggestion of bom.cableHarmonizationSuggestions) {
       const total = String(Math.round(suggestion.totalLengthM * 10) / 10).replace(".", ",");
-      lines.push(`- ${suggestion.section} (${total} m au total) → ${suggestion.targetSection}`);
+      lines.push(`- ${suggestion.section} — ${suggestion.cableTypeLabel} (${total} m au total) → ${suggestion.targetSection}`);
     }
     lines.push("");
   }
@@ -351,10 +359,10 @@ export function buildMaterialListCsv(bom: Bom, projectName: string): string {
 
   if (bom.cableHarmonizationSuggestions.length > 0) {
     lines.push(csvLine([bom.optimized ? "Sections harmonisées automatiquement" : "Suggestion — sections harmonisables"]));
-    lines.push(csvLine(["Section", "Total (m)", "Vers"]));
+    lines.push(csvLine(["Section", "Couleur / type", "Total (m)", "Vers"]));
     for (const suggestion of bom.cableHarmonizationSuggestions) {
       const total = String(Math.round(suggestion.totalLengthM * 10) / 10).replace(".", ",");
-      lines.push(csvLine([suggestion.section, total, suggestion.targetSection]));
+      lines.push(csvLine([suggestion.section, suggestion.cableTypeLabel, total, suggestion.targetSection]));
     }
     lines.push("");
   }

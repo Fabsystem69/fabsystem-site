@@ -14,6 +14,7 @@ import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps
 import { calcSection } from "@/lib/calc/section-cable";
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
 import { getCableHarmonizationSuggestions } from "@/lib/electrical-components/cable-harmonization";
+import { getCableType } from "@/lib/electrical-components/cable-types";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { getSchemaTemplate } from "@/features/schemas/templates";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
@@ -1223,25 +1224,34 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   applyCableHarmonization: () => {
     let updatedCount = 0;
     set((state) => {
-      // Même calcul de total par section que computeBom (bom.ts) — recalculé
-      // ici sur l'état courant plutôt que mémorisé, pour refléter le schéma
-      // au moment du clic, pas un aperçu potentiellement obsolète.
-      const totalLengthBySection = new Map<string, number>();
+      // Même calcul que computeBom (bom.ts) — recalculé ici sur l'état
+      // courant plutôt que mémorisé, pour refléter le schéma au moment du
+      // clic, pas un aperçu potentiellement obsolète. Par section ET par
+      // couleur (retour utilisateur : "1mm² 18m mais ça fait une bobine de
+      // rouge et une noire, la suggestion doit faire attention à la
+      // couleur") — une bobine s'achète par couleur, jamais sur le total
+      // toutes couleurs confondues.
+      const totalsByColor = new Map<string, { section: string; cableTypeLabel: string; totalLengthM: number }>();
       for (const edge of state.edges) {
         if (edge.data?.cableType === "data-bus") continue;
         const length = Number(edge.data?.length);
         if (!(Number.isFinite(length) && length > 0)) continue;
         const section = String(edge.data?.section ?? "");
         if (!section) continue;
-        totalLengthBySection.set(section, (totalLengthBySection.get(section) ?? 0) + length);
+        const cableTypeLabel = getCableType(String(edge.data?.cableType ?? ""))?.label ?? "Autre";
+        const key = `${section}__${cableTypeLabel}`;
+        const entry = totalsByColor.get(key) ?? { section, cableTypeLabel, totalLengthM: 0 };
+        entry.totalLengthM += length;
+        totalsByColor.set(key, entry);
       }
-      const suggestions = getCableHarmonizationSuggestions(totalLengthBySection);
+      const suggestions = getCableHarmonizationSuggestions(totalsByColor);
       if (suggestions.length === 0) return {};
-      const redirect = new Map(suggestions.map((s) => [s.section, s.targetSection]));
+      const redirect = new Map(suggestions.map((s) => [`${s.section}__${s.cableTypeLabel}`, s.targetSection]));
 
       const edges = state.edges.map((edge) => {
         if (edge.data?.cableType === "data-bus") return edge;
-        const target = redirect.get(String(edge.data?.section ?? ""));
+        const cableTypeLabel = getCableType(String(edge.data?.cableType ?? ""))?.label ?? "Autre";
+        const target = redirect.get(`${String(edge.data?.section ?? "")}__${cableTypeLabel}`);
         if (!target) return edge;
         updatedCount += 1;
         return { ...edge, data: { ...edge.data, section: target } };

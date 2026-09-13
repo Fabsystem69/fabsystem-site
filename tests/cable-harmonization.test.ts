@@ -2,28 +2,64 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { getCableHarmonizationSuggestions, CABLE_HARMONIZATION_THRESHOLD_M } from "@/lib/electrical-components/cable-harmonization";
 
-test("suggests harmonizing a small section whose total is below the threshold", () => {
-  const totals = new Map([["0,75 mm²", 4]]);
+function totals(entries: Array<{ section: string; cableTypeLabel: string; totalLengthM: number }>) {
+  return new Map(entries.map((e) => [`${e.section}__${e.cableTypeLabel}`, e]));
+}
 
-  const suggestions = getCableHarmonizationSuggestions(totals);
+test("suggests harmonizing a small section/color pair whose total is below the threshold", () => {
+  const suggestions = getCableHarmonizationSuggestions(
+    totals([{ section: "0,75 mm²", cableTypeLabel: "Puissance +", totalLengthM: 4 }])
+  );
 
-  assert.deepEqual(suggestions, [{ section: "0,75 mm²", targetSection: "1,5 mm²", totalLengthM: 4 }]);
+  assert.deepEqual(suggestions, [
+    { section: "0,75 mm²", cableTypeLabel: "Puissance +", targetSection: "1,5 mm²", totalLengthM: 4 },
+  ]);
 });
 
 test("does not suggest harmonizing once the total reaches the threshold", () => {
-  const totals = new Map([["0,75 mm²", CABLE_HARMONIZATION_THRESHOLD_M]]);
+  const suggestions = getCableHarmonizationSuggestions(
+    totals([{ section: "0,75 mm²", cableTypeLabel: "Puissance +", totalLengthM: CABLE_HARMONIZATION_THRESHOLD_M }])
+  );
 
-  assert.deepEqual(getCableHarmonizationSuggestions(totals), []);
+  assert.deepEqual(suggestions, []);
+});
+
+// Bug corrigé (retour utilisateur) : un total combiné de 18m qui est en
+// réalité 9m rouge + 9m noir a besoin de DEUX petites bobines, pas d'une
+// seule "assez grande" — chaque couleur doit être évaluée indépendamment.
+test("evaluates each color independently, never a combined total across colors", () => {
+  const suggestions = getCableHarmonizationSuggestions(
+    totals([
+      { section: "1 mm²", cableTypeLabel: "Puissance +", totalLengthM: 9 },
+      { section: "1 mm²", cableTypeLabel: "Puissance −", totalLengthM: 9 },
+    ])
+  );
+
+  assert.equal(suggestions.length, 2);
+  assert.ok(suggestions.some((s) => s.cableTypeLabel === "Puissance +" && s.totalLengthM === 9));
+  assert.ok(suggestions.some((s) => s.cableTypeLabel === "Puissance −" && s.totalLengthM === 9));
+});
+
+test("only flags the color that is actually under the threshold, not its sibling", () => {
+  const suggestions = getCableHarmonizationSuggestions(
+    totals([
+      { section: "1 mm²", cableTypeLabel: "Puissance +", totalLengthM: 4 },
+      { section: "1 mm²", cableTypeLabel: "Puissance −", totalLengthM: 15 },
+    ])
+  );
+
+  assert.equal(suggestions.length, 1);
+  assert.equal(suggestions[0]?.cableTypeLabel, "Puissance +");
 });
 
 test("covers all three documented step-up pairs (retour utilisateur)", () => {
-  const totals = new Map([
-    ["1 mm²", 3],
-    ["4 mm²", 2],
-    ["10 mm²", 5],
-  ]);
-
-  const suggestions = getCableHarmonizationSuggestions(totals);
+  const suggestions = getCableHarmonizationSuggestions(
+    totals([
+      { section: "1 mm²", cableTypeLabel: "Puissance +", totalLengthM: 3 },
+      { section: "4 mm²", cableTypeLabel: "Puissance +", totalLengthM: 2 },
+      { section: "10 mm²", cableTypeLabel: "Puissance +", totalLengthM: 5 },
+    ])
+  );
 
   assert.deepEqual(
     suggestions.map((s) => [s.section, s.targetSection]).sort(),
@@ -36,13 +72,20 @@ test("covers all three documented step-up pairs (retour utilisateur)", () => {
 });
 
 test("ignores sections that are not harmonization candidates", () => {
-  const totals = new Map([["1,5 mm²", 1], ["25 mm²", 1]]);
+  const suggestions = getCableHarmonizationSuggestions(
+    totals([
+      { section: "1,5 mm²", cableTypeLabel: "Puissance +", totalLengthM: 1 },
+      { section: "25 mm²", cableTypeLabel: "Puissance +", totalLengthM: 1 },
+    ])
+  );
 
-  assert.deepEqual(getCableHarmonizationSuggestions(totals), []);
+  assert.deepEqual(suggestions, []);
 });
 
-test("ignores a section with zero total", () => {
-  const totals = new Map([["0,5 mm²", 0]]);
+test("ignores a section/color with zero total", () => {
+  const suggestions = getCableHarmonizationSuggestions(
+    totals([{ section: "0,5 mm²", cableTypeLabel: "Puissance +", totalLengthM: 0 }])
+  );
 
-  assert.deepEqual(getCableHarmonizationSuggestions(totals), []);
+  assert.deepEqual(suggestions, []);
 });

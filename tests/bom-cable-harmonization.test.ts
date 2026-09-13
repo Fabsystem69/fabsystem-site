@@ -25,13 +25,44 @@ test("computeBom keeps positive and negative cables of the same section as separ
   assert.equal(black?.count, 1);
 });
 
-test("computeBom surfaces harmonization suggestions from the real section totals", () => {
+test("computeBom surfaces harmonization suggestions from the real per-color totals", () => {
   const bom = computeBom(NO_NODES, [edge("e1", "0,75 mm²", "power-positive", 4)]);
 
   assert.equal(bom.optimized, false);
-  assert.deepEqual(bom.cableHarmonizationSuggestions, [{ section: "0,75 mm²", targetSection: "1,5 mm²", totalLengthM: 4 }]);
+  assert.deepEqual(bom.cableHarmonizationSuggestions, [
+    { section: "0,75 mm²", cableTypeLabel: "Puissance +", targetSection: "1,5 mm²", totalLengthM: 4 },
+  ]);
   // La vue réelle affiche toujours la section réellement choisie.
   assert.equal(bom.cableRows[0]?.section, "0,75 mm²");
+});
+
+// Bug corrigé (retour utilisateur : "1mm² 18m mais en fait ça fait une
+// bobine de rouge et une noire, la suggestion doit faire attention à la
+// couleur pas juste la section") — un total combiné qui dépasse le seuil ne
+// doit PAS masquer que chaque couleur, prise seule, reste sous le seuil.
+test("computeBom evaluates each color independently, not a combined section total", () => {
+  const bom = computeBom(NO_NODES, [
+    edge("e1", "1 mm²", "power-positive", 9),
+    edge("e2", "1 mm²", "power-negative", 9),
+  ]);
+
+  // 9 + 9 = 18m, au-dessus du seuil de 10m si on les combinait à tort — mais
+  // chacune des deux couleurs, prise seule, reste bien sous le seuil.
+  assert.equal(bom.cableHarmonizationSuggestions.length, 2);
+  assert.ok(bom.cableHarmonizationSuggestions.every((s) => s.totalLengthM === 9));
+});
+
+test("computeBom redirects only the color actually under threshold", () => {
+  const bom = computeBom(
+    NO_NODES,
+    [edge("e1", "1 mm²", "power-positive", 4), edge("e2", "1 mm²", "power-negative", 15)],
+    { harmonizeSmallSections: true }
+  );
+
+  const red = bom.cableRows.find((r) => r.cableTypeLabel === "Puissance +");
+  const black = bom.cableRows.find((r) => r.cableTypeLabel === "Puissance −");
+  assert.equal(red?.section, "1,5 mm²"); // redirigé, sous le seuil
+  assert.equal(black?.section, "1 mm²"); // pas redirigé, déjà assez pour sa propre bobine
 });
 
 test("computeBom redirects small sections to their target when harmonizeSmallSections is on", () => {
@@ -50,7 +81,9 @@ test("computeBom redirects small sections to their target when harmonizeSmallSec
   assert.equal(bom.cableRows[0]?.count, 2);
   // La liste des suggestions reste basée sur les sections réelles, que la
   // vue soit optimisée ou non — sert à expliquer ce qui a été regroupé.
-  assert.deepEqual(bom.cableHarmonizationSuggestions, [{ section: "0,75 mm²", targetSection: "1,5 mm²", totalLengthM: 4 }]);
+  assert.deepEqual(bom.cableHarmonizationSuggestions, [
+    { section: "0,75 mm²", cableTypeLabel: "Puissance +", targetSection: "1,5 mm²", totalLengthM: 4 },
+  ]);
 });
 
 test("computeBom does not redirect a small section once its total clears the threshold", () => {

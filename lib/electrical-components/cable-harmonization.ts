@@ -1,3 +1,5 @@
+import { compareBySectionOrder } from "./cable-lugs";
+
 // Suggestion d'achat (retour utilisateur : "optimiser sans rogner sur la
 // sécurité... passer en 1,5 pour les sections de dessous... car les bobines
 // sont généralement en 50-100m") — jamais une modification du schéma réel,
@@ -19,20 +21,36 @@ export const CABLE_HARMONIZATION_TARGETS: Partial<Record<string, string>> = {
 // dessous, la grande majorité de la bobine resterait inutilisée.
 export const CABLE_HARMONIZATION_THRESHOLD_M = 10;
 
+// Bug corrigé (retour utilisateur : "1mm² 18m mais en fait ça fait une
+// bobine de rouge et une noire, la suggestion doit faire attention à la
+// couleur pas juste la section") — une bobine s'achète PAR COULEUR : un
+// total de 18m qui est en réalité 9m rouge + 9m noir a besoin de DEUX
+// petites bobines, pas d'une seule "assez grande". Le seuil s'applique donc
+// par (section, couleur), jamais sur le total toutes couleurs confondues.
+export interface CableHarmonizationTotal {
+  section: string;
+  cableTypeLabel: string;
+  totalLengthM: number;
+}
+
 export interface CableHarmonizationSuggestion {
   section: string;
+  cableTypeLabel: string;
   targetSection: string;
   totalLengthM: number;
 }
 
 export function getCableHarmonizationSuggestions(
-  totalLengthBySection: Map<string, number>
+  totals: Map<string, CableHarmonizationTotal>
 ): CableHarmonizationSuggestion[] {
   const suggestions: CableHarmonizationSuggestion[] = [];
-  for (const [section, targetSection] of Object.entries(CABLE_HARMONIZATION_TARGETS)) {
-    const totalLengthM = totalLengthBySection.get(section);
-    if (totalLengthM === undefined || totalLengthM <= 0 || totalLengthM >= CABLE_HARMONIZATION_THRESHOLD_M) continue;
-    suggestions.push({ section, targetSection: targetSection!, totalLengthM });
+  for (const { section, cableTypeLabel, totalLengthM } of totals.values()) {
+    const targetSection = CABLE_HARMONIZATION_TARGETS[section];
+    if (!targetSection) continue;
+    if (totalLengthM <= 0 || totalLengthM >= CABLE_HARMONIZATION_THRESHOLD_M) continue;
+    suggestions.push({ section, cableTypeLabel, targetSection, totalLengthM });
   }
-  return suggestions;
+  return suggestions.sort(
+    (a, b) => compareBySectionOrder(a.section, b.section) || a.cableTypeLabel.localeCompare(b.cableTypeLabel)
+  );
 }
