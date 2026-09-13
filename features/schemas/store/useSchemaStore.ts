@@ -838,7 +838,9 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       // guidé (retour utilisateur : "automatiser les choix... de la
       // batterie") : le tutoriel porte sur le câblage, pas sur le choix
       // d'une marque — reste générique, modifiable ensuite normalement.
-      const hasBrandModels = !state.guidedMode && getBrandModelsForType(type).length > 0;
+      const hasBrandModels =
+        !state.guidedMode &&
+        getBrandModelsForType(type, typeof node.data.presetType === "string" ? node.data.presetType : undefined).length > 0;
       const batteryPartnerId = !state.guidedMode && type === "battery" ? findSoleOtherBattery(node.id, [...state.nodes, node]) : null;
       return {
         nodes: [...state.nodes, node],

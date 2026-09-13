@@ -305,7 +305,7 @@ export function ComponentLibrary() {
     // rien n'existe sur le canvas tant que rien n'est choisi (voir
     // ModelPickerModal, mode pendingLibraryPick). Même exception mode
     // guidé que addComponent (pas de popup pendant le tutoriel pas à pas).
-    const hasBrandModels = !guidedMode && getBrandModelsForType(type).length > 0;
+    const hasBrandModels = !guidedMode && getBrandModelsForType(type, presetValue).length > 0;
     if (hasBrandModels) {
       openLibraryPick(type, position, dataOverride);
       closeOnMobile();

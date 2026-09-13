@@ -37,8 +37,14 @@ function useBrandModelSelector(node: SchemaNode | undefined) {
 
   const componentType = node?.data.componentType;
   const selectedTechnology = componentType === "battery" ? String(node?.data.technology ?? "") : null;
+  // "consumer" est un type générique partagé par tous les appareils (retour
+  // utilisateur : "n'importe quel appareil... liste de pundmann de chauffe
+  // eau") — le sélecteur de marque/modèle d'un appareil déjà posé doit être
+  // filtré par son presetType, sinon il propose les modèles d'un autre
+  // appareil partageant simplement le même componentType "consumer".
+  const presetType = componentType === "consumer" && typeof node?.data.presetType === "string" ? node.data.presetType : undefined;
   const officialBrandModels = componentType
-    ? getBrandModelsForType(componentType).filter((m) => !selectedTechnology || m.defaults.technology === selectedTechnology)
+    ? getBrandModelsForType(componentType, presetType).filter((m) => !selectedTechnology || m.defaults.technology === selectedTechnology)
     : [];
   const ownCustomItems = componentType
     ? customCatalogItems

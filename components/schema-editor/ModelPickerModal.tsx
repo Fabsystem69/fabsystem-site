@@ -33,7 +33,18 @@ export function ModelPickerModal() {
   if (!type) return null;
   const def = getComponentDefinition(type);
   if (!def) return null;
-  const brandModels = getBrandModelsForType(type);
+  // "consumer" est un type générique partagé par tous les appareils (retour
+  // utilisateur : "n'importe quel appareil... liste de pundmann de chauffe
+  // eau") — indispensable de filtrer par presetType pour ce type-là, sinon
+  // n'importe quel appareil affiche les modèles d'un autre.
+  const presetType = libraryPick
+    ? typeof libraryPick.dataOverride?.presetType === "string"
+      ? libraryPick.dataOverride.presetType
+      : undefined
+    : typeof node?.data.presetType === "string"
+      ? node.data.presetType
+      : undefined;
+  const brandModels = getBrandModelsForType(type, presetType);
   if (brandModels.length === 0) return null;
 
   const brandModelsByBrand = new Map<string, typeof brandModels>();

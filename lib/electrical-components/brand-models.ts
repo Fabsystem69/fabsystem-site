@@ -592,8 +592,20 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "pundmann-therm-6l-12v-230v", brand: "Pundmann", model: "Therm 6L double résistance 12V/200W + 230V/500W", componentType: "consumer", defaults: { presetType: "chauffe-eau-mixte-12-220", supplyType: "mixed", powerW: 200, power230VW: 500 }, iconPro: "/schema-icons/pro/brand/pundmann-therm-mixte.jpg" },
 ];
 
-export function getBrandModelsForType(componentType: string): BrandModel[] {
-  return BRAND_MODELS.filter((m) => m.componentType === componentType);
+// Bug corrigé (retour utilisateur : "quand je rajoute n'importe quel
+// appareil j'ai la liste de pundmann de chauffe eau") — "consumer" est un
+// type générique partagé par TOUS les appareils (éclairage, pompe,
+// chauffe-eau...), contrairement à "mppt" ou "battery" qui désignent une
+// seule famille de produits. Sans le filtre par presetType, un modèle de
+// marque ajouté pour UN appareil précis (ici les Pundmann Therm,
+// presetType "chauffe-eau*") ressortait pour n'importe quel autre appareil
+// partageant simplement le même componentType "consumer".
+export function getBrandModelsForType(componentType: string, presetType?: string): BrandModel[] {
+  return BRAND_MODELS.filter((m) => {
+    if (m.componentType !== componentType) return false;
+    if (componentType !== "consumer") return true;
+    return typeof m.defaults.presetType === "string" && m.defaults.presetType === presetType;
+  });
 }
 
 export function getBrandModel(id: string): BrandModel | undefined {

@@ -76,6 +76,36 @@ test("BatteryProtect est un composant distinct du coupe-batterie manuel", () => 
   assert.equal(getNodeIcon(protect, {}, "pro"), "/schema-icons/pro/family/battery-protect.png");
 });
 
+// Bug corrigé (retour utilisateur : "quand je rajoute n'importe quel
+// appareil j'ai la liste de pundmann de chauffe eau") — "consumer" est
+// partagé par tous les appareils, donc un modèle de marque ajouté pour UN
+// appareil (Pundmann Therm, presetType "chauffe-eau*") ressortait pour
+// n'importe quel autre appareil (éclairage, pompe...) partageant le même
+// componentType.
+test("getBrandModelsForType filtre les modèles 'consumer' par presetType, jamais par simple componentType", () => {
+  // Le bon appareil retrouve bien ses modèles de marque...
+  assert.equal(getBrandModelsForType("consumer", "chauffe-eau-12v").length, 3);
+  assert.ok(getBrandModelsForType("consumer", "chauffe-eau-12v").every((m) => m.brand === "Pundmann"));
+
+  // ...mais un appareil sans rapport n'en hérite plus.
+  assert.deepEqual(getBrandModelsForType("consumer", "eclairage-led"), []);
+  assert.deepEqual(getBrandModelsForType("consumer", "pompe-eau"), []);
+
+  // Sans presetType du tout (l'ancien appel, avant le correctif), plus
+  // aucun modèle ne doit ressortir — jamais un "générique" qui reviendrait
+  // au bug initial.
+  assert.deepEqual(getBrandModelsForType("consumer"), []);
+});
+
+test("getBrandModelsForType reste inchangé pour les types à une seule famille (non 'consumer')", () => {
+  // Le paramètre presetType est ignoré pour tout type qui n'est pas
+  // générique — pas de régression sur les types déjà corrects.
+  const withoutPreset = getBrandModelsForType("mppt");
+  const withIrrelevantPreset = getBrandModelsForType("mppt", "chauffe-eau-12v");
+  assert.equal(withoutPreset.length, withIrrelevantPreset.length);
+  assert.ok(withoutPreset.length > 0);
+});
+
 test("les variantes visuelles gardent seulement les différences fonctionnelles", () => {
   const busbar = getComponentDefinition("busbar");
   const isolator = getComponentDefinition("battery-isolator");
@@ -147,9 +177,11 @@ test("toutes les illustrations Pro référencées existent dans public", () => {
     if (icon) icons.add(icon);
   }
 
-  for (const model of getBrandModelsForType("consumer")) {
-    const icon = getNodeIcon(consumer, { brandModelId: model.id, ...model.defaults }, "pro");
-    if (icon) icons.add(icon);
+  for (const preset of CONSUMER_PRESETS) {
+    for (const model of getBrandModelsForType("consumer", preset.value)) {
+      const icon = getNodeIcon(consumer, { brandModelId: model.id, ...model.defaults }, "pro");
+      if (icon) icons.add(icon);
+    }
   }
 
   for (const icon of icons) {

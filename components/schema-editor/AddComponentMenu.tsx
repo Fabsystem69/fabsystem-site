@@ -114,7 +114,7 @@ export function AddComponentMenu({ darkMode }: { darkMode: boolean }) {
     const position = computeCascadePosition(screenToFlowPosition, electricalCount);
     const preset = presetValue ? CONSUMER_PRESETS.find((p) => p.value === presetValue) : undefined;
     const dataOverride = preset ? { presetType: preset.value, label: preset.label, powerW: preset.typicalPowerW } : undefined;
-    const hasBrandModels = !guidedMode && getBrandModelsForType(type).length > 0;
+    const hasBrandModels = !guidedMode && getBrandModelsForType(type, presetValue).length > 0;
     if (hasBrandModels) {
       openLibraryPick(type, position, dataOverride);
     } else {
