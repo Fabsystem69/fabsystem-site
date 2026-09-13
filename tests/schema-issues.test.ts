@@ -46,6 +46,34 @@ test("un DC-DC entièrement câblé (IN+/−, OUT+/−) ne déclenche aucune ale
   assert.equal(issues.some((issue) => issue.id === "dcdc-1-partial" || issue.id === "dcdc-1-isolated"), false);
 });
 
+test("un câble sans longueur renseignée déclenche une alerte légère (info)", () => {
+  const battery: SchemaNode = { id: "bat-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie" } };
+  const load: SchemaNode = { id: "load-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie 2" } };
+  const edges: SchemaEdge[] = [
+    { id: "e1", source: "bat-1", sourceHandle: "positive", target: "load-1", targetHandle: "positive", data: { section: "16 mm²" } },
+    { id: "e2", source: "bat-1", sourceHandle: "negative", target: "load-1", targetHandle: "negative", data: { section: "16 mm²" } },
+  ];
+
+  const issues = computeSchemaIssues([battery, load], edges);
+
+  const missing = issues.find((issue) => issue.id === "e1-missing-length");
+  assert.ok(missing, "expected a missing-length issue for the cable with no length");
+  assert.equal(missing!.severity, "info");
+});
+
+test("un câble avec une longueur renseignée ne déclenche pas l'alerte de longueur manquante", () => {
+  const battery: SchemaNode = { id: "bat-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie" } };
+  const load: SchemaNode = { id: "load-1", position: { x: 0, y: 0 }, data: { componentType: "battery", label: "Batterie 2" } };
+  const edges: SchemaEdge[] = [
+    { id: "e1", source: "bat-1", sourceHandle: "positive", target: "load-1", targetHandle: "positive", data: { section: "16 mm²", length: 2.5 } },
+    { id: "e2", source: "bat-1", sourceHandle: "negative", target: "load-1", targetHandle: "negative", data: { section: "16 mm²", length: 2.5 } },
+  ];
+
+  const issues = computeSchemaIssues([battery, load], edges);
+
+  assert.equal(issues.some((issue) => issue.id === "e1-missing-length"), false);
+});
+
 test("une platine DC avec retours négatifs possède une entrée négative commune", () => {
   const definition = getComponentDefinition("fuse-block");
   assert.ok(definition);
@@ -246,7 +274,12 @@ test("computeSchemaIssues signale un câble trop petit pour le courant estimé",
 test("computeSchemaIssues ne signale pas un câble déjà dans la norme ou surdimensionné", () => {
   const { nodes, edges } = createSizingFixture({ batteryFuseSection: "25 mm²" });
 
-  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.targetKind === "edge" && candidate.targetId === "edge-battery-fuse");
+  // La fixture ne renseigne pas de longueur : ne pas confondre avec l'alerte
+  // (info, indépendante) "longueur manquante" — ce test vérifie uniquement
+  // l'absence d'alerte de dimensionnement (section trop juste/manquante).
+  const issue = computeSchemaIssues(nodes, edges).find(
+    (candidate) => candidate.targetKind === "edge" && candidate.targetId === "edge-battery-fuse" && candidate.id !== "edge-battery-fuse-missing-length"
+  );
 
   assert.equal(issue, undefined);
 });

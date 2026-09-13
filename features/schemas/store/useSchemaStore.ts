@@ -13,6 +13,7 @@ import { getBusbarConnectionPointLimit, getBusbarFacePointCounts, getComponentDe
 import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps, formatSectionLabel } from "@/lib/electrical-components/auto-size";
 import { calcSection } from "@/lib/calc/section-cable";
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
+import { getCableHarmonizationSuggestions } from "@/lib/electrical-components/cable-harmonization";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
 import { getSchemaTemplate } from "@/features/schemas/templates";
 import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
@@ -513,6 +514,11 @@ interface SchemaState {
   recalculateAllCableSections: () => number;
   /** Recalcule le calibre de tous les fusibles/disjoncteurs éligibles ; renvoie le nombre modifié. */
   recalculateAllFuseRatings: () => number;
+  /** Bascule les câbles de petite section (0,5/0,75/1mm², 4mm², 10mm²) dont
+   * le total est trop faible pour justifier une bobine dédiée vers leur
+   * section supérieure (cable-harmonization.ts). Action annulable (Ctrl+Z),
+   * renvoie le nombre de câbles modifiés. */
+  applyCableHarmonization: () => number;
   deleteSelected: () => void;
   select: (kind: "node" | "edge" | null, id: string | null) => void;
   undo: () => void;
@@ -1210,6 +1216,38 @@ export const useSchemaStore = create<SchemaState>((set) => ({
       updatedCount = result.updatedCount;
       if (updatedCount === 0) return {};
       return { nodes: result.nodes, ...commit(state) };
+    });
+    return updatedCount;
+  },
+
+  applyCableHarmonization: () => {
+    let updatedCount = 0;
+    set((state) => {
+      // Même calcul de total par section que computeBom (bom.ts) — recalculé
+      // ici sur l'état courant plutôt que mémorisé, pour refléter le schéma
+      // au moment du clic, pas un aperçu potentiellement obsolète.
+      const totalLengthBySection = new Map<string, number>();
+      for (const edge of state.edges) {
+        if (edge.data?.cableType === "data-bus") continue;
+        const length = Number(edge.data?.length);
+        if (!(Number.isFinite(length) && length > 0)) continue;
+        const section = String(edge.data?.section ?? "");
+        if (!section) continue;
+        totalLengthBySection.set(section, (totalLengthBySection.get(section) ?? 0) + length);
+      }
+      const suggestions = getCableHarmonizationSuggestions(totalLengthBySection);
+      if (suggestions.length === 0) return {};
+      const redirect = new Map(suggestions.map((s) => [s.section, s.targetSection]));
+
+      const edges = state.edges.map((edge) => {
+        if (edge.data?.cableType === "data-bus") return edge;
+        const target = redirect.get(String(edge.data?.section ?? ""));
+        if (!target) return edge;
+        updatedCount += 1;
+        return { ...edge, data: { ...edge.data, section: target } };
+      });
+      if (updatedCount === 0) return {};
+      return { edges, ...commit(state) };
     });
     return updatedCount;
   },

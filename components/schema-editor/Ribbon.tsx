@@ -7,7 +7,7 @@ import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { downloadPortableSchemaFile } from "@/features/schemas/file-transfer";
 import { openPrintableBom } from "@/features/schemas/export";
-import { computeBom, buildMaterialListText } from "@/lib/electrical-components/bom";
+import { computeBom, type Bom } from "@/lib/electrical-components/bom";
 import { MaterialListDialog } from "./MaterialListDialog";
 import { ExportMenu } from "./ExportMenu";
 import { FeedbackMenu } from "./FeedbackMenu";
@@ -218,7 +218,7 @@ function EditorMenuBar({
   const [systemBuilder, setSystemBuilder] = useState<"solar" | "battery" | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [materialListText, setMaterialListText] = useState<string | null>(null);
+  const [materialListBoms, setMaterialListBoms] = useState<{ real: Bom; optimized: Bom } | null>(null);
   const adminMode = useSchemaStore((s) => s.isAdmin);
   const accountInitials = useSchemaStore((s) => s.accountInitials);
   const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
@@ -238,6 +238,7 @@ function EditorMenuBar({
 
   const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
+  const applyCableHarmonization = useSchemaStore((s) => s.applyCableHarmonization);
   const optimizeBusbarLayouts = useSchemaStore((s) => s.optimizeBusbarLayouts);
   const openInstallAssistant = useSchemaStore((s) => s.openInstallAssistant);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -308,7 +309,38 @@ function EditorMenuBar({
 
   function exportMaterialListForQuote() {
     if (nodes.length === 0) return;
-    setMaterialListText(buildMaterialListText(computeBom(getNodes(), getEdges()), projectName));
+    setMaterialListBoms({
+      real: computeBom(getNodes(), getEdges()),
+      optimized: computeBom(getNodes(), getEdges(), { harmonizeSmallSections: true }),
+    });
+  }
+
+  // Retour utilisateur : "si il y a optimisation je veux que cela crée tout
+  // de suite un point de sauvegarde (version) sans optimisation" — un point
+  // de restauration nommé n'a de sens que s'il capture l'état actuel avant
+  // de le modifier, donc on sauvegarde explicitement d'abord (plutôt que de
+  // dépendre de l'autosave, potentiellement pas encore passée) puis on crée
+  // la version sur cet état fraîchement enregistré, avant d'appliquer
+  // l'harmonisation en local. Reste aussi annulable par Ctrl+Z en plus de
+  // ce point de sauvegarde nommé.
+  async function applyCableHarmonizationWithSnapshot(): Promise<number> {
+    if (projectId) {
+      const { saveProjectSchemaApi, createProjectSchemaVersionApi } = await import("@/features/schemas/projectSchemaApi");
+      await saveProjectSchemaApi(projectId, { projectName, nodes, edges });
+      await createProjectSchemaVersionApi(projectId, "Avant harmonisation automatique des câbles");
+    }
+    const count = applyCableHarmonization();
+    // useSchemaStore.getState() plutôt que getNodes()/getEdges() (React Flow) :
+    // ces derniers ne reflètent l'état qu'après le prochain rendu, alors que
+    // la mutation ci-dessus vient d'être appliquée de façon synchrone dans
+    // le store — lire le store directement évite de recalculer sur les
+    // câbles d'avant l'harmonisation.
+    const state = useSchemaStore.getState();
+    setMaterialListBoms({
+      real: computeBom(state.nodes, state.edges),
+      optimized: computeBom(state.nodes, state.edges, { harmonizeSmallSections: true }),
+    });
+    return count;
   }
 
   function runCableRecalculation() {
@@ -494,7 +526,16 @@ function EditorMenuBar({
       </div>
     </nav>
     {mobileActionsOpen ? <MobileActionsSheet darkMode={darkMode} onClose={() => setMobileActionsOpen(false)} onNew={() => { setTemplatePickerOpen(true); setMobileActionsOpen(false); }} onOpen={() => { setOpenSchemaDialogOpen(true); setMobileActionsOpen(false); }} onSave={openMobileSave} onShare={() => { setShareOpen(true); setMobileActionsOpen(false); }} onExportPng={() => { setExportPreviewKind("png"); setMobileActionsOpen(false); }} onExportPdf={() => { setExportPreviewKind("pdf"); setMobileActionsOpen(false); }} onMaterialListForQuote={() => { exportMaterialListForQuote(); setMobileActionsOpen(false); }} onCableSizing={() => { runCableRecalculation(); setMobileActionsOpen(false); }} onProtectionSizing={() => { runProtectionRecalculation(); setMobileActionsOpen(false); }} onSolarBuilder={() => { setSystemBuilder("solar"); setMobileActionsOpen(false); }} onBatteryBuilder={() => { setSystemBuilder("battery"); setMobileActionsOpen(false); }} /> : null}
-    {materialListText !== null ? <MaterialListDialog text={materialListText} onClose={() => setMaterialListText(null)} /> : null}
+    {materialListBoms !== null ? (
+      <MaterialListDialog
+        bomReal={materialListBoms.real}
+        bomOptimized={materialListBoms.optimized}
+        projectName={projectName}
+        hasUnlimitedConsumers={hasUnlimitedConsumers}
+        onApplyHarmonization={applyCableHarmonizationWithSnapshot}
+        onClose={() => setMaterialListBoms(null)}
+      />
+    ) : null}
     {exportPreviewKind ? <ExportPreviewDialog initialKind={exportPreviewKind} initialShowGrid={showGrid} onClose={() => setExportPreviewKind(null)} /> : null}
     {templatePickerOpen ? <TemplatePickerDialog onClose={() => setTemplatePickerOpen(false)} /> : null}
     {openSchemaDialogOpen ? <OpenSchemaDialog onClose={() => setOpenSchemaDialogOpen(false)} onNew={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} onTemplates={() => { setOpenSchemaDialogOpen(false); setTemplatePickerOpen(true); }} /> : null}

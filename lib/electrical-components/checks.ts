@@ -734,6 +734,28 @@ function getEdgeLabel(edge: SchemaEdgeInternal, nodes: SchemaNodeInternal[]): st
   return `le câble « ${getNodeLabel(edge.source, nodes)} → ${getNodeLabel(edge.target, nodes)} »`;
 }
 
+// Retour utilisateur : "certain cable n'ont pas de longueur, il faudrait
+// une alerte légère" — un câble sans longueur ne bloque rien techniquement,
+// mais la liste de matériel ne peut pas indiquer le bon métrage à acheter
+// tant qu'elle n'est pas renseignée. Toujours "info" (jamais bloquant),
+// distinct de la section manquante (avertissement de dimensionnement) : ce
+// sont deux problèmes différents, un câble peut avoir une section correcte
+// et simplement ne pas avoir été mesuré.
+function computeMissingCableLengthIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+  for (const edge of edges) {
+    const length = Number(edge.data?.length);
+    if (Number.isFinite(length) && length > 0) continue;
+    issues.push({
+      id: `${edge.id}-missing-length`,
+      targetKind: "edge",
+      targetId: edge.id,
+      message: `${getEdgeLabel(edge, nodes)} n'a pas de longueur renseignée — la liste de matériel ne pourra pas indiquer le bon métrage tant qu'elle n'est pas complétée.`,
+    });
+  }
+  return issues;
+}
+
 function computeCableSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
   const issues: SchemaIssue[] = [];
 
@@ -842,6 +864,11 @@ export function computeSchemaIssues(
     if (!edge) return false;
     return !structurallyBlockedNodeIds.has(edge.source) && !structurallyBlockedNodeIds.has(edge.target);
   });
+  const missingCableLengthIssues = computeMissingCableLengthIssues(nodes, edges).filter((issue) => {
+    const edge = edges.find((candidate) => candidate.id === issue.targetId);
+    if (!edge) return false;
+    return !structurallyBlockedNodeIds.has(edge.source) && !structurallyBlockedNodeIds.has(edge.target);
+  });
   const polarityIssues = computePolarityIssues(nodes, edges);
   const connectionIntegrityIssues = computeConnectionIntegrityIssues(nodes, edges);
   const solarSizingIssues = computeSolarSizingIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
@@ -855,6 +882,7 @@ export function computeSchemaIssues(
     ...classifyIssues(issues, { severity: "warning", category: "topology" }),
     ...classifyIssues(electricalIssues, { severity: "warning", category: "protection" }),
     ...classifyIssues(cableSizingIssues, { severity: "warning", category: "cabling" }),
+    ...classifyIssues(missingCableLengthIssues, { severity: "info", category: "cabling" }),
     ...classifyIssues(polarityIssues, { severity: "error", category: "connection" }),
     ...classifyIssues(connectionIntegrityIssues, { severity: "error", category: "connection" }),
     ...classifyIssues(solarSizingIssues, { severity: "warning", category: "solar" }),

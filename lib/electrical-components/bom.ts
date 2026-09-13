@@ -3,6 +3,7 @@ import { getCableType } from "./cable-types";
 import { getBrandModel, type BrandModel } from "./brand-models";
 import { compareBySectionOrder, getRecommendedLugStudDiameter } from "./cable-lugs";
 import { getAwgEquivalent } from "./section-to-awg";
+import { getCableHarmonizationSuggestions, type CableHarmonizationSuggestion } from "./cable-harmonization";
 import type { Node, Edge } from "@xyflow/react";
 
 // Récapitulatif matériel (retour utilisateur : "un dossier récap des
@@ -27,6 +28,12 @@ export interface BomCategoryGroup {
 
 export interface BomCableRow {
   section: string;
+  // Type de câble (couleur) — retour utilisateur : "savoir le nombre de
+  // mètres rouge et noir à prendre". Une ligne par section ET par couleur :
+  // deux câbles de même section mais l'un "Puissance +" et l'autre
+  // "Puissance −" ne sont plus fusionnés en un seul total qui masquerait
+  // combien acheter de chaque couleur.
+  cableTypeLabel: string;
   // Équivalent AWG (retour utilisateur : "un moteur pour passer de mm2 à
   // awg") — null si la section n'est pas renseignée ou ne correspond à
   // aucune entrée connue.
@@ -65,6 +72,14 @@ export interface Bom {
   cableRows: BomCableRow[];
   dataBusRows: BomDataBusRow[];
   lugRows: BomLugRow[];
+  // Suggestion d'achat (retour utilisateur, voir cable-harmonization.ts) :
+  // toujours calculée sur les sections RÉELLES, que ce Bom soit "réel" ou
+  // "optimisé" — sert à afficher ce qui a été (ou pourrait être) harmonisé.
+  cableHarmonizationSuggestions: CableHarmonizationSuggestion[];
+  // true si `computeBom` a été appelé avec `harmonizeSmallSections: true` —
+  // les sections réelles n'ont pas changé, seul cet affichage regroupe les
+  // petites sections vers leur cible (voir computeBom).
+  optimized: boolean;
   totalComponents: number;
   totalCables: number;
 }
@@ -100,7 +115,11 @@ export function displayName(componentType: string, label: string, data: Record<s
   return label;
 }
 
-export function computeBom(nodes: Node[], edges: Edge[]): Bom {
+export function computeBom(
+  nodes: Node[],
+  edges: Edge[],
+  options?: { harmonizeSmallSections?: boolean }
+): Bom {
   const byCategory = new Map<string, Map<string, BomComponentRow>>();
 
   for (const node of nodes) {
@@ -128,7 +147,29 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     .map(([category, rows]) => ({ category, rows: Array.from(rows.values()).sort((a, b) => a.name.localeCompare(b.name)) }))
     .sort((a, b) => a.category.localeCompare(b.category));
 
-  const bySection = new Map<string, { count: number; totalLengthM: number; missingLengthCount: number }>();
+  // Passe 1 : total réel par section (câbles avec longueur connue,
+  // hors bus de données) — sert à décider quelles petites sections méritent
+  // d'être proposées à l'harmonisation (cable-harmonization.ts), et, si
+  // demandé, à rediriger ces sections vers leur cible dans la passe 2.
+  const rawTotalLengthBySection = new Map<string, number>();
+  for (const edge of edges) {
+    if (edge.data?.cableType === "data-bus") continue;
+    const length = Number(edge.data?.length);
+    if (!(Number.isFinite(length) && length > 0)) continue;
+    const section = String(edge.data?.section || "Section non renseignée");
+    rawTotalLengthBySection.set(section, (rawTotalLengthBySection.get(section) ?? 0) + length);
+  }
+  const cableHarmonizationSuggestions = getCableHarmonizationSuggestions(rawTotalLengthBySection);
+  // Vue "optimisée" (retour utilisateur : "possibilité du coup de passer
+  // tout le schéma en version câble optimisé") : ici, purement un affichage
+  // différent du même schéma — les sections réelles ne sont modifiées que
+  // par l'action dédiée applyCableHarmonization (useSchemaStore.ts), jamais
+  // par un simple calcul d'affichage.
+  const sectionRedirect = options?.harmonizeSmallSections
+    ? new Map(cableHarmonizationSuggestions.map((s) => [s.section, s.targetSection]))
+    : new Map<string, string>();
+
+  const bySection = new Map<string, { section: string; cableTypeLabel: string; count: number; totalLengthM: number; missingLengthCount: number }>();
   const byDataBus = new Map<string, { count: number; totalLengthM: number; missingLengthCount: number }>();
   const byLug = new Map<string, { section: string; studDiameter: string; count: number }>();
   for (const edge of edges) {
@@ -145,12 +186,15 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
       continue;
     }
 
-    const section = String(edge.data?.section || "Section non renseignée");
-    const entry = bySection.get(section) ?? { count: 0, totalLengthM: 0, missingLengthCount: 0 };
+    const rawSection = String(edge.data?.section || "Section non renseignée");
+    const section = sectionRedirect.get(rawSection) ?? rawSection;
+    const cableTypeLabel = getCableType(String(edge.data?.cableType ?? ""))?.label ?? "Autre";
+    const key = `${section}__${cableTypeLabel}`;
+    const entry = bySection.get(key) ?? { section, cableTypeLabel, count: 0, totalLengthM: 0, missingLengthCount: 0 };
     entry.count += 1;
     if (hasLength) entry.totalLengthM += length;
     else entry.missingLengthCount += 1;
-    bySection.set(section, entry);
+    bySection.set(key, entry);
 
     // 2 cosses par câble (une à chaque extrémité) — rien si la section n'est
     // pas renseignée, impossible de recommander un diamètre sans elle.
@@ -163,15 +207,16 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     }
   }
 
-  const cableRows: BomCableRow[] = Array.from(bySection.entries())
-    .map(([section, v]) => ({
-      section,
-      awg: getAwgEquivalent(section),
+  const cableRows: BomCableRow[] = Array.from(bySection.values())
+    .map((v) => ({
+      section: v.section,
+      cableTypeLabel: v.cableTypeLabel,
+      awg: getAwgEquivalent(v.section),
       count: v.count,
       totalLengthM: v.totalLengthM > 0 ? Math.round(v.totalLengthM * 10) / 10 : null,
       missingLengthCount: v.missingLengthCount,
     }))
-    .sort((a, b) => compareBySectionOrder(a.section, b.section));
+    .sort((a, b) => compareBySectionOrder(a.section, b.section) || a.cableTypeLabel.localeCompare(b.cableTypeLabel));
 
   const dataBusRows: BomDataBusRow[] = Array.from(byDataBus.entries()).map(([label, v]) => {
     const lengthedCount = v.count - v.missingLengthCount;
@@ -187,7 +232,16 @@ export function computeBom(nodes: Node[], edges: Edge[]): Bom {
     (a, b) => compareBySectionOrder(a.section, b.section) || a.studDiameter.localeCompare(b.studDiameter)
   );
 
-  return { componentGroups, cableRows, dataBusRows, lugRows, totalComponents: nodes.length, totalCables: edges.length };
+  return {
+    componentGroups,
+    cableRows,
+    dataBusRows,
+    lugRows,
+    cableHarmonizationSuggestions,
+    optimized: Boolean(options?.harmonizeSmallSections),
+    totalComponents: nodes.length,
+    totalCables: edges.length,
+  };
 }
 
 // Texte simple, prêt à copier-coller dans un email de demande de devis
@@ -216,14 +270,27 @@ export function buildMaterialListText(bom: Bom, projectName: string): string {
   }
 
   if (bom.cableRows.length > 0) {
-    lines.push("Câbles");
+    lines.push(bom.optimized ? "Câbles (sections optimisées)" : "Câbles");
     for (const row of bom.cableRows) {
       const metrage =
         row.totalLengthM !== null
           ? `${String(row.totalLengthM).replace(".", ",")} m`
           : `métrage non renseigné`;
       const awg = row.awg ? ` (AWG ${row.awg})` : "";
-      lines.push(`- Section ${row.section}${awg} : ${row.count} câble${row.count > 1 ? "s" : ""} (${metrage})`);
+      lines.push(`- Section ${row.section}${awg} — ${row.cableTypeLabel} : ${row.count} câble${row.count > 1 ? "s" : ""} (${metrage})`);
+    }
+    lines.push("");
+  }
+
+  if (bom.cableHarmonizationSuggestions.length > 0) {
+    lines.push(
+      bom.optimized
+        ? "Sections harmonisées automatiquement (regroupées ci-dessus, aucune bobine dédiée pour un petit métrage) :"
+        : "💡 Suggestion — sections harmonisables (regrouper évite d'acheter une bobine dédiée pour un petit métrage) :"
+    );
+    for (const suggestion of bom.cableHarmonizationSuggestions) {
+      const total = String(Math.round(suggestion.totalLengthM * 10) / 10).replace(".", ",");
+      lines.push(`- ${suggestion.section} (${total} m au total) → ${suggestion.targetSection}`);
     }
     lines.push("");
   }
@@ -245,4 +312,70 @@ export function buildMaterialListText(bom: Bom, projectName: string): string {
   }
 
   return lines.join("\n").trim();
+}
+
+// Export Excel (retour utilisateur : "un bouton export en excel") — CSV
+// avec point-virgule (convention Excel en locale française, où la virgule
+// est déjà le séparateur décimal) et BOM UTF-8 (voir downloadMaterialListCsv,
+// features/schemas/export.ts) pour qu'Excel affiche correctement les
+// accents sans passer par un assistant d'import.
+function csvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function csvLine(cells: string[]): string {
+  return cells.map(csvCell).join(";");
+}
+
+export function buildMaterialListCsv(bom: Bom, projectName: string): string {
+  const lines: string[] = [csvLine([`Liste de matériel — ${projectName || "Schéma"}`]), ""];
+
+  for (const group of bom.componentGroups) {
+    lines.push(csvLine([group.category]));
+    lines.push(csvLine(["Élément", "Caractéristiques", "Quantité", "Référence", "URL"]));
+    for (const row of group.rows) {
+      lines.push(csvLine([row.name, row.spec, String(row.count), row.supplier?.ref ?? "", row.supplier?.url ?? ""]));
+    }
+    lines.push("");
+  }
+
+  if (bom.cableRows.length > 0) {
+    lines.push(csvLine([bom.optimized ? "Câbles (sections optimisées)" : "Câbles"]));
+    lines.push(csvLine(["Section", "Couleur / type", "Équivalent AWG", "Nombre de câbles", "Métrage total (m)"]));
+    for (const row of bom.cableRows) {
+      const metrage = row.totalLengthM !== null ? String(row.totalLengthM).replace(".", ",") : "Non renseigné";
+      lines.push(csvLine([row.section, row.cableTypeLabel, row.awg ?? "", String(row.count), metrage]));
+    }
+    lines.push("");
+  }
+
+  if (bom.cableHarmonizationSuggestions.length > 0) {
+    lines.push(csvLine([bom.optimized ? "Sections harmonisées automatiquement" : "Suggestion — sections harmonisables"]));
+    lines.push(csvLine(["Section", "Total (m)", "Vers"]));
+    for (const suggestion of bom.cableHarmonizationSuggestions) {
+      const total = String(Math.round(suggestion.totalLengthM * 10) / 10).replace(".", ",");
+      lines.push(csvLine([suggestion.section, total, suggestion.targetSection]));
+    }
+    lines.push("");
+  }
+
+  if (bom.dataBusRows.length > 0) {
+    lines.push(csvLine(["Câbles de données"]));
+    lines.push(csvLine(["Type", "Nombre de câbles", "Longueur moyenne (m)"]));
+    for (const row of bom.dataBusRows) {
+      lines.push(csvLine([row.label, String(row.count), row.averageLengthM !== null ? String(row.averageLengthM).replace(".", ",") : "Non renseigné"]));
+    }
+    lines.push("");
+  }
+
+  if (bom.lugRows.length > 0) {
+    lines.push(csvLine(["Cosses (diamètre indicatif, à vérifier selon la borne réelle)"]));
+    lines.push(csvLine(["Section", "Diamètre de vis", "Quantité"]));
+    for (const row of bom.lugRows) {
+      lines.push(csvLine([row.section, row.studDiameter, String(row.count)]));
+    }
+    lines.push("");
+  }
+
+  return lines.join("\r\n").trim();
 }

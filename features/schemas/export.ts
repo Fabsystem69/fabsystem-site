@@ -1,7 +1,7 @@
 import { getNodesBounds, type Node, type Edge } from "@xyflow/react";
 import { toPng, toSvg } from "html-to-image";
 import JSZip from "jszip";
-import type { Bom } from "@/lib/electrical-components/bom";
+import { buildMaterialListCsv, type Bom } from "@/lib/electrical-components/bom";
 import { CABLE_TYPES } from "@/lib/electrical-components/cable-types";
 import type { CableEdgeData, ElectricalNodeData } from "@/types/schema";
 
@@ -787,6 +787,17 @@ export function downloadDataUrl(dataUrl: string, filename: string): void {
   link.click();
 }
 
+// Retour utilisateur : "un bouton export en excel" — CSV avec BOM UTF-8
+// (﻿) pour qu'Excel affiche correctement les caractères accentués
+// sans passer par son assistant d'import manuel.
+export function downloadMaterialListCsv(bom: Bom, projectName: string): void {
+  const csv = buildMaterialListCsv(bom, projectName);
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  downloadDataUrl(url, `${slugify(projectName)}_liste-materiel.csv`);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
 // Regroupe les images du carrousel dans une seule archive (retour
 // utilisateur : "pour le carrousel il serait pas mieux de faire un zip ?")
 // plutôt que 4 téléchargements séparés — plus simple à récupérer, et évite
@@ -835,6 +846,10 @@ const PRINT_STYLE = `
   th { color: #6b7280; font-weight: 600; font-size: 10px; text-transform: uppercase; }
   footer { margin-top: 20px; font-size: 10px; color: #9ca3af; }
   .schema-print { break-inside: avoid; page-break-inside: avoid; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
+  .toolbar button, .toolbar a { font: inherit; font-weight: 600; font-size: 12px; padding: 8px 14px; border-radius: 8px; border: 1px solid #d1d5db; background: #fff; color: #111827; cursor: pointer; text-decoration: none; }
+  .toolbar a { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+  @media print { .no-print { display: none !important; } }
 `;
 
 // Format de page (retour utilisateur : "ne pas hésiter à changer les formats
@@ -952,9 +967,9 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
     .join("");
 
   const cableTable = `
-    <h2>Câbles</h2>
+    <h2>${bom.optimized ? "Câbles (sections optimisées)" : "Câbles"}</h2>
     <table>
-      <thead><tr><th>Section</th><th>Équivalent AWG</th><th>Nombre de câbles</th><th>Métrage total</th></tr></thead>
+      <thead><tr><th>Section</th><th>Couleur / type</th><th>Équivalent AWG</th><th>Nombre de câbles</th><th>Métrage total</th></tr></thead>
       <tbody>
         ${bom.cableRows
           .map((row) => {
@@ -962,11 +977,23 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
               row.totalLengthM !== null
                 ? `${String(row.totalLengthM).replace(".", ",")} m${row.missingLengthCount > 0 ? ` (+ ${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""} sans longueur)` : ""}`
                 : `Longueur non renseignée (${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""})`;
-            return `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.awg ?? "—")}</td><td>${row.count}</td><td>${escapeHtml(metrage)}</td></tr>`;
+            return `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.cableTypeLabel)}</td><td>${escapeHtml(row.awg ?? "—")}</td><td>${row.count}</td><td>${escapeHtml(metrage)}</td></tr>`;
           })
           .join("")}
       </tbody>
     </table>`;
+
+  const harmonizationNote =
+    bom.cableHarmonizationSuggestions.length === 0
+      ? ""
+      : `
+    <h2>${bom.optimized ? "Sections harmonisées automatiquement" : "Suggestion — sections harmonisables"}</h2>
+    <p>${bom.optimized ? "Regroupées ci-dessus" : "Regrouper évite d'acheter une bobine dédiée (50-100m) pour un petit métrage"} :</p>
+    <ul>
+      ${bom.cableHarmonizationSuggestions
+        .map((s) => `<li>${escapeHtml(s.section)} (${escapeHtml(String(Math.round(s.totalLengthM * 10) / 10).replace(".", ","))} m au total) → ${escapeHtml(s.targetSection)}</li>`)
+        .join("")}
+    </ul>`;
 
   // Cosses (retour utilisateur : "un moteur pour calculer les consommables
   // cosses... avec les diamètres de vis et la section") — diamètre déduit
@@ -1009,6 +1036,15 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
       </tbody>
     </table>`;
 
+  // Retour utilisateur : "je ne veux pas que cela lance l'invite
+  // d'impression directement" — le popup s'ouvre sans déclencher
+  // window.print() automatiquement ; un bouton "Imprimer" explicite le fait
+  // à la place, avec un export CSV/Excel juste à côté. `.no-print` masque
+  // cette barre elle-même quand l'utilisateur imprime pour de vrai.
+  const csv = buildMaterialListCsv(bom, projectName);
+  const csvHref = `data:text/csv;charset=utf-8,${encodeURIComponent("﻿" + csv)}`;
+  const csvFilename = escapeHtml(`${slugify(projectName)}_liste-materiel.csv`);
+
   win.document.write(`<!doctype html>
 <html lang="fr">
 <head>
@@ -1017,20 +1053,21 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
 <style>${PRINT_STYLE}</style>
 </head>
 <body>
+  <div class="toolbar no-print">
+    <button type="button" onclick="window.print()">Imprimer</button>
+    <a href="${csvHref}" download="${csvFilename}">Exporter en Excel</a>
+  </div>
   <h1>${title} — Liste de matériel</h1>
   <div class="meta">Généré le ${dateStr} · ${bom.totalComponents} composants · ${bom.totalCables} câbles</div>
   <div class="disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)} Les quantités et métrages sont calculés à partir du schéma et doivent être vérifiés avant commande.</div>
   ${componentTables}
   ${cableTable}
+  ${harmonizationNote}
   ${lugTable}
   ${dataBusTable}
   <footer>Généré par FabSystem pour ${title} — fabsystem.fr</footer>
 </body>
 </html>`);
   win.document.close();
-
-  setTimeout(() => {
-    win.focus();
-    win.print();
-  }, 300);
+  win.focus();
 }
