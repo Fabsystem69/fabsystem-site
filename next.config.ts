@@ -85,6 +85,26 @@ const nextConfig: NextConfig = {
         destination: "/schemas-electriques/schema-voilier-autonome-12v-230v",
         permanent: true,
       },
+      {
+        // Relocalisation sous /blog (nouvelle IA "Blog" — les guides longs
+        // vivaient à la racine, ce qui entrait en conflit avec l'espace de
+        // noms plat du site et les rendait indiscernables des pages
+        // commerciales) — redirection permanente acceptée malgré le
+        // risque SEO de court terme.
+        source: "/installation-electrique-van",
+        destination: "/blog/installation-electrique-van",
+        permanent: true,
+      },
+      {
+        source: "/installation-electrique-van-victron-legere",
+        destination: "/blog/installation-electrique-van-victron-legere",
+        permanent: true,
+      },
+      {
+        source: "/installation-van-batterie-tout-en-un-aferiy-p280",
+        destination: "/blog/installation-van-batterie-tout-en-un-aferiy-p280",
+        permanent: true,
+      },
     ];
   },
 };

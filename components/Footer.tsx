@@ -24,6 +24,7 @@ const EXPLORE_LINKS = [
   { href: "/prestations", label: "Services" },
   { href: "/outils", label: "Outils" },
   { href: "/formations", label: "Les bases" },
+  { href: "/blog", label: "Blog" },
   { href: "/boutique", label: "Boutique" },
 ];
 

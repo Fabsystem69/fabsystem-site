@@ -13,11 +13,15 @@ import { useCartDrawer } from "@/lib/client/cart-drawer-context";
 // PRINCIPALE | CONTACT · COMPTE · PANIER sur desktop, LOGO | PANIER | BURGER
 // sur mobile. Navigation principale conforme à
 // docs/refonte-site-public/00-CAHIER-DES-CHARGES-GLOBAL.md §12.
+// "Blog" placé entre "Les bases" et "Outils" (refonte SEO) : contenu
+// éditorial groupé avant les outils, cohérent avec l'entonnoir contenu →
+// outils → coaching visé par le site.
 const nav = [
   { href: "/", label: "Accueil" },
   { href: "/prestations", label: "Services" },
   { href: "/boutique", label: "Boutique" },
   { href: "/formations", label: "Les bases" },
+  { href: "/blog", label: "Blog" },
   { href: "/outils", label: "Outils" },
 ];
 

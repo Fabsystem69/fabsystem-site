@@ -9,12 +9,15 @@ import { VoltaGuide } from "@/components/volta/VoltaGuide";
 import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-session";
 
 export const metadata: Metadata = {
-  title:
-    "Installation électrique de van avec batterie tout-en-un : mon montage autour de l'AFERIY P280",
+  // Titre/description raccourcis (audit SEO : 104 car. avec le suffixe et
+  // 256 car. de description, tronqués dans les résultats Google) — même
+  // correction déjà appliquée à installation-electrique-van/page.tsx,
+  // reprise ici pour cette page sœur qui l'avait ratée.
+  title: "Van + AFERIY P280 : une architecture simple mais sérieuse",
   description:
-    "Comment concevoir une installation électrique de van simple et évolutive avec une batterie tout-en-un AFERIY P280, un panneau solaire flexible 200W, la recharge alternateur officielle DC060, du 12V pour les usages quotidiens et du 230V pour deux prises AC.",
+    "Installation électrique de van avec une batterie tout-en-un AFERIY P280 : solaire 200W, recharge alternateur DC060, réseau 12V et deux prises 230V.",
   alternates: {
-    canonical: "/installation-van-batterie-tout-en-un-aferiy-p280",
+    canonical: "/blog/installation-van-batterie-tout-en-un-aferiy-p280",
   },
   keywords: [
     "AFERIY P280 van",
@@ -29,7 +32,7 @@ export const metadata: Metadata = {
     title: "Van + AFERIY P280 : une architecture simple mais sérieuse",
     description:
       "Un guide concret pour organiser un van autour d'une AFERIY P280 : solaire 200W, recharge alternateur officielle DC060 ou quai, réseau 12V fixe et deux prises AC.",
-    url: "https://www.fabsystem.fr/installation-van-batterie-tout-en-un-aferiy-p280",
+    url: "https://www.fabsystem.fr/blog/installation-van-batterie-tout-en-un-aferiy-p280",
     type: "article",
     images: [
       {
@@ -211,7 +214,7 @@ const articleJsonLd = {
   description:
     "Guide concret pour organiser un van autour d'une AFERIY P280 avec solaire 200W, recharge alternateur officielle DC060 ou quai, réseau 12V via XT60 et deux prises AC.",
   mainEntityOfPage:
-    "https://www.fabsystem.fr/installation-van-batterie-tout-en-un-aferiy-p280",
+    "https://www.fabsystem.fr/blog/installation-van-batterie-tout-en-un-aferiy-p280",
   datePublished: "2026-08-16",
   dateModified: "2026-08-16",
   author: {
@@ -245,12 +248,12 @@ const breadcrumbJsonLd = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
-    { "@type": "ListItem", position: 2, name: "Les bases", item: "https://www.fabsystem.fr/formations" },
+    { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.fabsystem.fr/blog" },
     {
       "@type": "ListItem",
       position: 3,
       name: "Installation van batterie tout-en-un AFERIY P280",
-      item: "https://www.fabsystem.fr/installation-van-batterie-tout-en-un-aferiy-p280",
+      item: "https://www.fabsystem.fr/blog/installation-van-batterie-tout-en-un-aferiy-p280",
     },
   ],
 };

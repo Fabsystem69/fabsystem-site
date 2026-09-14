@@ -4,6 +4,7 @@ import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { VoltaGuide } from "@/components/volta/VoltaGuide";
+import { RELOCATED_ARTICLES } from "@/lib/blog/relocated-articles";
 
 // Les Bases V2 — Modules (docs/refonte-site-public/les-bases/01-HERO-MODULES.md
 // §2-6). Les modules et leurs données (titre, résumé, durée) sont ceux
@@ -71,54 +72,6 @@ const MODULES = [
   },
 ] as const;
 
-const GUIDES = [
-  {
-    href: "/installation-electrique-van",
-    badge: "Guide pratique",
-    meta: "Van & Fourgon aménagés",
-    imageSrc: "/articles/installation-electrique-van-guide.webp",
-    imageAlt: "Illustration de planification d'une installation electrique de van",
-    title: "Bien dimensionner une installation van avant d'acheter",
-    description:
-      "Un article de synthèse pour remettre les priorités dans le bon ordre : besoins réels, batterie, recharge, convertisseur 230V, câbles et protections.",
-    highlights: [
-      "Éviter de surdimensionner ou sous-dimensionner dès le départ",
-      "Relier les modules de base à un vrai projet de van",
-      "Revenir ensuite aux outils et aux schémas avec une logique claire",
-    ],
-  },
-  {
-    href: "/installation-van-batterie-tout-en-un-aferiy-p280",
-    badge: "Cas concret",
-    meta: "AFERIY P280",
-    imageSrc: "/articles/aferiy-p280-architecture-van.webp",
-    imageAlt: "Illustration d'un van amenage autour d'une AFERIY P280",
-    title: "Monter un van simple autour d'une batterie tout-en-un",
-    description:
-      "Un cas d'usage concret autour de l'AFERIY P280 : double XT90, sortie XT60 12V, panneau 200W et deux prises AC à traiter avec sérieux.",
-    highlights: [
-      "Voir comment structurer le 12V fixe à partir d'une sortie XT60",
-      "Comprendre où une station tout-en-un simplifie vraiment le projet",
-      "Garder une vraie prudence sur les prises 230V fixes dans le van",
-    ],
-  },
-  {
-    href: "/installation-electrique-van-victron-legere",
-    badge: "Cas concret",
-    meta: "Victron leger",
-    imageSrc: "/articles/installation-electrique-van-victron-legere.jpg",
-    imageAlt: "Illustration d'une architecture Victron legere pour van",
-    title: "Construire un van propre autour d'une batterie classique",
-    description:
-      "Une base autour d'une LiFePO4 150Ah, d'un SmartSolar 75/15, d'un MultiPlus 12/800, d'un SmartShunt et d'un Orion 18A optionnel.",
-    highlights: [
-      "Garder le 12V comme base de vie a bord et le 230V pour les petits chargeurs",
-      "Voir comment structurer une architecture Victron lisible sans surdimensionnement",
-      "Repartir ensuite du schema et du projet cloud pour adapter le montage a votre van",
-    ],
-  },
-] as const;
-
 export function Modules() {
   return (
     <Section id="modules" tone="light" className="scroll-mt-24">
@@ -179,7 +132,7 @@ export function Modules() {
         </div>
 
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
-          {GUIDES.map((guide) => (
+          {RELOCATED_ARTICLES.map((guide) => (
             <article
               key={guide.href}
               className="overflow-hidden rounded-[24px] border border-white/10 bg-white text-neutral-900 shadow-[0_18px_42px_rgba(0,0,0,0.16)]"
@@ -228,6 +181,15 @@ export function Modules() {
               </div>
             </article>
           ))}
+        </div>
+
+        <div className="mt-5">
+          <Link
+            href="/blog"
+            className="text-sm font-semibold text-brand-400 underline-offset-4 hover:underline"
+          >
+            Voir tous les articles →
+          </Link>
         </div>
       </article>
     </Section>

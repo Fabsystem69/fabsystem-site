@@ -4,6 +4,7 @@ import path from "node:path";
 import { listActiveBuyNowProducts } from "@/lib/services/catalog";
 import { isPrestationsPackSlug } from "@/lib/prestations-packs";
 import { SCHEMA_EXAMPLE_SLUGS } from "@/lib/schema-examples-data";
+import { getMdxArticleSlugs, getMdxArticleLastModified } from "@/lib/blog/articles";
 
 // Sitemap dynamique (retour utilisateur : "optimise l'affichage des pages
 // sur Google") — les pages hub (/outils, /formations, /boutique) étaient
@@ -65,12 +66,13 @@ const ROUTE_FILE_MAP = {
   "/temoignage": ["app/temoignage/page.tsx"],
   "/probleme-charge-batterie-bateau": ["app/probleme-charge-batterie-bateau/page.tsx"],
   "/installation-12v-bateau": ["app/installation-12v-bateau/page.tsx"],
-  "/installation-electrique-van": ["app/installation-electrique-van/page.tsx"],
-  "/installation-electrique-van-victron-legere": [
-    "app/installation-electrique-van-victron-legere/page.tsx",
+  "/blog": ["app/blog/page.tsx", "lib/blog/relocated-articles.ts"],
+  "/blog/installation-electrique-van": ["app/blog/installation-electrique-van/page.tsx"],
+  "/blog/installation-electrique-van-victron-legere": [
+    "app/blog/installation-electrique-van-victron-legere/page.tsx",
   ],
-  "/installation-van-batterie-tout-en-un-aferiy-p280": [
-    "app/installation-van-batterie-tout-en-un-aferiy-p280/page.tsx",
+  "/blog/installation-van-batterie-tout-en-un-aferiy-p280": [
+    "app/blog/installation-van-batterie-tout-en-un-aferiy-p280/page.tsx",
   ],
   "/securisation-correction-bateau": ["app/securisation-correction-bateau/page.tsx"],
   "/vcard": ["app/vcard/page.tsx"],
@@ -170,6 +172,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
+  const mdxBlogSlugs = await getMdxArticleSlugs();
+  const mdxBlogEntries: MetadataRoute.Sitemap = await Promise.all(
+    mdxBlogSlugs.map(async (slug) => ({
+      url: `${baseUrl}/blog/${slug}`,
+      lastModified: await getMdxArticleLastModified(slug),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }))
+  );
+
   return [
     await createEntry(baseUrl, "/", "monthly", 1),
     await createEntry(baseUrl, "/commencer-ici", "monthly", 0.9),
@@ -182,6 +194,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     await createEntry(baseUrl, "/prestations/intervention", "monthly", 0.8),
     await createEntry(baseUrl, "/formations", "monthly", 0.8),
     ...formationEntries,
+    await createEntry(baseUrl, "/blog", "monthly", 0.8),
+    await createEntry(baseUrl, "/blog/installation-electrique-van", "monthly", 0.8),
+    await createEntry(baseUrl, "/blog/installation-electrique-van-victron-legere", "monthly", 0.8),
+    await createEntry(baseUrl, "/blog/installation-van-batterie-tout-en-un-aferiy-p280", "monthly", 0.8),
+    ...mdxBlogEntries,
     await createEntry(baseUrl, "/outils", "monthly", 0.9),
     ...outilEntries,
     await createEntry(baseUrl, "/realisations", "monthly", 0.6),
@@ -194,9 +211,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     await createEntry(baseUrl, "/temoignage", "yearly", 0.3),
     await createEntry(baseUrl, "/probleme-charge-batterie-bateau", "monthly", 0.8),
     await createEntry(baseUrl, "/installation-12v-bateau", "monthly", 0.8),
-    await createEntry(baseUrl, "/installation-electrique-van", "monthly", 0.8),
-    await createEntry(baseUrl, "/installation-electrique-van-victron-legere", "monthly", 0.8),
-    await createEntry(baseUrl, "/installation-van-batterie-tout-en-un-aferiy-p280", "monthly", 0.8),
     await createEntry(baseUrl, "/securisation-correction-bateau", "monthly", 0.8),
     await createEntry(baseUrl, "/vcard", "yearly", 0.2),
     await createEntry(baseUrl, "/mentions-legales", "yearly", 0.2),

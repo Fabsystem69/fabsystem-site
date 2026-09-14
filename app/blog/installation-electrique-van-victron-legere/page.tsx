@@ -9,12 +9,15 @@ import { VoltaGuide } from "@/components/volta/VoltaGuide";
 import { getCustomerSessionFromCookieOrAnonymous } from "@/lib/server/customer-session";
 
 export const metadata: Metadata = {
-  title:
-    "Installation electrique de van avec solution Victron legere : comment je m'y prendrais",
+  // Titre/description raccourcis (audit SEO : 97 car. avec le suffixe et
+  // 204 car. de description, tronqués dans les résultats Google) — même
+  // correction déjà appliquée à installation-electrique-van/page.tsx,
+  // reprise ici pour cette page sœur qui l'avait ratée.
+  title: "Installation electrique van Victron legere",
   description:
-    "Une architecture Victron legere et coherente pour van : batterie LiFePO4 150Ah, SmartSolar MPPT 75/15, MultiPlus Compact 12/800, SmartShunt, solaire 200W et recharge alternateur optionnelle via Orion 18A.",
+    "Architecture Victron legere pour van : batterie LiFePO4 150Ah, SmartSolar MPPT 75/15, MultiPlus 12/800, SmartShunt et solaire 200W.",
   alternates: {
-    canonical: "/installation-electrique-van-victron-legere",
+    canonical: "/blog/installation-electrique-van-victron-legere",
   },
   keywords: [
     "installation electrique van victron",
@@ -29,7 +32,7 @@ export const metadata: Metadata = {
     title: "Installation electrique van Victron legere",
     description:
       "Une base propre et evolutive pour van autour d'une batterie 150Ah, d'un MPPT 75/15, d'un MultiPlus 800 et d'un monitoring Bluetooth.",
-    url: "https://www.fabsystem.fr/installation-electrique-van-victron-legere",
+    url: "https://www.fabsystem.fr/blog/installation-electrique-van-victron-legere",
     type: "article",
     images: [
       {
@@ -346,7 +349,7 @@ const articleJsonLd = {
     "Installation electrique de van avec solution Victron legere : comment je m'y prendrais",
   description:
     "Une architecture Victron legere et coherente pour van autour d'une batterie LiFePO4 150Ah, d'un SmartSolar MPPT 75/15, d'un MultiPlus Compact 12/800, d'un SmartShunt et d'un Orion 18A optionnel.",
-  mainEntityOfPage: "https://www.fabsystem.fr/installation-electrique-van-victron-legere",
+  mainEntityOfPage: "https://www.fabsystem.fr/blog/installation-electrique-van-victron-legere",
   datePublished: "2026-08-16",
   dateModified: "2026-08-16",
   author: {
@@ -376,12 +379,12 @@ const breadcrumbJsonLd = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
-    { "@type": "ListItem", position: 2, name: "Les bases", item: "https://www.fabsystem.fr/formations" },
+    { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.fabsystem.fr/blog" },
     {
       "@type": "ListItem",
       position: 3,
       name: "Installation electrique van Victron legere",
-      item: "https://www.fabsystem.fr/installation-electrique-van-victron-legere",
+      item: "https://www.fabsystem.fr/blog/installation-electrique-van-victron-legere",
     },
   ],
 };

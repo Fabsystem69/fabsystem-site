@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "Comment planifier l'installation électrique de votre van : batterie, recharge par alternateur ou solaire, convertisseur 230V, câbles, fusibles et points de vigilance.",
   alternates: {
-    canonical: "/installation-electrique-van",
+    canonical: "/blog/installation-electrique-van",
   },
   keywords: [
     "installation électrique van",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     title: "Installation électrique de van : bien dimensionner avant d'acheter",
     description:
       "Batterie, recharge, protections, convertisseur 230V et câblage : un guide clair pour préparer une installation cohérente dans un van.",
-    url: "https://www.fabsystem.fr/installation-electrique-van",
+    url: "https://www.fabsystem.fr/blog/installation-electrique-van",
     type: "article",
     images: [
       {
@@ -124,7 +124,7 @@ const articleJsonLd = {
     "Installation électrique de van : comment bien dimensionner batterie, recharge et protections",
   description:
     "Un guide clair pour planifier l'installation électrique d'un van : usages, batterie, recharge, convertisseur 230V, câbles et fusibles.",
-  mainEntityOfPage: "https://www.fabsystem.fr/installation-electrique-van",
+  mainEntityOfPage: "https://www.fabsystem.fr/blog/installation-electrique-van",
   datePublished: "2026-08-16",
   dateModified: "2026-08-16",
   author: {
@@ -154,12 +154,12 @@ const breadcrumbJsonLd = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Accueil", item: "https://www.fabsystem.fr" },
-    { "@type": "ListItem", position: 2, name: "Les bases", item: "https://www.fabsystem.fr/formations" },
+    { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.fabsystem.fr/blog" },
     {
       "@type": "ListItem",
       position: 3,
       name: "Installation électrique de van",
-      item: "https://www.fabsystem.fr/installation-electrique-van",
+      item: "https://www.fabsystem.fr/blog/installation-electrique-van",
     },
   ],
 };
