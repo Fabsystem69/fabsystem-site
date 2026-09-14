@@ -7,6 +7,7 @@
 import { COPPER_RESISTIVITY_OHM_MM2_PER_M } from "@/lib/calc/section-cable";
 import {
   WIRE_TABLE,
+  baseAmpacityForInsulation,
   findMinimumSectionForAmpacity,
   getDeratedAmpacity,
   type InsulationRating,
@@ -72,7 +73,7 @@ export function computeWireSize(
     return {
       mm2: row.mm2,
       awg: row.awg,
-      baseAmpacityA: row.ampacityA,
+      baseAmpacityA: baseAmpacityForInsulation(row, insulation),
       deratedAmpacityA,
       ampacityPass: deratedAmpacityA >= designCurrentA,
       voltageDropV,

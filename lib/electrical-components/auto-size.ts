@@ -3,6 +3,7 @@ import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 import { calcSection, AVAILABLE_FUSES_A, AVAILABLE_SECTIONS_MM2 } from "@/lib/calc/section-cable";
 import { WIRE_TABLE, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
 import { INVERTER_EFFICIENCY } from "@/lib/calc/inverter-size";
+import { CHARGER_EFFICIENCY, MAINS_VOLTAGE_V } from "@/lib/calc/charge-secteur";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { getBrandModel } from "@/lib/electrical-components/brand-models";
 
@@ -23,6 +24,14 @@ import { getBrandModel } from "@/lib/electrical-components/brand-models";
  * comme un cas favorable non démontré — retour client : "on joue toujours
  * sécurité". */
 const CONTINUOUS_MARGIN = 1.25;
+
+/** Chute de tension maximale visée, en % — Victron Energy, "Wiring
+ * Unlimited" (rev02, 08/2024), p.10 et p.22 : "we advise aiming for a
+ * voltage drop no bigger than 2.5%" / "You should aim for a voltage drop
+ * below 2.5%". Remplace l'ancien seuil de 3% (EN 1648-2) : Victron est le
+ * fabricant le plus représenté dans le catalogue de l'éditeur, sa propre
+ * recommandation devient la référence par défaut. */
+const DC_MAX_VOLTAGE_DROP_PCT = 2.5;
 
 /** Section minimale (mm²) dont l'ampacité dérated couvre `designCurrentA`,
  * en conditions prudentes par défaut (PVC, 30°C ambiant, câble seul — mêmes
@@ -188,7 +197,7 @@ function evaluatePvEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges: Sch
     getProtectionAmperage(nodes.find((n) => n.id === edge.target)) ?? 0,
   );
   const ampacityDesignA = Math.max(amps, adjacentProtectionA * CONTINUOUS_MARGIN);
-  const { section: dropSectionMm2 } = calcSection(amps, length, 3, voltage);
+  const { section: dropSectionMm2 } = calcSection(amps, length, DC_MAX_VOLTAGE_DROP_PCT, voltage);
   const section = Math.max(pickSectionForAmpacity(ampacityDesignA), dropSectionMm2);
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
@@ -459,7 +468,7 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
   // lib/calc/wire-size.ts. Ampacité : sur le courant de dimensionnement
   // (×1,25, circuit continu) — la section retenue est toujours la plus
   // grande des deux exigences, jamais la chute de tension seule.
-  const { section: dropSectionMm2 } = calcSection(amps, length, 3, voltage);
+  const { section: dropSectionMm2 } = calcSection(amps, length, DC_MAX_VOLTAGE_DROP_PCT, voltage);
   const section = Math.max(pickSectionForAmpacity(amps * CONTINUOUS_MARGIN), dropSectionMm2);
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
@@ -486,6 +495,154 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
   };
 }
 
+// ─── Câblage AC (secteur 230V) ──────────────────────────────────────────
+// Gap identifié à l'audit : aucune section de câble AC n'était jamais
+// vérifiée, uniquement le DC. Méthode distincte de la formule DC
+// (résistivité + chute de tension) : Victron Energy, "Wiring Unlimited"
+// (rev02, 08/2024), p.54, donne un rule-of-thumb dédié à l'AC, assumé
+// comme tel par le fabricant lui-même ("might not meet your local AC
+// wiring standards... meant as a guide only") — pas de moteur générique
+// commun avec le DC, la méthode AC est fondamentalement différente.
+
+const AC_SOURCE_TYPES = new Set(["inverter", "inverter-charger", "easysolar", "ac-charger", "shore-power", "power-station"]);
+
+// Puissance AC d'un consommateur — même filtrage que `getLoadPowerW` côté
+// DC, miroir exact pour la branche 230V (supplyType "230v" ou "mixed").
+function getAcLoadPowerW(node: SchemaNode): number {
+  if (node.data.componentType !== "consumer") return 0;
+  if (node.data.supplyType !== "230v" && node.data.supplyType !== "mixed") return 0;
+  return Number(node.data.power230VW) || 0;
+}
+
+// Ampérage AC propre d'une source/chargeur adjacent — un onduleur/
+// onduleur-chargeur tire son courant AC de sa puissance nominale
+// (powerW / 230V) ; un chargeur secteur le tire de son courant de charge
+// DC converti côté secteur (même formule que lib/calc/charge-secteur.ts,
+// CHARGER_EFFICIENCY). `shore-power` n'a pas de calibre propre déclaré
+// dans l'éditeur : son courant vient uniquement de ce qu'il alimente en
+// aval (voir estimateAcEdgeAmps).
+function getAcSourceAmperage(node: SchemaNode | undefined): number | null {
+  if (!node) return null;
+  switch (node.data.componentType) {
+    case "inverter":
+    case "inverter-charger":
+    case "easysolar": {
+      const powerW = Number(node.data.powerW) || 0;
+      return powerW > 0 ? powerW / MAINS_VOLTAGE_V : null;
+    }
+    case "ac-charger": {
+      const chargeAmperage = Number(node.data.chargeAmperage) || 0;
+      const voltageDC = Number(node.data.voltageDC) || 12;
+      if (chargeAmperage <= 0) return null;
+      return (chargeAmperage * voltageDC) / CHARGER_EFFICIENCY / MAINS_VOLTAGE_V;
+    }
+    default:
+      return null;
+  }
+}
+
+function hasAcSource(ids: Set<string>, nodes: SchemaNode[]): boolean {
+  return nodes.some((n) => ids.has(n.id) && AC_SOURCE_TYPES.has(n.data.componentType));
+}
+
+// Même patron que `getEdgeLoadSide` (DC) — cableType "ac-230v" et jeu de
+// types "source" propre à l'AC, `reachableSameCableType` reste identique
+// (déjà générique par cableType).
+function getAcEdgeLoadSide(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): Set<string> | null {
+  if (edge.data?.cableType !== "ac-230v") return null;
+
+  const sourceSide = reachableSameCableType(edge.source, edge.id, "ac-230v", edges);
+  const targetSide = reachableSameCableType(edge.target, edge.id, "ac-230v", edges);
+  const sourceHasSource = hasAcSource(sourceSide, nodes);
+  const targetHasSource = hasAcSource(targetSide, nodes);
+
+  if (sourceHasSource && !targetHasSource) return targetSide;
+  if (targetHasSource && !sourceHasSource) return sourceSide;
+  return null;
+}
+
+function sumAcConsumerWattage(ids: Set<string>, nodes: SchemaNode[]): number {
+  let total = 0;
+  for (const node of nodes) {
+    if (ids.has(node.id)) total += getAcLoadPowerW(node);
+  }
+  return total;
+}
+
+// Ampérage AC estimé traversant ce câble précis — miroir de
+// `estimateEdgeAmps` (DC) : somme des consommateurs 230V côté charge, avec
+// repli sur un consommateur directement raccordé puis sur l'ampérage propre
+// de la source adjacente quand aucune consommation avale n'est encore
+// connue (schéma en cours de construction, ou câble amont d'une source sans
+// détail des consommateurs qu'elle alimente).
+export function estimateAcEdgeAmps(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): number | null {
+  if (edge.data?.cableType !== "ac-230v") return null;
+
+  const loadSide = getAcEdgeLoadSide(edge, nodes, edges);
+  if (!loadSide) {
+    const directConsumer = nodes.find(
+      (node) => (node.id === edge.source || node.id === edge.target) && getAcLoadPowerW(node) > 0,
+    );
+    if (directConsumer) return getAcLoadPowerW(directConsumer) / MAINS_VOLTAGE_V;
+
+    const adjacentSourceA = Math.max(
+      getAcSourceAmperage(nodes.find((n) => n.id === edge.source)) ?? 0,
+      getAcSourceAmperage(nodes.find((n) => n.id === edge.target)) ?? 0,
+    );
+    return adjacentSourceA > 0 ? adjacentSourceA : null;
+  }
+
+  const totalW = sumAcConsumerWattage(loadSide, nodes);
+  if (totalW > 0) return totalW / MAINS_VOLTAGE_V;
+
+  // Aucun consommateur connu en aval (ex. tableau pas encore câblé plus
+  // loin) : se rabat sur l'ampérage propre de la source adjacente à CE
+  // câble précis — le câble sortant d'un onduleur doit couvrir son plein
+  // régime même si rien n'est encore câblé derrière le tableau. Bug
+  // corrigé : l'ancienne version ne regardait que les nœuds du "loadSide"
+  // (le tableau, jamais une source), donc ne trouvait jamais rien ici.
+  const adjacentSourceA = Math.max(
+    getAcSourceAmperage(nodes.find((n) => n.id === edge.source)) ?? 0,
+    getAcSourceAmperage(nodes.find((n) => n.id === edge.target)) ?? 0,
+  );
+  return adjacentSourceA > 0 ? adjacentSourceA : null;
+}
+
+/** Section AC minimale (mm²) — Victron "Wiring Unlimited" p.54 : courant
+ * nominal ÷ 8, puis +1 mm² par tranche de 5 m de câble (arrondi au
+ * supérieur — un début de tranche compte entièrement, prudence). */
+function computeAcSectionMm2(currentA: number, oneWayLengthM: number): number {
+  const rawSectionMm2 = currentA / 8 + Math.ceil(oneWayLengthM / 5);
+  const row = AVAILABLE_SECTIONS_MM2.find((s) => s >= rawSectionMm2);
+  return row ?? AVAILABLE_SECTIONS_MM2[AVAILABLE_SECTIONS_MM2.length - 1];
+}
+
+export function evaluateAcEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): EdgeSectionDiagnostic | null {
+  if (edge.data?.cableType !== "ac-230v") return null;
+
+  const amps = estimateAcEdgeAmps(edge, nodes, edges);
+  if (!amps || amps <= 0) return null;
+
+  const length = getEdgeSizingLength(edge, nodes);
+  const section = computeAcSectionMm2(amps, length);
+  const currentSectionMm2 = parseSectionMm2(edge.data?.section);
+
+  return {
+    amps,
+    loadAmps: amps,
+    protectionAmps: null,
+    sourceAmps: null,
+    ampsSource: "load",
+    voltage: MAINS_VOLTAGE_V,
+    length,
+    recommendedSectionMm2: section,
+    recommendedSectionLabel: formatSectionLabel(section),
+    currentSectionMm2,
+    currentSectionLabel: edge.data?.section ? String(edge.data.section) : null,
+    status: currentSectionMm2 === null ? "missing" : currentSectionMm2 < section ? "undersized" : "ok",
+  };
+}
+
 // Un cran en dessous de `current` dans l'échelle standard (retour
 // utilisateur : "si la ligne est sur-calibrée tu n'as le droit de descendre
 // que d'une section, exemple 6mm tu diminues que jusqu'à 4mm pas en
@@ -503,10 +660,11 @@ function stepDownOnceMm2(current: number): number {
 
 // Recalcule la section de tous les câbles de puissance DC (batterie,
 // protection, distribution, consommateurs confondus — voir
-// `estimateEdgeAmps` ci-dessus) — inchangé pour le secteur AC, les terres
-// et les bus de données (VE.Direct), dont le dimensionnement ne suit pas
-// cette formule, et pour les câbles qu'on ne sait pas estimer (aucun
-// consommateur de puissance connue en aval).
+// `estimateEdgeAmps` ci-dessus) et AC (voir `estimateAcEdgeAmps`, méthode
+// dédiée) — inchangé pour les terres et les bus de données (VE.Direct),
+// dont le dimensionnement ne suit aucune de ces deux formules, et pour les
+// câbles qu'on ne sait pas estimer (aucun consommateur de puissance connue
+// en aval, ni source AC/DC adjacente).
 export function recalculateCableSections(
   nodes: SchemaNode[],
   edges: SchemaEdge[],
@@ -514,7 +672,7 @@ export function recalculateCableSections(
   let updatedCount = 0;
 
   const nextEdges = edges.map((edge) => {
-    const diagnostic = evaluateEdgeSection(edge, nodes, edges);
+    const diagnostic = evaluateEdgeSection(edge, nodes, edges) ?? evaluateAcEdgeSection(edge, nodes, edges);
     if (!diagnostic) return edge;
 
     let targetMm2 = diagnostic.recommendedSectionMm2;

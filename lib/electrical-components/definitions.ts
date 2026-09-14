@@ -1372,8 +1372,27 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "ac-out", label: "230V OUT", kind: "neutral", side: "right" },
       { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
     ],
-    defaultData: {},
-    fields: [{ key: "label", label: "Nom", type: "text" }],
+    // Retour client (audit sécurité, source Victron "Wiring Unlimited" p.60 :
+    // "The use of an RCD is compulsory in all AC installations.") — le
+    // tableau était toujours décrit comme contenant un différentiel, sans
+    // jamais capturer l'information réellement. Défaut "yes" : un tableau
+    // déjà dessiné avant l'ajout de ce champ (donnée absente, pas "no")
+    // n'est jamais signalé rétroactivement, seul un choix explicite "no"
+    // déclenche l'alerte (voir checks.ts, computeMissingDifferentialIssues).
+    defaultData: { hasDifferential: "yes" },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      {
+        key: "hasDifferential",
+        label: "Différentiel (RCD)",
+        type: "select",
+        help: "Obligatoire sur toute installation 230V (protège contre l'électrocution en cas de fuite à la terre).",
+        options: [
+          { value: "yes", label: "Oui" },
+          { value: "no", label: "Non" },
+        ],
+      },
+    ],
   },
   {
     // Isolateur galvanique (icône fournie, Sterling Zinc Saver II) — se

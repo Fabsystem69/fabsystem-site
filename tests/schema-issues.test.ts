@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Edge, Node } from "@xyflow/react";
-import { estimateEdgeAmps, evaluateEdgeSection, recalculateCableSections } from "@/lib/electrical-components/auto-size";
+import { estimateEdgeAmps, evaluateAcEdgeSection, evaluateEdgeSection, recalculateCableSections } from "@/lib/electrical-components/auto-size";
 import { computeSchemaIssues } from "@/lib/electrical-components/checks";
 import { getComponentDefinition, getEffectiveHandles } from "@/lib/electrical-components/definitions";
 import { AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
@@ -185,13 +185,14 @@ test("recalculateCableSections dimensionne le câblage principal depuis le fusib
   const switchPanelCable = result.edges.find((edge) => edge.id === "edge-switch-panel");
 
   // Correctif sécurité : la section doit couvrir l'ampacité du courant
-  // protégé (100 A, marge circuit continu ×1,25), pas seulement la chute de
-  // tension — 10 mm² (ancien résultat) ne supporte que ~46 A, largement
-  // insuffisant pour un circuit protégé à 100 A.
-  assert.equal(result.updatedCount, 5);
-  assert.equal(batteryFuseCable?.data?.section, "50 mm²");
-  assert.equal(fuseSwitchCable?.data?.section, "50 mm²");
-  assert.equal(switchPanelCable?.data?.section, "6 mm²");
+  // protégé (100 A, marge circuit continu ×1,25 = 125 A), pas seulement la
+  // chute de tension. Valeurs d'ampacité ISO 13297 Table A1 (voir
+  // lib/calc/wire-ampacity.ts) : 35 mm² couvre 160 A en isolant PVC/70°C,
+  // largement au-dessus des 125 A requis.
+  assert.equal(result.updatedCount, 4);
+  assert.equal(batteryFuseCable?.data?.section, "35 mm²");
+  assert.equal(fuseSwitchCable?.data?.section, "35 mm²");
+  assert.equal(switchPanelCable?.data?.section, "4 mm²");
 });
 
 test("recalculateCableSections peut dimensionner le câblage principal depuis le fusible principal même sans puissance consommateur connue", () => {
@@ -203,8 +204,8 @@ test("recalculateCableSections peut dimensionner le câblage principal depuis le
   const switchPanelCable = result.edges.find((edge) => edge.id === "edge-switch-panel");
 
   assert.equal(result.updatedCount, 2);
-  assert.equal(batteryFuseCable?.data?.section, "50 mm²");
-  assert.equal(fuseSwitchCable?.data?.section, "50 mm²");
+  assert.equal(batteryFuseCable?.data?.section, "35 mm²");
+  assert.equal(fuseSwitchCable?.data?.section, "35 mm²");
   assert.equal(switchPanelCable?.data?.section, "4 mm²");
 });
 
@@ -260,7 +261,7 @@ test("computeSchemaIssues signale un câble de puissance sans section et propose
   assert.ok(issue);
   assert.match(issue.message, /n'a pas de section renseignée/i);
   assert.match(issue.message, /protégé en 100,0 A/i);
-  assert.match(issue.message, /50 mm²/);
+  assert.match(issue.message, /35 mm²/);
   assert.equal(issue.action, "recalculate-all-cable-sections");
 });
 
@@ -272,7 +273,7 @@ test("computeSchemaIssues signale un câble trop petit pour le courant estimé",
   assert.ok(issue);
   assert.match(issue.message, /trop juste/i);
   assert.match(issue.message, /6 mm²/);
-  assert.match(issue.message, /50 mm²/);
+  assert.match(issue.message, /35 mm²/);
 });
 
 test("computeSchemaIssues ne signale pas un câble déjà dans la norme ou surdimensionné", () => {
@@ -384,4 +385,204 @@ test("computeSchemaIssues signale plus de quatre câbles sur une borne", () => {
   const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "battery-positive-too-many-terminals");
   assert.ok(issue);
   assert.match(issue.message, /plus de 4 câbles/i);
+});
+
+test("computeSchemaIssues signale un panneau solaire câblé directement sur une batterie nue", () => {
+  const nodes = [
+    createNode("panel", "solar-panel", { label: "Panneau" }),
+    createNode("battery", "battery", { label: "Batterie servitude" }),
+  ];
+  const edge = createEdge("panel-battery", "panel", "positive", "battery", "positive", "power-positive");
+
+  const issue = computeSchemaIssues(nodes, [edge]).find((candidate) => candidate.id === "panel-battery-solar-direct-to-battery");
+
+  assert.ok(issue, "expected a solar-direct-to-battery issue");
+  assert.equal(issue!.severity, "error");
+  assert.equal(issue!.category, "solar");
+});
+
+test("computeSchemaIssues ne signale pas un panneau câblé sur les bornes PV d'une station tout-en-1", () => {
+  // Une "power-station" a son propre régulateur PV intégré (voir
+  // definitions.ts) — brancher un panneau sur ses bornes pv-positive/
+  // pv-negative est le fonctionnement normal, pas une connexion directe à
+  // une batterie nue.
+  const nodes = [
+    createNode("panel", "solar-panel", { label: "Panneau" }),
+    createNode("station", "power-station", { label: "Station tout-en-1" }),
+  ];
+  const edge = createEdge("panel-station", "panel", "positive", "station", "pv-positive", "power-positive");
+
+  const issue = computeSchemaIssues(nodes, [edge]).find((candidate) => candidate.id === "panel-station-solar-direct-to-battery");
+
+  assert.equal(issue, undefined);
+});
+
+test("computeSchemaIssues signale un tableau AC sans différentiel (RCD)", () => {
+  // Tableau entièrement câblé (ac-in/ac-out/earth) pour ne pas être écarté
+  // comme "connexion incomplète" avant même d'atteindre ce contrôle.
+  const nodes = [
+    createNode("panel", "ac-panel", { label: "Tableau 220V", hasDifferential: "no" }),
+    createNode("shore", "shore-power"),
+    createNode("socket", "socket-220v"),
+    createNode("earth", "ground"),
+  ];
+  const edges = [
+    createEdge("shore-panel", "shore", "ac", "panel", "ac-in", "ac-230v"),
+    createEdge("panel-socket", "panel", "ac-out", "socket", "ac-in", "ac-230v"),
+    createEdge("panel-earth", "panel", "earth", "earth", "earth", "earth"),
+  ];
+
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "panel-missing-differential");
+
+  assert.ok(issue, "expected a missing-differential issue");
+  assert.equal(issue!.severity, "error");
+  assert.equal(issue!.category, "ac-safety");
+});
+
+test("computeSchemaIssues ne signale pas un tableau AC dont le différentiel n'est pas explicitement désactivé", () => {
+  // Défaut sûr : un tableau sans le champ renseigné (schéma dessiné avant
+  // son ajout) ou explicitement "yes" n'est jamais signalé.
+  const nodes = [
+    createNode("panel", "ac-panel", { label: "Tableau 220V", hasDifferential: "yes" }),
+    createNode("shore", "shore-power"),
+    createNode("socket", "socket-220v"),
+    createNode("earth", "ground"),
+  ];
+  const edges = [
+    createEdge("shore-panel", "shore", "ac", "panel", "ac-in", "ac-230v"),
+    createEdge("panel-socket", "panel", "ac-out", "socket", "ac-in", "ac-230v"),
+    createEdge("panel-earth", "panel", "earth", "earth", "earth", "earth"),
+  ];
+
+  const issues = computeSchemaIssues(nodes, edges);
+
+  assert.equal(issues.some((issue) => issue.id === "panel-missing-differential"), false);
+});
+
+test("computeSchemaIssues signale un consommateur 12V sans fusible en amont", () => {
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("pump", "consumer", { label: "Pompe", supplyType: "12v", powerW: 60 }),
+  ];
+  const edges = [
+    createEdge("battery-pump-pos", "battery", "positive", "pump", "positive", "power-positive"),
+    createEdge("battery-pump-neg", "battery", "negative", "pump", "negative", "power-negative"),
+  ];
+
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "pump-unprotected-consumer");
+
+  assert.ok(issue, "expected an unprotected-consumer issue");
+  assert.match(issue!.message, /pas protégé par un fusible/i);
+});
+
+test("computeSchemaIssues ne signale pas un consommateur protégé par un fusible en amont", () => {
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("fuse", "fuse", { label: "Fusible", amperage: 10 }),
+    createNode("pump", "consumer", { label: "Pompe", supplyType: "12v", powerW: 60 }),
+  ];
+  const edges = [
+    createEdge("battery-fuse", "battery", "positive", "fuse", "input", "power-positive"),
+    createEdge("fuse-pump", "fuse", "output", "pump", "positive", "power-positive"),
+    createEdge("battery-pump-neg", "battery", "negative", "pump", "negative", "power-negative"),
+  ];
+
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "pump-unprotected-consumer");
+
+  assert.equal(issue, undefined);
+});
+
+test("evaluateAcEdgeSection dimensionne un câble AC sur la puissance de l'onduleur (règle Victron : A/8 + 1mm² par 5m)", () => {
+  const nodes = [
+    createNode("inverter", "inverter-charger", { powerW: 1600, chargeAmperage: 80 }),
+    createNode("panel", "ac-panel"),
+  ];
+  const edge = createEdge("inverter-panel", "inverter", "ac-out", "panel", "ac-in", "ac-230v");
+
+  const diagnostic = evaluateAcEdgeSection(edge, nodes, [edge]);
+
+  assert.ok(diagnostic);
+  // 1600 W / 230 V ≈ 6,96 A.
+  assert.ok(Math.abs(diagnostic!.amps - 1600 / 230) < 0.001);
+  assert.equal(diagnostic!.status, "missing");
+});
+
+test("evaluateAcEdgeSection ne signale pas un câble AC déjà correctement dimensionné", () => {
+  const nodes = [
+    createNode("inverter", "inverter-charger", { powerW: 1600, chargeAmperage: 80 }),
+    createNode("panel", "ac-panel"),
+  ];
+  const edge = createEdge("inverter-panel", "inverter", "ac-out", "panel", "ac-in", "ac-230v", "2,5 mm²");
+
+  const diagnostic = evaluateAcEdgeSection(edge, nodes, [edge]);
+
+  assert.ok(diagnostic);
+  assert.equal(diagnostic!.status, "ok");
+});
+
+test("computeSchemaIssues ne signale pas un consommateur protégé via un tableau d'interrupteurs seuls", () => {
+  // Retour client : "il passe par un tableau de fusibles et ensuite un
+  // tableau d'interrupteurs" — fuse-block(out-2) -> distribution-panel
+  // (in-2, "switches" layout, pas de fusible propre) -> distribution-panel
+  // (out-2) -> consommateur. Le fusible est deux nœuds en amont, atteint
+  // uniquement via la paire in-2/out-2 du MÊME circuit.
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("fuse", "fuse", { label: "Fusible", amperage: 10 }),
+    createNode("panel", "distribution-panel", { layout: "switches", outputCount: 2 }),
+    createNode("pump", "consumer", { label: "Pompe", supplyType: "12v", powerW: 60 }),
+  ];
+  const edges = [
+    createEdge("battery-fuse", "battery", "positive", "fuse", "input", "power-positive"),
+    createEdge("fuse-panel-in", "fuse", "output", "panel", "in-2", "power-positive"),
+    createEdge("panel-pump", "panel", "out-2", "pump", "positive", "power-positive"),
+    createEdge("battery-pump-neg", "battery", "negative", "pump", "negative", "power-negative"),
+  ];
+
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "pump-unprotected-consumer");
+
+  assert.equal(issue, undefined);
+});
+
+test("computeSchemaIssues ne confond pas deux circuits différents d'un même tableau d'interrupteurs", () => {
+  // Un fusible câblé sur le circuit 1 ne doit jamais "protéger" le
+  // circuit 2 du même tableau — seule la paire in-N/out-N de même numéro
+  // compte, jamais les autres départs du tableau.
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("fuse", "fuse", { label: "Fusible", amperage: 10 }),
+    createNode("panel", "distribution-panel", { layout: "switches", outputCount: 2 }),
+    createNode("pump", "consumer", { label: "Pompe", supplyType: "12v", powerW: 60 }),
+  ];
+  const edges = [
+    createEdge("battery-fuse", "battery", "positive", "fuse", "input", "power-positive"),
+    createEdge("fuse-panel-in1", "fuse", "output", "panel", "in-1", "power-positive"),
+    // Le consommateur est câblé sur le circuit 2, jamais protégé par le
+    // fusible du circuit 1.
+    createEdge("panel-pump", "panel", "out-2", "pump", "positive", "power-positive"),
+    createEdge("battery-pump-neg", "battery", "negative", "pump", "negative", "power-negative"),
+  ];
+
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "pump-unprotected-consumer");
+
+  assert.ok(issue, "expected the pump on circuit 2 to still be flagged as unprotected");
+});
+
+test("computeSchemaIssues ne signale pas un consommateur protégé via un simple interrupteur", () => {
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("breaker", "circuit-breaker", { label: "Disjoncteur", amperage: 50 }),
+    createNode("switch", "switch", { label: "Interrupteur" }),
+    createNode("pump", "consumer", { label: "Pompe", supplyType: "12v", powerW: 60 }),
+  ];
+  const edges = [
+    createEdge("battery-breaker", "battery", "positive", "breaker", "input", "power-positive"),
+    createEdge("breaker-switch", "breaker", "output", "switch", "input", "power-positive"),
+    createEdge("switch-pump", "switch", "output", "pump", "positive", "power-positive"),
+    createEdge("battery-pump-neg", "battery", "negative", "pump", "negative", "power-negative"),
+  ];
+
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "pump-unprotected-consumer");
+
+  assert.equal(issue, undefined);
 });

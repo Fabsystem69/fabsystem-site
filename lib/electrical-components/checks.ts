@@ -1,5 +1,5 @@
 import { getComponentDefinition, getEffectiveHandles } from "./definitions";
-import { estimateConnectedAmps, evaluateEdgeSection, isPowerCableType, parseSectionMm2 } from "./auto-size";
+import { estimateConnectedAmps, evaluateAcEdgeSection, evaluateEdgeSection, isPowerCableType, parseSectionMm2 } from "./auto-size";
 import { findWireRowByMm2, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
 import type { ElectricalNodeData, CableEdgeData, HandleKind } from "@/types/schema";
 import type { Node, Edge } from "@xyflow/react";
@@ -58,7 +58,12 @@ function classifyIssues(
 // vraie analyse de circuit : assez pour attraper l'oubli évident montré en
 // démo concurrente, pas assez pour prétendre à une vérification complète.
 
-const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch", "battery-protect"]);
+// "switch" (interrupteur simple, 2-3 bornes IN/OUT) : retour client
+// ("il passe par un tableau de fusibles et ensuite un tableau
+// d'interrupteurs") — un consommateur derrière un interrupteur simple était
+// signalé "non protégé" même quand un disjoncteur/fusible existait juste
+// avant l'interrupteur, l'interrupteur n'étant traversé nulle part.
+const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch", "battery-protect", "switch"]);
 // Lynx Smart BMS coupe automatiquement la batterie en cas de défaut : même
 // rôle protecteur qu'un fusible/disjoncteur pour cette détection.
 const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms"]);
@@ -226,6 +231,36 @@ function neighborsViaHandle(nodeId: string, handleId: string, edges: SchemaEdgeI
     .map((e) => (e.source === nodeId ? e.target : e.source));
 }
 
+// Même filtre que `neighborsViaHandle`, mais renvoie aussi la borne du
+// voisin par laquelle la connexion arrive — nécessaire pour savoir, une
+// fois sur un tableau de distribution, par quel circuit ("in-N"/"out-N")
+// on y est entré (voir `pairedCircuitHandle`).
+function neighborsViaHandleWithTheirHandle(
+  nodeId: string,
+  handleId: string,
+  edges: SchemaEdgeInternal[],
+): { id: string; handle: string | null }[] {
+  return edges
+    .filter((e) => (e.source === nodeId && e.sourceHandle === handleId) || (e.target === nodeId && e.targetHandle === handleId))
+    .map((e) => (e.source === nodeId ? { id: e.target, handle: e.targetHandle ?? null } : { id: e.source, handle: e.sourceHandle ?? null }));
+}
+
+// Retour client : "il passe par un tableau de fusibles et ensuite un
+// tableau d'interrupteurs" — un tableau de distribution en mode
+// "interrupteurs seuls" n'est pas une protection (voir `reachesProtection`
+// ci-dessous), mais ce n'est pas non plus un simple busbar : chacune de ses
+// bornes "in-N"/"out-N" correspond à un circuit indépendant, pas à un même
+// point électrique commun. Un fusible câblé sur "in-3" reste invisible
+// depuis "out-5" — seule la paire in-N/out-N du MÊME numéro doit être
+// traversée, jamais les autres circuits du tableau.
+function pairedCircuitHandle(handleId: string): string | null {
+  const inMatch = handleId.match(/^in-(\d+)$/);
+  if (inMatch) return `out-${inMatch[1]}`;
+  const outMatch = handleId.match(/^out-(\d+)$/);
+  if (outMatch) return `in-${outMatch[1]}`;
+  return null;
+}
+
 // Vrai si un composant de protection (fusible, disjoncteur, platine…) est
 // atteint à moins de `maxHops` sauts depuis `nodeId`, en traversant
 // librement les busbars/coupe-batterie (simples jonctions/interrupteurs,
@@ -237,12 +272,12 @@ function reachesProtection(
   edges: SchemaEdgeInternal[],
   maxHops = 2,
 ): boolean {
-  let frontier = neighborsViaHandle(startNodeId, startHandle, edges);
+  let frontier = neighborsViaHandleWithTheirHandle(startNodeId, startHandle, edges);
   const visited = new Set<string>([startNodeId]);
 
   for (let hop = 0; hop < maxHops; hop++) {
-    const next: string[] = [];
-    for (const id of frontier) {
+    const next: { id: string; handle: string | null }[] = [];
+    for (const { id, handle } of frontier) {
       if (visited.has(id)) continue;
       visited.add(id);
       const node = nodes.find((n) => n.id === id);
@@ -259,8 +294,18 @@ function reachesProtection(
         // On continue à travers toutes les bornes de ce nœud, pas seulement
         // celle par laquelle on est arrivé (un busbar redistribue).
         for (const e of edges) {
-          if (e.source === id && !visited.has(e.target)) next.push(e.target);
-          else if (e.target === id && !visited.has(e.source)) next.push(e.source);
+          if (e.source === id && !visited.has(e.target)) next.push({ id: e.target, handle: e.targetHandle ?? null });
+          else if (e.target === id && !visited.has(e.source)) next.push({ id: e.source, handle: e.sourceHandle ?? null });
+        }
+      } else if (type === "distribution-panel" && handle) {
+        // Interrupteurs seuls : on ne continue que par la paire in-N/out-N
+        // du même circuit, jamais vers les autres départs du tableau — un
+        // fusible en amont d'un autre circuit ne protège pas celui-ci.
+        const paired = pairedCircuitHandle(handle);
+        if (paired) {
+          for (const neighbor of neighborsViaHandleWithTheirHandle(id, paired, edges)) {
+            if (!visited.has(neighbor.id)) next.push(neighbor);
+          }
         }
       }
     }
@@ -757,6 +802,18 @@ function computeElectricalIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeI
     if (outputHandle && !reachesProtection(node.id, outputHandle, nodes, edges)) {
       issues.push({ id: `${node.id}-unprotected-charge-source`, targetKind: "node", targetId: node.id, message: `« ${label} » n'est pas protégé par un fusible avant la batterie.` });
     }
+
+    // Consommateur DC (12V ou mixte) sans protection en amont — source
+    // Victron "Wiring Unlimited" p.32 : "Each consumer that connects to a
+    // battery needs to be fused... No matter how big or small the power
+    // rating of the equipment is." Un consommateur 230V pur n'a pas de
+    // borne "positive" (voir consumerHandles) : hors périmètre de ce
+    // contrôle, couvert côté AC par le différentiel de tableau.
+    if (type === "consumer" && (node.data.supplyType === "12v" || node.data.supplyType === "mixed")) {
+      if (!reachesProtection(node.id, "positive", nodes, edges)) {
+        issues.push({ id: `${node.id}-unprotected-consumer`, targetKind: "node", targetId: node.id, message: `« ${label} » n'est pas protégé par un fusible en amont.` });
+      }
+    }
   }
 
   // Masse absente alors que le schéma contient au moins un composant AC
@@ -766,6 +823,66 @@ function computeElectricalIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeI
   const hasGround = nodes.some((n) => n.data.componentType === "ground");
   if (acNode && !hasGround) {
     issues.push({ id: "no-ground-point", targetKind: "node", targetId: acNode.id, message: "Aucun point de masse dans le schéma alors qu'il contient du 230V." });
+  }
+
+  return issues;
+}
+
+// Source Victron "Wiring Unlimited" p.42 : "Solar panels are not allowed to
+// be directly connected to a battery. A solar charger needs to be placed
+// between the solar panels and the batteries... If a solar panel is
+// connected directly to a battery, the battery will get damaged." Contrôle
+// de topologie pur : un câble de puissance qui relie directement un
+// panneau à une batterie NUE, sans régulateur (MPPT/PWM) entre les deux.
+// "power-station" est volontairement exclu : ce type modélise un boîtier
+// tout-en-1 avec son propre régulateur PV intégré (voir definitions.ts,
+// "Combine ... son propre régulateur solaire et sa batterie") — son panneau
+// se branche légitimement sur ses bornes PV dédiées (pv-positive/pv-negative),
+// ce n'est pas une connexion directe à la batterie nue.
+function computeSolarDirectToBatteryIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const edge of edges) {
+    if (!isPowerCableType(edge.data?.cableType)) continue;
+
+    const source = nodes.find((n) => n.id === edge.source);
+    const target = nodes.find((n) => n.id === edge.target);
+    const panel = source?.data.componentType === "solar-panel" ? source : target?.data.componentType === "solar-panel" ? target : undefined;
+    const battery = panel === source ? target : source;
+    if (!panel || !battery || battery.data.componentType !== "battery") continue;
+
+    const panelLabel = String(panel.data.label ?? getComponentDefinition("solar-panel")?.label ?? "solar-panel");
+    const batteryLabel = String(battery.data.label ?? getComponentDefinition(battery.data.componentType)?.label ?? battery.data.componentType);
+    issues.push({
+      id: `${edge.id}-solar-direct-to-battery`,
+      targetKind: "edge",
+      targetId: edge.id,
+      message: `« ${panelLabel} » est câblé directement sur « ${batteryLabel} », sans régulateur (MPPT/PWM) entre les deux — la batterie sera endommagée.`,
+    });
+  }
+
+  return issues;
+}
+
+// Source Victron "Wiring Unlimited" p.60 : "The use of an RCD is
+// compulsory in all AC installations." Défaut du champ "yes" (voir
+// definitions.ts, ac-panel) : seul un choix explicite "no" déclenche
+// l'alerte, un tableau dessiné avant l'ajout de ce champ (donnée absente)
+// n'est jamais signalé rétroactivement.
+function computeMissingDifferentialIssues(nodes: SchemaNodeInternal[]): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const node of nodes) {
+    if (node.data.componentType !== "ac-panel") continue;
+    if (node.data.hasDifferential !== "no") continue;
+
+    const label = String(node.data.label ?? getComponentDefinition("ac-panel")?.label ?? "ac-panel");
+    issues.push({
+      id: `${node.id}-missing-differential`,
+      targetKind: "node",
+      targetId: node.id,
+      message: `« ${label} » n'a pas de différentiel (RCD) — obligatoire sur toute installation 230V.`,
+    });
   }
 
   return issues;
@@ -812,7 +929,7 @@ function computeCableSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdge
   const issues: SchemaIssue[] = [];
 
   for (const edge of edges) {
-    const diagnostic = evaluateEdgeSection(edge, nodes, edges);
+    const diagnostic = evaluateEdgeSection(edge, nodes, edges) ?? evaluateAcEdgeSection(edge, nodes, edges);
     if (!diagnostic || diagnostic.status === "ok") continue;
 
     const edgeLabel = getEdgeLabel(edge, nodes);
@@ -932,6 +1049,8 @@ export function computeSchemaIssues(
   const protectionExceedsCableAmpacityIssues = computeProtectionExceedsCableAmpacityIssues(nodes, edges).filter(
     (issue) => !structurallyBlockedNodeIds.has(issue.targetId),
   );
+  const solarDirectToBatteryIssues = computeSolarDirectToBatteryIssues(nodes, edges);
+  const missingDifferentialIssues = computeMissingDifferentialIssues(nodes).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
 
   const result = [
     ...classifyIssues(issues, { severity: "warning", category: "topology" }),
@@ -947,6 +1066,8 @@ export function computeSchemaIssues(
     ...classifyIssues(oversizedProtectionIssues, { severity: "warning", category: "protection" }),
     ...classifyIssues(undersizedProtectionIssues, { severity: "warning", category: "protection" }),
     ...classifyIssues(protectionExceedsCableAmpacityIssues, { severity: "error", category: "protection" }),
+    ...classifyIssues(solarDirectToBatteryIssues, { severity: "error", category: "solar" }),
+    ...classifyIssues(missingDifferentialIssues, { severity: "error", category: "ac-safety" }),
   ];
   cachedNodes = nodes;
   cachedEdges = edges;

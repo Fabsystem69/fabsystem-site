@@ -34,7 +34,10 @@ test("un câble PV série est dimensionné sur Isc et Vmp de la string, pas sur 
   assert.equal(diagnostic.ampsSource, "solar");
   assert.equal(diagnostic.voltage, 36);
   assert.equal(diagnostic.amps, 8);
-  assert.equal(diagnostic.recommendedSectionLabel, "1,5 mm²");
+  // 2,5% (Victron "Wiring Unlimited") au lieu de 3% (ancien seuil EN
+  // 1648-2) : chute de tension admissible plus stricte, section plus
+  // grande — voir lib/electrical-components/auto-size.ts, DC_MAX_VOLTAGE_DROP_PCT.
+  assert.equal(diagnostic.recommendedSectionLabel, "2,5 mm²");
 });
 
 test("un câble PV après un busbar additionne seulement les strings en parallèle", () => {
@@ -49,7 +52,8 @@ test("un câble PV après un busbar additionne seulement les strings en parallè
   assert.ok(diagnostic);
   assert.equal(diagnostic.amps, 16);
   assert.equal(diagnostic.voltage, 18);
-  assert.equal(diagnostic.recommendedSectionLabel, "6 mm²");
+  // 2,5% (Victron) au lieu de 3% — voir commentaire du test précédent.
+  assert.equal(diagnostic.recommendedSectionLabel, "10 mm²");
 });
 
 test("le contrôle PV signale un array dont Isc dépasse la limite du MPPT", () => {

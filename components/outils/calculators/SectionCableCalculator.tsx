@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { computeWireSize } from "@/lib/calc/wire-size";
-import { WIRE_TABLE, type InsulationRating, type AmbientTemp, type CableBundling } from "@/lib/calc/wire-ampacity";
+import { WIRE_TABLE, baseAmpacityForInsulation, type InsulationRating, type AmbientTemp, type CableBundling } from "@/lib/calc/wire-ampacity";
 import { AddCableToProjectButton } from "@/components/outils/project-bridge/AddCableToProjectButton";
 import { ToggleGroup } from "@/components/outils/calc-ui/ToggleGroup";
 import { CalcSlider } from "@/components/outils/calc-ui/CalcSlider";
@@ -71,13 +71,13 @@ export default function SectionCableCalculator() {
 
   const awgToMm2Result = (() => {
     const row = WIRE_TABLE.find((r) => r.awg === awgInput.trim());
-    return row ? `${row.mm2} mm²  (I max ≈ ${row.ampacityA} A)` : null;
+    return row ? `${row.mm2} mm²  (I max ≈ ${baseAmpacityForInsulation(row, insulation)} A)` : null;
   })();
   const mm2ToAwgResult = (() => {
     const val = parseFloat(mm2Input);
     if (!val) return null;
     const row = WIRE_TABLE.find((r) => r.mm2 >= val);
-    return row ? `AWG ${row.awg}  (I max ≈ ${row.ampacityA} A)` : "Câble > AWG 4/0 — hors table standard";
+    return row ? `AWG ${row.awg}  (I max ≈ ${baseAmpacityForInsulation(row, insulation)} A)` : "Câble > AWG 4/0 — hors table standard";
   })();
 
   return (
@@ -341,7 +341,7 @@ export default function SectionCableCalculator() {
                     <tr key={row.awg} className={row.mm2 === result?.recommendedMm2 ? "bg-brand-50/40" : ""}>
                       <td className="px-4 py-2.5 font-bold text-neutral-900">AWG {row.awg}</td>
                       <td className="px-4 py-2.5 font-semibold text-neutral-700">{row.mm2} mm²</td>
-                      <td className="px-4 py-2.5 text-neutral-600">{row.ampacityA} A</td>
+                      <td className="px-4 py-2.5 text-neutral-600">{baseAmpacityForInsulation(row, insulation)} A</td>
                       <td className="px-4 py-2.5 text-xs text-neutral-500">{row.usage}</td>
                     </tr>
                   ))}
@@ -349,7 +349,7 @@ export default function SectionCableCalculator() {
               </table>
             </div>
             <p className="text-xs text-neutral-400">
-              Intensités max indicatives en air libre (câble cuivre 60°C, référence 30°C ambiant). Utilisez le calculateur ci-dessus pour une section dérated selon vos conditions réelles.
+              Intensités max ISO 13297 (jusqu&apos;à 3 conducteurs groupés, hors compartiment moteur), pour l&apos;isolant sélectionné ci-dessus. Utilisez le calculateur pour une section dérated selon vos conditions réelles.
             </p>
           </div>
         )}
