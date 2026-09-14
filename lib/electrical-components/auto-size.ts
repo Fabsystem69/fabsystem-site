@@ -1,8 +1,37 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 import { calcSection, AVAILABLE_FUSES_A, AVAILABLE_SECTIONS_MM2 } from "@/lib/calc/section-cable";
+import { WIRE_TABLE, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
+import { INVERTER_EFFICIENCY } from "@/lib/calc/inverter-size";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { getBrandModel } from "@/lib/electrical-components/brand-models";
+
+// Correctif sécurité (retour client : incohérences dangereuses relevées sur
+// des sections de câble, notamment DC-DC et MultiPlus) : `calcSection` ne
+// vérifie QUE la chute de tension, jamais l'ampacité (le courant maximal
+// qu'un câble supporte sans surchauffer) — un câble très court à fort
+// courant (batterie, DC-DC, onduleur) peut satisfaire la chute de tension
+// avec une section dangereusement insuffisante pour le courant réel. Même
+// principe que le calculateur public déjà correct (lib/calc/wire-size.ts,
+// "recommande la section la PLUS GRANDE entre ampacité et chute de
+// tension"), appliqué ici au moteur de l'éditeur de schéma.
+
+/** Marge réglementaire sur un circuit continu ≥3h — même convention que
+ * lib/calc/wire-size.ts (CONTINUOUS_MARGIN) et ISO 10133
+ * (continuousLoadFactor). Toujours appliquée ici : un circuit embarqué
+ * (batterie, DC-DC, onduleur) est traité comme continu par défaut, jamais
+ * comme un cas favorable non démontré — retour client : "on joue toujours
+ * sécurité". */
+const CONTINUOUS_MARGIN = 1.25;
+
+/** Section minimale (mm²) dont l'ampacité dérated couvre `designCurrentA`,
+ * en conditions prudentes par défaut (PVC, 30°C ambiant, câble seul — mêmes
+ * hypothèses que le calculateur public). Limité à mm² ≥ 0.5 pour rester
+ * dans le catalogue de l'éditeur (AVAILABLE_SECTIONS_MM2). */
+function pickSectionForAmpacity(designCurrentA: number): number {
+  const row = WIRE_TABLE.find((r) => r.mm2 >= 0.5 && getDeratedAmpacity(r, "pvc", 30, "single") >= designCurrentA);
+  return row ? row.mm2 : WIRE_TABLE[WIRE_TABLE.length - 1].mm2;
+}
 
 // Moteur de recalcul en masse (V2 — inspiré de "Recalculate All Wire
 // Sizes"/"Recalculate All Fuse Ratings" chez Wireframe, un concurrent
@@ -39,7 +68,7 @@ export function findBatteryVoltage(nodes: SchemaNode[]): number {
   return Number(battery?.data.voltage) || 12;
 }
 
-function isPowerCableType(value: string | undefined): value is PowerCableType {
+export function isPowerCableType(value: string | undefined): value is PowerCableType {
   return value === "power-positive" || value === "power-negative";
 }
 
@@ -47,7 +76,7 @@ export function formatSectionLabel(sectionMm2: number): string {
   return `${String(sectionMm2).replace(".", ",")} mm²`;
 }
 
-function parseSectionMm2(section: string | undefined): number | null {
+export function parseSectionMm2(section: string | undefined): number | null {
   const matches = section?.match(/\d+(?:[.,]\d+)?/g);
   const raw = matches?.[matches.length - 1];
   if (!raw) return null;
@@ -147,7 +176,20 @@ function evaluatePvEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges: Sch
   const amps = details.reduce((sum, detail) => sum + detail.isc, 0) * PV_DESIGN_CURRENT_FACTOR;
   const voltage = Math.min(...details.map((detail) => detail.vmp));
   const length = getEdgeSizingLength(edge, nodes);
-  const { section } = calcSection(amps, length, 3, voltage);
+  // Un fusible/disjoncteur posé sur ce câble PV doit rester couvert par
+  // l'ampacité retenue, même si son calibre dépasse le courant réel de la
+  // chaîne (retour client : disjoncteur 40 A laissé sur un câble dimensionné
+  // pour ~9 A de courant PV réel — même trou de sécurité que côté DC
+  // général). `amps` intègre déjà la marge de conception PV (×1,25 sur Isc),
+  // jamais margé une seconde fois ; le calibre de protection, lui, reçoit la
+  // même marge circuit continu que partout ailleurs (CONTINUOUS_MARGIN).
+  const adjacentProtectionA = Math.max(
+    getProtectionAmperage(nodes.find((n) => n.id === edge.source)) ?? 0,
+    getProtectionAmperage(nodes.find((n) => n.id === edge.target)) ?? 0,
+  );
+  const ampacityDesignA = Math.max(amps, adjacentProtectionA * CONTINUOUS_MARGIN);
+  const { section: dropSectionMm2 } = calcSection(amps, length, 3, voltage);
+  const section = Math.max(pickSectionForAmpacity(ampacityDesignA), dropSectionMm2);
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
   return {
@@ -166,6 +208,22 @@ function evaluatePvEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges: Sch
   };
 }
 
+// Courant DC appelé côté batterie par un appareil qui inverse (12/24/48V →
+// 230V) — même formule que le calculateur public (lib/calc/inverter-size.ts,
+// INVERTER_EFFICIENCY). Bug relevé par le client : le câble batterie d'un
+// MultiPlus n'était dimensionné que sur son courant de CHARGE (chargeAmperage,
+// utilisé uniquement branché au secteur), jamais sur son appel réel en
+// fonctionnement onduleur — largement supérieur pour un modèle puissant
+// (ex. MultiPlus 12/3000/120 : 120 A de charge, mais ≈220 A en onduleur
+// plein régime). Le câble doit couvrir le pire des deux sens (voir
+// `getSourceAmperage` ci-dessous, cas "inverter"/"inverter-charger"/"easysolar").
+function getInverterDcCurrentA(node: SchemaNode, nodes: SchemaNode[]): number {
+  const powerW = Number(node.data.powerW) || 0;
+  if (powerW <= 0) return 0;
+  const voltage = findBatteryVoltage(nodes);
+  return voltage > 0 ? powerW / voltage / INVERTER_EFFICIENCY : 0;
+}
+
 // Ampérage nominal propre d'une source/chargeur (bug critique retour bêta :
 // "j'ai un orion xs 50 situé à 4,2m de ma batterie lithium et ça me met en
 // cable seulement 16mm2") — jusqu'ici `estimateEdgeAmps` ne connaissait que
@@ -176,7 +234,7 @@ function evaluatePvEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges: Sch
 // nom de champ ampérage (voir definitions.ts : "amperage" pour dcdc/mppt/
 // pwm/solar-router/alternateur, "chargeAmperage" pour ac-charger/inverter-
 // charger, les deux pour easysolar qui cumule MPPT + chargeur secteur).
-function getSourceAmperage(node: SchemaNode | undefined): number | null {
+function getSourceAmperage(node: SchemaNode | undefined, nodes: SchemaNode[]): number | null {
   if (!node) return null;
   switch (node.data.componentType) {
     case "dcdc":
@@ -187,13 +245,24 @@ function getSourceAmperage(node: SchemaNode | undefined): number | null {
       const amperage = Number(node.data.amperage) || 0;
       return amperage > 0 ? amperage : null;
     }
-    case "ac-charger":
-    case "inverter-charger": {
+    case "inverter": {
+      const amperage = getInverterDcCurrentA(node, nodes);
+      return amperage > 0 ? amperage : null;
+    }
+    case "ac-charger": {
       const amperage = Number(node.data.chargeAmperage) || 0;
       return amperage > 0 ? amperage : null;
     }
+    case "inverter-charger": {
+      const amperage = Math.max(Number(node.data.chargeAmperage) || 0, getInverterDcCurrentA(node, nodes));
+      return amperage > 0 ? amperage : null;
+    }
     case "easysolar": {
-      const amperage = Math.max(Number(node.data.chargeAmperage) || 0, Number(node.data.mpptAmperage) || 0);
+      const amperage = Math.max(
+        Number(node.data.chargeAmperage) || 0,
+        Number(node.data.mpptAmperage) || 0,
+        getInverterDcCurrentA(node, nodes),
+      );
       return amperage > 0 ? amperage : null;
     }
     default:
@@ -321,8 +390,8 @@ function getEdgeProtectionReferenceAmps(edge: SchemaEdge, nodes: SchemaNode[], l
 // `loadSide`.
 function getEdgeSourceReferenceAmps(edge: SchemaEdge, nodes: SchemaNode[], loadSide: Set<string> | null): number | null {
   const adjacentSourceAmps = Math.max(
-    getSourceAmperage(nodes.find((node) => node.id === edge.source)) ?? 0,
-    getSourceAmperage(nodes.find((node) => node.id === edge.target)) ?? 0,
+    getSourceAmperage(nodes.find((node) => node.id === edge.source), nodes) ?? 0,
+    getSourceAmperage(nodes.find((node) => node.id === edge.target), nodes) ?? 0,
   );
 
   const downstreamSourceAmps = Math.max(
@@ -330,7 +399,7 @@ function getEdgeSourceReferenceAmps(edge: SchemaEdge, nodes: SchemaNode[], loadS
     ...(loadSide
       ? nodes
           .filter((node) => loadSide.has(node.id))
-          .map((node) => getSourceAmperage(node) ?? 0)
+          .map((node) => getSourceAmperage(node, nodes) ?? 0)
       : []),
   );
 
@@ -386,7 +455,12 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
 
   const voltage = findBatteryVoltage(nodes);
   const length = getEdgeSizingLength(edge, nodes);
-  const { section } = calcSection(amps, length, 3, voltage);
+  // Chute de tension : sur le courant réel (non margé), même convention que
+  // lib/calc/wire-size.ts. Ampacité : sur le courant de dimensionnement
+  // (×1,25, circuit continu) — la section retenue est toujours la plus
+  // grande des deux exigences, jamais la chute de tension seule.
+  const { section: dropSectionMm2 } = calcSection(amps, length, 3, voltage);
+  const section = Math.max(pickSectionForAmpacity(amps * CONTINUOUS_MARGIN), dropSectionMm2);
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
   const ampsSource: EdgeSectionDiagnostic["ampsSource"] =

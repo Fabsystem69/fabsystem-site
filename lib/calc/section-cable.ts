@@ -15,8 +15,12 @@
 /** Résistivité du cuivre, en Ω·mm²/m. */
 export const COPPER_RESISTIVITY_OHM_MM2_PER_M = 0.0175;
 
-/** Catalogue des sections de câble normalisées disponibles, en mm². */
-export const AVAILABLE_SECTIONS_MM2 = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50];
+/** Catalogue des sections de câble normalisées disponibles, en mm². Va
+ * jusqu'à 120 mm² (au lieu de 50 mm² auparavant) : un onduleur/MultiPlus de
+ * forte puissance (3000 VA et plus) tire couramment plus de 200 A côté
+ * batterie, ce qu'aucune section ≤ 50 mm² ne supporte en toute sécurité —
+ * voir lib/electrical-components/auto-size.ts, vérification d'ampacité. */
+export const AVAILABLE_SECTIONS_MM2 = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120];
 
 /**
  * Catalogue de référence utilisé par les suggestions. Les paliers courants

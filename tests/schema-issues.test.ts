@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Edge, Node } from "@xyflow/react";
-import { estimateEdgeAmps, recalculateCableSections } from "@/lib/electrical-components/auto-size";
+import { estimateEdgeAmps, evaluateEdgeSection, recalculateCableSections } from "@/lib/electrical-components/auto-size";
 import { computeSchemaIssues } from "@/lib/electrical-components/checks";
 import { getComponentDefinition, getEffectiveHandles } from "@/lib/electrical-components/definitions";
 import { AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
@@ -184,10 +184,14 @@ test("recalculateCableSections dimensionne le câblage principal depuis le fusib
   const fuseSwitchCable = result.edges.find((edge) => edge.id === "edge-fuse-switch");
   const switchPanelCable = result.edges.find((edge) => edge.id === "edge-switch-panel");
 
-  assert.equal(result.updatedCount, 3);
-  assert.equal(batteryFuseCable?.data?.section, "10 mm²");
-  assert.equal(fuseSwitchCable?.data?.section, "10 mm²");
-  assert.equal(switchPanelCable?.data?.section, "2,5 mm²");
+  // Correctif sécurité : la section doit couvrir l'ampacité du courant
+  // protégé (100 A, marge circuit continu ×1,25), pas seulement la chute de
+  // tension — 10 mm² (ancien résultat) ne supporte que ~46 A, largement
+  // insuffisant pour un circuit protégé à 100 A.
+  assert.equal(result.updatedCount, 5);
+  assert.equal(batteryFuseCable?.data?.section, "50 mm²");
+  assert.equal(fuseSwitchCable?.data?.section, "50 mm²");
+  assert.equal(switchPanelCable?.data?.section, "6 mm²");
 });
 
 test("recalculateCableSections peut dimensionner le câblage principal depuis le fusible principal même sans puissance consommateur connue", () => {
@@ -199,8 +203,8 @@ test("recalculateCableSections peut dimensionner le câblage principal depuis le
   const switchPanelCable = result.edges.find((edge) => edge.id === "edge-switch-panel");
 
   assert.equal(result.updatedCount, 2);
-  assert.equal(batteryFuseCable?.data?.section, "10 mm²");
-  assert.equal(fuseSwitchCable?.data?.section, "10 mm²");
+  assert.equal(batteryFuseCable?.data?.section, "50 mm²");
+  assert.equal(fuseSwitchCable?.data?.section, "50 mm²");
   assert.equal(switchPanelCable?.data?.section, "4 mm²");
 });
 
@@ -256,7 +260,7 @@ test("computeSchemaIssues signale un câble de puissance sans section et propose
   assert.ok(issue);
   assert.match(issue.message, /n'a pas de section renseignée/i);
   assert.match(issue.message, /protégé en 100,0 A/i);
-  assert.match(issue.message, /10 mm²/);
+  assert.match(issue.message, /50 mm²/);
   assert.equal(issue.action, "recalculate-all-cable-sections");
 });
 
@@ -268,11 +272,15 @@ test("computeSchemaIssues signale un câble trop petit pour le courant estimé",
   assert.ok(issue);
   assert.match(issue.message, /trop juste/i);
   assert.match(issue.message, /6 mm²/);
-  assert.match(issue.message, /10 mm²/);
+  assert.match(issue.message, /50 mm²/);
 });
 
 test("computeSchemaIssues ne signale pas un câble déjà dans la norme ou surdimensionné", () => {
-  const { nodes, edges } = createSizingFixture({ batteryFuseSection: "25 mm²" });
+  // 25 mm² (ancienne valeur de ce test) est en réalité sous-dimensionné pour
+  // un circuit protégé à 100 A une fois l'ampacité vérifiée (≈84 A max) —
+  // 70 mm² est un cas réellement surdimensionné pour ce même circuit (50 mm²
+  // suffit, voir le test de recalcul plus haut).
+  const { nodes, edges } = createSizingFixture({ batteryFuseSection: "70 mm²" });
 
   // La fixture ne renseigne pas de longueur : ne pas confondre avec l'alerte
   // (info, indépendante) "longueur manquante" — ce test vérifie uniquement
@@ -314,6 +322,59 @@ test("computeSchemaIssues signale une terre AC non raccordée", () => {
   assert.match(issue.message, /terre non raccordée/i);
   assert.equal(issue.severity, "error");
   assert.equal(issue.category, "connection");
+});
+
+test("le câble batterie d'un MultiPlus est dimensionné sur son appel réel en onduleur, pas seulement sur son courant de charge secteur", () => {
+  // Bug relevé par un client (rapport Gemini) : un MultiPlus 12/3000/120
+  // (chargeAmperage 120 A, mais ≈220 A DC en fonctionnement onduleur plein
+  // régime) ne voyait son câble batterie dimensionné que sur les 120 A de
+  // charge — largement insuffisant pour son vrai appel en mode onduleur.
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("multiplus", "inverter-charger", { powerW: 2400, chargeAmperage: 120 }),
+  ];
+  const edge = createEdge("battery-multiplus", "battery", "positive", "multiplus", "dc-positive", "power-positive");
+
+  const diagnostic = evaluateEdgeSection(edge, nodes, [edge]);
+
+  assert.ok(diagnostic);
+  // 2400 W / 12 V / 0,9 (rendement) ≈ 222 A, très supérieur aux 120 A de charge.
+  assert.ok(diagnostic!.amps > 120, `expected amps > 120 (inverter draw), got ${diagnostic!.amps}`);
+  assert.equal(diagnostic!.recommendedSectionMm2 >= 70, true);
+});
+
+test("computeSchemaIssues signale un fusible dont le calibre dépasse l'ampacité du câble qu'il protège", () => {
+  // Bug relevé par un client : un fusible de 250 A posé sur une ligne en
+  // 25 mm² (ampacité ≈84 A) était accepté sans aucune alerte — un fusible ne
+  // protège son câble que s'il coupe avant que ce câble ne surchauffe.
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("fuse", "fuse", { label: "Fusible principal", amperage: 250 }),
+    createNode("load", "battery", { label: "Suite du circuit" }),
+  ];
+  const edge = createEdge("battery-fuse", "battery", "positive", "fuse", "input", "power-positive", "25 mm²");
+  const outputEdge = createEdge("fuse-load", "fuse", "output", "load", "positive", "power-positive", "25 mm²");
+
+  const issue = computeSchemaIssues(nodes, [edge, outputEdge]).find((candidate) => candidate.id === "fuse-battery-fuse-exceeds-cable-ampacity");
+
+  assert.ok(issue, "expected a protection-exceeds-cable-ampacity issue");
+  assert.equal(issue!.severity, "error");
+  assert.match(issue!.message, /250,0 A/);
+  assert.match(issue!.message, /25 mm²/);
+});
+
+test("computeSchemaIssues ne signale pas un fusible dont le calibre reste dans l'ampacité du câble", () => {
+  const nodes = [
+    createNode("battery", "battery", { voltage: 12 }),
+    createNode("fuse", "fuse", { label: "Fusible principal", amperage: 80 }),
+    createNode("load", "battery", { label: "Suite du circuit" }),
+  ];
+  const edge = createEdge("battery-fuse", "battery", "positive", "fuse", "input", "power-positive", "25 mm²");
+  const outputEdge = createEdge("fuse-load", "fuse", "output", "load", "positive", "power-positive", "25 mm²");
+
+  const issue = computeSchemaIssues(nodes, [edge, outputEdge]).find((candidate) => candidate.id === "fuse-battery-fuse-exceeds-cable-ampacity");
+
+  assert.equal(issue, undefined);
 });
 
 test("computeSchemaIssues signale plus de quatre câbles sur une borne", () => {

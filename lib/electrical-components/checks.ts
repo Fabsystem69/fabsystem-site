@@ -1,5 +1,6 @@
 import { getComponentDefinition, getEffectiveHandles } from "./definitions";
-import { estimateConnectedAmps, evaluateEdgeSection } from "./auto-size";
+import { estimateConnectedAmps, evaluateEdgeSection, isPowerCableType, parseSectionMm2 } from "./auto-size";
+import { findWireRowByMm2, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
 import type { ElectricalNodeData, CableEdgeData, HandleKind } from "@/types/schema";
 import type { Node, Edge } from "@xyflow/react";
 
@@ -408,6 +409,57 @@ function computeUndersizedProtectionIssues(nodes: SchemaNodeInternal[], edges: S
       targetId: protectionNode.id,
       message: `« ${label} » (${formatAmps(rating)} A) est sous-calibré pour le courant attendu (${formatAmps(expectedAmps)} A) : il risque de déclencher en fonctionnement normal. Choisissez un calibre au moins égal au courant calculé, puis vérifiez qu'il reste compatible avec le câble.`,
     });
+  }
+
+  return issues;
+}
+
+// Retour utilisateur : "j'ai réussi à mettre un fusible de 250A sur une
+// ligne en 25mm2, c'est techniquement impossible d'avoir autant de courant"
+// — un fusible/disjoncteur ne protège son câble que s'il coupe AVANT que ce
+// câble ne surchauffe. Un calibre supérieur à l'ampacité du câble qu'il
+// protège ne remplit jamais ce rôle, quel que soit le courant réellement
+// attendu en amont/aval (contrairement à `computeOversizedProtectionIssues`
+// et `computeUndersizedProtectionIssues`, qui comparent le calibre au
+// courant de la source/charge, jamais à la capacité physique du câble
+// lui-même) — un trou de sécurité distinct, pas redondant avec les deux
+// autres. Mêmes hypothèses prudentes que le reste de l'éditeur (PVC, 30°C,
+// câble seul) pour l'ampacité de référence.
+function computeProtectionExceedsCableAmpacityIssues(
+  nodes: SchemaNodeInternal[],
+  edges: SchemaEdgeInternal[],
+): SchemaIssue[] {
+  const issues: SchemaIssue[] = [];
+
+  for (const protectionNode of nodes) {
+    const type = protectionNode.data.componentType;
+    if (type !== "fuse" && type !== "circuit-breaker") continue;
+
+    const rating = Number(protectionNode.data.amperage) || 0;
+    if (rating <= 0) continue;
+
+    const label = String(protectionNode.data.label ?? getComponentDefinition(type)?.label ?? type);
+
+    for (const edge of edges) {
+      if (edge.source !== protectionNode.id && edge.target !== protectionNode.id) continue;
+      if (!isPowerCableType(edge.data?.cableType)) continue;
+
+      const sectionMm2 = parseSectionMm2(edge.data?.section);
+      if (sectionMm2 === null) continue; // Section pas encore renseignée : déjà signalé ailleurs.
+
+      const wireRow = findWireRowByMm2(sectionMm2);
+      if (!wireRow) continue;
+
+      const cableAmpacityA = getDeratedAmpacity(wireRow, "pvc", 30, "single");
+      if (rating <= cableAmpacityA) continue;
+
+      issues.push({
+        id: `${protectionNode.id}-${edge.id}-exceeds-cable-ampacity`,
+        targetKind: "node",
+        targetId: protectionNode.id,
+        message: `« ${label} » (${formatAmps(rating)} A) dépasse l'ampacité de ${getEdgeLabel(edge, nodes)} (${sectionMm2} mm² ≈ ${formatAmps(cableAmpacityA)} A max) : ce fusible ne coupera jamais avant que ce câble ne surchauffe. Réduisez le calibre de la protection ou augmentez la section du câble.`,
+      });
+    }
   }
 
   return issues;
@@ -877,6 +929,9 @@ export function computeSchemaIssues(
   const seriesVoltageIssues = computeSeriesVoltageIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
   const oversizedProtectionIssues = computeOversizedProtectionIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
   const undersizedProtectionIssues = computeUndersizedProtectionIssues(nodes, edges).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
+  const protectionExceedsCableAmpacityIssues = computeProtectionExceedsCableAmpacityIssues(nodes, edges).filter(
+    (issue) => !structurallyBlockedNodeIds.has(issue.targetId),
+  );
 
   const result = [
     ...classifyIssues(issues, { severity: "warning", category: "topology" }),
@@ -891,6 +946,7 @@ export function computeSchemaIssues(
     ...classifyIssues(seriesVoltageIssues, { severity: "error", category: "solar" }),
     ...classifyIssues(oversizedProtectionIssues, { severity: "warning", category: "protection" }),
     ...classifyIssues(undersizedProtectionIssues, { severity: "warning", category: "protection" }),
+    ...classifyIssues(protectionExceedsCableAmpacityIssues, { severity: "error", category: "protection" }),
   ];
   cachedNodes = nodes;
   cachedEdges = edges;

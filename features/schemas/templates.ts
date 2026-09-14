@@ -1,6 +1,7 @@
 import type { Node, Edge } from "@xyflow/react";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { getBrandModel } from "@/lib/electrical-components/brand-models";
+import { recalculateCableSections } from "@/lib/electrical-components/auto-size";
 import campingCar7mDefault from "@/features/schemas/camping-car-7m-default.json";
 import vitoMarcoPolo280AhDefault from "@/features/schemas/vito-marco-polo-280ah-default.json";
 import vwT6AferiyP280Default from "@/features/schemas/vw-t6-aferiy-p280-default.json";
@@ -167,8 +168,17 @@ function buildDucatoGraph(): { nodes: SchemaNode[]; edges: SchemaEdge[] } {
     buildNode("du-tech-positive", "busbar", 0, 0, { label: "Busbar technique +", polarity: "positive", outputCount: 6 }),
     buildNode("du-tech-negative", "busbar", 0, 0, { label: "Busbar technique -", polarity: "negative", outputCount: 6 }),
     buildNode("du-fuse-mppt", "fuse", 0, 0, { label: "Fusible MPPT", fuseType: "midi", amperage: 80 }),
-    buildNode("du-fuse-multiplus", "fuse", 0, 0, { label: "Fusible MultiPlus", fuseType: "mega", amperage: 400 }),
-    buildNode("du-multiplus", "inverter-charger", 0, 0, { label: "MultiPlus 12/3000/120-16", powerW: 3000, voltageDC: 12, chargeAmperage: 120 }),
+    // MultiPlus 12/2000/80 (au lieu du 12/3000/120 d'origine) : correctif
+    // sécurité — un 12/3000/120 tire ≈220-280 A DC réels en fonctionnement
+    // onduleur (voir lib/electrical-components/auto-size.ts,
+    // getInverterDcCurrentA), au-delà de ce qu'un unique câble réaliste
+    // (jusqu'à 120 mm², catalogue actuel) peut porter en toute sécurité —
+    // une vraie installation à cette puissance nécessite des câbles en
+    // parallèle, hors du modèle "un câble par liaison" de cet éditeur. Le
+    // 12/2000/80 (≈165 A DC réels, marge continue incluse) reste un
+    // véritable produit Victron et tient dans un seul câble 120 mm².
+    buildNode("du-fuse-multiplus", "fuse", 0, 0, { label: "Fusible MultiPlus", fuseType: "mega", amperage: 175 }),
+    buildNode("du-multiplus", "inverter-charger", 0, 0, { label: "MultiPlus 12/2000/80-16", powerW: 1600, voltageDC: 12, chargeAmperage: 80 }),
     buildNode("du-shore", "shore-power", 0, 0, { label: "Prise CEE 16 A", }),
     buildNode("du-ac-panel", "ac-panel", 0, 0, { label: "Tableau AC : differentiel 30 mA", }),
     buildNode("du-dc-panel", "fuse-block", 0, 0, { label: "Tableau DC atelier", outputCount: 5, layout: "positive-negative", outAmp1: 10, outAmp2: 10, outAmp3: 10, outAmp4: 10, outAmp5: 10 }),
@@ -1182,7 +1192,7 @@ export function buildPremiumBoatTemplate(): { projectName: string; nodes: Schema
   return { projectName: "Le bateau FabSystem", nodes: [...zones, ...nodes], edges };
 }
 
-export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
+const RAW_SCHEMA_TEMPLATES: SchemaTemplate[] = [
   {
     id: "reference-v3-voilier-10m",
     label: "Bateau autonome complet - 12 V et 230 V",
@@ -1235,6 +1245,22 @@ export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
     build: buildVictronLightVanTemplate,
   },
 ];
+
+// Correctif sécurité (retour client : sections de câble et calibres de
+// fusible incohérents relevés sur plusieurs gabarits officiels — DC-DC,
+// MultiPlus, batteries) : chaque gabarit passe désormais par le même moteur
+// de recalcul que le bouton "Recalculer toutes les sections" de l'éditeur
+// (lib/electrical-components/auto-size.ts) avant d'être livré. Jamais de
+// section figée à la main dans ce fichier qui pourrait se désynchroniser du
+// vrai moteur de calcul — un seul endroit garantit la cohérence pour les 8
+// gabarits, présents et futurs.
+export const SCHEMA_TEMPLATES: SchemaTemplate[] = RAW_SCHEMA_TEMPLATES.map((template) => ({
+  ...template,
+  build: () => {
+    const { projectName, nodes, edges } = template.build();
+    return { projectName, nodes, edges: recalculateCableSections(nodes, edges).edges };
+  },
+}));
 
 const SCHEMA_TEMPLATE_ALIASES: Record<string, string> = {
   "van-complet": "reference-v3-vito-280ah",
