@@ -491,6 +491,11 @@ interface SchemaState {
    * automatique. */
   removeEdgeWaypoint: (edgeId: string, index: number) => void;
   setOutputCount: (id: string, count: number) => void;
+  /** Convertit un fusible en disjoncteur DC ou l'inverse, en place (même
+   * position, même câblage) — retour utilisateur : "remplacer les fusibles
+   * par des disjoncteurs DC ou inversement sans devoir supprimer et
+   * remettre le composant". No-op si le nœud n'est ni l'un ni l'autre. */
+  convertFuseCircuitBreaker: (id: string) => void;
   setBusbarFacePointCount: (id: string, face: "left" | "top" | "right" | "bottom", count: number) => void;
   /** Place chaque plot connecté du busbar sur la face la plus proche de son câble. */
   optimizeBusbarLayouts: () => void;
@@ -1087,6 +1092,49 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         if (e.target === id && e.targetHandle && !newHandleIds.has(e.targetHandle)) return false;
         return true;
       });
+      return { nodes, edges, ...commit(state) };
+    }),
+
+  // Retour utilisateur : "remplacer les fusibles par des disjoncteurs DC ou
+  // inversement sans devoir supprimer et remettre le composant" — fusible
+  // et disjoncteur simple partagent exactement les mêmes bornes (IN/OUT),
+  // seul le champ spécifique change (fuseType <-> poles). Le calibre
+  // (amperage) et un nom personnalisé sont conservés ; un nom resté au
+  // défaut de l'ancien type ("Fusible"/"Disjoncteur DC", jamais renommé)
+  // bascule sur le défaut du nouveau type plutôt que de rester figé.
+  convertFuseCircuitBreaker: (id) =>
+    set((state) => {
+      const node = state.nodes.find((n) => n.id === id);
+      const currentType = node?.data.componentType;
+      if (!node || (currentType !== "fuse" && currentType !== "circuit-breaker")) return {};
+
+      const newType = currentType === "fuse" ? "circuit-breaker" : "fuse";
+      const oldDef = getComponentDefinition(currentType);
+      const newDef = getComponentDefinition(newType);
+      if (!newDef) return {};
+
+      const sharedData = Object.fromEntries(Object.entries(node.data).filter(([key]) => key !== "fuseType" && key !== "poles"));
+      const keptLabel = node.data.label === oldDef?.label ? newDef.label : node.data.label;
+      const newData = {
+        ...sharedData,
+        componentType: newType,
+        label: keptLabel,
+        ...(newType === "fuse" ? { fuseType: "midi" } : { poles: "simple" }),
+      };
+
+      const nodes = state.nodes.map((n) => (n.id === id ? { ...n, data: newData } : n));
+
+      // Un disjoncteur bipolaire a deux bornes (IN−/OUT−) qu'un fusible n'a
+      // pas — les câbles qui y étaient reliés sont retirés plutôt que
+      // laissés pointer vers une borne qui n'existe plus (même garde-fou
+      // que setOutputCount/applyBrandModelToNode ci-dessus).
+      const allowedHandles = new Set(getEffectiveHandles(newDef, newData).map((h) => h.id));
+      const edges = state.edges.filter((e) => {
+        if (e.source === id && e.sourceHandle && !allowedHandles.has(e.sourceHandle)) return false;
+        if (e.target === id && e.targetHandle && !allowedHandles.has(e.targetHandle)) return false;
+        return true;
+      });
+
       return { nodes, edges, ...commit(state) };
     }),
 

@@ -95,6 +95,14 @@ export interface ComponentDefinition {
    */
   badge?: { field: string; unit?: string };
   /**
+   * Calcule le texte affiché dans le badge à partir de plusieurs champs de
+   * `data` plutôt qu'un seul (ex. fusible : format ET calibre, "MIDI 30A" —
+   * retour utilisateur : "savoir si mega midi anl etc" sans devoir ouvrir
+   * les propriétés). Prime sur `badge` quand fourni ; retourne `undefined`
+   * pour ne rien afficher.
+   */
+  getBadgeLabel?: (data: Record<string, unknown>) => string | undefined;
+  /**
    * Force l'affichage des étiquettes de bornes même avec seulement 2 bornes
    * (par défaut masquées : "+/− déjà clair par la couleur") — pour les
    * composants où le libellé porte une info au-delà de la simple polarité,

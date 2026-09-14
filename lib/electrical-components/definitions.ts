@@ -422,6 +422,18 @@ const outputCountField = {
   help: `De ${MIN_OUTPUTS} à ${MAX_OUTPUTS}. Réduire ce nombre supprime les câbles reliés aux sorties retirées.`,
 };
 
+// Formats physiques de fusible — source unique partagée entre le champ
+// "Type" et le badge affiché sur la vignette (getBadgeLabel), pour ne
+// jamais avoir à tenir deux listes de libellés synchronisées.
+const FUSE_TYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: "mega", label: "MEGA" },
+  { value: "midi", label: "MIDI" },
+  { value: "anl", label: "ANL" },
+  { value: "classe-t", label: "Classe T" },
+  { value: "lame", label: "Lame" },
+  { value: "generique", label: "Générique" },
+];
+
 // Icônes du fusible par type + calibre exact quand une vraie photo existe
 // (retour utilisateur : "génère les icônes pour chaque fusible suivant
 // l'intensité"), sinon une seule photo générique par format physique.
@@ -880,7 +892,19 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       return fuseType;
     },
     iconVariants: FUSE_ICON_VARIANTS,
-    badge: { field: "amperage", unit: "A" },
+    // Retour utilisateur : "savoir si mega midi anl etc [dans le libellé]"
+    // — le libellé libre ("Nom") ne se met jamais à jour tout seul (figé au
+    // moment où le composant est posé), donc afficher le format ici, dans
+    // le badge déjà recalculé à chaque rendu, est le seul endroit qui reste
+    // fiable même après un changement de type ou de calibre.
+    getBadgeLabel: (data) => {
+      const fuseType = typeof data.fuseType === "string" ? data.fuseType : undefined;
+      const formatLabel = FUSE_TYPE_OPTIONS.find((o) => o.value === fuseType)?.label;
+      const amperage = Number(data.amperage) || 0;
+      if (formatLabel && amperage > 0) return `${formatLabel} ${amperage}A`;
+      if (formatLabel) return formatLabel;
+      return amperage > 0 ? `${amperage}A` : undefined;
+    },
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
       { id: "output", label: "OUT", kind: "positive", side: "right" },
@@ -893,14 +917,7 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
         label: "Type",
         type: "select",
         help: "Le format physique du porte-fusible (pas la valeur du calibre).",
-        options: [
-          { value: "mega", label: "MEGA" },
-          { value: "midi", label: "MIDI" },
-          { value: "anl", label: "ANL" },
-          { value: "classe-t", label: "Classe T" },
-          { value: "lame", label: "Lame" },
-          { value: "generique", label: "Générique" },
-        ],
+        options: FUSE_TYPE_OPTIONS,
       },
       { key: "amperage", label: "Calibre", type: "number", unit: "A", min: 0, step: 5, help: "Réglage par pas de 5 A ; 2 A reste possible pour les très petits circuits." },
     ],
@@ -914,7 +931,13 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subtitle: "Protection",
     icon: "/schema-icons/circuit-breaker.svg",
     iconPro: "/schema-icons/pro/family/circuit-breaker.png",
-    badge: { field: "amperage", unit: "A" },
+    // Même principe que le fusible (getBadgeLabel remplace `badge` ici) :
+    // badge toujours à jour même si le libellé libre ne l'est pas.
+    getBadgeLabel: (data) => {
+      const amperage = Number(data.amperage) || 0;
+      const suffix = data.poles === "bipolar" ? " · Bipolaire" : "";
+      return amperage > 0 ? `${amperage}A${suffix}` : undefined;
+    },
     handles: [
       { id: "input", label: "IN", kind: "positive", side: "left" },
       { id: "output", label: "OUT", kind: "positive", side: "right" },

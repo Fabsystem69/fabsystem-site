@@ -393,17 +393,27 @@ export function ElectricalNode({ id, data, selected }: NodeProps<Node<Electrical
           )}
         </div>
 
-        {def.badge && data[def.badge.field] ? (
-          // Ancré au coin de la vignette entière (pas de l'icône seule,
-          // devenue une cellule centrale plus étroite depuis l'intégration
-          // des étiquettes de bornes) — sinon le badge chevauche le texte
-          // de la borne du bas quand il y en a une (bug constaté : "30A" sur
-          // "Communication").
-          <span className="absolute -bottom-1.5 -right-1.5 rounded-full border border-white bg-neutral-900 px-1 text-[8px] font-bold leading-tight text-white shadow-sm">
-            {String(data[def.badge.field])}
-            {def.badge.unit ?? ""}
-          </span>
-        ) : null}
+        {(() => {
+          // `getBadgeLabel` (ex. fusible : format + calibre, "MIDI 30A")
+          // prime sur `badge` (un seul champ brut) quand fourni — voir
+          // definitions.ts.
+          const badgeLabel = def.getBadgeLabel
+            ? def.getBadgeLabel(data)
+            : def.badge && data[def.badge.field]
+              ? `${String(data[def.badge.field])}${def.badge.unit ?? ""}`
+              : undefined;
+          if (!badgeLabel) return null;
+          return (
+            // Ancré au coin de la vignette entière (pas de l'icône seule,
+            // devenue une cellule centrale plus étroite depuis l'intégration
+            // des étiquettes de bornes) — sinon le badge chevauche le texte
+            // de la borne du bas quand il y en a une (bug constaté : "30A" sur
+            // "Communication").
+            <span className="absolute -bottom-1.5 -right-1.5 whitespace-nowrap rounded-full border border-white bg-neutral-900 px-1 text-[8px] font-bold leading-tight text-white shadow-sm">
+              {badgeLabel}
+            </span>
+          );
+        })()}
 
         {rightLabels.length > 0 && (
           <div

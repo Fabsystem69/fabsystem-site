@@ -64,6 +64,7 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
   const deleteSelected = useSchemaStore((s) => s.deleteSelected);
   const updateNodeData = useSchemaStore((s) => s.updateNodeData);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
+  const convertFuseCircuitBreaker = useSchemaStore((s) => s.convertFuseCircuitBreaker);
 
   const selectedNode = selectedNodeId ? nodes.find((n) => n.id === selectedNodeId) : undefined;
   const selectedEdge = selectedEdgeId ? edges.find((e) => e.id === selectedEdgeId) : undefined;
@@ -351,6 +352,25 @@ export function PropertiesTab({ darkMode }: { darkMode: boolean }) {
       ) : null}
       {selectedNode ? (
         <RibbonButton darkMode={darkMode} onClick={() => duplicateNode(selectedNode.id)} icon="⧉" label="Dupliquer" title="Dupliquer" />
+      ) : null}
+      {/* Retour utilisateur : "remplacer les fusibles par des disjoncteurs
+          DC ou inversement sans devoir supprimer et remettre le composant"
+          — même position, même câblage conservé (voir
+          convertFuseCircuitBreaker, seules les bornes IN−/OUT− d'un
+          disjoncteur bipolaire, absentes d'un fusible, perdent leur câble
+          le cas échéant). */}
+      {selectedNode && (def?.type === "fuse" || def?.type === "circuit-breaker") ? (
+        <RibbonButton
+          darkMode={darkMode}
+          onClick={() => convertFuseCircuitBreaker(selectedNode.id)}
+          icon="⇄"
+          label={def?.type === "fuse" ? "→ Disjoncteur" : "→ Fusible"}
+          title={
+            def?.type === "fuse"
+              ? "Convertir en disjoncteur DC, en conservant la position et le câblage"
+              : "Convertir en fusible, en conservant la position et le câblage"
+          }
+        />
       ) : null}
       <RibbonButton
         darkMode={darkMode}
