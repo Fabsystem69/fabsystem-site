@@ -995,21 +995,23 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
         .join("")}
     </ul>`;
 
-  // Cosses (retour utilisateur : "un moteur pour calculer les consommables
-  // cosses... avec les diamètres de vis et la section") — diamètre déduit
-  // uniquement de la section du câble (lib/electrical-components/cable-lugs.ts),
-  // donc indicatif : précisé dans le titre de la table plutôt que dans une
+  // Cosses/embouts (retour utilisateur : "un moteur pour calculer les
+  // consommables cosses... avec les diamètres de vis et la section", puis
+  // "cosse [tubulaire coudée] pour MPPT/DC-DC [et] embout de câble basique
+  // pour les petites sections") — type déduit de la section ET du composant
+  // à chaque extrémité (lib/electrical-components/cable-lugs.ts), donc
+  // indicatif : précisé dans le titre de la table plutôt que dans une
   // colonne à part, pour rester visible même si le tableau est imprimé seul.
   const lugTable =
     bom.lugRows.length === 0
       ? ""
       : `
-    <h2>Cosses (diamètre indicatif — à vérifier selon la borne réelle)</h2>
+    <h2>Cosses / embouts (indicatif — à vérifier selon la borne réelle)</h2>
     <table>
-      <thead><tr><th>Section</th><th>Diamètre de vis</th><th>Quantité</th></tr></thead>
+      <thead><tr><th>Section</th><th>Type</th><th>Quantité</th></tr></thead>
       <tbody>
         ${bom.lugRows
-          .map((row) => `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.studDiameter)}</td><td>${row.count}</td></tr>`)
+          .map((row) => `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.connectorLabel)}</td><td>${row.count}</td></tr>`)
           .join("")}
       </tbody>
     </table>`;

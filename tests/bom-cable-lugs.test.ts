@@ -9,18 +9,22 @@ function edge(id: string, section: string | undefined, cableType?: string): Edge
 
 const NO_NODES: Node[] = [];
 
-test("computeBom adds 2 lugs per cable, sized from the cable's section", () => {
+function node(id: string, componentType: string): Node {
+  return { id, type: "electrical", position: { x: 0, y: 0 }, data: { componentType, label: componentType } } as unknown as Node;
+}
+
+test("computeBom adds 2 ring lugs per cable, sized from the cable's section, when neither end is a screw-terminal device", () => {
   const bom = computeBom(NO_NODES, [edge("e1", "16 mm²")]);
 
   assert.equal(bom.lugRows.length, 1);
-  assert.deepEqual(bom.lugRows[0], { section: "16 mm²", studDiameter: "M6", count: 2 });
+  assert.deepEqual(bom.lugRows[0], { section: "16 mm²", connectorLabel: "Cosse à œillet / M6", count: 2 });
 });
 
 test("computeBom tallies multiple cables of the same section into one lug row", () => {
   const bom = computeBom(NO_NODES, [edge("e1", "25 mm²"), edge("e2", "25 mm²"), edge("e3", "25 mm²")]);
 
   assert.equal(bom.lugRows.length, 1);
-  assert.deepEqual(bom.lugRows[0], { section: "25 mm²", studDiameter: "M8", count: 6 });
+  assert.deepEqual(bom.lugRows[0], { section: "25 mm²", connectorLabel: "Cosse à œillet / M8", count: 6 });
 });
 
 test("computeBom keeps different sections as separate lug rows, ordered by section", () => {
@@ -50,8 +54,50 @@ test("buildMaterialListText includes a lugs section with the indicative-diameter
 
   const text = buildMaterialListText(bom, "Test");
 
-  assert.match(text, /Cosses \(diamètre indicatif/);
-  assert.match(text, /2x Cosse à œillet 16 mm² \/ M6/);
+  assert.match(text, /Cosses \/ embouts \(indicatif/);
+  assert.match(text, /2x Cosse à œillet \/ M6 — 16 mm²/);
+});
+
+test("computeBom recommends a wire ferrule for a small cable into a screw-terminal device (MPPT)", () => {
+  const nodes = [node("e1-a", "busbar"), node("e1-b", "mppt")];
+  const bom = computeBom(nodes, [edge("e1", "4 mm²")]);
+
+  assert.deepEqual(
+    bom.lugRows.sort((a, b) => a.connectorLabel.localeCompare(b.connectorLabel)),
+    [
+      { section: "4 mm²", connectorLabel: "Cosse à œillet / M5", count: 1 },
+      { section: "4 mm²", connectorLabel: "Embout de câble", count: 1 },
+    ]
+  );
+});
+
+test("computeBom recommends a bent tubular lug for a large cable into a screw-terminal device (DC-DC)", () => {
+  const nodes = [node("e1-a", "busbar"), node("e1-b", "dcdc")];
+  const bom = computeBom(nodes, [edge("e1", "16 mm²")]);
+
+  assert.deepEqual(
+    bom.lugRows.sort((a, b) => a.connectorLabel.localeCompare(b.connectorLabel)),
+    [
+      { section: "16 mm²", connectorLabel: "Cosse à œillet / M6", count: 1 },
+      { section: "16 mm²", connectorLabel: "Cosse tubulaire coudée (dite \"cosse C45\")", count: 1 },
+    ]
+  );
+});
+
+test("computeBom recommends two screw-terminal connectors when both ends are screw-terminal devices", () => {
+  const nodes = [node("e1-a", "circuit-breaker"), node("e1-b", "mppt")];
+  const bom = computeBom(nodes, [edge("e1", "16 mm²")]);
+
+  assert.equal(bom.lugRows.length, 1);
+  assert.deepEqual(bom.lugRows[0], { section: "16 mm²", connectorLabel: "Cosse tubulaire coudée (dite \"cosse C45\")", count: 2 });
+});
+
+test("computeBom keeps the ring lug for battery/busbar-style components not classified as screw-terminal", () => {
+  const nodes = [node("e1-a", "battery"), node("e1-b", "busbar")];
+  const bom = computeBom(nodes, [edge("e1", "35 mm²")]);
+
+  assert.equal(bom.lugRows.length, 1);
+  assert.deepEqual(bom.lugRows[0], { section: "35 mm²", connectorLabel: "Cosse à œillet / M8", count: 2 });
 });
 
 test("computeBom annotates each cable row with its AWG equivalent", () => {

@@ -1,7 +1,7 @@
 import { getComponentDefinition, getConsumerPreset, CATEGORY_LABELS } from "./definitions";
 import { getCableType } from "./cable-types";
 import { getBrandModel, type BrandModel } from "./brand-models";
-import { compareBySectionOrder, getRecommendedLugStudDiameter } from "./cable-lugs";
+import { compareBySectionOrder, getRecommendedLugStudDiameter, getScrewTerminalConnectorLabel, isScrewTerminalComponentType } from "./cable-lugs";
 import { getAwgEquivalent } from "./section-to-awg";
 import { getCableHarmonizationSuggestions, type CableHarmonizationSuggestion } from "./cable-harmonization";
 import type { Node, Edge } from "@xyflow/react";
@@ -54,16 +54,20 @@ export interface BomDataBusRow {
   missingLengthCount: number;
 }
 
-// Cosses à œillet nécessaires pour sertir les câbles (retour utilisateur :
+// Cosses/embouts nécessaires pour sertir les câbles (retour utilisateur :
 // "un moteur pour calculer les consommables cosses... avec les diamètres de
-// vis et la section") — 2 cosses par câble (une à chaque extrémité), sauf
-// bus de données (connecteurs préconfectionnés, jamais de cosse à sertir).
-// Diamètre déduit uniquement de la section (voir cable-lugs.ts) : reste
-// indicatif, une même section existant couramment en plusieurs diamètres de
-// trou selon la borne réelle du composant.
+// vis et la section", puis "un moteur pour le calcul de cosse [tubulaire
+// coudée pour] MPPT et DC-DC [et] embout de câble basique pour les petites
+// sections") — 1 connecteur par extrémité de câble, sauf bus de données
+// (connecteurs préconfectionnés, jamais de cosse à sertir). Le type dépend
+// du composant à chaque extrémité (voir SCREW_TERMINAL_COMPONENT_TYPES dans
+// cable-lugs.ts) : borne à vis/cage (MPPT, PWM, DC-DC, disjoncteur DC) →
+// embout ou cosse tubulaire coudée selon la section ; sinon → cosse à
+// œillet, diamètre déduit uniquement de la section. Reste indicatif dans
+// tous les cas, un appareil réel précis pouvant différer du cas général.
 export interface BomLugRow {
   section: string;
-  studDiameter: string;
+  connectorLabel: string;
   count: number;
 }
 
@@ -126,6 +130,7 @@ export function computeBom(
   options?: { harmonizeSmallSections?: boolean }
 ): Bom {
   const byCategory = new Map<string, Map<string, BomComponentRow>>();
+  const componentTypeById = new Map(nodes.map((node) => [node.id, String(node.data?.componentType ?? "")]));
 
   for (const node of nodes) {
     const def = getComponentDefinition(String(node.data.componentType));
@@ -184,7 +189,7 @@ export function computeBom(
 
   const bySection = new Map<string, { section: string; cableTypeLabel: string; count: number; totalLengthM: number; missingLengthCount: number }>();
   const byDataBus = new Map<string, { count: number; totalLengthM: number; missingLengthCount: number }>();
-  const byLug = new Map<string, { section: string; studDiameter: string; count: number }>();
+  const byLug = new Map<string, { section: string; connectorLabel: string; count: number }>();
   for (const edge of edges) {
     const length = Number(edge.data?.length);
     const hasLength = Number.isFinite(length) && length > 0;
@@ -209,15 +214,23 @@ export function computeBom(
     else entry.missingLengthCount += 1;
     bySection.set(key, entry);
 
-    // 2 cosses par câble (une à chaque extrémité) — rien si la section n'est
-    // pas renseignée, impossible de recommander un diamètre sans elle.
-    const studDiameter = getRecommendedLugStudDiameter(section);
-    if (studDiameter) {
-      const lugKey = `${section}__${studDiameter}`;
-      const lugEntry = byLug.get(lugKey) ?? { section, studDiameter, count: 0 };
-      lugEntry.count += 2;
+    // 1 connecteur par extrémité de câble — rien si la section n'est pas
+    // renseignée, impossible de recommander quoi que ce soit sans elle. Le
+    // type dépend du composant à CHAQUE extrémité : un câble busbar → MPPT
+    // a besoin d'une cosse à œillet d'un côté et d'un embout/cosse coudée
+    // de l'autre, jamais du même connecteur aux deux bouts.
+    const ringLugStud = getRecommendedLugStudDiameter(section);
+    const ringLugLabel = ringLugStud ? `Cosse à œillet / ${ringLugStud}` : null;
+    const addConnector = (componentType: string | undefined) => {
+      const label = isScrewTerminalComponentType(componentType) ? getScrewTerminalConnectorLabel(section) : ringLugLabel;
+      if (!label) return;
+      const lugKey = `${section}__${label}`;
+      const lugEntry = byLug.get(lugKey) ?? { section, connectorLabel: label, count: 0 };
+      lugEntry.count += 1;
       byLug.set(lugKey, lugEntry);
-    }
+    };
+    addConnector(componentTypeById.get(edge.source));
+    addConnector(componentTypeById.get(edge.target));
   }
 
   const cableRows: BomCableRow[] = Array.from(bySection.values())
@@ -242,7 +255,7 @@ export function computeBom(
   });
 
   const lugRows: BomLugRow[] = Array.from(byLug.values()).sort(
-    (a, b) => compareBySectionOrder(a.section, b.section) || a.studDiameter.localeCompare(b.studDiameter)
+    (a, b) => compareBySectionOrder(a.section, b.section) || a.connectorLabel.localeCompare(b.connectorLabel)
   );
 
   return {
@@ -317,9 +330,9 @@ export function buildMaterialListText(bom: Bom, projectName: string): string {
   }
 
   if (bom.lugRows.length > 0) {
-    lines.push("Cosses (diamètre indicatif, à vérifier selon la borne réelle)");
+    lines.push("Cosses / embouts (indicatif, à vérifier selon la borne réelle)");
     for (const row of bom.lugRows) {
-      lines.push(`- ${row.count}x Cosse à œillet ${row.section} / ${row.studDiameter}`);
+      lines.push(`- ${row.count}x ${row.connectorLabel} — ${row.section}`);
     }
     lines.push("");
   }
@@ -382,10 +395,10 @@ export function buildMaterialListCsv(bom: Bom, projectName: string): string {
   }
 
   if (bom.lugRows.length > 0) {
-    lines.push(csvLine(["Cosses (diamètre indicatif, à vérifier selon la borne réelle)"]));
-    lines.push(csvLine(["Section", "Diamètre de vis", "Quantité"]));
+    lines.push(csvLine(["Cosses / embouts (indicatif, à vérifier selon la borne réelle)"]));
+    lines.push(csvLine(["Section", "Type de cosse / embout", "Quantité"]));
     for (const row of bom.lugRows) {
-      lines.push(csvLine([row.section, row.studDiameter, String(row.count)]));
+      lines.push(csvLine([row.section, row.connectorLabel, String(row.count)]));
     }
     lines.push("");
   }
