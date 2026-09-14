@@ -14,6 +14,31 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/installation-12v-bateau",
   },
+  // Ajouté (audit SEO) : cette page n'avait ni keywords ni openGraph,
+  // contrairement aux pages van équivalentes — même traitement appliqué ici.
+  keywords: [
+    "installation 12V bateau",
+    "refonte électrique bateau",
+    "câblage bateau",
+    "distribution 12V bateau",
+    "protections électriques bateau",
+    "schéma électrique bateau",
+  ],
+  openGraph: {
+    title: "Installation 12V bateau : conception et refonte",
+    description:
+      "Architecture 12V lisible et fiable pour bateau : batteries, charge, distribution, protections et schéma, prête à évoluer.",
+    url: "https://www.fabsystem.fr/installation-12v-bateau",
+    type: "website",
+    images: [
+      {
+        url: "/hero-fabsystem.png",
+        width: 1200,
+        height: 630,
+        alt: "FabSystem - Installation 12V bateau",
+      },
+    ],
+  },
 };
 
 const audienceItems = [

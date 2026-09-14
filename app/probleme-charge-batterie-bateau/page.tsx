@@ -11,6 +11,31 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/probleme-charge-batterie-bateau",
   },
+  // Ajouté (audit SEO) : cette page n'avait ni keywords ni openGraph,
+  // contrairement aux pages van équivalentes — même traitement appliqué ici.
+  keywords: [
+    "problème charge batterie bateau",
+    "batterie bateau ne charge plus",
+    "diagnostic alternateur bateau",
+    "DC-DC bateau",
+    "chargeur batterie bateau",
+    "régulateur solaire bateau",
+  ],
+  openGraph: {
+    title: "Problème de charge batterie bateau : diagnostic et correction",
+    description:
+      "Diagnostic des problèmes de charge (alternateur, DC-DC, chargeur, solaire) et correction pour une charge fiable en navigation comme au port.",
+    url: "https://www.fabsystem.fr/probleme-charge-batterie-bateau",
+    type: "website",
+    images: [
+      {
+        url: "/hero-fabsystem.png",
+        width: 1200,
+        height: 630,
+        alt: "FabSystem - Diagnostic charge batterie bateau",
+      },
+    ],
+  },
 };
 
 const symptoms = [
