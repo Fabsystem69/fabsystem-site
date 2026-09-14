@@ -1,4 +1,5 @@
 import ModuleStepper from "@/components/ModuleStepper";
+import { ModuleToolLink } from "@/components/ModuleToolLink";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -191,6 +192,11 @@ const steps = [
             lui-même.
           </p>
         </div>
+
+        <ModuleToolLink href="/probleme-charge-batterie-bateau" label="Voir des symptômes types">
+          Cette méthode pas-à-pas est justement celle utilisée pour distinguer les causes fréquentes
+          d&apos;un problème de charge batterie :
+        </ModuleToolLink>
       </div>
     ),
   },

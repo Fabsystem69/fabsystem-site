@@ -1,4 +1,5 @@
 import ModuleStepper from "@/components/ModuleStepper";
+import { ModuleToolLink } from "@/components/ModuleToolLink";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -44,6 +45,11 @@ const steps = [
             usure prématurée inégale des batteries.
           </p>
         </div>
+
+        <ModuleToolLink href="/outils/batterie" label="Configurer ma banque de batteries">
+          Pour obtenir directement le câblage série/parallèle adapté à votre nombre de batteries,
+          avec la section de câble inter-batteries et le fusible principal :
+        </ModuleToolLink>
       </div>
     ),
   },
@@ -194,6 +200,12 @@ const steps = [
             </ul>
           </div>
         </div>
+
+        <ModuleToolLink href="/outils/soc-batterie" label="Estimer mon état de charge">
+          La tension quasi-plate du lithium rend une estimation « à l&apos;œil » peu fiable. Pour
+          lire un pourcentage de charge à partir de la tension mesurée, courbe spécifique lithium
+          incluse :
+        </ModuleToolLink>
       </div>
     ),
   },

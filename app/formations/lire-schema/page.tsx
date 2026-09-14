@@ -1,4 +1,5 @@
 import ModuleStepper from "@/components/ModuleStepper";
+import { ModuleToolLink } from "@/components/ModuleToolLink";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -38,6 +39,11 @@ const steps = [
             </div>
           ))}
         </div>
+
+        <ModuleToolLink href="/schemas-electriques" label="Voir des schémas commentés">
+          Pour repérer ces symboles directement sur des installations réelles de van, bateau ou
+          camping-car :
+        </ModuleToolLink>
       </div>
     ),
   },
@@ -223,6 +229,11 @@ const steps = [
             embarquée.
           </p>
         </div>
+
+        <ModuleToolLink href="/outils/schema" label="Dessiner mon schéma">
+          Pour le faire proprement, à partir d&apos;un gabarit existant plutôt que d&apos;une feuille
+          blanche :
+        </ModuleToolLink>
       </div>
     ),
   },

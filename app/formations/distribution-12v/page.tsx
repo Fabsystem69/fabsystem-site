@@ -1,4 +1,5 @@
 import ModuleStepper from "@/components/ModuleStepper";
+import { ModuleToolLink } from "@/components/ModuleToolLink";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -114,6 +115,11 @@ const steps = [
             hasard.
           </p>
         </div>
+
+        <ModuleToolLink href="/outils/fusible" label="Calibrer mon fusible principal">
+          Pour choisir le calibre et le format adaptés à votre câble principal plutôt que d&apos;y
+          aller « au feeling » :
+        </ModuleToolLink>
       </div>
     ),
   },
@@ -182,6 +188,11 @@ const steps = [
             ))}
           </div>
         </div>
+
+        <ModuleToolLink href="/outils/section-cable" label="Vérifier une section de câble">
+          « Des sections choisies selon courant + longueur + chute de tension » — c&apos;est
+          exactement ce que calcule cet outil, circuit par circuit :
+        </ModuleToolLink>
       </div>
     ),
   },

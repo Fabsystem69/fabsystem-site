@@ -1,4 +1,5 @@
 import ModuleStepper from "@/components/ModuleStepper";
+import { ModuleToolLink } from "@/components/ModuleToolLink";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -202,6 +203,11 @@ const steps = [
           </p>
         </div>
 
+        <ModuleToolLink href="/outils/onduleur" label="Dimensionner mon onduleur">
+          Pour refaire ce calcul avec vos propres appareils (et obtenir directement le fusible et
+          la section de câble associés) :
+        </ModuleToolLink>
+
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-neutral-200 bg-white p-4">
             <p className="text-sm font-semibold text-neutral-900">Courant par tension</p>
@@ -315,6 +321,11 @@ const steps = [
             limite — risque d&apos;incendie certain. Ne jamais sous-dimensionner les câbles en embarqué.
           </p>
         </div>
+
+        <ModuleToolLink href="/outils/section-cable" label="Calculer ma section de câble">
+          La règle « section ÷ 3 » reste une approximation rapide. Pour un résultat qui tient
+          compte de la longueur réelle et de la chute de tension admissible :
+        </ModuleToolLink>
       </div>
     ),
   },

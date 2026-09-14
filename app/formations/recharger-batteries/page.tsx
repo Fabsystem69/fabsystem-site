@@ -1,4 +1,5 @@
 import ModuleStepper from "@/components/ModuleStepper";
+import { ModuleToolLink } from "@/components/ModuleToolLink";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -61,6 +62,11 @@ const steps = [
             d&apos;autonomie ou une batterie qui vieillit mal.
           </p>
         </div>
+
+        <ModuleToolLink href="/outils/dcdc-alternateur" label="Dimensionner mon chargeur DC-DC">
+          Pour cadrer précisément ce que l&apos;alternateur peut apporter à la batterie servitude,
+          selon votre alternateur et votre banc :
+        </ModuleToolLink>
       </div>
     ),
   },
@@ -108,6 +114,11 @@ const steps = [
             d&apos;absorption.
           </p>
         </div>
+
+        <ModuleToolLink href="/outils/charge-secteur" label="Estimer mon temps de charge secteur">
+          Pour voir ces phases bulk / absorption appliquées à votre propre banc de batteries et
+          votre borne secteur :
+        </ModuleToolLink>
       </div>
     ),
   },
