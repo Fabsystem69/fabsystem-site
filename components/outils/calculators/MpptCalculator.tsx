@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { calcSection } from "@/lib/calc/section-cable";
+import { calcSectionSafe } from "@/lib/calc/section-cable";
 import { computeFuseSize } from "@/lib/calc/fuse-size";
 import { findCompatibleMppt } from "@/lib/calc/mppt-match";
 import { getArrayConfigs } from "@/lib/calc/array-config";
@@ -90,8 +90,12 @@ export default function MpptCalculator() {
   const iSortieMPPT = t > 0 ? wc / t : 0;
   const puissanceMPPT = wc * 1.25;
 
-  const sectionPanneaux = wc > 0 && vmpString > 0 ? calcSection(pvDesignCurrentA, 3, 3, vmpString) : null;
-  const sectionMPPTBat = wc > 0 ? calcSection(iSortieMPPT, longueurMPPT || 2, 3, t) : null;
+  // calcSectionSafe (pas calcSection seule) : garde toujours la plus grande
+  // section entre l'ampacité (courant continu, marge 25 %) et la chute de
+  // tension — un câble MPPT→batterie court à fort courant satisferait sinon
+  // la chute de tension avec une section dangereusement insuffisante.
+  const sectionPanneaux = wc > 0 && vmpString > 0 ? calcSectionSafe(pvDesignCurrentA, 3, 3, vmpString) : null;
+  const sectionMPPTBat = wc > 0 ? calcSectionSafe(iSortieMPPT, longueurMPPT || 2, 3, t) : null;
 
   const hasResult = nbPanneaux > 0 && wattsParPanneau > 0 && vocN > 0 && vmpN > 0 && impN > 0 && iscN > 0;
 

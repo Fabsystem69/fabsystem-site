@@ -2,7 +2,7 @@
 // principe que les autres moteurs de lib/calc/. Retour utilisateur :
 // "créer les outils manquant" (gap identifié vs le concurrent Wireframe).
 
-import { calcSection } from "@/lib/calc/section-cable";
+import { calcSectionSafe } from "@/lib/calc/section-cable";
 import { computeFuseSize } from "@/lib/calc/fuse-size";
 
 export type ApplianceLoad = {
@@ -61,7 +61,10 @@ export function computeInverterSize(
 
   const dcCurrentA = continuousW / systemVoltage / INVERTER_EFFICIENCY;
   const fuse = computeFuseSize(dcCurrentA, true, true);
-  const { section } = calcSection(dcCurrentA, dcCableLengthM, 3, systemVoltage);
+  // calcSectionSafe (pas calcSection seule) : un onduleur de forte
+  // puissance tire un fort courant DC (ex. 3000 W / 12 V ≈ 278 A) — la
+  // seule chute de tension sous-évalue largement la section nécessaire.
+  const { section } = calcSectionSafe(dcCurrentA, dcCableLengthM, 3, systemVoltage);
 
   return {
     continuousW,

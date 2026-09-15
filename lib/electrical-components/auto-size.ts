@@ -1,7 +1,6 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
-import { calcSection, AVAILABLE_FUSES_A, AVAILABLE_SECTIONS_MM2 } from "@/lib/calc/section-cable";
-import { WIRE_TABLE, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
+import { calcSection, calcSectionSafe, AVAILABLE_FUSES_A, AVAILABLE_SECTIONS_MM2, CONTINUOUS_LOAD_MARGIN, pickSectionForAmpacity } from "@/lib/calc/section-cable";
 import { INVERTER_EFFICIENCY } from "@/lib/calc/inverter-size";
 import { CHARGER_EFFICIENCY, MAINS_VOLTAGE_V } from "@/lib/calc/charge-secteur";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
@@ -22,8 +21,10 @@ import { getBrandModel } from "@/lib/electrical-components/brand-models";
  * (continuousLoadFactor). Toujours appliquée ici : un circuit embarqué
  * (batterie, DC-DC, onduleur) est traité comme continu par défaut, jamais
  * comme un cas favorable non démontré — retour client : "on joue toujours
- * sécurité". */
-const CONTINUOUS_MARGIN = 1.25;
+ * sécurité". Alias de lib/calc/section-cable.ts (CONTINUOUS_LOAD_MARGIN,
+ * même constante) : conservé sous ce nom pour ne pas casser les imports
+ * existants dans ce fichier et dans les popups de suggestion. */
+export const CONTINUOUS_MARGIN = CONTINUOUS_LOAD_MARGIN;
 
 /** Chute de tension maximale visée, en % — Victron Energy, "Wiring
  * Unlimited" (rev02, 08/2024), p.10 et p.22 : "we advise aiming for a
@@ -31,16 +32,19 @@ const CONTINUOUS_MARGIN = 1.25;
  * below 2.5%". Remplace l'ancien seuil de 3% (EN 1648-2) : Victron est le
  * fabricant le plus représenté dans le catalogue de l'éditeur, sa propre
  * recommandation devient la référence par défaut. */
-const DC_MAX_VOLTAGE_DROP_PCT = 2.5;
+export const DC_MAX_VOLTAGE_DROP_PCT = 2.5;
 
-/** Section minimale (mm²) dont l'ampacité dérated couvre `designCurrentA`,
- * en conditions prudentes par défaut (PVC, 30°C ambiant, câble seul — mêmes
- * hypothèses que le calculateur public). Limité à mm² ≥ 0.5 pour rester
- * dans le catalogue de l'éditeur (AVAILABLE_SECTIONS_MM2). */
-function pickSectionForAmpacity(designCurrentA: number): number {
-  const row = WIRE_TABLE.find((r) => r.mm2 >= 0.5 && getDeratedAmpacity(r, "pvc", 30, "single") >= designCurrentA);
-  return row ? row.mm2 : WIRE_TABLE[WIRE_TABLE.length - 1].mm2;
-}
+// pickSectionForAmpacity ré-exportée depuis lib/calc/section-cable.ts (import
+// ci-dessus) — retour utilisateur (bug relevé sur un cas réel : 120 A, 1 m,
+// 12 V → recommandait 16 mm² au lieu de 35 mm² nécessaires) : les popups
+// interactives de suggestion (SizingPopup.tsx `CableSizingPopup`,
+// ItemPropertiesPopup.tsx `SectionSuggestion`) et plusieurs calculateurs
+// publics (MpptCalculator.tsx, lib/calc/inverter-size.ts,
+// lib/calc/battery-bank.ts) appelaient `calcSection` seule — donc
+// uniquement la chute de tension, jamais l'ampacité. Tous utilisent
+// désormais `calcSectionSafe`/`pickSectionForAmpacity` du même module
+// canonique, pour ne plus jamais dupliquer cette logique de sécurité.
+export { pickSectionForAmpacity };
 
 // Moteur de recalcul en masse (V2 — inspiré de "Recalculate All Wire
 // Sizes"/"Recalculate All Fuse Ratings" chez Wireframe, un concurrent
@@ -464,12 +468,11 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
 
   const voltage = findBatteryVoltage(nodes);
   const length = getEdgeSizingLength(edge, nodes);
-  // Chute de tension : sur le courant réel (non margé), même convention que
-  // lib/calc/wire-size.ts. Ampacité : sur le courant de dimensionnement
-  // (×1,25, circuit continu) — la section retenue est toujours la plus
-  // grande des deux exigences, jamais la chute de tension seule.
-  const { section: dropSectionMm2 } = calcSection(amps, length, DC_MAX_VOLTAGE_DROP_PCT, voltage);
-  const section = Math.max(pickSectionForAmpacity(amps * CONTINUOUS_MARGIN), dropSectionMm2);
+  // calcSectionSafe : chute de tension sur le courant réel (non margé,
+  // même convention que lib/calc/wire-size.ts), ampacité sur le courant de
+  // dimensionnement (×1,25, circuit continu) — la plus grande des deux,
+  // jamais la chute de tension seule.
+  const { section } = calcSectionSafe(amps, length, DC_MAX_VOLTAGE_DROP_PCT, voltage);
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
   const ampsSource: EdgeSectionDiagnostic["ampsSource"] =

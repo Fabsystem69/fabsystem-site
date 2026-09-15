@@ -11,7 +11,7 @@ import {
 } from "@xyflow/react";
 import { getBusbarConnectionPointLimit, getBusbarFacePointCounts, getComponentDefinition, getEffectiveHandles, MIN_OUTPUTS, MAX_OUTPUTS } from "@/lib/electrical-components/definitions";
 import { recalculateCableSections, recalculateFuseRatings, estimateConnectedAmps, formatSectionLabel } from "@/lib/electrical-components/auto-size";
-import { calcSection } from "@/lib/calc/section-cable";
+import { calcSectionSafe } from "@/lib/calc/section-cable";
 import { getEdgeDefaultPreset } from "@/lib/electrical-components/cable-lengths";
 import { getCableHarmonizationSuggestions } from "@/lib/electrical-components/cable-harmonization";
 import { getCableType } from "@/lib/electrical-components/cable-types";
@@ -1606,7 +1606,9 @@ export const useSchemaStore = create<SchemaState>((set) => ({
 
       // Section de câble + longueur par défaut au fil à fil (panneau→MPPT :
       // 2m, run de toit plausible ; MPPT→fusible : 0,3m, cavalier court) —
-      // mêmes formules que le reste de l'app (calcSection, chute 3%).
+      // calcSectionSafe (pas calcSection seule) : le courant MPPT→fusible
+      // peut être élevé sur un cavalier très court, un cas où la seule
+      // chute de tension sous-évaluerait dangereusement la section.
       const newEdges: SchemaEdge[] = plan.edges.map((e) => {
         const sourceId = keyToId.get(e.sourceKey) ?? "";
         const targetId = keyToId.get(e.targetKey) ?? "";
@@ -1620,7 +1622,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         const isPanelLeg = e.sourceKey.startsWith("panel-");
         const amps = isPanelLeg ? (sourceNode ? Number(sourceNode.data.powerW ?? 0) : 0) / plan.systemVoltage : plan.mpptAmperage;
         const length = isPanelLeg ? 2 : 0.3;
-        const { section } = calcSection(amps, length, 3, plan.systemVoltage);
+        const { section } = calcSectionSafe(amps, length, 3, plan.systemVoltage);
         return {
           id: nextId("edge"),
           source: sourceId,

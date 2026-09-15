@@ -3,8 +3,14 @@
 import { useEffect, useState } from "react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
-import { calcSection, fusibleRecommande, AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
-import { estimateEdgeAmps, estimateConnectedAmps, evaluateEdgeSection, findBatteryVoltage } from "@/lib/electrical-components/auto-size";
+import { calcSectionSafe, fusibleRecommande, AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
+import {
+  estimateEdgeAmps,
+  estimateConnectedAmps,
+  evaluateEdgeSection,
+  findBatteryVoltage,
+  DC_MAX_VOLTAGE_DROP_PCT,
+} from "@/lib/electrical-components/auto-size";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 
@@ -62,7 +68,11 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
   const i = parseFloat(amps) || 0;
   const l = parseFloat(length) || 0;
   const v = parseFloat(tension) || 12;
-  const result = i > 0 && l > 0 ? calcSection(i, l, 3, v) : null;
+  // Correctif sécurité : calcSectionSafe garde toujours la plus grande
+  // section entre l'ampacité (courant continu, marge 25 %) et la chute de
+  // tension (2,5 %, Victron "Wiring Unlimited") — jamais la chute seule
+  // (voir lib/calc/section-cable.ts).
+  const result = i > 0 && l > 0 ? calcSectionSafe(i, l, DC_MAX_VOLTAGE_DROP_PCT, v) : null;
 
   function handleApply() {
     if (!result) return;
@@ -113,11 +123,12 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
       )}
 
       <ExplainDetails darkMode={darkMode} open={explainOpen} onToggle={() => setExplainOpen((v2) => !v2)} summary="Comment ce calcul est fait ?">
-        Plus un câble est long et parcouru par un courant fort, plus il faut une section épaisse pour éviter que la
-        tension ne « chute » en route (l&apos;énergie se perd en chaleur dans le fil). On calcule la section minimale
-        pour rester sous <strong>3 % de chute de tension</strong> (la limite habituelle), avec la résistivité du
-        cuivre, puis on arrondit à la section normalisée immédiatement supérieure — jamais une valeur non
-        commercialisée.
+        Deux exigences, on garde la plus stricte des deux. D&apos;abord l&apos;échauffement : un câble doit pouvoir
+        supporter le courant en continu (marge de 25 %) sans surchauffer, selon des tables d&apos;ampacité
+        officielles (ISO 13297). Ensuite la chute de tension : plus un câble est long et parcouru par un courant
+        fort, plus il faut une section épaisse pour rester sous <strong>2,5 % de chute de tension</strong> (repère
+        Victron Energy). On arrondit ensuite à la section normalisée immédiatement supérieure — jamais une valeur
+        non commercialisée.
       </ExplainDetails>
 
       {hasUnlimitedConsumers ? (

@@ -6,7 +6,7 @@
 // estime un % de charge, autonomie-batterie.ts calcule un temps de tenue,
 // aucun des deux ne couvre le câblage d'une banque.
 
-import { calcSection } from "@/lib/calc/section-cable";
+import { calcSectionSafe } from "@/lib/calc/section-cable";
 import { computeFuseSize, type FuseSizeResult } from "@/lib/calc/fuse-size";
 
 export type BatteryBankChemistry = "lifepo4" | "agm-gel";
@@ -89,8 +89,12 @@ export function computeBatteryBank(
   // Câbles inter-batteries : très courte distance (~0,3m), dimensionnés
   // pour le courant de décharge max de la banque — n'importe quel maillon
   // peut se retrouver à porter tout le courant selon le point de charge,
-  // mieux vaut les traiter tous au pire cas.
-  const { section: interBatteryCableSectionMm2 } = calcSection(maxDischargeA, 0.3, 2, systemVoltage);
+  // mieux vaut les traiter tous au pire cas. calcSectionSafe (pas
+  // calcSection seule) : une distance aussi courte minimise la chute de
+  // tension calculée alors que le courant de décharge max reste élevé —
+  // c'est justement le cas où la chute de tension seule sous-évalue le
+  // plus dangereusement la section réellement nécessaire.
+  const { section: interBatteryCableSectionMm2 } = calcSectionSafe(maxDischargeA, 0.3, 2, systemVoltage);
 
   return {
     systemVoltage,

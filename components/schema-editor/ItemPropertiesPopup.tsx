@@ -4,8 +4,14 @@ import { useEffect, useState } from "react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { getConsumerPreset } from "@/lib/electrical-components/definitions";
 import { getBrandModelsForType, getBrandModel } from "@/lib/electrical-components/brand-models";
-import { calcSection, fusibleRecommande } from "@/lib/calc/section-cable";
-import { estimateConnectedAmps, estimateEdgeAmps, evaluateEdgeSection, findBatteryVoltage } from "@/lib/electrical-components/auto-size";
+import { calcSectionSafe, fusibleRecommande } from "@/lib/calc/section-cable";
+import {
+  estimateConnectedAmps,
+  estimateEdgeAmps,
+  evaluateEdgeSection,
+  findBatteryVoltage,
+  DC_MAX_VOLTAGE_DROP_PCT,
+} from "@/lib/electrical-components/auto-size";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
 import type { SchemaNode, SchemaEdge } from "@/features/schemas/store/useSchemaStore";
@@ -310,7 +316,11 @@ function SectionSuggestion({
   const i = parseFloat(amps);
   const l = parseFloat(length);
   const t = parseFloat(tension);
-  const result = i > 0 && l > 0 && t > 0 ? calcSection(i, l, 3, t) : null;
+  // Correctif sécurité : calcSectionSafe garde toujours la plus grande
+  // section entre l'ampacité (courant continu, marge 25 %) et la chute de
+  // tension (2,5 %, Victron "Wiring Unlimited") — jamais la chute seule
+  // (voir lib/calc/section-cable.ts).
+  const result = i > 0 && l > 0 && t > 0 ? calcSectionSafe(i, l, DC_MAX_VOLTAGE_DROP_PCT, t) : null;
 
   const inputClass = `w-full rounded-md border px-2 py-1 text-sm focus:outline-none ${
     darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100 focus:border-neutral-400" : "border-neutral-300 focus:border-neutral-900"
