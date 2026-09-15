@@ -68,6 +68,13 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Clients & projets",
     items: [
+      // Retour utilisateur : "quand je veux aller sur l'editeur je dois
+      // passer par le dashboard ensuite trouver un client avec un projet" —
+      // l'éditeur (app/outils/schema/editeur) ne demande ni session ni
+      // projet quand on l'ouvre sans ?projectId= (mode local, brouillon
+      // dans le navigateur) : aucun détour client→projet n'est
+      // techniquement nécessaire, seul ce raccourci manquait.
+      { label: "Éditeur", href: "/outils/schema/editeur", icon: FilesIcon },
       { label: "Clients", href: "/dashboard/customers", icon: CustomersIcon },
       { label: "Projets", href: "/dashboard/projects", icon: FilesIcon },
       // Suivi des prestations d'accompagnement achetees (lib/services/dossier-client.ts)
