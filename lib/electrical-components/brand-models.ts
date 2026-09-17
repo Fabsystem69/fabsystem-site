@@ -527,14 +527,21 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "victron-battery-switch-275a", brand: "Victron", model: "Battery Switch ON/OFF 275A", componentType: "battery-switch", defaults: { amperage: 275 }, supplier: { name: "Solaris Store", priceCents: 3775, url: "https://www.solaris-store.com/3464-battery-switch-on-off-275a-victron-vbs127010010.html" } },
 
   // Sectionneur DC côté chaîne PV (panneaux → MPPT), pas côté batterie —
-  // même fonction de coupure manuelle sans protection contre les
-  // surintensités, donc même componentType "battery-switch" (passthrough
-  // déjà reconnu par les vérifications solaires : reachesProtection,
-  // collectUpstreamSolarPanels, collectPvStrings). Se distingue des entrées
-  // ci-dessus par une tension bien plus élevée (500V) adaptée aux chaînes
-  // PV en série, pas par un composant différent.
-  { id: "uniteck-unipvswitch-500-50-2p", brand: "Uniteck", model: "UNIPVSWITCH500.50.2P bipolaire 500V/50A", componentType: "battery-switch", defaults: { amperage: 50 }, supplier: { name: "Solaris Store", priceCents: 5990, url: "https://www.solaris-store.com/8543-interrupteur-sectionneur-dc-bipolaire-unipvswitch500502p-500v-50a.html" } },
-  { id: "generique-sectionneur-dc-pv-500v-50a", brand: "Générique", model: "Sectionneur DC bipolaire 500V/50A", componentType: "battery-switch", defaults: { amperage: 50 } },
+  // retour utilisateur : "je veux que coupe batterie et le sectionneur
+  // solaire soit bien separer et le sectionneur dans la famille solaire" —
+  // componentType "pv-switch" dédié (definitions.ts, famille Solaire),
+  // passthrough reconnu par les vérifications solaires (reachesProtection,
+  // collectUpstreamSolarPanels, collectPvStrings) via PASSTHROUGH_TYPES
+  // dans checks.ts.
+  { id: "uniteck-unipvswitch-500-50-2p", brand: "Uniteck", model: "UNIPVSWITCH500.50.2P bipolaire 500V/50A", componentType: "pv-switch", defaults: { amperage: 50 }, supplier: { name: "Solaris Store", priceCents: 5990, url: "https://www.solaris-store.com/8543-interrupteur-sectionneur-dc-bipolaire-unipvswitch500502p-500v-50a.html" } },
+  { id: "generique-sectionneur-dc-pv-500v-50a", brand: "Générique", model: "Sectionneur DC bipolaire 500V/50A", componentType: "pv-switch", defaults: { amperage: 50 } },
+
+  // Variante à connecteurs MC4 (se branche directement sur les câbles
+  // panneaux, sans câblage à vis) — même componentType "pv-switch", juste un
+  // autre format de raccordement que le sectionneur Uniteck ci-dessus (borne
+  // à vis/rail DIN).
+  { id: "revolt-sectionneur-dc-mc4-1200v-40a", brand: "Revolt", model: "Sectionneur DC MC4 4 pôles 1200V/40A", componentType: "pv-switch", defaults: { amperage: 40 }, supplier: { name: "Pearl", priceCents: 3895, url: "https://www.pearl.fr/article/ZX7484/interrupteur-sectionneur-dc-4-poles-compatible-avec-mc4" } },
+  { id: "generique-sectionneur-dc-mc4-1200v-40a", brand: "Générique", model: "Sectionneur DC MC4 1200V/40A", componentType: "pv-switch", defaults: { amperage: 40 } },
 
   // Centrales GX : elles collectent et pilotent le système. Certaines ont
   // un écran intégré (CCGX/Ekrano), mais restent des centrales, pas de

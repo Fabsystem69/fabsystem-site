@@ -653,6 +653,32 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     ],
   },
   {
+    // Retour utilisateur : "sectionneur solaire" distinct du coupe-batterie
+    // — même fonction (coupure manuelle sans protection contre les
+    // surintensités) mais rangé dans la famille Solaire, pas Protection &
+    // câblage, pour être trouvé au bon endroit (entre panneaux et
+    // régulateur). Passthrough transparent pour les vérifications solaires
+    // (reachesProtection, collectUpstreamSolarPanels, collectPvStrings) —
+    // voir PASSTHROUGH_TYPES dans checks.ts.
+    type: "pv-switch",
+    label: "Sectionneur DC solaire",
+    description: "Coupe manuellement le circuit DC entre les panneaux et le régulateur, pour la maintenance.",
+    category: "solar",
+    subcategory: "protection",
+    subtitle: "Protection",
+    icon: "/schema-icons/battery-switch.svg",
+    iconPro: "/schema-icons/pro/family/battery-switch.png",
+    handles: [
+      { id: "input", label: "IN", kind: "positive", side: "left" },
+      { id: "output", label: "OUT", kind: "positive", side: "right" },
+    ],
+    defaultData: { amperage: 0 },
+    fields: [
+      { key: "label", label: "Nom", type: "text" },
+      { key: "amperage", label: "Courant nominal", type: "number", unit: "A", help: "Laissez 0 si vous ne connaissez pas la valeur." },
+    ],
+  },
+  {
     type: "dcdc",
     label: "Chargeur DC/DC",
     description: "Charge la batterie auxiliaire depuis l'alternateur du véhicule en roulant.",

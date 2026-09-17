@@ -63,7 +63,7 @@ function classifyIssues(
 // d'interrupteurs") — un consommateur derrière un interrupteur simple était
 // signalé "non protégé" même quand un disjoncteur/fusible existait juste
 // avant l'interrupteur, l'interrupteur n'étant traversé nulle part.
-const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch", "battery-protect", "switch"]);
+const PASSTHROUGH_TYPES = new Set(["busbar", "battery-switch", "battery-protect", "switch", "pv-switch"]);
 // Lynx Smart BMS coupe automatiquement la batterie en cas de défaut : même
 // rôle protecteur qu'un fusible/disjoncteur pour cette détection.
 const PROTECTION_TYPES = new Set(["fuse", "circuit-breaker", "fuse-block", "distribution-panel", "lynx-smart-bms", "lynx-power-in", "lynx-distributor", "mini-bms"]);

@@ -66,7 +66,7 @@ test("les MPPT utilisent une illustration par marque et le visuel Victron valid�
 });
 
 test("BatteryProtect est un composant distinct du coupe-batterie manuel", () => {
-  assert.equal(getBrandModelsForType("battery-switch").length, 6);
+  assert.equal(getBrandModelsForType("battery-switch").length, 4);
   assert.equal(getBrandModelsForType("battery-protect").length, 3);
 
   const protect = getComponentDefinition("battery-protect");
@@ -74,6 +74,20 @@ test("BatteryProtect est un composant distinct du coupe-batterie manuel", () => 
   assert.equal(protect.label, "BatteryProtect");
   assert.deepEqual(protect.handles.map((handle) => handle.id), ["input", "output", "negative"]);
   assert.equal(getNodeIcon(protect, {}, "pro"), "/schema-icons/pro/family/battery-protect.png");
+});
+
+// Retour utilisateur : "je veux que coupe batterie et le sectionneur solaire
+// soit bien separer et le sectionneur dans la famille solaire" — pv-switch
+// est un componentType distinct de battery-switch, rangé dans la famille
+// Solaire.
+test("le sectionneur DC solaire (pv-switch) est distinct du coupe-batterie et rangé dans la famille Solaire", () => {
+  const pvSwitch = getComponentDefinition("pv-switch");
+  assert.ok(pvSwitch);
+  assert.equal(pvSwitch.category, "solar");
+  assert.equal(pvSwitch.label, "Sectionneur DC solaire");
+  assert.deepEqual(pvSwitch.handles.map((handle) => handle.id), ["input", "output"]);
+
+  assert.equal(getBrandModelsForType("pv-switch").length, 4);
 });
 
 // Bug corrigé (retour utilisateur : "quand je rajoute n'importe quel
