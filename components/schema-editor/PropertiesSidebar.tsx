@@ -183,7 +183,13 @@ export function PropertiesSidebar() {
                   className={`${inputClass(darkMode)} flex w-full items-center justify-between gap-2 border-dashed text-left ${darkMode ? "border-amber-600/70" : "border-amber-300"}`}
                 >
                   <span className="flex min-w-0 items-center gap-1.5">
-                    <span className="truncate">{selectedModel ? selectedModel.model : "Choisir un modèle…"}</span>
+                    {/* Retour utilisateur : "quand on choisi le generique on
+                        reste sur choisir un modele c'est pas intuitif" —
+                        rien ne confirmait que le retour au générique avait
+                        bien eu lieu, le bouton affichait le même texte
+                        qu'avant toute sélection. Aligné sur PropertiesTab.tsx
+                        (option vide du <select> déjà libellée "Générique"). */}
+                    <span className="truncate">{selectedModel ? selectedModel.model : "Générique"}</span>
                     {selectedModel?.supplier ? <SupplierBadge name={selectedModel.supplier.name} darkMode={darkMode} /> : null}
                   </span>
                   <span className="shrink-0 text-xs opacity-60">▾</span>
@@ -200,7 +206,7 @@ export function PropertiesSidebar() {
                   }}
                   className={`block w-full rounded-lg px-2.5 py-1.5 text-left text-sm ${darkMode ? "text-neutral-400 hover:bg-neutral-800" : "text-slate-500 hover:bg-slate-50"}`}
                 >
-                  Choisir un modèle…
+                  Générique
                 </button>
                 {Array.from(brandModelsByBrand.entries())
                   .sort(([a], [b]) => a.localeCompare(b, "fr"))

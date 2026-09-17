@@ -526,6 +526,16 @@ export const BRAND_MODELS: BrandModel[] = [
   { id: "uniteck-unibatswitch-300a-bipolaire", brand: "Uniteck", model: "UNIBATSWITCH 300A bipolaire cadenassable", componentType: "battery-switch", defaults: { amperage: 300 }, supplier: { name: "Solaris Store", priceCents: 7900, url: "https://www.solaris-store.com/9000-coupe-batterie-bipolaire-cadenassable-unibatswitch-300a-12-24v.html" } },
   { id: "victron-battery-switch-275a", brand: "Victron", model: "Battery Switch ON/OFF 275A", componentType: "battery-switch", defaults: { amperage: 275 }, supplier: { name: "Solaris Store", priceCents: 3775, url: "https://www.solaris-store.com/3464-battery-switch-on-off-275a-victron-vbs127010010.html" } },
 
+  // Sectionneur DC côté chaîne PV (panneaux → MPPT), pas côté batterie —
+  // même fonction de coupure manuelle sans protection contre les
+  // surintensités, donc même componentType "battery-switch" (passthrough
+  // déjà reconnu par les vérifications solaires : reachesProtection,
+  // collectUpstreamSolarPanels, collectPvStrings). Se distingue des entrées
+  // ci-dessus par une tension bien plus élevée (500V) adaptée aux chaînes
+  // PV en série, pas par un composant différent.
+  { id: "uniteck-unipvswitch-500-50-2p", brand: "Uniteck", model: "UNIPVSWITCH500.50.2P bipolaire 500V/50A", componentType: "battery-switch", defaults: { amperage: 50 }, supplier: { name: "Solaris Store", priceCents: 5990, url: "https://www.solaris-store.com/8543-interrupteur-sectionneur-dc-bipolaire-unipvswitch500502p-500v-50a.html" } },
+  { id: "generique-sectionneur-dc-pv-500v-50a", brand: "Générique", model: "Sectionneur DC bipolaire 500V/50A", componentType: "battery-switch", defaults: { amperage: 50 } },
+
   // Centrales GX : elles collectent et pilotent le système. Certaines ont
   // un écran intégré (CCGX/Ekrano), mais restent des centrales, pas de
   // simples afficheurs.
