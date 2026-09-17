@@ -128,6 +128,14 @@ export function PropertiesSidebar() {
 
   if (edge) return <WirePropertiesSidebar edge={edge} darkMode={darkMode} />;
 
+  // Retour utilisateur : "quand une zone est verrouiller cadenas je ne veux
+  // pas que le menu droite s'ouvre quand on clique sur la zone pour eviter
+  // d'alourdir la lecture" — le nœud reste sélectionné normalement (le
+  // cadenas/les poignées de redimensionnement restent affichés sur la zone
+  // elle-même, voir ZoneNode.tsx), donc on peut toujours la déverrouiller
+  // sans ce panneau ; seul le panneau complet ne s'ouvre plus.
+  if (isZone && node?.data.locked === true) return null;
+
   const title = isZone ? "Zone" : definition?.label ?? "Composant";
   const subtitle = definition?.subtitle ?? (isZone ? "Organisation du schéma" : "Composant");
   const handles = node && definition ? getEffectiveHandles(definition, node.data) : [];
