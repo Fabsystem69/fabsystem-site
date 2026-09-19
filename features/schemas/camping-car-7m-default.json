@@ -150,7 +150,7 @@
         "componentType": "fuse",
         "label": "Fusible DC-DC",
         "fuseType": "midi",
-        "amperage": 30
+        "amperage": 40
       },
       "measured": {
         "width": 75,
@@ -243,7 +243,7 @@
       "data": {
         "componentType": "circuit-breaker",
         "label": "Disjoncteur DC-DC",
-        "amperage": 30,
+        "amperage": 40,
         "rotation": 180
       },
       "measured": {

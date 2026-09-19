@@ -307,6 +307,64 @@ test("computeSchemaIssues signale un disjoncteur sous-calibré pour le courant d
   assert.match(issue.message, /sous-calibré/i);
 });
 
+// Correctif sécurité (retour client : "alerte de sécurité... DC-DC 30A
+// couvert par un fusible 35A") — computeUndersizedProtectionIssues ne
+// margeait jamais le courant nominal d'une source de charge continue
+// (mppt/pwm/dcdc/alternateur) avant de le comparer au calibre du fusible :
+// un fusible au calibre identique (voire inférieur) au courant nominal
+// passait sans aucune alerte.
+function createDcdcFuseFixture(fuseAmperage: number, dcdcExtra: Record<string, unknown> = {}): { nodes: SchemaNode[]; edges: SchemaEdge[] } {
+  const nodes: SchemaNode[] = [
+    createNode("battery", "battery", { label: "Batterie", voltage: 12 }),
+    createNode("dcdc", "dcdc", { label: "DC-DC", amperage: 30, ...dcdcExtra }),
+    createNode("fuse", "fuse", { label: "Fusible DC-DC", amperage: fuseAmperage }),
+    createNode("load", "battery", { label: "Batterie servitude" }),
+  ];
+  const edges: SchemaEdge[] = [
+    createEdge("e1", "battery", "positive", "dcdc", "in-positive", "power-positive", "16 mm²"),
+    createEdge("e2", "battery", "negative", "dcdc", "in-negative", "power-negative", "16 mm²"),
+    createEdge("e3", "dcdc", "out-positive", "fuse", "input", "power-positive", "16 mm²"),
+    createEdge("e4", "fuse", "output", "load", "positive", "power-positive", "16 mm²"),
+    createEdge("e5", "dcdc", "out-negative", "load", "negative", "power-negative", "16 mm²"),
+  ];
+  return { nodes, edges };
+}
+
+test("un DC-DC 30A générique protégé par un fusible 30A est signalé sous-calibré (zéro marge)", () => {
+  const { nodes, edges } = createDcdcFuseFixture(30);
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "fuse-undersized");
+  assert.ok(issue, "un fusible au même calibre que la source ne doit jamais passer sans alerte");
+});
+
+test("un DC-DC 30A générique protégé par un fusible 35A (cas signalé) reste sous-calibré", () => {
+  const { nodes, edges } = createDcdcFuseFixture(35);
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "fuse-undersized");
+  assert.ok(issue, "35A < 30A x 1,25 (37,5A) : doit rester signalé");
+});
+
+test("un DC-DC 30A générique protégé par un fusible 40A respecte la marge générique de 1,25x", () => {
+  const { nodes, edges } = createDcdcFuseFixture(40);
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "fuse-undersized");
+  assert.equal(issue, undefined);
+});
+
+test("un Victron Orion-Tr Smart 30A exige 60A (calibre constructeur), pas seulement la marge générique de 40A", () => {
+  const { nodes, edges } = createDcdcFuseFixture(40, { brandModelId: "victron-orion-tr-30a" });
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "fuse-undersized");
+  assert.ok(issue, "40A satisfait la marge générique mais pas le calibre constructeur (60A)");
+});
+
+test("un Victron Orion-Tr Smart 30A avec un fusible 60A n'est signalé ni sous-calibré ni surdimensionné", () => {
+  const { nodes, edges } = createDcdcFuseFixture(60, { brandModelId: "victron-orion-tr-30a" });
+  const issues = computeSchemaIssues(nodes, edges);
+  assert.equal(issues.find((candidate) => candidate.id === "fuse-undersized"), undefined);
+  assert.equal(
+    issues.find((candidate) => candidate.id.startsWith("fuse-oversized-for-")),
+    undefined,
+    "60A dépasse le ratio générique de surdimensionnement (1,5x = 45A) mais correspond au calibre constructeur réel"
+  );
+});
+
 test("computeSchemaIssues accepte deux panneaux solaires câblés en série", () => {
   const nodes = [createNode("panel-a", "solar-panel"), createNode("panel-b", "solar-panel")];
   const edges = [createEdge("series", "panel-a", "positive", "panel-b", "negative", "power-positive")];

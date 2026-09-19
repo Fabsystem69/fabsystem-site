@@ -355,7 +355,7 @@
         "componentType": "fuse",
         "label": "Fusible DC-DC entrée",
         "fuseType": "midi",
-        "amperage": 40
+        "amperage": 60
       },
       "measured": {
         "width": 110,
@@ -402,7 +402,7 @@
         "componentType": "fuse",
         "label": "Fusible DC-DC sortie",
         "fuseType": "midi",
-        "amperage": 30
+        "amperage": 60
       },
       "measured": {
         "width": 106,

@@ -715,7 +715,22 @@ export function recalculateFuseRatings(
     if (node.data.componentType !== "fuse" && node.data.componentType !== "circuit-breaker") return node;
     const amps = estimateConnectedAmps(node.id, nodes, edges);
     if (amps === null) return node;
-    let rating = AVAILABLE_FUSES_A.find((f) => f >= amps * 1.25);
+    // Un modèle de marque vérifié peut imposer un calibre officiel
+    // supérieur à la marge générique (ex. Victron Orion-Tr Smart : 60A
+    // recommandé pour un modèle 30A — voir brand-models.ts
+    // `recommendedFuseA`) — recalculer ne doit jamais proposer moins que ce
+    // calibre officiel quand un nœud adjacent en a un.
+    const recommendedFuseA = Math.max(
+      0,
+      ...edges
+        .filter((edge) => edge.source === node.id || edge.target === node.id)
+        .map((edge) => nodes.find((n) => n.id === (edge.source === node.id ? edge.target : edge.source)))
+        .map((adjacentNode) => {
+          const brandModelId = typeof adjacentNode?.data.brandModelId === "string" ? adjacentNode.data.brandModelId : null;
+          return brandModelId ? Number(getBrandModel(brandModelId)?.defaults.recommendedFuseA) || 0 : 0;
+        }),
+    );
+    let rating = AVAILABLE_FUSES_A.find((f) => f >= Math.max(amps * 1.25, recommendedFuseA));
     if (!rating) return node;
     const currentRating = Number(node.data.amperage) || 0;
     if (currentRating > 0 && rating < currentRating) {

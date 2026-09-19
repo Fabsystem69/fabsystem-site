@@ -1,6 +1,8 @@
 import { getComponentDefinition, getEffectiveHandles } from "./definitions";
 import { estimateConnectedAmps, evaluateAcEdgeSection, evaluateEdgeSection, isPowerCableType, parseSectionMm2 } from "./auto-size";
+import { getBrandModel } from "./brand-models";
 import { findWireRowByMm2, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
+import { CONTINUOUS_LOAD_MARGIN } from "@/lib/calc/section-cable";
 import type { ElectricalNodeData, CableEdgeData, HandleKind } from "@/types/schema";
 import type { Node, Edge } from "@xyflow/react";
 
@@ -402,10 +404,19 @@ function computeOversizedProtectionIssues(nodes: SchemaNodeInternal[], edges: Sc
     const sourceAmps = getSourceAmps(node.data);
     if (sourceAmps <= 0) continue;
 
+    // Un modèle de marque vérifié peut imposer un calibre officiel
+    // largement supérieur au courant nominal de la source (ex. Victron
+    // Orion-Tr Smart : 60A recommandé pour un modèle 30A, voir
+    // brand-models.ts `recommendedFuseA`) — jamais signalé "surdimensionné"
+    // dans ce cas, même au-delà du ratio générique.
+    const brandModelId = typeof node.data.brandModelId === "string" ? node.data.brandModelId : null;
+    const recommendedFuseA = brandModelId ? Number(getBrandModel(brandModelId)?.defaults.recommendedFuseA) || 0 : 0;
+    const oversizeThreshold = Math.max(sourceAmps * PROTECTION_OVERSIZE_RATIO, recommendedFuseA);
+
     const protections = findNearestProtections(node.id, outputHandle, nodes, edges);
     for (const protectionNode of protections) {
       const protectionAmps = Number(protectionNode.data.amperage) || 0;
-      if (protectionAmps <= 0 || protectionAmps <= sourceAmps * PROTECTION_OVERSIZE_RATIO) continue;
+      if (protectionAmps <= 0 || protectionAmps <= oversizeThreshold) continue;
 
       const sourceLabel = String(node.data.label ?? getComponentDefinition(type)?.label ?? type);
       const protectionLabel = String(
@@ -426,6 +437,20 @@ function computeOversizedProtectionIssues(nodes: SchemaNodeInternal[], edges: Sc
 // Une protection trop faible ne protège pas mieux : elle déclenche en usage
 // normal. On compare le calibre au courant réellement attendu en aval et,
 // pour une source de charge placée juste avant elle, à son courant nominal.
+//
+// Correctif sécurité (retour client : "DC-DC 30A couvert par un fusible
+// 35A" signalé comme alerte de sécurité) : cette comparaison ne marge
+// jamais le courant nominal d'une source de charge (mppt/pwm/dcdc/
+// alternateur/chargeur secteur/éolien) — un fusible au calibre identique au
+// courant nominal (voire inférieur, comme les deux gabarits de schémas
+// livrés corrigés dans le même correctif) passait sans aucune alerte, alors
+// que ces sources sont considérées à plein régime en continu partout
+// ailleurs dans l'éditeur (CONTINUOUS_LOAD_MARGIN, ISO 10133). Quand un
+// modèle de marque vérifié impose un calibre officiel différent (ex.
+// Victron Orion-Tr Smart : 60A côté 12V quel que soit le calibre du
+// modèle, bien au-delà de la formule générique — voir
+// brand-models.ts, `recommendedFuseA`), ce calibre officiel prime toujours
+// sur la marge générique, jamais l'inverse.
 function computeUndersizedProtectionIssues(nodes: SchemaNodeInternal[], edges: SchemaEdgeInternal[]): SchemaIssue[] {
   const issues: SchemaIssue[] = [];
 
@@ -442,7 +467,16 @@ function computeUndersizedProtectionIssues(nodes: SchemaNodeInternal[], edges: S
       ...edges
         .filter((edge) => edge.source === protectionNode.id || edge.target === protectionNode.id)
         .map((edge) => nodes.find((node) => node.id === (edge.source === protectionNode.id ? edge.target : edge.source)))
-        .map((node) => (node ? SOURCE_AMPS_GETTERS[node.data.componentType]?.(node.data) ?? 0 : 0)),
+        .map((node) => {
+          if (!node) return 0;
+          const getSourceAmps = SOURCE_AMPS_GETTERS[node.data.componentType];
+          if (!getSourceAmps) return 0;
+          const rawAmps = getSourceAmps(node.data);
+          if (rawAmps <= 0) return 0;
+          const brandModelId = typeof node.data.brandModelId === "string" ? node.data.brandModelId : null;
+          const recommendedFuseA = brandModelId ? Number(getBrandModel(brandModelId)?.defaults.recommendedFuseA) || 0 : 0;
+          return Math.max(rawAmps * CONTINUOUS_LOAD_MARGIN, recommendedFuseA);
+        }),
     );
     const expectedAmps = Math.max(downstreamAmps, adjacentSourceAmps);
     if (expectedAmps <= 0 || rating >= expectedAmps) continue;
