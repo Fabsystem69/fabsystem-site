@@ -21,6 +21,15 @@ export const CABLE_HARMONIZATION_TARGETS: Partial<Record<string, string>> = {
 // dessous, la grande majorité de la bobine resterait inutilisée.
 export const CABLE_HARMONIZATION_THRESHOLD_M = 10;
 
+// Retour utilisateur : "changer tout les cable du schema selon la preco
+// economie de cable surtout pour les cable inferieur a 1,5" — sous 1,5 mm²
+// spécifiquement, jamais de condition de métrage : ces sections ne
+// justifient jamais d'achat dédié, même au-delà du seuil habituel de 10 m
+// (contrairement à 4→6 mm² et 10→16 mm², où le seuil reste pertinent : une
+// grosse quantité peut légitimement justifier une bobine dédiée à cette
+// section-là).
+const ALWAYS_HARMONIZE_SECTIONS = new Set(["0,5 mm²", "0,75 mm²", "1 mm²"]);
+
 // Bug corrigé (retour utilisateur : "1mm² 18m mais en fait ça fait une
 // bobine de rouge et une noire, la suggestion doit faire attention à la
 // couleur pas juste la section") — une bobine s'achète PAR COULEUR : un
@@ -47,7 +56,8 @@ export function getCableHarmonizationSuggestions(
   for (const { section, cableTypeLabel, totalLengthM } of totals.values()) {
     const targetSection = CABLE_HARMONIZATION_TARGETS[section];
     if (!targetSection) continue;
-    if (totalLengthM <= 0 || totalLengthM >= CABLE_HARMONIZATION_THRESHOLD_M) continue;
+    if (totalLengthM <= 0) continue;
+    if (!ALWAYS_HARMONIZE_SECTIONS.has(section) && totalLengthM >= CABLE_HARMONIZATION_THRESHOLD_M) continue;
     suggestions.push({ section, cableTypeLabel, targetSection, totalLengthM });
   }
   return suggestions.sort(

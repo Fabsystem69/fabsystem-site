@@ -368,6 +368,25 @@ function EditorMenuBar({
     setOpenMenu(null);
   }
 
+  // Retour utilisateur : "je veux surtout avoir la possibilité que cela
+  // soit effectif sur le schéma... car pour l'instant on le voit que dans
+  // la liste" — l'action existait déjà (applyCableHarmonizationWithSnapshot,
+  // utilisée par le bouton de MaterialListDialog), mais uniquement
+  // accessible depuis la liste de matériel, jamais comme action directe du
+  // ruban au même niveau que les deux autres recalculs en masse.
+  async function runCableHarmonization() {
+    // Même palier Éditeur Plus que le reste du dimensionnement automatique
+    // (recalcul sections/protections) — cette action modifie directement le
+    // schéma, pas seulement un aperçu.
+    if (!adminMode && !hasUnlimitedConsumers) {
+      openFreemiumLimitPopup();
+      return;
+    }
+    const count = await applyCableHarmonizationWithSnapshot();
+    report(count > 0 ? `${count} câble${count > 1 ? "s" : ""} harmonisé${count > 1 ? "s" : ""}` : "Aucun câble à harmoniser");
+    setOpenMenu(null);
+  }
+
   function runBusbarOptimization() {
     optimizeBusbarLayouts();
     report("Plots de busbar optimisés selon les câbles connectés");
@@ -444,6 +463,7 @@ function EditorMenuBar({
               <MenubarHeading darkMode={darkMode}>Contrôles électriques</MenubarHeading>
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="calculator" />} title="Recalculer les sections" detail="Met à jour les câbles dont les données sont suffisantes" onClick={runCableRecalculation} />
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="calculator" />} title="Recalculer les protections" detail="Met à jour les fusibles et disjoncteurs compatibles" onClick={runProtectionRecalculation} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="calculator" />} title="Harmoniser les petites sections" detail="Passe les câbles sous 1,5 mm² en 1,5 mm² (et regroupe les autres petites quantités)" onClick={runCableHarmonization} />
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="layout" />} title="Optimiser les busbars" detail="Répartit les plots vers le côté le plus proche" onClick={runBusbarOptimization} />
             </MenubarSection>
             <MenubarSection darkMode={darkMode}>
@@ -538,7 +558,7 @@ function EditorMenuBar({
         ) : null}
       </div>
     </nav>
-    {mobileActionsOpen ? <MobileActionsSheet darkMode={darkMode} onClose={() => setMobileActionsOpen(false)} onNew={() => { setTemplatePickerOpen(true); setMobileActionsOpen(false); }} onOpen={() => { setOpenSchemaDialogOpen(true); setMobileActionsOpen(false); }} onSave={openMobileSave} onShare={() => { setShareOpen(true); setMobileActionsOpen(false); }} onExportPng={() => { setExportPreviewKind("png"); setMobileActionsOpen(false); }} onExportPdf={() => { setExportPreviewKind("pdf"); setMobileActionsOpen(false); }} onMaterialListForQuote={() => { exportMaterialListForQuote(); setMobileActionsOpen(false); }} onCableSizing={() => { runCableRecalculation(); setMobileActionsOpen(false); }} onProtectionSizing={() => { runProtectionRecalculation(); setMobileActionsOpen(false); }} onSolarBuilder={() => { setSystemBuilder("solar"); setMobileActionsOpen(false); }} onBatteryBuilder={() => { setSystemBuilder("battery"); setMobileActionsOpen(false); }} /> : null}
+    {mobileActionsOpen ? <MobileActionsSheet darkMode={darkMode} onClose={() => setMobileActionsOpen(false)} onNew={() => { setTemplatePickerOpen(true); setMobileActionsOpen(false); }} onOpen={() => { setOpenSchemaDialogOpen(true); setMobileActionsOpen(false); }} onSave={openMobileSave} onShare={() => { setShareOpen(true); setMobileActionsOpen(false); }} onExportPng={() => { setExportPreviewKind("png"); setMobileActionsOpen(false); }} onExportPdf={() => { setExportPreviewKind("pdf"); setMobileActionsOpen(false); }} onMaterialListForQuote={() => { exportMaterialListForQuote(); setMobileActionsOpen(false); }} onCableSizing={() => { runCableRecalculation(); setMobileActionsOpen(false); }} onProtectionSizing={() => { runProtectionRecalculation(); setMobileActionsOpen(false); }} onCableHarmonization={() => { void runCableHarmonization(); setMobileActionsOpen(false); }} onSolarBuilder={() => { setSystemBuilder("solar"); setMobileActionsOpen(false); }} onBatteryBuilder={() => { setSystemBuilder("battery"); setMobileActionsOpen(false); }} /> : null}
     {materialListBoms !== null ? (
       <MaterialListDialog
         bomReal={materialListBoms.real}
@@ -559,14 +579,14 @@ function EditorMenuBar({
   );
 }
 
-function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare, onExportPng, onExportPdf, onMaterialListForQuote, onCableSizing, onProtectionSizing, onSolarBuilder, onBatteryBuilder }: { darkMode: boolean; onClose: () => void; onNew: () => void; onOpen: () => void; onSave: () => void; onShare: () => void; onExportPng: () => void; onExportPdf: () => void; onMaterialListForQuote: () => void; onCableSizing: () => void; onProtectionSizing: () => void; onSolarBuilder: () => void; onBatteryBuilder: () => void }) {
+function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare, onExportPng, onExportPdf, onMaterialListForQuote, onCableSizing, onProtectionSizing, onCableHarmonization, onSolarBuilder, onBatteryBuilder }: { darkMode: boolean; onClose: () => void; onNew: () => void; onOpen: () => void; onSave: () => void; onShare: () => void; onExportPng: () => void; onExportPdf: () => void; onMaterialListForQuote: () => void; onCableSizing: () => void; onProtectionSizing: () => void; onCableHarmonization: () => void; onSolarBuilder: () => void; onBatteryBuilder: () => void }) {
   const itemClass = `flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-base font-semibold transition-base ${darkMode ? "text-neutral-100 hover:bg-neutral-800" : "text-slate-800 hover:bg-slate-50"}`;
   const headingClass = `px-4 pt-5 text-[11px] font-bold uppercase tracking-[0.24em] ${darkMode ? "text-neutral-400" : "text-slate-500"}`;
   return <div className="schema-mobile-actions-backdrop fixed inset-0 z-[80] hidden items-end bg-slate-950/65 max-md:flex" role="dialog" aria-modal="true" aria-label="Actions du schéma" onMouseDown={onClose}>
     <section className={`schema-mobile-actions-sheet max-h-[calc(100dvh-3rem)] w-full overflow-y-auto rounded-t-[1.75rem] border-t shadow-2xl ${darkMode ? "border-neutral-700 bg-neutral-950" : "border-slate-200 bg-white"}`} onMouseDown={(event) => event.stopPropagation()}>
       <div className={`sticky top-0 z-10 border-b px-5 pb-4 pt-3 ${darkMode ? "border-neutral-800 bg-neutral-950" : "border-slate-200 bg-white"}`}><div className={`mx-auto mb-4 h-1.5 w-20 rounded-full ${darkMode ? "bg-neutral-800" : "bg-slate-100"}`} /><div className="flex items-center justify-between"><h2 className="text-2xl font-semibold">Actions</h2><button type="button" onClick={onClose} className={`rounded-full px-3 py-1 text-2xl ${darkMode ? "text-neutral-400 hover:bg-neutral-800" : "text-slate-500 hover:bg-slate-100"}`} aria-label="Fermer">×</button></div></div>
       <p className={headingClass}>Fichier</p><div className="px-2"><button type="button" onClick={onNew} className={itemClass}><span>▧</span>Nouveau schéma</button><button type="button" onClick={onSave} className={itemClass}><span>▣</span>Sauvegarder</button><button type="button" onClick={onOpen} className={itemClass}><span>▱</span>Ouvrir mes schémas</button><button type="button" onClick={onShare} className={itemClass}><span>⌘</span>Partager</button></div>
-      <p className={headingClass}>Outils</p><div className="px-2"><button type="button" onClick={onCableSizing} className={itemClass}><span>⌁</span>Recalculer les sections</button><button type="button" onClick={onProtectionSizing} className={itemClass}><span>▣</span>Recalculer les protections</button><button type="button" onClick={onSolarBuilder} className={itemClass}><span>☀</span>Créer un champ solaire</button><button type="button" onClick={onBatteryBuilder} className={itemClass}><span>▰</span>Créer un parc batteries</button></div>
+      <p className={headingClass}>Outils</p><div className="px-2"><button type="button" onClick={onCableSizing} className={itemClass}><span>⌁</span>Recalculer les sections</button><button type="button" onClick={onProtectionSizing} className={itemClass}><span>▣</span>Recalculer les protections</button><button type="button" onClick={onCableHarmonization} className={itemClass}><span>⚭</span>Harmoniser les petites sections</button><button type="button" onClick={onSolarBuilder} className={itemClass}><span>☀</span>Créer un champ solaire</button><button type="button" onClick={onBatteryBuilder} className={itemClass}><span>▰</span>Créer un parc batteries</button></div>
       <p className={headingClass}>Export</p><div className="px-2"><button type="button" onClick={onExportPng} className={itemClass}><span>▧</span>Exporter en PNG</button><button type="button" onClick={onExportPdf} className={itemClass}><span>▤</span>Imprimer en PDF</button><button type="button" onClick={onMaterialListForQuote} className={itemClass}><span>▤</span>Demande de devis fournisseur</button></div>
       <p className={headingClass}>Compte</p><div className="px-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"><a href="/mon-compte/profil" className={itemClass}><span>⚙</span>Paramètres du compte</a><form action="/api/client-auth/logout" method="post"><button type="submit" className={itemClass}><span>⇥</span>Se déconnecter</button></form></div>
     </section>
