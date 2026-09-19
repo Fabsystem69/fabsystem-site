@@ -17,14 +17,14 @@ test("computeBom adds 2 ring lugs per cable, sized from the cable's section, whe
   const bom = computeBom(NO_NODES, [edge("e1", "16 mm²")]);
 
   assert.equal(bom.lugRows.length, 1);
-  assert.deepEqual(bom.lugRows[0], { section: "16 mm²", connectorLabel: "Cosse à œillet / M6", count: 2 });
+  assert.deepEqual(bom.lugRows[0], { section: "16 mm²", connectorLabel: "Cosse à œillet / M6", count: 2, priceOptions: [] });
 });
 
 test("computeBom tallies multiple cables of the same section into one lug row", () => {
   const bom = computeBom(NO_NODES, [edge("e1", "25 mm²"), edge("e2", "25 mm²"), edge("e3", "25 mm²")]);
 
   assert.equal(bom.lugRows.length, 1);
-  assert.deepEqual(bom.lugRows[0], { section: "25 mm²", connectorLabel: "Cosse à œillet / M8", count: 6 });
+  assert.deepEqual(bom.lugRows[0], { section: "25 mm²", connectorLabel: "Cosse à œillet / M8", count: 6, priceOptions: [] });
 });
 
 test("computeBom keeps different sections as separate lug rows, ordered by section", () => {
@@ -65,8 +65,8 @@ test("computeBom recommends a wire ferrule for a small cable into a screw-termin
   assert.deepEqual(
     bom.lugRows.sort((a, b) => a.connectorLabel.localeCompare(b.connectorLabel)),
     [
-      { section: "4 mm²", connectorLabel: "Cosse à œillet / M5", count: 1 },
-      { section: "4 mm²", connectorLabel: "Embout de câble", count: 1 },
+      { section: "4 mm²", connectorLabel: "Cosse à œillet / M5", count: 1, priceOptions: [] },
+      { section: "4 mm²", connectorLabel: "Embout de câble", count: 1, priceOptions: [] },
     ]
   );
 });
@@ -78,8 +78,8 @@ test("computeBom recommends a bent tubular lug for a large cable into a screw-te
   assert.deepEqual(
     bom.lugRows.sort((a, b) => a.connectorLabel.localeCompare(b.connectorLabel)),
     [
-      { section: "16 mm²", connectorLabel: "Cosse à œillet / M6", count: 1 },
-      { section: "16 mm²", connectorLabel: "Cosse tubulaire coudée (dite \"cosse C45\")", count: 1 },
+      { section: "16 mm²", connectorLabel: "Cosse à œillet / M6", count: 1, priceOptions: [] },
+      { section: "16 mm²", connectorLabel: "Cosse tubulaire coudée (dite \"cosse C45\")", count: 1, priceOptions: [] },
     ]
   );
 });
@@ -89,7 +89,7 @@ test("computeBom recommends two screw-terminal connectors when both ends are scr
   const bom = computeBom(nodes, [edge("e1", "16 mm²")]);
 
   assert.equal(bom.lugRows.length, 1);
-  assert.deepEqual(bom.lugRows[0], { section: "16 mm²", connectorLabel: "Cosse tubulaire coudée (dite \"cosse C45\")", count: 2 });
+  assert.deepEqual(bom.lugRows[0], { section: "16 mm²", connectorLabel: "Cosse tubulaire coudée (dite \"cosse C45\")", count: 2, priceOptions: [] });
 });
 
 test("computeBom keeps the ring lug for battery/busbar-style components not classified as screw-terminal", () => {
@@ -97,7 +97,7 @@ test("computeBom keeps the ring lug for battery/busbar-style components not clas
   const bom = computeBom(nodes, [edge("e1", "35 mm²")]);
 
   assert.equal(bom.lugRows.length, 1);
-  assert.deepEqual(bom.lugRows[0], { section: "35 mm²", connectorLabel: "Cosse à œillet / M8", count: 2 });
+  assert.deepEqual(bom.lugRows[0], { section: "35 mm²", connectorLabel: "Cosse à œillet / M8", count: 2, priceOptions: [] });
 });
 
 test("computeBom annotates each cable row with its AWG equivalent", () => {

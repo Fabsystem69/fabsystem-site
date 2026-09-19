@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
 import { buildMaterialListText, type Bom } from "@/lib/electrical-components/bom";
 import { downloadMaterialListCsv } from "@/features/schemas/export";
+import { formatEuroFromCents } from "@/lib/format";
 
 // Liste de matériel en texte brut, à copier-coller dans un email de demande
 // de devis fournisseur (partenariat Solaris Store, retour utilisateur :
@@ -126,6 +128,45 @@ export function MaterialListDialog({
           rows={12}
           className="mt-4 w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-700 outline-none"
         />
+
+        {/* Retour utilisateur : "sortir un devis complet du schéma" — total
+            déjà présent dans le texte copiable ci-dessus, repris ici en plus
+            gros pour rester visible sans dérouler tout le texte. Jamais un
+            nom de fournisseur en dur (même principe que le reste de ce
+            fichier) : le détail vient de bom.totalPriceCentsByFournisseur,
+            correct que 0, 1 ou N partenaires apparaissent dans ce schéma. */}
+        {bom.totalPriceCents !== null ? (
+          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm">
+            <p className="font-semibold text-slate-900">
+              Total estimé{bom.hasUnpricedComponents ? " (partiel)" : ""} : {formatEuroFromCents(bom.totalPriceCents)}
+            </p>
+            {bom.totalPriceCentsByFournisseur.length > 1
+              ? bom.totalPriceCentsByFournisseur.map((entry) => (
+                  <p key={entry.name} className="text-xs text-slate-500">
+                    dont {formatEuroFromCents(entry.priceCents)} chez {entry.name}
+                  </p>
+                ))
+              : null}
+            {bom.hasUnpricedComponents ? (
+              <p className="mt-1 text-xs text-slate-500">Composants sans prix connu exclus de ce total.</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* Retour utilisateur : "on doit noter de manière claire avec un
+            coaching ils ont droit à une remise particulière chez les
+            fournisseurs partenaire" — jamais un pourcentage promis comme
+            garanti (variable selon fournisseur/négociation), jamais un nom
+            de fournisseur en dur. */}
+        {bom.totalPriceCentsByFournisseur.length > 0 ? (
+          <p className="mt-2 text-xs text-slate-500">
+            💡 L&apos;accompagnement FabSystem donne accès à une remise de 5 à 10 % chez nos fournisseurs partenaires —{" "}
+            <Link href="/prestations/accompagnement" className="underline hover:text-slate-700">
+              en savoir plus
+            </Link>
+            .
+          </p>
+        ) : null}
 
         <div className="mt-4 flex flex-wrap justify-end gap-3">
           <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 px-4 py-2.5 font-medium text-slate-700">

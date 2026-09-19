@@ -1,8 +1,9 @@
 import { getNodesBounds, type Node, type Edge } from "@xyflow/react";
 import { toPng, toSvg } from "html-to-image";
 import JSZip from "jszip";
-import { buildMaterialListCsv, type Bom } from "@/lib/electrical-components/bom";
+import { buildMaterialListCsv, COACHING_DISCOUNT_NOTE, type Bom } from "@/lib/electrical-components/bom";
 import { CABLE_TYPES } from "@/lib/electrical-components/cable-types";
+import { formatEuroFromCents } from "@/lib/format";
 import type { CableEdgeData, ElectricalNodeData } from "@/types/schema";
 
 // Export image (CDC §38-40) : capture uniquement le canvas (pas la barre
@@ -838,6 +839,7 @@ const PRINT_STYLE = `
   body { font-family: -apple-system, "Space Grotesk", system-ui, sans-serif; padding: 32px; color: #111827; }
   h1 { font-size: 18px; margin: 0 0 4px; }
   h2 { font-size: 13px; margin: 24px 0 8px; text-transform: uppercase; letter-spacing: 0.04em; color: #374151; }
+  h3 { font-size: 12px; margin: 14px 0 6px; color: #4b5563; }
   .meta { color: #6b7280; font-size: 12px; margin-bottom: 4px; }
   .disclaimer { color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; font-size: 11px; margin: 12px 0 20px; }
   img { max-width: 100%; border: 1px solid #e5e7eb; border-radius: 8px; }
@@ -951,25 +953,47 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
   const dateStr = new Date().toLocaleDateString("fr-FR");
   const title = escapeHtml(projectName || "Schéma");
 
+  // Colonne "Prix" seulement si au moins une ligne du groupe a un prix
+  // connu (retour utilisateur : "sortir un devis complet du schéma") —
+  // sinon la table garde ses 3 colonnes d'origine, jamais une colonne
+  // "Prix" entièrement vide sur un schéma sans composant tarifé.
   const componentTables = bom.componentGroups
-    .map(
-      (group) => `
+    .map((group) => {
+      const hasPrice = group.rows.some((row) => row.priceCents !== null);
+      return `
     <h2>${escapeHtml(group.category)}</h2>
     <table>
-      <thead><tr><th>Élément</th><th>Caractéristiques</th><th>Quantité</th></tr></thead>
+      <thead><tr><th>Élément</th><th>Caractéristiques</th><th>Quantité</th>${hasPrice ? "<th>Prix</th>" : ""}</tr></thead>
       <tbody>
         ${group.rows
-          .map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.spec || "—")}</td><td>${row.count}</td></tr>`)
+          .map((row) => {
+            const price = hasPrice ? `<td>${row.priceCents !== null ? escapeHtml(formatEuroFromCents(row.priceCents * row.count)) : "—"}</td>` : "";
+            return `<tr><td>${escapeHtml(row.name)}</td><td>${escapeHtml(row.spec || "—")}</td><td>${row.count}</td>${price}</tr>`;
+          })
           .join("")}
       </tbody>
-    </table>`,
-    )
+    </table>`;
+    })
     .join("");
+
+  // Retour utilisateur : "avoir les deux liens... pour avoir une remise
+  // fabsystem négocié avec les partenaire" — toutes les options fournisseur
+  // affichées (jamais une seule "meilleure" ligne), en liens cliquables
+  // puisque cette page reste ouverte dans le navigateur pour l'impression.
+  const priceOptionsHtml = (options: { priceCents: number; supplierName: string; url: string }[]) =>
+    options.length === 0
+      ? "—"
+      : options
+          .map(
+            (o) =>
+              `<a href="${escapeHtml(o.url)}" target="_blank" rel="noopener">${escapeHtml(formatEuroFromCents(o.priceCents))} — ${escapeHtml(o.supplierName)}</a>`
+          )
+          .join("<br>");
 
   const cableTable = `
     <h2>${bom.optimized ? "Câbles (sections optimisées)" : "Câbles"}</h2>
     <table>
-      <thead><tr><th>Section</th><th>Couleur / type</th><th>Équivalent AWG</th><th>Nombre de câbles</th><th>Métrage total</th></tr></thead>
+      <thead><tr><th>Section</th><th>Couleur / type</th><th>Équivalent AWG</th><th>Nombre de câbles</th><th>Métrage total</th><th>Prix / mètre</th></tr></thead>
       <tbody>
         ${bom.cableRows
           .map((row) => {
@@ -977,7 +1001,7 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
               row.totalLengthM !== null
                 ? `${String(row.totalLengthM).replace(".", ",")} m${row.missingLengthCount > 0 ? ` (+ ${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""} sans longueur)` : ""}`
                 : `Longueur non renseignée (${row.missingLengthCount} câble${row.missingLengthCount > 1 ? "s" : ""})`;
-            return `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.cableTypeLabel)}</td><td>${escapeHtml(row.awg ?? "—")}</td><td>${row.count}</td><td>${escapeHtml(metrage)}</td></tr>`;
+            return `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.cableTypeLabel)}</td><td>${escapeHtml(row.awg ?? "—")}</td><td>${row.count}</td><td>${escapeHtml(metrage)}</td><td>${priceOptionsHtml(row.priceOptionsPerMeter)}</td></tr>`;
           })
           .join("")}
       </tbody>
@@ -1008,10 +1032,10 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
       : `
     <h2>Cosses / embouts (indicatif — à vérifier selon la borne réelle)</h2>
     <table>
-      <thead><tr><th>Section</th><th>Type</th><th>Quantité</th></tr></thead>
+      <thead><tr><th>Section</th><th>Type</th><th>Quantité</th><th>Prix unitaire</th></tr></thead>
       <tbody>
         ${bom.lugRows
-          .map((row) => `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.connectorLabel)}</td><td>${row.count}</td></tr>`)
+          .map((row) => `<tr><td>${escapeHtml(row.section)}</td><td>${escapeHtml(row.connectorLabel)}</td><td>${row.count}</td><td>${priceOptionsHtml(row.priceOptions)}</td></tr>`)
           .join("")}
       </tbody>
     </table>`;
@@ -1038,6 +1062,33 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
       </tbody>
     </table>`;
 
+  // Retour utilisateur : "faciliter aussi le travail si je dois créer des
+  // panier pour les client" — les mêmes éléments que les tables ci-dessus,
+  // regroupés par fournisseur pour remplir un panier fournisseur par
+  // fournisseur sans reparcourir toute la page.
+  const supplierBasketTables =
+    bom.itemsBySupplier.length === 0
+      ? ""
+      : `
+    <h2>Panier par fournisseur</h2>
+    ${bom.itemsBySupplier
+      .map(
+        (supplierGroup) => `
+    <h3>${escapeHtml(supplierGroup.name)}</h3>
+    <table>
+      <thead><tr><th>Élément</th><th>Quantité</th><th>Prix</th><th>Lien</th></tr></thead>
+      <tbody>
+        ${supplierGroup.items
+          .map(
+            (item) =>
+              `<tr><td>${escapeHtml(item.label)}</td><td>${escapeHtml(item.quantityLabel)}</td><td>${escapeHtml(formatEuroFromCents(item.priceCents))}</td><td><a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Voir le produit</a></td></tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>`
+      )
+      .join("")}`;
+
   // Retour utilisateur : "je ne veux pas que cela lance l'invite
   // d'impression directement" — le popup s'ouvre sans déclencher
   // window.print() automatiquement ; un bouton "Imprimer" explicite le fait
@@ -1060,13 +1111,15 @@ export function openPrintableBom(bom: Bom, projectName: string): void {
     <a href="${csvHref}" download="${csvFilename}">Exporter en Excel</a>
   </div>
   <h1>${title} — Liste de matériel</h1>
-  <div class="meta">Généré le ${dateStr} · ${bom.totalComponents} composants · ${bom.totalCables} câbles</div>
-  <div class="disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)} Les quantités et métrages sont calculés à partir du schéma et doivent être vérifiés avant commande.</div>
+  <div class="meta">Généré le ${dateStr} · ${bom.totalComponents} composants · ${bom.totalCables} câbles${bom.totalPriceCents !== null ? ` · Total estimé${bom.hasUnpricedComponents ? " (partiel)" : ""} : ${escapeHtml(formatEuroFromCents(bom.totalPriceCents))}` : ""}</div>
+  <div class="disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)} Les quantités et métrages sont calculés à partir du schéma et doivent être vérifiés avant commande.${bom.totalPriceCents !== null ? " Le total est une estimation à partir des prix relevés au moment de l'ajout au catalogue, pas un flux temps réel — à confirmer avant commande." : ""}</div>
+  ${bom.totalPriceCentsByFournisseur.length > 0 ? `<p>${escapeHtml(COACHING_DISCOUNT_NOTE)}</p>` : ""}
   ${componentTables}
   ${cableTable}
   ${harmonizationNote}
   ${lugTable}
   ${dataBusTable}
+  ${supplierBasketTables}
   <footer>Généré par FabSystem pour ${title} — fabsystem.fr</footer>
 </body>
 </html>`);
