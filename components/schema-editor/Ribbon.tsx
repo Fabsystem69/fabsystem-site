@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useReactFlow } from "@xyflow/react";
@@ -9,10 +9,7 @@ import { downloadPortableSchemaFile } from "@/features/schemas/file-transfer";
 import { openPrintableBom } from "@/features/schemas/export";
 import { computeBom, type Bom } from "@/lib/electrical-components/bom";
 import { MaterialListDialog } from "./MaterialListDialog";
-import { ExportMenu } from "./ExportMenu";
-import { FeedbackMenu } from "./FeedbackMenu";
 import { SaveMenu } from "./SaveMenu";
-import { AddComponentMenu } from "./AddComponentMenu";
 import { CalculatorMenu } from "./CalculatorMenu";
 import { ExportPreviewDialog } from "./ExportPreviewDialog";
 import { OpenSchemaDialog } from "./OpenSchemaDialog";
@@ -21,10 +18,9 @@ import { SystemBuilderDialog } from "./SystemBuilderDialog";
 import { ShareSchemaDialog } from "./ShareSchemaDialog";
 import { VersionHistoryDialog } from "./VersionHistoryDialog";
 import { SchemaIssuesWidget } from "./SchemaIssuesWidget";
-import { PropertiesTab } from "./PropertiesTab";
-import { MenubarHeading, MenubarIcon, MenubarItem, MenubarPanel, MenubarSection, RibbonButton, RibbonDivider, RibbonGroup, RibbonPanel } from "./RibbonControls";
+import { HelpDialog } from "./HelpDialog";
+import { MenubarHeading, MenubarIcon, MenubarItem, MenubarPanel, MenubarSection } from "./RibbonControls";
 import { AdminProjectSwitcher } from "./AdminProjectSwitcher";
-import { getComponentDefinition, CATEGORY_LABELS } from "@/lib/electrical-components/definitions";
 
 // Bandeau type ruban (retour utilisateur : "chargé sans avoir beaucoup de
 // fonction... réfléchir à un bandeau type Word/Excel avec des boutons
@@ -40,23 +36,6 @@ import { getComponentDefinition, CATEGORY_LABELS } from "@/lib/electrical-compon
 // Sauvegarde (ex-"Cloud", voir SaveMenu.tsx) dans Export — renommé
 // "Enregistrer / Imprimer" — avec Sauvegarder dupliqué dans Accueil aussi
 // (retour utilisateur explicite : "mets-le aussi dans l'accueil").
-// Retour utilisateur : "intègre le bandeau droit propriété avec les mêmes
-// fonctions mais dans le bandeau supérieur, toujours même principe, c'est
-// pour l'autre reste réduit" — nouvel onglet "proprietes", CONTEXTUEL :
-// n'apparaît dans la barre d'onglets que quand un élément est sélectionné
-// (voir `visibleTabs` plus bas), et le ruban bascule dessus automatiquement
-// dès qu'on passe de "rien sélectionné" à "quelque chose sélectionné" (même
-// principe que les onglets contextuels "Format" de Word/Excel). Remplace
-// l'ancien popup plein écran ItemPropertiesPopup (voir PropertiesTab.tsx).
-type RibbonTab = "accueil" | "ajouter" | "export" | "aide" | "proprietes";
-
-const BASE_TABS: { id: RibbonTab; label: string }[] = [
-  { id: "accueil", label: "Accueil" },
-  { id: "ajouter", label: "Composants" },
-  { id: "export", label: "Enregistrer / Imprimer" },
-  { id: "aide", label: "Aide" },
-];
-
 function ShareIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
@@ -91,7 +70,6 @@ export function Ribbon() {
   const setProjectName = useSchemaStore((s) => s.setProjectName);
   const saveStatus = useSchemaStore((s) => s.saveStatus);
   const saveMessage = useSchemaStore((s) => s.saveMessage);
-  const [activeTab, setActiveTab] = useState<RibbonTab>("accueil");
   // Retour utilisateur : "onglet Options doit se trouver dans Accueil avec
   // les autres réglages d'affichage" puis "le bouton Options ne peut être
   // supprimé et doit être juste un switch Grille" — plus de panneau du
@@ -105,26 +83,6 @@ export function Ribbon() {
   // composant frère non descendant).
   const showGrid = useSchemaStore((s) => s.showGrid);
   const setShowGrid = useSchemaStore((s) => s.setShowGrid);
-
-  const selectedNodeId = useSchemaStore((s) => s.selectedNodeId);
-  const selectedEdgeId = useSchemaStore((s) => s.selectedEdgeId);
-  const hasSelection = selectedNodeId !== null || selectedEdgeId !== null;
-  const hadSelectionRef = useRef(false);
-
-  // Bascule automatique sur l'onglet contextuel "Propriétés" au moment où
-  // une sélection apparaît (front montant "rien" → "quelque chose"), jamais
-  // en reprenant un autre item déjà sélectionné pendant qu'on est sur un
-  // autre onglet — respecte le choix d'onglet en cours de l'utilisateur.
-  useEffect(() => {
-    if (hasSelection && !hadSelectionRef.current) setActiveTab("proprietes");
-    if (!hasSelection && activeTab === "proprietes") setActiveTab("accueil");
-    hadSelectionRef.current = hasSelection;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasSelection]);
-
-  const visibleTabs = hasSelection
-    ? [...BASE_TABS.slice(0, 1), { id: "proprietes" as const, label: "Propriétés" }, ...BASE_TABS.slice(1)]
-    : BASE_TABS;
 
   const saveToneClass =
     saveStatus === "error"
@@ -174,14 +132,11 @@ export function Ribbon() {
 
         <EditorMenuBar
           darkMode={darkMode}
-          hasSelection={hasSelection}
           showGrid={showGrid}
           onToggleGrid={() => setShowGrid(!showGrid)}
-          onSelectTab={setActiveTab}
           onNewProject={() => {
             if (useSchemaStore.getState().nodes.some((node) => node.type !== "zone") && !window.confirm("Repartir d'un schéma vierge ? Le brouillon actuel restera sauvegardé localement jusqu'à la prochaine modification.")) return;
             useSchemaStore.getState().newProject();
-            setActiveTab("accueil");
           }}
         />
 
@@ -196,17 +151,13 @@ export function Ribbon() {
 
 function EditorMenuBar({
   darkMode,
-  hasSelection,
   showGrid,
   onToggleGrid,
-  onSelectTab,
   onNewProject,
 }: {
   darkMode: boolean;
-  hasSelection: boolean;
   showGrid: boolean;
   onToggleGrid: () => void;
-  onSelectTab: (tab: RibbonTab) => void;
   onNewProject: () => void;
 }) {
   const [openMenu, setOpenMenu] = useState<"file" | "view" | "tools" | null>(null);
@@ -219,6 +170,7 @@ function EditorMenuBar({
   const [shareOpen, setShareOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [materialListBoms, setMaterialListBoms] = useState<{ real: Bom; optimized: Bom } | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const adminMode = useSchemaStore((s) => s.isAdmin);
   const accountInitials = useSchemaStore((s) => s.accountInitials);
   const hasUnlimitedConsumers = useSchemaStore((s) => s.hasUnlimitedConsumers);
@@ -286,8 +238,8 @@ function EditorMenuBar({
           ? "text-neutral-300 hover:bg-neutral-800"
           : "text-neutral-700 hover:bg-neutral-100"
     }`;
-  function select(tab: RibbonTab) {
-    onSelectTab(tab);
+  function openHelp() {
+    setHelpOpen(true);
     setOpenMenu(null);
   }
 
@@ -417,7 +369,6 @@ function EditorMenuBar({
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="new" />} title="Nouveau schéma" detail="Choisir un modèle ou partir d'un canevas vide" shortcut="⌘N" onClick={() => { setTemplatePickerOpen(true); setOpenMenu(null); }} />
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="folder" />} title="Ouvrir un schéma" detail="Schémas sauvegardés, modèles ou import" shortcut="⌘O" onClick={() => { setOpenSchemaDialogOpen(true); setOpenMenu(null); }} />
             <MenubarSection darkMode={darkMode}>
-              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="save" />} title="Enregistrer" detail="Brouillon local et sauvegarde" shortcut="⌘S" onClick={() => select("export")} />
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="image" />} title="Exporter en PNG" detail="Choisir le cadrage et la qualité avant téléchargement" onClick={() => { setExportPreviewKind("png"); setOpenMenu(null); }} />
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="export" />} title="Imprimer en PDF" detail="Choisir le cadrage avant impression" onClick={() => { setExportPreviewKind("pdf"); setOpenMenu(null); }} />
               <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="save" />} title="Télécharger le schéma" detail="Copie complète au format .fabschema" onClick={() => { exportSchemaFile(); setOpenMenu(null); }} />
@@ -469,10 +420,9 @@ function EditorMenuBar({
             <MenubarSection darkMode={darkMode}>
               <MenubarHeading darkMode={darkMode}>Édition</MenubarHeading>
             <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="layout" />} title="Organisation et modèles" detail="Canevas structuré, zones et modèles" onClick={openOrganization} />
-            {hasSelection ? <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="properties" />} title="Propriétés de la sélection" detail="Modifier l'élément sélectionné" onClick={() => select("proprietes")} /> : null}
             </MenubarSection>
             <MenubarSection darkMode={darkMode}>
-              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="help" />} title="Aide et retours" detail="Raccourcis, assistance et signalement" onClick={() => select("aide")} />
+              <MenubarItem darkMode={darkMode} icon={<MenubarIcon name="help" />} title="Aide et retours" detail="Comprendre les fonctions de l'éditeur" onClick={openHelp} />
             </MenubarSection>
           </MenubarPanel>
         ) : null}
@@ -548,7 +498,7 @@ function EditorMenuBar({
             <div className="p-2">
               <Link href={adminMode ? "/dashboard" : "/mon-compte/profil"} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">⚙</span> {adminMode ? "Retour au dashboard" : "Paramètres du compte"}</Link>
               <Link href={adminMode ? "/dashboard/customers" : "/mon-compte/projets"} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">▣</span> {adminMode ? "Projets clients" : "Mes projets"}</Link>
-              <button type="button" onClick={() => { setAccountOpen(false); select("aide"); }} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">✦</span> Nouveautés et aide</button>
+              <button type="button" onClick={() => { setAccountOpen(false); openHelp(); }} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">✦</span> Nouveautés et aide</button>
               <a href="mailto:contact@fabsystem.fr?subject=Retour%20%C3%A9diteur%20de%20sch%C3%A9ma" className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base ${darkMode ? "hover:bg-neutral-800" : "hover:bg-slate-50"}`}><span aria-hidden="true">✉</span> Contacter le support</a>
             </div>
             <div className={`border-t p-2 ${darkMode ? "border-neutral-800" : "border-slate-100"}`}>
@@ -575,6 +525,7 @@ function EditorMenuBar({
     {systemBuilder ? <SystemBuilderDialog kind={systemBuilder} onClose={() => setSystemBuilder(null)} /> : null}
     {shareOpen ? <ShareSchemaDialog projectId={projectId} projectName={projectName} onClose={() => setShareOpen(false)} /> : null}
     {historyOpen && projectId ? <VersionHistoryDialog projectId={projectId} onClose={() => setHistoryOpen(false)} onRestored={() => window.location.reload()} /> : null}
+    {helpOpen ? <HelpDialog onClose={() => setHelpOpen(false)} /> : null}
     </>
   );
 }
@@ -591,118 +542,4 @@ function MobileActionsSheet({ darkMode, onClose, onNew, onOpen, onSave, onShare,
       <p className={headingClass}>Compte</p><div className="px-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]"><a href="/mon-compte/profil" className={itemClass}><span>⚙</span>Paramètres du compte</a><form action="/api/client-auth/logout" method="post"><button type="submit" className={itemClass}><span>⇥</span>Se déconnecter</button></form></div>
     </section>
   </div>;
-}
-
-function AccueilGroup({ darkMode }: { darkMode: boolean }) {
-  const past = useSchemaStore((s) => s.past);
-  const future = useSchemaStore((s) => s.future);
-  const undo = useSchemaStore((s) => s.undo);
-  const redo = useSchemaStore((s) => s.redo);
-  const nodesForFilter = useSchemaStore((s) => s.nodes);
-  const hiddenCategories = useSchemaStore((s) => s.hiddenCategories);
-  const toggleCategoryVisibility = useSchemaStore((s) => s.toggleCategoryVisibility);
-  const showAllCategories = useSchemaStore((s) => s.showAllCategories);
-
-  const [activePanel, setActivePanel] = useState<"filtrer" | null>(null);
-  const panelsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!activePanel) return;
-    function handleClickOutside(event: MouseEvent) {
-      if (panelsRef.current && !panelsRef.current.contains(event.target as Node)) setActivePanel(null);
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [activePanel]);
-
-  function togglePanel(panel: "filtrer") {
-    setActivePanel((prev) => (prev === panel ? null : panel));
-  }
-
-  const categoryCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const node of nodesForFilter) {
-      const def = getComponentDefinition(node.data.componentType);
-      if (!def) continue;
-      counts.set(def.category, (counts.get(def.category) ?? 0) + 1);
-    }
-    return Array.from(counts.entries())
-      .map(([category, count]) => ({ category, count, label: CATEGORY_LABELS[category] ?? category }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [nodesForFilter]);
-  const isFiltered = hiddenCategories.length > 0;
-
-  return (
-    // display:contents : invisible pour la mise en page (les enfants
-    // restent des flex items directs de la rangée 2 du ruban), juste un
-    // point d'ancrage DOM unique pour panelsRef — sans ça, la détection de
-    // clic extérieur ne couvrait que le panneau Gabarits et fermait Filtrer/
-    // Options dès qu'on cliquait DEDANS (bug réel trouvé en ajoutant Options
-    // ici).
-    <div className="contents" ref={panelsRef}>
-      <RibbonGroup darkMode={darkMode} label="Annuler">
-        <RibbonButton darkMode={darkMode} onClick={undo} disabled={past.length === 0} icon="↶" label="Annuler" title="Annuler (Ctrl/Cmd+Z)" />
-        <RibbonButton darkMode={darkMode} onClick={redo} disabled={future.length === 0} icon="↷" label="Rétablir" title="Rétablir (Ctrl/Cmd+Shift+Z)" />
-      </RibbonGroup>
-
-      <RibbonDivider darkMode={darkMode} />
-
-      <RibbonGroup darkMode={darkMode} label="Organisation">
-        {categoryCounts.length > 0 ? (
-          <div className="relative">
-            <RibbonButton
-              darkMode={darkMode}
-              onClick={() => togglePanel("filtrer")}
-              active={activePanel === "filtrer" || isFiltered}
-              icon="🔍"
-              label={isFiltered ? `Filtrer (${categoryCounts.length - hiddenCategories.length}/${categoryCounts.length})` : "Filtrer"}
-              title="Afficher seulement certaines catégories de composants — restreint aussi les exports"
-            />
-            {activePanel === "filtrer" ? (
-              <RibbonPanel darkMode={darkMode}>
-                <div className={`flex items-center justify-between px-3 py-1.5 text-xs ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>
-                  <span>Catégories affichées</span>
-                  {isFiltered ? (
-                    <button type="button" onClick={showAllCategories} className={darkMode ? "text-amber-300 hover:underline" : "text-amber-700 hover:underline"}>
-                      Tout afficher
-                    </button>
-                  ) : null}
-                </div>
-                {categoryCounts.map(({ category, count, label }) => {
-                  const hidden = hiddenCategories.includes(category);
-                  return (
-                    <label
-                      key={category}
-                      className={`flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 text-sm transition-base ${
-                        darkMode ? "text-neutral-200 hover:bg-neutral-700/50" : "text-neutral-700 hover:bg-neutral-100"
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <input type="checkbox" checked={!hidden} onChange={() => toggleCategoryVisibility(category)} className="rounded border-neutral-300" />
-                        {label}
-                      </span>
-                      <span className={`text-xs ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>{count}</span>
-                    </label>
-                  );
-                })}
-              </RibbonPanel>
-            ) : null}
-          </div>
-        ) : null}
-      </RibbonGroup>
-
-    </div>
-  );
-}
-
-function AjouterGroup({ darkMode }: { darkMode: boolean }) {
-  return <AddComponentMenu darkMode={darkMode} />;
-}
-
-function ExportGroup({ darkMode, showGrid }: { darkMode: boolean; showGrid: boolean }) {
-  return <ExportMenu darkMode={darkMode} showGrid={showGrid} />;
-}
-
-function AideGroup({ darkMode }: { darkMode: boolean }) {
-  return <FeedbackMenu darkMode={darkMode} />;
 }

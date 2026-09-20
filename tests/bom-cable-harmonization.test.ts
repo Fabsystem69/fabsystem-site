@@ -52,17 +52,19 @@ test("computeBom evaluates each color independently, not a combined section tota
   assert.ok(bom.cableHarmonizationSuggestions.every((s) => s.totalLengthM === 9));
 });
 
+// "4 mm²" (pas dans ALWAYS_HARMONIZE_SECTIONS) pour tester spécifiquement le
+// comportement du seuil, indépendamment du cas "toujours" sous 1,5 mm².
 test("computeBom redirects only the color actually under threshold", () => {
   const bom = computeBom(
     NO_NODES,
-    [edge("e1", "1 mm²", "power-positive", 4), edge("e2", "1 mm²", "power-negative", 15)],
+    [edge("e1", "4 mm²", "power-positive", 4), edge("e2", "4 mm²", "power-negative", 15)],
     { harmonizeSmallSections: true }
   );
 
   const red = bom.cableRows.find((r) => r.cableTypeLabel === "Puissance +");
   const black = bom.cableRows.find((r) => r.cableTypeLabel === "Puissance −");
-  assert.equal(red?.section, "1,5 mm²"); // redirigé, sous le seuil
-  assert.equal(black?.section, "1 mm²"); // pas redirigé, déjà assez pour sa propre bobine
+  assert.equal(red?.section, "6 mm²"); // redirigé, sous le seuil
+  assert.equal(black?.section, "4 mm²"); // pas redirigé, déjà assez pour sa propre bobine
 });
 
 test("computeBom redirects small sections to their target when harmonizeSmallSections is on", () => {
@@ -86,10 +88,12 @@ test("computeBom redirects small sections to their target when harmonizeSmallSec
   ]);
 });
 
-test("computeBom does not redirect a small section once its total clears the threshold", () => {
-  const bom = computeBom(NO_NODES, [edge("e1", "0,75 mm²", "power-positive", 20)], { harmonizeSmallSections: true });
+// "4 mm²" pour la même raison : une section sous 1,5 mm² ne respecte plus
+// jamais ce seuil (voir cable-harmonization.ts, ALWAYS_HARMONIZE_SECTIONS).
+test("computeBom does not redirect a section once its total clears the threshold", () => {
+  const bom = computeBom(NO_NODES, [edge("e1", "4 mm²", "power-positive", 20)], { harmonizeSmallSections: true });
 
-  assert.equal(bom.cableRows[0]?.section, "0,75 mm²");
+  assert.equal(bom.cableRows[0]?.section, "4 mm²");
   assert.deepEqual(bom.cableHarmonizationSuggestions, []);
 });
 
