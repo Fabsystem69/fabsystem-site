@@ -4,7 +4,6 @@ import type { Customer } from "@/lib/generated/prisma/client";
 import { formatCustomerAssetSummary, getCustomerAssetLabel } from "@/lib/customer-asset";
 import { formatCustomerDisplayName, formatDate, formatEuroFromCents } from "@/lib/format";
 import { getProjectAssetTypeLabel, getProjectStatusLabel } from "@/lib/project-labels";
-import { getSchemaTemplatesByVehicleGroup } from "@/features/schemas/templates";
 import { prisma } from "@/lib/prisma";
 import { getDatabaseErrorMessage } from "@/lib/prisma-errors";
 import { listDashboardOrdersForCustomer } from "@/lib/services/admin-orders";
@@ -27,6 +26,7 @@ import {
 } from "./actions";
 import {
   DashboardPageShell, AdminAlert, AdminBadge, AdminButton, AdminCard, AdminPageHeader } from "@/components/dashboard/ui";
+import { TemplatePickerField } from "./TemplatePickerField";
 
 type Params = {
   params: Promise<{
@@ -38,7 +38,6 @@ type Params = {
 export default async function DashboardCustomerDetailPage({ params, searchParams }: Params) {
   const { id } = await params;
   const { error, success } = await searchParams;
-  const templateGroups = getSchemaTemplatesByVehicleGroup();
 
   let customer: Customer | null = null;
 
@@ -413,25 +412,7 @@ export default async function DashboardCustomerDetailPage({ params, searchParams
                     <option value="UNKNOWN">Je ne sais pas</option>
                   </select>
                 </label>
-                <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                  Pré-remplissage
-                  <select
-                    name="templateId"
-                    defaultValue=""
-                    className="h-10 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-sm font-medium normal-case tracking-normal text-white outline-none focus:border-brand-400"
-                  >
-                    <option value="">Aucun (schéma vide)</option>
-                    {templateGroups.map((group) => (
-                      <optgroup key={group.id} label={group.label}>
-                        {group.templates.map((template) => (
-                          <option key={template.id} value={template.id}>
-                            {template.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </label>
+                <TemplatePickerField />
                 <AdminButton type="submit" variant="primary" size="sm">Créer et ouvrir l&apos;éditeur</AdminButton>
               </form>
             </AdminCard>
