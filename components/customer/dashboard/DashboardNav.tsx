@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 // avec ou sans compte.
 const NAV_ITEMS = [
   { href: "/mon-compte", label: "Accueil" },
+  { href: "/mon-compte/mon-van", label: "Mon van" },
   { href: "/mon-compte/projets", label: "Mes projets" },
   { href: "/mon-compte/achats", label: "Mes achats" },
   { href: "/mon-compte/editeur", label: "Éditeur Plus" },

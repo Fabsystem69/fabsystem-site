@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 import {
   AccompagnementIcon,
+  CrmIcon,
   CustomersIcon,
   DashboardIcon,
   DiscountIcon,
@@ -64,6 +65,21 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Tableau de bord",
     items: [{ label: "Vue d'ensemble", href: "/dashboard", icon: DashboardIcon }],
+  },
+  // Retour utilisateur : "gérer le parcours [coaching] depuis le premier
+  // contact jusqu'au suivi... dans un seul espace" — volontairement séparé
+  // de "Clients & projets" ci-dessous (Project = schéma électrique de
+  // l'éditeur, sans rapport avec CoachingProject) et de DossierClient/
+  // Accompagnements (offre figée + paiement Stripe) : un pipeline dédié
+  // prospects Facebook -> clients -> projets/séances de coaching.
+  {
+    title: "Coaching (CRM)",
+    items: [
+      { label: "Aujourd'hui", href: "/dashboard/crm", icon: DashboardIcon },
+      { label: "Prospects", href: "/dashboard/crm/prospects", icon: CrmIcon },
+      { label: "Clients coaching", href: "/dashboard/crm/clients", icon: CustomersIcon },
+      { label: "Agenda", href: "/dashboard/crm/agenda", icon: AccompagnementIcon },
+    ],
   },
   {
     title: "Clients & projets",

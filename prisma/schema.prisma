@@ -273,6 +273,11 @@ model Customer {
   editorSubscriptions        EditorSubscription[]
   contactLogs                CustomerContactLog[]
   dossiers                   DossierClient[]
+  // CRM coaching (voir Prospect/CoachingProject plus bas) : un prospect
+  // converti pointe vers ce Customer, jamais l'inverse (evite un champ
+  // "isProspect" sur Customer qui deviendrait vite incoherent).
+  convertedFromProspect      Prospect?
+  coachingProjects           CoachingProject[]
   createdAt                  DateTime                    @default(now())
   updatedAt                  DateTime                    @updatedAt
 
@@ -430,20 +435,20 @@ enum ProjectVoltage {
 }
 
 model Project {
-  id                String           @id @default(cuid())
-  customerId        String
-  customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  name              String
-  assetType         ProjectAssetType
-  voltage           ProjectVoltage   @default(UNKNOWN)
-  status            ProjectStatus    @default(ACTIVE)
-  archivedAt        DateTime?
+  id                   String           @id @default(cuid())
+  customerId           String
+  customer             Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  name                 String
+  assetType            ProjectAssetType
+  voltage              ProjectVoltage   @default(UNKNOWN)
+  status               ProjectStatus    @default(ACTIVE)
+  archivedAt           DateTime?
   // Suppression différée 72h (MASTER-06 §15, MASTER-10 §54-56) : intention
   // et échéance persistées, jamais de timer mémoire. preScheduleStatus
   // conserve l'état à restaurer si le client ou l'Admin annule avant
   // échéance ("restitue le Project dans son état normal", MASTER-10 §56).
-  deleteScheduledAt DateTime?
-  preScheduleStatus ProjectStatus?
+  deleteScheduledAt    DateTime?
+  preScheduleStatus    ProjectStatus?
   // Etape technique du "Parcours d'accompagnement" (voir lib/project-follow-up.ts)
   // normalement deduite automatiquement des ProjectRetainedValue/ProjectSchema
   // du client. Nullable = calcul automatique (comportement par defaut) ;
@@ -455,15 +460,15 @@ model Project {
   // remplace les constantes hardcodees pour un seul kit (AFERIY P280) qui
   // s'appliquaient a tort a tous les projets (bug corrige ici). Nullable =
   // aucun kit assigne, les sections achats/budget restent masquees.
-  kitId             String?
-  kit               Kit?             @relation(fields: [kitId], references: [id], onDelete: SetNull)
+  kitId                String?
+  kit                  Kit?             @relation(fields: [kitId], references: [id], onDelete: SetNull)
   // Cree par l'admin depuis le dashboard (accompagnement) plutot que par le
   // client lui-meme — retour utilisateur : /dashboard/projects ne doit pas
   // attendre que le client active dataShareConsent pour un schema que
   // l'admin a deja construit et connait donc deja.
-  createdByAdmin    Boolean          @default(false)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  createdByAdmin       Boolean          @default(false)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   retainedValues    ProjectRetainedValue[]
   valueDependencies ProjectValueDependency[]
@@ -514,14 +519,14 @@ model ProjectFollowUpReview {
 // Journal append-only des validations et demandes de correction, afin que le
 // client et l'admin puissent retrouver qui a demande quoi et quand.
 model ProjectFollowUpEvent {
-  id         String                       @id @default(cuid())
+  id         String                   @id @default(cuid())
   projectId  String
-  project    Project                      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   stepKey    String
   type       ProjectFollowUpEventType
-  message    String?                      @db.Text
-  authorName String                       @default("FabSystem")
-  createdAt  DateTime                     @default(now())
+  message    String?                  @db.Text
+  authorName String                   @default("FabSystem")
+  createdAt  DateTime                 @default(now())
 
   @@index([projectId, createdAt])
 }
@@ -582,21 +587,21 @@ model ProjectValueDependency {
 // Suit le Project pour son cycle de vie (onDelete: Cascade), sans état
 // d'archivage indépendant.
 model ProjectSchema {
-  id          String   @id @default(cuid())
-  projectId   String   @unique
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectName String
-  nodes       Json
-  edges       Json
-  thumbnail   String?  @db.Text
+  id             String    @id @default(cuid())
+  projectId      String    @unique
+  project        Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectName    String
+  nodes          Json
+  edges          Json
+  thumbnail      String?   @db.Text
   // Jeton public opaque, distinct de l'id projet : seul ce secret permet la
   // lecture du schema partage, jamais l'ecriture ni l'acces au projet.
-  shareToken  String?  @unique
+  shareToken     String?   @unique
   shareEnabledAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  versions    ProjectSchemaVersion[]
+  versions ProjectSchemaVersion[]
 }
 
 enum ProjectSchemaVersionAuthor {
@@ -608,18 +613,18 @@ enum ProjectSchemaVersionAuthor {
 // brouillon actif reste dans ProjectSchema ; cette table n'est alimentée que
 // par une action explicite ou lors d'un envoi vers un projet client.
 model ProjectSchemaVersion {
-  id             String                     @id @default(cuid())
+  id              String                     @id @default(cuid())
   projectSchemaId String
-  projectSchema  ProjectSchema              @relation(fields: [projectSchemaId], references: [id], onDelete: Cascade)
-  versionNumber  Int
-  authorType     ProjectSchemaVersionAuthor
-  authorName     String
-  label          String?
-  projectName    String
-  nodes          Json
-  edges          Json
-  thumbnail      String?                    @db.Text
-  createdAt      DateTime                   @default(now())
+  projectSchema   ProjectSchema              @relation(fields: [projectSchemaId], references: [id], onDelete: Cascade)
+  versionNumber   Int
+  authorType      ProjectSchemaVersionAuthor
+  authorName      String
+  label           String?
+  projectName     String
+  nodes           Json
+  edges           Json
+  thumbnail       String?                    @db.Text
+  createdAt       DateTime                   @default(now())
 
   @@unique([projectSchemaId, versionNumber])
   @@index([projectSchemaId, createdAt])
@@ -629,13 +634,13 @@ model ProjectSchemaVersion {
 // créé lorsqu'un administrateur prépare un schéma avant de l'envoyer à un
 // accompagnement client.
 model AdminSchemaDraft {
-  id          String   @id @default(cuid())
-  name        String
-  nodes       Json
-  edges       Json
-  thumbnail   String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  nodes     Json
+  edges     Json
+  thumbnail String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([updatedAt])
 }
@@ -772,32 +777,32 @@ model DocumentSequence {
 }
 
 model Product {
-  id                  String                  @id @default(cuid())
-  slug                String                  @unique
-  name                String
-  shortDescription    String?
-  description         String?
-  status              ProductStatus           @default(DRAFT)
-  productType         ProductType
-  purchaseMode        PurchaseMode            @default(BUY_NOW)
-  featuredImage       String?
+  id                       String                  @id @default(cuid())
+  slug                     String                  @unique
+  name                     String
+  shortDescription         String?
+  description              String?
+  status                   ProductStatus           @default(DRAFT)
+  productType              ProductType
+  purchaseMode             PurchaseMode            @default(BUY_NOW)
+  featuredImage            String?
   // Nombre de jours d'accès Éditeur Plus offerts à l'achat de ce produit
   // (null = aucun bonus). Configurable depuis le dashboard catalogue plutôt
   // que codé en dur par slug — un même mécanisme sert aussi bien un
   // accompagnement qu'un ebook. Lu par grantPrestationsBenefitsForOrder.
   includedEditorAccessDays Int?
-  prices              ProductPrice[]
-  assets              ProductAsset[]
-  cartItems           CartItem[]
-  orderItems          OrderItem[]
-  downloadGrants      DownloadGrant[]
-  resourceGrants      CustomerResourceGrant[]
-  discountCodes       DiscountCode[]
-  discountRedemptions DiscountRedemption[]
-  bundleItems         BundleItem[]            @relation("BundleProductItems")
-  includedInBundles   BundleItem[]            @relation("IncludedProductItems")
-  createdAt           DateTime                @default(now())
-  updatedAt           DateTime                @updatedAt
+  prices                   ProductPrice[]
+  assets                   ProductAsset[]
+  cartItems                CartItem[]
+  orderItems               OrderItem[]
+  downloadGrants           DownloadGrant[]
+  resourceGrants           CustomerResourceGrant[]
+  discountCodes            DiscountCode[]
+  discountRedemptions      DiscountRedemption[]
+  bundleItems              BundleItem[]            @relation("BundleProductItems")
+  includedInBundles        BundleItem[]            @relation("IncludedProductItems")
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
 
   @@index([status])
   @@index([productType])
@@ -1350,6 +1355,643 @@ model DossierAppointment {
   @@index([scheduledAt])
 }
 
+// --- CRM coaching (prospects Facebook -> clients -> projets electriques) --
+// Retour utilisateur : "gerer leur parcours depuis le premier contact
+// jusqu'au suivi du coaching dans un seul espace". Volontairement separe de
+// DossierClient (offre/etapes fixes/paiement Stripe, deja utilise par
+// /dashboard/accompagnements et /mon-compte/mon-accompagnement) : un
+// Prospect n'a souvent ni email ni compte, un CoachingProject autorise
+// plusieurs projets electriques par client sans etape figee, et le suivi de
+// temps achete/consomme + les propositions commerciales n'existent nulle
+// part ailleurs. Customer reste l'unique ancre d'identite (jamais de second
+// modele "client" redondant) : un "client coaching" est simplement un
+// Customer possedant au moins un CoachingProject.
+
+enum ProspectSource {
+  MESSENGER
+  PAGE_FACEBOOK
+  GROUPE_FACEBOOK
+  COMMENTAIRE
+  PUBLICITE
+  AUTRE
+}
+
+enum ProspectStatus {
+  NOUVEAU
+  EN_DISCUSSION
+  COACHING_PROPOSE
+  RESERVE
+  GAGNE
+  SANS_SUITE
+}
+
+model Prospect {
+  id     String         @id @default(cuid())
+  name   String
+  phone  String?
+  // Facultatif (retour utilisateur explicite) : beaucoup de contacts
+  // Facebook Messenger n'ont pas d'email a ce stade.
+  email  String?
+  source ProspectSource
+
+  facebookLink      String?
+  besoinElectricite String? @db.Text
+  notesInternes     String? @db.Text
+
+  status       ProspectStatus @default(NOUVEAU)
+  nextAction   String?
+  nextActionAt DateTime?
+
+  // Rempli a la conversion reussie en client (voir convertProspectToClient,
+  // lib/services/prospect.ts) - garde l'historique au lieu de le perdre.
+  // SetNull si le Customer est supprime : le prospect ne doit jamais
+  // disparaitre silencieusement pour ca.
+  convertedCustomerId String?   @unique
+  convertedCustomer   Customer? @relation(fields: [convertedCustomerId], references: [id], onDelete: SetNull)
+
+  derniereActivite DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  events ProspectEvent[]
+
+  @@index([status])
+  @@index([nextActionAt])
+  @@index([derniereActivite])
+}
+
+// Meme principe que DossierEvent : un seul historique d'activite plutot que
+// des champs de date eparpilles.
+model ProspectEvent {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  type       String // "STATUS_CHANGE" | "NOTE"
+  fromStatus String?
+  toStatus   String?
+  note       String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([prospectId, createdAt])
+}
+
+// Modeles de reponses Messenger, modifiables depuis le dashboard (retour
+// utilisateur : "bouton Copier... premier contact, qualification du besoin,
+// presentation du coaching et relance") - seedes une fois via
+// ensureDefaultProspectMessageTemplates() (lib/services/prospect.ts), jamais
+// via une migration de donnees.
+model ProspectMessageTemplate {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  label     String
+  body      String   @db.Text
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+enum ClientLevel {
+  DEBUTANT
+  INTERMEDIAIRE
+  AVANCE
+}
+
+enum CoachingProjectStatus {
+  A_DEMARRER
+  EN_COURS
+  EN_ATTENTE
+  TERMINE
+}
+
+model CoachingProject {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String?               @db.Text
+  objectifs    String?               @db.Text
+  niveauClient ClientLevel?
+  status       CoachingProjectStatus @default(A_DEMARRER)
+
+  // "Historique du suivi" delibrement non duplique dans un journal a part :
+  // c'est la suite chronologique des comptes-rendus de CoachingSession, deja
+  // horodatee. questionsEnAttente/actionsAPreparer restent de simples blocs
+  // texte en v1 (pas de sous-checklist dediee) - CoachingActionItem couvre
+  // deja le vrai suivi a echeance/statut.
+  questionsEnAttente String? @db.Text
+  actionsAPreparer   String? @db.Text
+  notesInternes      String? @db.Text
+
+  // --- Dossier client evolutif van (docs/_local/Prompt_Claude_Fabsystem_Dossier_Van.md) ---
+  // Espace REELEMENT partage entre coach et client (retour utilisateur
+  // explicite) : ces champs sont modifiables des deux cotes
+  // (app/mon-compte/mon-van et app/dashboard/crm/projects), jamais reserves
+  // a un role. Volontairement des String? plutot que des enums fermes :
+  // "une donnee inconnue ne vaut jamais zero", un client doit toujours
+  // pouvoir repondre "je ne sais pas" ou "a definir avec Fabsystem" sans
+  // qu'une migration soit necessaire pour ajouter une option.
+
+  // Etape 1 - Projet et vehicule
+  vehicleBrand         String?
+  vehicleModel         String?
+  vehicleYear          String?
+  vehicleEngine        String?
+  vehicleFormat        String?
+  vehicleDimensions    String?
+  registrationCountry  String?
+  usageCountry         String?
+  homologationNotes    String?  @db.Text
+  projectStage         String? // idee / vehicule achete / amenagement en cours / installation partielle / a modifier
+  whoDoesTheWork       String?
+  coachingTopics       String?  @db.Text
+  threePriorities      String?  @db.Text
+  startDeadline        String?
+  materialBudgetCents  Int?
+  laborBudgetCents     Int?
+  // Marqueur de concurrence pour CE bloc de champs uniquement (pas le
+  // updatedAt global de la ligne) : coach et client peuvent modifier des
+  // sections differentes en meme temps sans se bloquer mutuellement -
+  // seule une modification concurrente de LA MEME section doit etre
+  // detectee (retour utilisateur : "eviter d'ecraser silencieusement").
+  vehicleInfoUpdatedAt DateTime @default(now())
+
+  // Etape 2 - Usages et recharge
+  travelerCount          String?
+  usagePattern           String? // week-ends / vacances / longs voyages / vie a l'annee
+  remoteWorkNotes        String?  @db.Text
+  seasonsRegionsNotes    String?  @db.Text
+  parkingExposure        String?
+  daysWithoutRecharge    String?
+  minAutonomyNoRecharge  String?
+  criticalDevicesWhenLow String?  @db.Text
+  drivingHabits          String?  @db.Text
+  shorePowerAvailability String?
+  solarPreference        String? // souhaite / non souhaite / a etudier
+  solarMounting          String? // fixe / portable
+  solarRoofSpaceNotes    String?  @db.Text
+  otherEnergySources     String?  @db.Text
+  // Notes narratives seulement : le suivi structure des equipements a venir
+  // se fait deja via CoachingDevice.phase = FUTUR, jamais duplique ici.
+  plannedEquipmentNotes  String?  @db.Text
+  usagesUpdatedAt        DateTime @default(now())
+
+  // Etape 5 - Implantation (contexte partage ; le registre de circuits
+  // detaille, lui, reste dans CoachingCircuit, exclusivement coach).
+  implantationNotes       String?  @db.Text
+  ventilationConstraints  String?  @db.Text
+  outletsLightingNotes    String?  @db.Text
+  vehicleElectricalNotes  String?  @db.Text
+  vehicleElectricalSource String?
+  implantationUpdatedAt   DateTime @default(now())
+
+  // Relecture (retour utilisateur : bouton "Envoyer pour relecture", espace
+  // partage cote et coach cote client) - s'applique aux champs partages
+  // ci-dessus et aux CoachingDevice/CoachingDeviceUsage du projet, jamais a
+  // la synthese technique (reservee coach, jamais soumise a relecture).
+  readyForReviewAt      DateTime?
+  lastReviewedAt        DateTime?
+  hasChangesSinceReview Boolean   @default(false)
+
+  derniereActivite DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  documents       CoachingProjectDocument[]
+  sessions        CoachingSession[]
+  actions         CoachingActionItem[]
+  proposals       CoachingProposal[]
+  scenarios       CoachingScenario[]
+  devices         CoachingDevice[]
+  materials       CoachingMaterial[]
+  circuits        CoachingCircuit[]
+  schemaRevisions CoachingSchemaRevision[]
+  events          CoachingProjectEvent[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([derniereActivite])
+}
+
+// Meme pattern que DossierDocument (lib/server/dossier-storage.ts, Vercel
+// Blob prive) - voir lib/server/coaching-project-storage.ts.
+model CoachingProjectDocument {
+  id          String          @id @default(cuid())
+  projectId   String
+  project     CoachingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  filename    String
+  bucket      String
+  path        String
+  contentType String?
+  sizeBytes   Int
+  uploadedBy  String
+  createdAt   DateTime        @default(now())
+
+  // Classement optionnel "par appareil ou projet" (etape 4 du cahier des
+  // charges) - au plus un des deux, jamais les deux (verifie cote service).
+  deviceId                String?
+  device                  CoachingDevice?          @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  materialId              String?
+  material                CoachingMaterial?        @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  coachingSchemaRevisions CoachingSchemaRevision[]
+
+  @@unique([bucket, path])
+  @@index([projectId, createdAt])
+  @@index([deviceId])
+  @@index([materialId])
+}
+
+enum CoachingSessionStatus {
+  PREVUE
+  REALISEE
+  ANNULEE
+}
+
+model CoachingSession {
+  id              String                @id @default(cuid())
+  projectId       String
+  project         CoachingProject       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scheduledAt     DateTime
+  durationMinutes Int                   @default(60)
+  status          CoachingSessionStatus @default(PREVUE)
+
+  // Compte-rendu (retour utilisateur : "sujets abordes, explications
+  // donnees, difficultes et prochaine etape") - jamais un champ qui
+  // suggererait une validation de securite/conformite a distance.
+  sujetsAbordes       String? @db.Text
+  explicationsDonnees String? @db.Text
+  difficultes         String? @db.Text
+  prochaineEtape      String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  actions CoachingActionItem[]
+
+  @@index([projectId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+enum CoachingActionStatus {
+  A_FAIRE
+  FAIT
+}
+
+model CoachingActionItem {
+  id        String               @id @default(cuid())
+  projectId String
+  project   CoachingProject      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  // Optionnel : une action peut naitre d'une seance precise, ou etre ajoutee
+  // directement sur le projet.
+  sessionId String?
+  session   CoachingSession?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  label     String
+  dueDate   DateTime?
+  status    CoachingActionStatus @default(A_FAIRE)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@index([projectId])
+  @@index([status, dueDate])
+}
+
+enum CoachingProposalStatus {
+  BROUILLON
+  ENVOYEE
+  ACCEPTEE
+  REFUSEE
+}
+
+enum CoachingPaymentStatus {
+  EN_ATTENTE
+  PARTIEL
+  PAYE
+}
+
+// Suivi commercial manuel (retour utilisateur : "ne pas integrer de nouveau
+// prestataire de paiement pour cette premiere version"). Le temps de
+// coaching restant ne se stocke jamais ici : il se calcule a la lecture
+// (somme des propositions ACCEPTEE moins somme des seances REALISEE du
+// projet, voir getCoachingProjectTimeBalance dans
+// lib/services/coaching-project.ts) - meme principe deja applique par
+// getIncludedAccessForCustomer (lib/services/dossier-client.ts) : ne jamais
+// dupliquer un etat derivable, toujours relire la source de verite.
+model CoachingProposal {
+  id               String                 @id @default(cuid())
+  projectId        String
+  project          CoachingProject        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  intitule         String
+  montantCents     Int
+  montantRecuCents Int                    @default(0)
+  dureeMinutes     Int
+  status           CoachingProposalStatus @default(BROUILLON)
+  paymentStatus    CoachingPaymentStatus  @default(EN_ATTENTE)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([projectId])
+}
+
+// --- Appareils, scenarios et bilan de consommation (dossier van, phase 1) --
+// docs/_local/Prompt_Claude_Fabsystem_Dossier_Van.md, etape 3. Un scenario
+// (ete/hiver/...) regroupe des USAGES d'appareils, jamais les appareils
+// eux-memes : la meme reference materielle peut avoir un usage different
+// par scenario sans etre dupliquee (exigence explicite du cahier des
+// charges). Le calcul lui-meme vit dans lib/calc/coaching-consumption.ts
+// (module pur, teste sans base de donnees) - ces modeles ne stockent que
+// les entrees, jamais un total precalcule.
+model CoachingScenario {
+  id        String          @id @default(cuid())
+  projectId String
+  project   CoachingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  isDefault Boolean         @default(false)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  usages CoachingDeviceUsage[]
+
+  @@index([projectId])
+}
+
+enum CoachingDeviceState {
+  ENVISAGE
+  CHOISI
+  ACHETE
+  INSTALLE
+}
+
+enum CoachingDevicePhase {
+  ACTUEL
+  FUTUR
+}
+
+enum CoachingDevicePriority {
+  INDISPENSABLE
+  SOUHAITABLE
+  OPTIONNEL
+}
+
+enum CoachingPowerSupply {
+  DC12
+  DC24
+  DC_AUTRE
+  USB
+  AC230
+  INCONNU
+}
+
+enum CoachingMeasurementPoint {
+  APPAREIL
+  ENTREE_ADAPTATEUR
+  COTE_BATTERIE
+}
+
+enum CoachingDataOrigin {
+  MESUREE
+  DOC_FABRICANT
+  ESTIMATION_CLIENT
+  ESTIMATION_COACH
+}
+
+model CoachingDevice {
+  id        String          @id @default(cuid())
+  projectId String
+  project   CoachingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name     String
+  // Liste de categories suggeree cote UI (eclairage, refrigerateur,
+  // ventilation...) mais jamais un enum ferme : le cahier des charges
+  // l'exige explicitement ("n'attribue aucune puissance universelle").
+  category String
+  quantity Int    @default(1)
+
+  brand            String?
+  reference        String?
+  manufacturerLink String?
+
+  state    CoachingDeviceState    @default(ENVISAGE)
+  phase    CoachingDevicePhase    @default(ACTUEL)
+  priority CoachingDevicePriority @default(SOUHAITABLE)
+
+  powerSupply      CoachingPowerSupply       @default(INCONNU)
+  measurementPoint CoachingMeasurementPoint?
+  dataOrigin       CoachingDataOrigin?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  usages    CoachingDeviceUsage[]
+  documents CoachingProjectDocument[]
+  circuits  CoachingCircuit[]
+
+  @@index([projectId])
+}
+
+enum CoachingCalcMethod {
+  PUISSANCE_TEMPS
+  ENERGIE_JOUR
+  RECHARGE_CYCLE
+}
+
+// Une ligne par (appareil, scenario) - voir lib/calc/coaching-consumption.ts
+// pour l'implementation exacte des 3 methodes. Tout est nullable : une
+// valeur absente signifie "inconnu", jamais 0 (retour utilisateur
+// explicite, verifie par les tests de coaching-consumption.test.ts).
+model CoachingDeviceUsage {
+  id         String           @id @default(cuid())
+  deviceId   String
+  device     CoachingDevice   @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  scenarioId String
+  scenario   CoachingScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+
+  calcMethod CoachingCalcMethod
+
+  // Methode 1 - puissance x temps effectif
+  continuousPowerW        Float?
+  peakPowerW              Float?
+  peakDurationMinutes     Float?
+  effectiveHoursPerDay    Float?
+  // Duree de disponibilite, distincte du temps de fonctionnement reel -
+  // dutyCycleRatio ne s'applique QUE si effectiveHoursPerDay est absent,
+  // jamais en plus (evite de multiplier deux fois par un taux).
+  availabilityHoursPerDay Float?
+  dutyCycleRatio          Float?
+
+  // Methode 2 - energie quotidienne connue
+  dailyEnergyWhPerUnit    Float?
+  // Si vrai, dailyEnergyWhPerUnit est deja un total groupe : ne jamais le
+  // multiplier une seconde fois par quantity.
+  dailyEnergyIsGroupTotal Boolean @default(false)
+
+  // Methode 3 - recharge / cycle
+  energyPerCycleWh Float?
+  cyclesPerDay     Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([deviceId, scenarioId])
+  @@index([scenarioId])
+}
+
+// --- Dossier van, phase 2 (etapes 4-5-6 du cahier des charges) -------------
+// docs/_local/Prompt_Claude_Fabsystem_Dossier_Van.md. Meme philosophie que la
+// phase 1 : espace partage coach/client pour l'inventaire declaratif
+// (materiel possede/choisi, contraintes d'implantation), mais le registre de
+// circuits et les revisions de schema restent EXCLUSIVEMENT coach-only (le
+// cahier des charges le dit explicitement : "Reserve au coach...").
+
+enum CoachingMaterialCategory {
+  BATTERIE
+  BMS
+  PANNEAU_SOLAIRE
+  REGULATEUR
+  CHARGEUR_MOTEUR
+  CHARGEUR_SECTEUR
+  CONVERTISSEUR
+  DISTRIBUTION
+  PROTECTION
+  AUTRE
+}
+
+// Materiel du systeme electrique (batterie, BMS, panneaux...) - distinct des
+// CoachingDevice (appareils CONSOMMATEURS : frigo, eclairage...). Reutilise
+// CoachingDeviceState (Envisage/Choisi/Achete/Installe), meme semantique.
+model CoachingMaterial {
+  id        String          @id @default(cuid())
+  projectId String
+  project   CoachingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  category     CoachingMaterialCategory
+  brand        String?
+  reference    String?
+  quantity     Int                      @default(1)
+  state        CoachingDeviceState      @default(ENVISAGE)
+  // Pertinent seulement pour du materiel deja en place (installation
+  // existante a modifier) - null sinon, jamais false par defaut (ne pas
+  // presumer une decision de conservation non prise).
+  keepExisting Boolean?
+
+  // Caracteristiques generiques utiles aux compatibilites (retour
+  // utilisateur : "limites de courant, caracteristiques des panneaux,
+  // limites des chargeurs") - volontairement generiques plutot qu'un champ
+  // par categorie : un meme trio tension/courant/puissance couvre batterie,
+  // panneau et chargeur avec un sens legerement different a chaque fois,
+  // documente dans characteristicsNotes si besoin de precision.
+  ratedVoltage         Float?
+  ratedCurrentA        Float?
+  ratedPowerW          Float?
+  capacityAh           Float? // specifique batterie
+  characteristicsNotes String? @db.Text
+
+  // "Dysfonctionnements connus" - pertinent seulement pour du materiel
+  // existant, jamais suppose a partir d'un simple etat ENVISAGE/CHOISI.
+  knownIssues String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents CoachingProjectDocument[]
+  circuits  CoachingCircuit[]
+
+  @@index([projectId])
+}
+
+// Registre de circuits (etape 5) - EXCLUSIVEMENT reserve au coach (le
+// cahier des charges le dit explicitement). Jamais de deduction silencieuse
+// retour <- aller : returnLengthM reste un champ separe, null tant qu'il
+// n'est pas explicitement renseigne.
+enum CoachingCircuitReviewStatus {
+  A_FAIRE
+  A_REVOIR
+  VALIDE
+}
+
+model CoachingCircuit {
+  id        String          @id @default(cuid())
+  projectId String
+  project   CoachingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  label       String // identifiant lisible du circuit (ex. "C1 - Frigo")
+  deviceId    String?
+  device      CoachingDevice?   @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  materialId  String?
+  material    CoachingMaterial? @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  source      String?
+  destination String?
+
+  systemVoltage      Float?
+  calculatedCurrentA Float?
+
+  outboundLengthM      Float?
+  outboundLengthOrigin CoachingDataOrigin?
+  returnPathPlanned    String?             @db.Text
+  returnLengthM        Float?
+
+  // Dimensionnement retenu par le coach :
+  electricalLengthM           Float?
+  installMethod               String?
+  section                     String?
+  voltageDropNotes            String?                     @db.Text
+  protectionType              String?
+  protectionReference         String?
+  protectionRatingA           Float?
+  protectionRatedVoltage      Float?
+  protectionBreakingCapacityA Float?
+  protectionLocation          String?
+  justification               String?                     @db.Text
+  reviewStatus                CoachingCircuitReviewStatus @default(A_FAIRE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([deviceId])
+}
+
+enum CoachingSchemaStatus {
+  BROUILLON
+  A_REVOIR
+  REVU_POUR_REALISATION
+  MIS_A_JOUR_SELON_INSTALLATION
+}
+
+// Instantane fige du dossier+bilan associe a une revision du schema (retour
+// utilisateur : "permets de figer un instantane... tout en continuant a
+// modifier la version de travail") - snapshotJson n'est JAMAIS recalcule
+// apres coup, c'est justement le point d'un instantane.
+model CoachingSchemaRevision {
+  id             String                   @id @default(cuid())
+  projectId      String
+  project        CoachingProject          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  revisionNumber Int
+  documentId     String?
+  document       CoachingProjectDocument? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  status         CoachingSchemaStatus     @default(BROUILLON)
+  snapshotJson   Json
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@unique([projectId, revisionNumber])
+  @@index([projectId])
+}
+
+// Historique des modifications importantes avec auteur et date (retour
+// utilisateur explicite, etape 6) - meme principe que DossierEvent/
+// ProspectEvent : un seul journal plutot que des mecanismes paralleles.
+model CoachingProjectEvent {
+  id         String          @id @default(cuid())
+  projectId  String
+  project    CoachingProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type       String // "VEHICLE_INFO" | "USAGES" | "DEVICE" | "MATERIAL" | "CIRCUIT" | "SCHEMA_REVISION" | "REVIEW"
+  authorName String
+  note       String?         @db.Text
+  createdAt  DateTime        @default(now())
+
+  @@index([projectId, createdAt])
+}
+
 // --- Kit (bundles d'achat assignables a un Project) -----------------------
 // Corrige a la racine un bug ou /mon-compte/projets/[id]/suivi affichait
 // toujours la liste d'achat/budget du kit AFERIY P280 (lib/project-follow-up.ts),
@@ -1358,15 +2000,15 @@ model DossierAppointment {
 // purchases/budgetLines/photoControls/powerControls/dossierChecklist du kit
 // assigne au lieu de constantes fixes.
 model Kit {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String
   // Texte libre, pas de ligne budgetaire : listes descriptives simples
   // (titre + pourquoi), contrairement a KitItem qui est achete/priorise.
   photoControls Json?
   powerControls Json?
   checklist     Json?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   items    KitItem[]
   projects Project[]

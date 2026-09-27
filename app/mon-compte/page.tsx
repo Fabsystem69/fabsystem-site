@@ -9,6 +9,7 @@ import { STANDARD_PROJECT_LIMIT, listProjectsForCustomer } from "@/lib/services/
 import { getProjectValues } from "@/lib/services/project-values";
 import { getCustomerAccountOverview } from "@/lib/services/customer-account";
 import { getDossierForCustomer } from "@/lib/services/dossier-client";
+import { prisma } from "@/lib/prisma";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { getProjectAssetTypeLabel, getProjectVoltageLabel } from "@/lib/project-labels";
 import { PendingImportBanner } from "@/components/customer/dashboard/PendingImportBanner";
@@ -32,11 +33,17 @@ export default async function MonComptePage() {
   const actor = await requireCustomerActor();
   const customerId = actor.role === "customer" ? actor.customerId : "";
 
-  const [projects, overview, dossier] = await Promise.all([
+  const [projects, overview, dossier, vanProjects] = await Promise.all([
     listProjectsForCustomer(actor, customerId),
     getCustomerAccountOverview(customerId),
     getDossierForCustomer(customerId),
+    prisma.coachingProject.findMany({
+      where: { customerId },
+      orderBy: { derniereActivite: "desc" },
+      select: { id: true, title: true, derniereActivite: true, readyForReviewAt: true },
+    }),
   ]);
+  const recentVanProject = vanProjects[0];
 
   const recentProject = [...projects].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -61,6 +68,25 @@ export default async function MonComptePage() {
       </div>
 
       <PendingImportBanner />
+
+      {recentVanProject ? (
+        <section>
+          <Link href={`/mon-compte/mon-van/${recentVanProject.id}`}>
+            <Card className="border-2 border-neutral-900 p-5 hover:bg-neutral-50">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Votre dossier de coaching</p>
+              <h2 className="mt-2 text-lg font-semibold text-neutral-950">{recentVanProject.title}</h2>
+              <p className="mt-1 text-sm text-neutral-600">
+                {recentVanProject.readyForReviewAt
+                  ? "Envoyé à votre coach — en attente de relecture."
+                  : "Complétez votre projet, vos usages et vos appareils pour préparer votre bilan de consommation."}
+              </p>
+              <span className="mt-3 inline-block text-sm font-semibold text-neutral-900 underline underline-offset-4">
+                Continuer mon dossier →
+              </span>
+            </Card>
+          </Link>
+        </section>
+      ) : null}
 
       <section>
         <div className="flex items-baseline justify-between gap-3">
