@@ -21,7 +21,12 @@ export default async function DashboardCrmClientsPage({
         backHref="/dashboard/crm"
         backLabel="Aujourd'hui"
         description="Clients en coaching électricité, avec leurs projets."
-        actions={<AdminButton href="/dashboard/crm/prospects/new" variant="primary">+ Prospect</AdminButton>}
+        actions={
+          <>
+            <AdminButton href="/dashboard/crm/clients/new" variant="secondary">+ Projet (client existant)</AdminButton>
+            <AdminButton href="/dashboard/crm/prospects/new" variant="primary">+ Prospect</AdminButton>
+          </>
+        }
       />
 
       <form className="flex flex-wrap gap-2" action="/dashboard/crm/clients">

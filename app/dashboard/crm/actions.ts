@@ -97,6 +97,36 @@ export async function createCoachingProjectAction(formData: FormData) {
   redirect(target);
 }
 
+// Retour utilisateur : "comment je rajoute mes projets en cours" — un
+// client déjà accompagné aujourd'hui (hors pipeline Prospect) a déjà un
+// Customer (achat, dossier existant...) mais aucun CoachingProject. Même
+// principe de recherche par email que createManualDossierAction
+// (app/dashboard/accompagnements/actions.ts) : jamais de création de
+// Customer ici, seulement une recherche — la création de compte se fait
+// ailleurs (achat, inscription, ou fiche client e-commerce).
+export async function createCoachingProjectForExistingCustomerAction(formData: FormData) {
+  await requireSession();
+
+  let target: string;
+  try {
+    const email = getString(formData, "email").trim().toLowerCase();
+    if (!email) throw badRequest("Email du client requis.");
+
+    const customer = await prisma.customer.findUnique({ where: { email }, select: { id: true } });
+    if (!customer) throw badRequest(`Aucun client trouvé avec l'email ${email}. Créez d'abord sa fiche depuis /dashboard/customers.`);
+
+    const project = await createCoachingProject({
+      customerId: customer.id,
+      title: getString(formData, "title"),
+    });
+    revalidatePath("/dashboard/crm/clients");
+    target = `/dashboard/crm/projects/${project.id}`;
+  } catch (error) {
+    target = `/dashboard/crm/clients/new?error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  redirect(target);
+}
+
 export async function updateCoachingProjectAction(formData: FormData) {
   await requireSession();
 
