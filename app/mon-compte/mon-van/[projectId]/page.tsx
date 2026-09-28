@@ -80,15 +80,30 @@ export default async function MonVanProjectPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ step?: string; error?: string; success?: string; vehicleDraft?: string; usagesDraft?: string }>;
+  searchParams: Promise<{
+    step?: string;
+    error?: string;
+    success?: string;
+    vehicleDraft?: string;
+    usagesDraft?: string;
+    implantationDraft?: string;
+  }>;
 }) {
   const actor = await requireCustomerActor();
   if (actor.role !== "customer") redirect("/mon-compte");
 
   const { projectId } = await params;
-  const { step, error, success, vehicleDraft: rawVehicleDraft, usagesDraft: rawUsagesDraft } = await searchParams;
+  const {
+    step,
+    error,
+    success,
+    vehicleDraft: rawVehicleDraft,
+    usagesDraft: rawUsagesDraft,
+    implantationDraft: rawImplantationDraft,
+  } = await searchParams;
   const vehicleDraft = parseDraft(rawVehicleDraft);
   const usagesDraft = parseDraft(rawUsagesDraft);
+  const implantationDraft = parseDraft(rawImplantationDraft);
   const activeStep = ["2", "3", "4", "5"].includes(step ?? "") ? Number(step) : 1;
 
   const project = await prisma.coachingProject.findUnique({
@@ -541,11 +556,16 @@ export default async function MonVanProjectPage({
           <form action={updateImplantationInfoAction} className="mt-4 grid gap-4">
             <input type="hidden" name="projectId" value={project.id} />
             <input type="hidden" name="expectedImplantationUpdatedAt" value={project.implantationUpdatedAt.toISOString()} />
-            <TextAreaField label="Croquis, emplacements et volumes disponibles pour la batterie" name="implantationNotes" defaultValue={project.implantationNotes} />
-            <TextAreaField label="Contraintes de ventilation, température, eau, accessibilité" name="ventilationConstraints" defaultValue={project.ventilationConstraints} />
-            <TextAreaField label="Position des prises, éclairages et commandes" name="outletsLightingNotes" defaultValue={project.outletsLightingNotes} />
-            <TextAreaField label="Tension, alternateur, contraintes constructeur (si connu)" name="vehicleElectricalNotes" defaultValue={project.vehicleElectricalNotes} />
-            <TextField label="D'où vient cette information ?" name="vehicleElectricalSource" defaultValue={project.vehicleElectricalSource} placeholder="Manuel constructeur, mesure, estimation…" />
+            <TextAreaField label="Croquis, emplacements et volumes disponibles pour la batterie" name="implantationNotes" defaultValue={implantationDraft?.implantationNotes ?? project.implantationNotes} />
+            <TextAreaField label="Contraintes de ventilation, température, eau, accessibilité" name="ventilationConstraints" defaultValue={implantationDraft?.ventilationConstraints ?? project.ventilationConstraints} />
+            <TextAreaField label="Position des prises, éclairages et commandes" name="outletsLightingNotes" defaultValue={implantationDraft?.outletsLightingNotes ?? project.outletsLightingNotes} />
+            <TextAreaField label="Tension, alternateur, contraintes constructeur (si connu)" name="vehicleElectricalNotes" defaultValue={implantationDraft?.vehicleElectricalNotes ?? project.vehicleElectricalNotes} />
+            <TextField
+              label="D'où vient cette information ?"
+              name="vehicleElectricalSource"
+              defaultValue={implantationDraft?.vehicleElectricalSource ?? project.vehicleElectricalSource}
+              placeholder="Manuel constructeur, mesure, estimation…"
+            />
             <div>
               <Button type="submit" className="w-full sm:w-auto">Enregistrer</Button>
             </div>

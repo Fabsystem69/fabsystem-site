@@ -41,6 +41,7 @@ function httpErrorStubs() {
 function loadActions(deps: {
   updateVehicleInfoImpl?: (input: unknown) => Promise<unknown>;
   updateUsagesInfoImpl?: (input: unknown) => Promise<unknown>;
+  updateImplantationInfoImpl?: (input: unknown) => Promise<unknown>;
   assetTypeParseSuccess?: boolean;
   httpErrors?: ReturnType<typeof httpErrorStubs>;
 }) {
@@ -58,6 +59,7 @@ function loadActions(deps: {
     "@/lib/services/coaching-van-dossier": {
       updateVehicleInfo: deps.updateVehicleInfoImpl ?? (async () => ({})),
       updateUsagesInfo: deps.updateUsagesInfoImpl ?? (async () => ({})),
+      updateImplantationInfo: deps.updateImplantationInfoImpl ?? (async () => ({})),
     },
     "next/navigation": {
       redirect: (target: string) => {
@@ -192,4 +194,30 @@ test("updateUsagesInfoAction renvoie la saisie tapée dans l'URL d'erreur, sans 
   assert.equal(draft.remoteWorkNotes, "4h/jour, ordinateur + écran externe");
   assert.equal(draft.criticalDevicesWhenLow, "Frigo et éclairage en priorité");
   assert.equal(draft.solarRoofSpaceNotes, "3m² disponibles, un vélux au milieu");
+});
+
+test("updateImplantationInfoAction renvoie la saisie tapée dans l'URL d'erreur, sans rien perdre", async () => {
+  const httpErrors = httpErrorStubs();
+  const actions = loadActions({
+    httpErrors,
+    updateImplantationInfoImpl: async () => {
+      throw new httpErrors.HttpError(409, "Conflit de version détecté.");
+    },
+  });
+
+  const form = new FormData();
+  form.set("projectId", "project-1");
+  form.set("expectedImplantationUpdatedAt", "2026-01-01T00:00:00.000Z");
+  form.set("implantationNotes", "Sous le lit, volume 40x60x20cm");
+  form.set("ventilationConstraints", "Aucune aération prévue à cet endroit");
+  form.set("vehicleElectricalSource", "Manuel constructeur");
+
+  const target = await invokeAndCaptureRedirect(actions.updateImplantationInfoAction, form);
+
+  const url = new URL(target, "http://localhost");
+  assert.match(url.searchParams.get("error") ?? "", /Conflit de version/);
+  const draft = JSON.parse(decodeURIComponent(url.searchParams.get("implantationDraft") ?? "")) as Record<string, string>;
+  assert.equal(draft.implantationNotes, "Sous le lit, volume 40x60x20cm");
+  assert.equal(draft.ventilationConstraints, "Aucune aération prévue à cet endroit");
+  assert.equal(draft.vehicleElectricalSource, "Manuel constructeur");
 });

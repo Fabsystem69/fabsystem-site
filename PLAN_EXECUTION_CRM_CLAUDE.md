@@ -790,3 +790,13 @@ Fichiers modifiés : `app/dashboard/crm/project-lifecycle-actions.ts`, `app/dash
 Vérifications : ESLint réussi (aucun avertissement) ; `tsc --noEmit --incremental false` : 68 diagnostics, inchangés ; `npm test` (suite complète) : **1171/1171 réussis, 0 échec** ; `git diff --check` réussi sur tous les fichiers.
 
 Limite assumée : les formulaires admin plus rarement touchés en cours de séance (circuits, révisions de schéma, matériel...) ne sont pas couverts par ce lot — l'audit D13 cible en priorité les formulaires où une vraie perte de saisie ferait mal (appel en cours, client en train de remplir), pas une couverture exhaustive de tous les formulaires du CRM d'un coup.
+
+Commité (`2ab0db5`) et poussé sur `main` — aucun changement de schéma, aucun risque prod, redéploiement Vercel attendu ; `https://www.fabsystem.fr` revérifié 200 après coup.
+
+### 28 septembre 2026 — D13 : dernier des trois gros formulaires « étape » du dossier client (implantation)
+
+Complète la trilogie des formulaires client à plusieurs champs remplis en direct par le client (véhicule, usages, et maintenant implantation — étape 5, 5 champs) avec le même principe exact que les deux précédents : `updateImplantationInfoAction` capture la saisie brute avant le `try` et la renvoie en JSON encodé (`implantationDraft`) dans l'URL d'erreur ; la page préfère ce brouillon aux valeurs en base via le `parseDraft` déjà généralisé.
+
+Fichiers modifiés : `app/mon-compte/mon-van/actions.ts`, `app/mon-compte/mon-van/[projectId]/page.tsx`, `tests/mon-van-vehicle-action-draft.test.ts` (+1 cas). Vérifications : ESLint réussi ; `tsc --noEmit --incremental false` : 68 diagnostics, inchangés ; `npm test` (suite complète) : **1172/1172 réussis, 0 échec** ; `git diff --check` réussi.
+
+Avec ce lot, les trois formulaires « étape » du dossier client (véhicule, usages, implantation — 36 champs au total) et les deux formulaires principaux du coach (fiche d'entretien, note rapide) sont tous couverts par D13. Restent hors périmètre, par choix assumé : les formulaires de création rapide (appareil, matériel, circuit — saisie courte, retape moins coûteuse) et les formulaires admin secondaires.

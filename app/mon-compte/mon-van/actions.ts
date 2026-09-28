@@ -267,9 +267,18 @@ export async function sendForReviewAction(formData: FormData) {
   redirect(target);
 }
 
+const IMPLANTATION_INFO_FIELD_NAMES = [
+  "implantationNotes",
+  "ventilationConstraints",
+  "outletsLightingNotes",
+  "vehicleElectricalNotes",
+  "vehicleElectricalSource",
+] as const;
+
 export async function updateImplantationInfoAction(formData: FormData) {
   const actor = await requireCustomerActor();
   const projectId = getString(formData, "projectId");
+  const raw = Object.fromEntries(IMPLANTATION_INFO_FIELD_NAMES.map((name) => [name, getString(formData, name)]));
   let target: string;
   try {
     await assertOwnedProject(actor, projectId);
@@ -278,16 +287,18 @@ export async function updateImplantationInfoAction(formData: FormData) {
       actor: { kind: "client" },
       expectedImplantationUpdatedAt: new Date(getString(formData, "expectedImplantationUpdatedAt")),
       fields: {
-        implantationNotes: getString(formData, "implantationNotes") || null,
-        ventilationConstraints: getString(formData, "ventilationConstraints") || null,
-        outletsLightingNotes: getString(formData, "outletsLightingNotes") || null,
-        vehicleElectricalNotes: getString(formData, "vehicleElectricalNotes") || null,
-        vehicleElectricalSource: getString(formData, "vehicleElectricalSource") || null,
+        implantationNotes: raw.implantationNotes || null,
+        ventilationConstraints: raw.ventilationConstraints || null,
+        outletsLightingNotes: raw.outletsLightingNotes || null,
+        vehicleElectricalNotes: raw.vehicleElectricalNotes || null,
+        vehicleElectricalSource: raw.vehicleElectricalSource || null,
       },
     });
     target = `/mon-compte/mon-van/${projectId}?step=5&success=${encodeURIComponent("Enregistré.")}`;
   } catch (error) {
-    target = `/mon-compte/mon-van/${projectId}?step=5&error=${encodeURIComponent(errorMessage(error))}`;
+    // D13 (audit) : même principe que updateVehicleInfoAction/updateUsagesInfoAction.
+    const draft = encodeURIComponent(JSON.stringify(raw));
+    target = `/mon-compte/mon-van/${projectId}?step=5&error=${encodeURIComponent(errorMessage(error))}&implantationDraft=${draft}`;
   }
   revalidatePath(`/mon-compte/mon-van/${projectId}`);
   redirect(target);
