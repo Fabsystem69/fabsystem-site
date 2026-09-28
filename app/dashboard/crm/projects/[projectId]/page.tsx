@@ -91,10 +91,10 @@ export default async function DashboardCrmProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ error?: string; success?: string; scenario?: string; entretienDraft?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; scenario?: string; entretienDraft?: string; noteDraft?: string }>;
 }) {
   const { projectId } = await params;
-  const { error, success, scenario: scenarioIdParam, entretienDraft } = await searchParams;
+  const { error, success, scenario: scenarioIdParam, entretienDraft, noteDraft } = await searchParams;
   const [project, balance] = await Promise.all([
     getCoachingProjectForDetail(projectId),
     getCoachingProjectTimeBalance(projectId),
@@ -198,6 +198,7 @@ export default async function DashboardCrmProjectDetailPage({
       <EntretienSection
         project={project}
         draft={entretienDraft}
+        noteDraft={noteDraft}
         updateEntretienInfoAction={updateEntretienInfoAction}
         addQuickCoachingNoteAction={addQuickCoachingNoteAction}
       />

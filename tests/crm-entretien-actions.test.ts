@@ -171,6 +171,36 @@ test("updateEntretienInfoAction renvoie la saisie tapée dans l'URL d'erreur, sa
   assert.equal(draft.resumePartage, "Bilan transmis, en attente de votre retour.");
 });
 
+test("addQuickCoachingNoteAction renvoie la note tapée dans l'URL d'erreur, sans rien perdre", async () => {
+  const actions = loadActions(
+    { addQuickCoachingNote: async () => { throw new Error("Canal requis."); } },
+    httpErrorStubs(),
+    "app/dashboard/crm/project-lifecycle-actions.ts"
+  );
+
+  const form = new FormData();
+  form.set("projectId", "project-1");
+  form.set("channel", "WhatsApp");
+  form.set("subject", "Emplacement du matériel");
+  form.set("conclusion", "Le client envoie une photo avant de poursuivre.");
+  form.set("nextActionLabel", "Envoyer la photo");
+  form.set("nextActionResponsible", "CLIENT");
+  form.set("nextActionDueDate", "2026-10-01");
+  form.set("sharedWithClient", "true");
+
+  const target = await invokeAndCaptureRedirect(actions.addQuickCoachingNoteAction, form);
+
+  const url = new URL(target, "http://localhost");
+  const draft = JSON.parse(decodeURIComponent(url.searchParams.get("noteDraft") ?? "")) as Record<string, string>;
+  assert.equal(draft.channel, "WhatsApp");
+  assert.equal(draft.subject, "Emplacement du matériel");
+  assert.equal(draft.conclusion, "Le client envoie une photo avant de poursuivre.");
+  assert.equal(draft.nextActionLabel, "Envoyer la photo");
+  assert.equal(draft.nextActionResponsible, "CLIENT");
+  assert.equal(draft.nextActionDueDate, "2026-10-01");
+  assert.equal(draft.sharedWithClient, "true");
+});
+
 test("addQuickCoachingNoteAction transmet la note et l'action suivante quand fournie", async () => {
   const calls: Record<string, unknown>[] = [];
   const actions = loadActions(

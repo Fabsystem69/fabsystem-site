@@ -16,16 +16,26 @@ type EntretienDraft = {
   resumePartage?: string;
 };
 
-// D13 (audit) : si l'enregistrement échoue (ex. prix mal saisi), le texte
-// tapé à côté ne doit pas disparaître. `raw` vient d'un paramètre d'URL —
-// jamais fait confiance sans un parsing défensif (JSON invalide/absent =
-// simplement pas de brouillon, jamais une erreur affichée à la place du
-// formulaire).
-function parseEntretienDraft(raw: string | undefined): EntretienDraft | null {
+type NoteDraft = {
+  channel?: string;
+  subject?: string;
+  conclusion?: string;
+  nextActionLabel?: string;
+  nextActionResponsible?: string;
+  nextActionDueDate?: string;
+  sharedWithClient?: string;
+};
+
+// D13 (audit) : si l'enregistrement échoue (ex. prix mal saisi, sujet
+// oublié), le texte tapé à côté ne doit pas disparaître. `raw` vient d'un
+// paramètre d'URL — jamais fait confiance sans un parsing défensif (JSON
+// invalide/absent = simplement pas de brouillon, jamais une erreur affichée
+// à la place du formulaire).
+function parseDraft<T>(raw: string | undefined): T | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? (parsed as EntretienDraft) : null;
+    return parsed && typeof parsed === "object" ? (parsed as T) : null;
   } catch {
     return null;
   }
@@ -38,15 +48,18 @@ function parseEntretienDraft(raw: string | undefined): EntretienDraft | null {
 export function EntretienSection({
   project,
   draft: rawDraft,
+  noteDraft: rawNoteDraft,
   updateEntretienInfoAction,
   addQuickCoachingNoteAction,
 }: {
   project: Project;
   draft?: string;
+  noteDraft?: string;
   updateEntretienInfoAction: (formData: FormData) => Promise<void>;
   addQuickCoachingNoteAction: (formData: FormData) => Promise<void>;
 }) {
-  const draft = parseEntretienDraft(rawDraft);
+  const draft = parseDraft<EntretienDraft>(rawDraft);
+  const noteDraft = parseDraft<NoteDraft>(rawNoteDraft);
   return (
     <>
       <AdminCard
@@ -121,7 +134,7 @@ export function EntretienSection({
           <div className="grid gap-3 sm:grid-cols-2">
             <label className={labelClass}>
               Canal
-              <select name="channel" defaultValue="WhatsApp" className={fieldClass}>
+              <select name="channel" defaultValue={noteDraft?.channel || "WhatsApp"} className={fieldClass}>
                 <option value="WhatsApp">WhatsApp</option>
                 <option value="Visio">Visio</option>
                 <option value="Appel">Appel</option>
@@ -130,21 +143,33 @@ export function EntretienSection({
             </label>
             <label className={labelClass}>
               Sujet
-              <input name="subject" required placeholder="Emplacement du matériel" className={fieldClass} />
+              <input name="subject" required defaultValue={noteDraft?.subject ?? ""} placeholder="Emplacement du matériel" className={fieldClass} />
             </label>
           </div>
           <label className={labelClass}>
             Conclusion
-            <textarea name="conclusion" required rows={2} placeholder="Le client envoie une photo avant de poursuivre." className={`${fieldClass} h-auto py-2.5`} />
+            <textarea
+              name="conclusion"
+              required
+              rows={2}
+              defaultValue={noteDraft?.conclusion ?? ""}
+              placeholder="Le client envoie une photo avant de poursuivre."
+              className={`${fieldClass} h-auto py-2.5`}
+            />
           </label>
           <div className="grid gap-3 sm:grid-cols-[1fr_10rem_10rem]">
             <label className={labelClass}>
               Prochaine action (facultatif)
-              <input name="nextActionLabel" placeholder="Envoyer une photo de la batterie" className={fieldClass} />
+              <input
+                name="nextActionLabel"
+                defaultValue={noteDraft?.nextActionLabel ?? ""}
+                placeholder="Envoyer une photo de la batterie"
+                className={fieldClass}
+              />
             </label>
             <label className={labelClass}>
               Pour
-              <select name="nextActionResponsible" defaultValue="" className={fieldClass}>
+              <select name="nextActionResponsible" defaultValue={noteDraft?.nextActionResponsible ?? ""} className={fieldClass}>
                 <option value="">—</option>
                 <option value="CLIENT">Client</option>
                 <option value="COACH">Vous</option>
@@ -152,11 +177,17 @@ export function EntretienSection({
             </label>
             <label className={labelClass}>
               Date
-              <input name="nextActionDueDate" type="date" className={fieldClass} />
+              <input name="nextActionDueDate" type="date" defaultValue={noteDraft?.nextActionDueDate ?? ""} className={fieldClass} />
             </label>
           </div>
           <label className="flex min-h-11 items-center gap-2 py-1 text-sm text-neutral-300">
-            <input type="checkbox" name="sharedWithClient" value="true" className="h-5 w-5 shrink-0 rounded border-neutral-700 bg-neutral-900" />
+            <input
+              type="checkbox"
+              name="sharedWithClient"
+              value="true"
+              defaultChecked={noteDraft?.sharedWithClient === "true"}
+              className="h-5 w-5 shrink-0 rounded border-neutral-700 bg-neutral-900"
+            />
             Partager cette synthèse au client
           </label>
           <AdminButton type="submit" variant="secondary" className="h-11 self-start px-6">Enregistrer la note</AdminButton>

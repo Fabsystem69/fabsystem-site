@@ -63,9 +63,35 @@ async function assertOwnedProject(actor: OwnershipActor, projectId: string) {
   if (project.customerId !== actor.customerId) throw forbidden("Ce projet ne vous appartient pas.");
 }
 
+// D13 (AUDIT_INDEPENDANT_FABSYSTEM.md) : "la saisie en cours n'est pas
+// reprise" — le plus grand formulaire client de tout le dossier (16
+// champs). Toute la saisie brute est capturée avant le try pour pouvoir la
+// renvoyer telle quelle dans l'URL d'erreur, sans jamais la faire dépendre
+// du chemin qui a réussi ou échoué.
+const VEHICLE_INFO_FIELD_NAMES = [
+  "assetType",
+  "vehicleBrand",
+  "vehicleModel",
+  "vehicleYear",
+  "vehicleEngine",
+  "vehicleFormat",
+  "vehicleDimensions",
+  "registrationCountry",
+  "usageCountry",
+  "homologationNotes",
+  "projectStage",
+  "niveauClient",
+  "whoDoesTheWork",
+  "coachingTopics",
+  "objectifs",
+  "threePriorities",
+  "startDeadline",
+] as const;
+
 export async function updateVehicleInfoAction(formData: FormData) {
   const actor = await requireCustomerActor();
   const projectId = getString(formData, "projectId");
+  const raw = Object.fromEntries(VEHICLE_INFO_FIELD_NAMES.map((name) => [name, getString(formData, name)]));
   let target: string;
   try {
     await assertOwnedProject(actor, projectId);
@@ -75,41 +101,61 @@ export async function updateVehicleInfoAction(formData: FormData) {
       expectedVehicleInfoUpdatedAt: new Date(getString(formData, "expectedVehicleInfoUpdatedAt")),
       fields: {
         assetType: (() => {
-          const raw = getString(formData, "assetType").trim();
-          if (!raw) return null; // "je ne sais pas encore" — jamais une valeur inventée
-          const parsed = projectAssetTypeSchema.safeParse(raw);
+          const value = raw.assetType.trim();
+          if (!value) return null; // "je ne sais pas encore" — jamais une valeur inventée
+          const parsed = projectAssetTypeSchema.safeParse(value);
           if (!parsed.success) throw badRequest("Support invalide.");
           return parsed.data;
         })(),
-        vehicleBrand: getString(formData, "vehicleBrand") || null,
-        vehicleModel: getString(formData, "vehicleModel") || null,
-        vehicleYear: getString(formData, "vehicleYear") || null,
-        vehicleEngine: getString(formData, "vehicleEngine") || null,
-        vehicleFormat: getString(formData, "vehicleFormat") || null,
-        vehicleDimensions: getString(formData, "vehicleDimensions") || null,
-        registrationCountry: getString(formData, "registrationCountry") || null,
-        usageCountry: getString(formData, "usageCountry") || null,
-        homologationNotes: getString(formData, "homologationNotes") || null,
-        projectStage: getString(formData, "projectStage") || null,
-        niveauClient: (getString(formData, "niveauClient") || null) as ClientLevel | null,
-        whoDoesTheWork: getString(formData, "whoDoesTheWork") || null,
-        coachingTopics: getString(formData, "coachingTopics") || null,
-        objectifs: getString(formData, "objectifs") || null,
-        threePriorities: getString(formData, "threePriorities") || null,
-        startDeadline: getString(formData, "startDeadline") || null,
+        vehicleBrand: raw.vehicleBrand || null,
+        vehicleModel: raw.vehicleModel || null,
+        vehicleYear: raw.vehicleYear || null,
+        vehicleEngine: raw.vehicleEngine || null,
+        vehicleFormat: raw.vehicleFormat || null,
+        vehicleDimensions: raw.vehicleDimensions || null,
+        registrationCountry: raw.registrationCountry || null,
+        usageCountry: raw.usageCountry || null,
+        homologationNotes: raw.homologationNotes || null,
+        projectStage: raw.projectStage || null,
+        niveauClient: (raw.niveauClient || null) as ClientLevel | null,
+        whoDoesTheWork: raw.whoDoesTheWork || null,
+        coachingTopics: raw.coachingTopics || null,
+        objectifs: raw.objectifs || null,
+        threePriorities: raw.threePriorities || null,
+        startDeadline: raw.startDeadline || null,
       },
     });
     target = `/mon-compte/mon-van/${projectId}?step=1&success=${encodeURIComponent("Enregistré.")}`;
   } catch (error) {
-    target = `/mon-compte/mon-van/${projectId}?step=1&error=${encodeURIComponent(errorMessage(error))}`;
+    const draft = encodeURIComponent(JSON.stringify(raw));
+    target = `/mon-compte/mon-van/${projectId}?step=1&error=${encodeURIComponent(errorMessage(error))}&vehicleDraft=${draft}`;
   }
   revalidatePath(`/mon-compte/mon-van/${projectId}`);
   redirect(target);
 }
 
+const USAGES_INFO_FIELD_NAMES = [
+  "travelerCount",
+  "usagePattern",
+  "remoteWorkNotes",
+  "seasonsRegionsNotes",
+  "parkingExposure",
+  "daysWithoutRecharge",
+  "minAutonomyNoRecharge",
+  "criticalDevicesWhenLow",
+  "drivingHabits",
+  "shorePowerAvailability",
+  "solarPreference",
+  "solarMounting",
+  "solarRoofSpaceNotes",
+  "otherEnergySources",
+  "plannedEquipmentNotes",
+] as const;
+
 export async function updateUsagesInfoAction(formData: FormData) {
   const actor = await requireCustomerActor();
   const projectId = getString(formData, "projectId");
+  const raw = Object.fromEntries(USAGES_INFO_FIELD_NAMES.map((name) => [name, getString(formData, name)]));
   let target: string;
   try {
     await assertOwnedProject(actor, projectId);
@@ -118,26 +164,28 @@ export async function updateUsagesInfoAction(formData: FormData) {
       actor: { kind: "client" },
       expectedUsagesUpdatedAt: new Date(getString(formData, "expectedUsagesUpdatedAt")),
       fields: {
-        travelerCount: getString(formData, "travelerCount") || null,
-        usagePattern: getString(formData, "usagePattern") || null,
-        remoteWorkNotes: getString(formData, "remoteWorkNotes") || null,
-        seasonsRegionsNotes: getString(formData, "seasonsRegionsNotes") || null,
-        parkingExposure: getString(formData, "parkingExposure") || null,
-        daysWithoutRecharge: getString(formData, "daysWithoutRecharge") || null,
-        minAutonomyNoRecharge: getString(formData, "minAutonomyNoRecharge") || null,
-        criticalDevicesWhenLow: getString(formData, "criticalDevicesWhenLow") || null,
-        drivingHabits: getString(formData, "drivingHabits") || null,
-        shorePowerAvailability: getString(formData, "shorePowerAvailability") || null,
-        solarPreference: getString(formData, "solarPreference") || null,
-        solarMounting: getString(formData, "solarMounting") || null,
-        solarRoofSpaceNotes: getString(formData, "solarRoofSpaceNotes") || null,
-        otherEnergySources: getString(formData, "otherEnergySources") || null,
-        plannedEquipmentNotes: getString(formData, "plannedEquipmentNotes") || null,
+        travelerCount: raw.travelerCount || null,
+        usagePattern: raw.usagePattern || null,
+        remoteWorkNotes: raw.remoteWorkNotes || null,
+        seasonsRegionsNotes: raw.seasonsRegionsNotes || null,
+        parkingExposure: raw.parkingExposure || null,
+        daysWithoutRecharge: raw.daysWithoutRecharge || null,
+        minAutonomyNoRecharge: raw.minAutonomyNoRecharge || null,
+        criticalDevicesWhenLow: raw.criticalDevicesWhenLow || null,
+        drivingHabits: raw.drivingHabits || null,
+        shorePowerAvailability: raw.shorePowerAvailability || null,
+        solarPreference: raw.solarPreference || null,
+        solarMounting: raw.solarMounting || null,
+        solarRoofSpaceNotes: raw.solarRoofSpaceNotes || null,
+        otherEnergySources: raw.otherEnergySources || null,
+        plannedEquipmentNotes: raw.plannedEquipmentNotes || null,
       },
     });
     target = `/mon-compte/mon-van/${projectId}?step=2&success=${encodeURIComponent("Enregistré.")}`;
   } catch (error) {
-    target = `/mon-compte/mon-van/${projectId}?step=2&error=${encodeURIComponent(errorMessage(error))}`;
+    // D13 (audit) : même principe que updateVehicleInfoAction.
+    const draft = encodeURIComponent(JSON.stringify(raw));
+    target = `/mon-compte/mon-van/${projectId}?step=2&error=${encodeURIComponent(errorMessage(error))}&usagesDraft=${draft}`;
   }
   revalidatePath(`/mon-compte/mon-van/${projectId}`);
   redirect(target);

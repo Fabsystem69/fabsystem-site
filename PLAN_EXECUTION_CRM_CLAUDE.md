@@ -774,3 +774,19 @@ Fabien a eu besoin d'utiliser la fiche d'entretien pour une vraie séance de coa
 - Vérification après coup : `https://www.fabsystem.fr` répond 200, `/login` répond 200, `/dashboard/crm` redirige proprement (307, session absente) — aucune erreur 500 constatée sur ces routes de base.
 
 **Point d'attention pour la suite** : Fabien utilisera le CRM en production une fois qu'il aura vérifié lui-même que tout va bien — aucune donnée réelle n'y a encore été saisie via ce nouveau système à la date de cette entrée.
+
+### 28 septembre 2026 — extension de la protection anti-perte de saisie (D13) aux formulaires les plus exposés
+
+Suite à la fiche d'entretien (lot précédent), extension du même principe à trois autres formulaires — priorisés par exposition réelle (formulaires remplis en direct, pendant un appel ou par le client lui-même, pas des réglages ponctuels) :
+
+- `addQuickCoachingNoteAction` (note rapide WhatsApp/visio) : la saisie (canal, sujet, conclusion, prochaine action) est renvoyée dans l'URL d'erreur (`noteDraft`) plutôt que perdue.
+- `updateVehicleInfoAction` (« Votre projet et véhicule », 16 champs, **rempli par le client lui-même**, pas seulement le coach) : idem (`vehicleDraft`).
+- `updateUsagesInfoAction` (« Votre quotidien et votre recharge », 15 champs, client) : idem (`usagesDraft`).
+
+Pattern identique à chaque fois : capturer la saisie brute avant le `try`, la joindre en JSON encodé à l'URL de redirection uniquement en cas d'erreur, et au niveau de la page, préférer ce brouillon aux valeurs déjà en base via un parsing défensif (JSON invalide/absent → simplement ignoré). `EntretienSection.tsx` a vu son helper de parsing généralisé (`parseEntretienDraft` → `parseDraft<T>`) pour couvrir aussi la note rapide ; `app/mon-compte/mon-van/[projectId]/page.tsx` a son propre `parseDraft` local (même petite duplication déjà pratiquée ailleurs dans ce dépôt pour des helpers triviaux, plutôt qu'une abstraction partagée prématurée).
+
+Fichiers modifiés : `app/dashboard/crm/project-lifecycle-actions.ts`, `app/dashboard/crm/projects/[projectId]/page.tsx`, `components/dashboard/crm/EntretienSection.tsx`, `app/mon-compte/mon-van/actions.ts`, `app/mon-compte/mon-van/[projectId]/page.tsx`. Tests : `tests/crm-entretien-actions.test.ts` étendu (+1 cas pour la note rapide) ; nouveau `tests/mon-van-vehicle-action-draft.test.ts` (3 cas : véhicule en erreur avec saisie complète préservée, véhicule en succès sans brouillon joint, usages en erreur avec saisie préservée).
+
+Vérifications : ESLint réussi (aucun avertissement) ; `tsc --noEmit --incremental false` : 68 diagnostics, inchangés ; `npm test` (suite complète) : **1171/1171 réussis, 0 échec** ; `git diff --check` réussi sur tous les fichiers.
+
+Limite assumée : les formulaires admin plus rarement touchés en cours de séance (circuits, révisions de schéma, matériel...) ne sont pas couverts par ce lot — l'audit D13 cible en priorité les formulaires où une vraie perte de saisie ferait mal (appel en cours, client en train de remplir), pas une couverture exhaustive de tous les formulaires du CRM d'un coup.

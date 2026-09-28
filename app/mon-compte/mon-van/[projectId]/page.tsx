@@ -61,18 +61,34 @@ function TextAreaField({ label, name, defaultValue }: { label: string; name: str
   );
 }
 
+// D13 (AUDIT_INDEPENDANT_FABSYSTEM.md) : "la saisie en cours n'est pas
+// reprise" en cas d'erreur — `raw` vient d'un paramètre d'URL, jamais fait
+// confiance sans un parsing défensif (JSON invalide/absent = simplement
+// pas de brouillon, jamais une erreur affichée à la place du formulaire).
+function parseDraft(raw: string | undefined): Record<string, string> | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function MonVanProjectPage({
   params,
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ step?: string; error?: string; success?: string }>;
+  searchParams: Promise<{ step?: string; error?: string; success?: string; vehicleDraft?: string; usagesDraft?: string }>;
 }) {
   const actor = await requireCustomerActor();
   if (actor.role !== "customer") redirect("/mon-compte");
 
   const { projectId } = await params;
-  const { step, error, success } = await searchParams;
+  const { step, error, success, vehicleDraft: rawVehicleDraft, usagesDraft: rawUsagesDraft } = await searchParams;
+  const vehicleDraft = parseDraft(rawVehicleDraft);
+  const usagesDraft = parseDraft(rawUsagesDraft);
   const activeStep = ["2", "3", "4", "5"].includes(step ?? "") ? Number(step) : 1;
 
   const project = await prisma.coachingProject.findUnique({
@@ -209,29 +225,29 @@ export default async function MonVanProjectPage({
             <input type="hidden" name="expectedVehicleInfoUpdatedAt" value={project.vehicleInfoUpdatedAt.toISOString()} />
             <label className={labelClass}>
               <span>Votre support</span>
-              <select name="assetType" defaultValue={project.assetType ?? ""} className={fieldClass}>
+              <select name="assetType" defaultValue={vehicleDraft?.assetType ?? project.assetType ?? ""} className={fieldClass}>
                 <option value="">Je ne sais pas encore</option>
                 {Object.entries(PROJECT_ASSET_TYPE_LABELS).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </label>
-            <TextField label={`Marque du ${vehicleNoun(project.assetType)}`} name="vehicleBrand" defaultValue={project.vehicleBrand} />
-            <TextField label="Modèle" name="vehicleModel" defaultValue={project.vehicleModel} />
-            <TextField label="Année" name="vehicleYear" defaultValue={project.vehicleYear} />
-            <TextField label="Motorisation" name="vehicleEngine" defaultValue={project.vehicleEngine} />
+            <TextField label={`Marque du ${vehicleNoun(project.assetType)}`} name="vehicleBrand" defaultValue={vehicleDraft?.vehicleBrand ?? project.vehicleBrand} />
+            <TextField label="Modèle" name="vehicleModel" defaultValue={vehicleDraft?.vehicleModel ?? project.vehicleModel} />
+            <TextField label="Année" name="vehicleYear" defaultValue={vehicleDraft?.vehicleYear ?? project.vehicleYear} />
+            <TextField label="Motorisation" name="vehicleEngine" defaultValue={vehicleDraft?.vehicleEngine ?? project.vehicleEngine} />
             <TextField
               label={project.assetType === "VAN" || project.assetType === null ? "Gabarit (L2H2...)" : "Gabarit"}
               name="vehicleFormat"
-              defaultValue={project.vehicleFormat}
+              defaultValue={vehicleDraft?.vehicleFormat ?? project.vehicleFormat}
             />
-            <TextField label="Dimensions utiles" name="vehicleDimensions" defaultValue={project.vehicleDimensions} />
-            <TextField label="Pays d'immatriculation" name="registrationCountry" defaultValue={project.registrationCountry} />
-            <TextField label="Pays d'usage" name="usageCountry" defaultValue={project.usageCountry} />
-            <TextAreaField label="Démarche d'homologation" name="homologationNotes" defaultValue={project.homologationNotes} />
+            <TextField label="Dimensions utiles" name="vehicleDimensions" defaultValue={vehicleDraft?.vehicleDimensions ?? project.vehicleDimensions} />
+            <TextField label="Pays d'immatriculation" name="registrationCountry" defaultValue={vehicleDraft?.registrationCountry ?? project.registrationCountry} />
+            <TextField label="Pays d'usage" name="usageCountry" defaultValue={vehicleDraft?.usageCountry ?? project.usageCountry} />
+            <TextAreaField label="Démarche d'homologation" name="homologationNotes" defaultValue={vehicleDraft?.homologationNotes ?? project.homologationNotes} />
             <label className={labelClass}>
               <span>Où en êtes-vous ?</span>
-              <select name="projectStage" defaultValue={project.projectStage ?? ""} className={fieldClass}>
+              <select name="projectStage" defaultValue={vehicleDraft?.projectStage ?? project.projectStage ?? ""} className={fieldClass}>
                 <option value="">À définir avec Fabsystem</option>
                 <option value="Idée">Idée</option>
                 <option value="Véhicule acheté">Véhicule acheté</option>
@@ -242,18 +258,18 @@ export default async function MonVanProjectPage({
             </label>
             <label className={labelClass}>
               <span>Votre niveau en électricité</span>
-              <select name="niveauClient" defaultValue={project.niveauClient ?? ""} className={fieldClass}>
+              <select name="niveauClient" defaultValue={vehicleDraft?.niveauClient ?? project.niveauClient ?? ""} className={fieldClass}>
                 <option value="">À définir avec Fabsystem</option>
                 <option value="DEBUTANT">Je débute</option>
                 <option value="INTERMEDIAIRE">J&apos;ai quelques bases</option>
                 <option value="AVANCE">J&apos;ai déjà pratiqué</option>
               </select>
             </label>
-            <TextField label="Qui réalisera les travaux ?" name="whoDoesTheWork" defaultValue={project.whoDoesTheWork} />
-            <TextField label="Échéance de départ souhaitée" name="startDeadline" defaultValue={project.startDeadline} />
-            <TextAreaField label="Sujets sur lesquels être accompagné" name="coachingTopics" defaultValue={project.coachingTopics} />
-            <TextAreaField label="Votre objectif principal" name="objectifs" defaultValue={project.objectifs} />
-            <TextAreaField label="Vos trois priorités" name="threePriorities" defaultValue={project.threePriorities} />
+            <TextField label="Qui réalisera les travaux ?" name="whoDoesTheWork" defaultValue={vehicleDraft?.whoDoesTheWork ?? project.whoDoesTheWork} />
+            <TextField label="Échéance de départ souhaitée" name="startDeadline" defaultValue={vehicleDraft?.startDeadline ?? project.startDeadline} />
+            <TextAreaField label="Sujets sur lesquels être accompagné" name="coachingTopics" defaultValue={vehicleDraft?.coachingTopics ?? project.coachingTopics} />
+            <TextAreaField label="Votre objectif principal" name="objectifs" defaultValue={vehicleDraft?.objectifs ?? project.objectifs} />
+            <TextAreaField label="Vos trois priorités" name="threePriorities" defaultValue={vehicleDraft?.threePriorities ?? project.threePriorities} />
             <div className="sm:col-span-2">
               <Button type="submit" className="w-full sm:w-auto">Enregistrer</Button>
             </div>
@@ -267,10 +283,10 @@ export default async function MonVanProjectPage({
           <form action={updateUsagesInfoAction} className="mt-4 grid gap-4 sm:grid-cols-2">
             <input type="hidden" name="projectId" value={project.id} />
             <input type="hidden" name="expectedUsagesUpdatedAt" value={project.usagesUpdatedAt.toISOString()} />
-            <TextField label="Nombre de voyageurs" name="travelerCount" defaultValue={project.travelerCount} />
+            <TextField label="Nombre de voyageurs" name="travelerCount" defaultValue={usagesDraft?.travelerCount ?? project.travelerCount} />
             <label className={labelClass}>
               <span>Votre utilisation</span>
-              <select name="usagePattern" defaultValue={project.usagePattern ?? ""} className={fieldClass}>
+              <select name="usagePattern" defaultValue={usagesDraft?.usagePattern ?? project.usagePattern ?? ""} className={fieldClass}>
                 <option value="">À définir avec Fabsystem</option>
                 <option value="Week-ends">Week-ends</option>
                 <option value="Vacances">Vacances</option>
@@ -278,27 +294,27 @@ export default async function MonVanProjectPage({
                 <option value="Vie à l'année">Vie à l&apos;année</option>
               </select>
             </label>
-            <TextAreaField label="Télétravail (durée quotidienne)" name="remoteWorkNotes" defaultValue={project.remoteWorkNotes} />
-            <TextAreaField label="Saisons, régions, températures" name="seasonsRegionsNotes" defaultValue={project.seasonsRegionsNotes} />
-            <TextField label="Stationnement (soleil / ombre)" name="parkingExposure" defaultValue={project.parkingExposure} />
-            <TextField label="Jours souhaités sans recharge" name="daysWithoutRecharge" defaultValue={project.daysWithoutRecharge} />
-            <TextField label="Autonomie minimale sans recharge" name="minAutonomyNoRecharge" defaultValue={project.minAutonomyNoRecharge} />
-            <TextAreaField label="Appareils indispensables si énergie limitée" name="criticalDevicesWhenLow" defaultValue={project.criticalDevicesWhenLow} />
-            <TextAreaField label="Conduite : temps et fréquence" name="drivingHabits" defaultValue={project.drivingHabits} />
-            <TextField label="Disponibilité du secteur" name="shorePowerAvailability" defaultValue={project.shorePowerAvailability} />
+            <TextAreaField label="Télétravail (durée quotidienne)" name="remoteWorkNotes" defaultValue={usagesDraft?.remoteWorkNotes ?? project.remoteWorkNotes} />
+            <TextAreaField label="Saisons, régions, températures" name="seasonsRegionsNotes" defaultValue={usagesDraft?.seasonsRegionsNotes ?? project.seasonsRegionsNotes} />
+            <TextField label="Stationnement (soleil / ombre)" name="parkingExposure" defaultValue={usagesDraft?.parkingExposure ?? project.parkingExposure} />
+            <TextField label="Jours souhaités sans recharge" name="daysWithoutRecharge" defaultValue={usagesDraft?.daysWithoutRecharge ?? project.daysWithoutRecharge} />
+            <TextField label="Autonomie minimale sans recharge" name="minAutonomyNoRecharge" defaultValue={usagesDraft?.minAutonomyNoRecharge ?? project.minAutonomyNoRecharge} />
+            <TextAreaField label="Appareils indispensables si énergie limitée" name="criticalDevicesWhenLow" defaultValue={usagesDraft?.criticalDevicesWhenLow ?? project.criticalDevicesWhenLow} />
+            <TextAreaField label="Conduite : temps et fréquence" name="drivingHabits" defaultValue={usagesDraft?.drivingHabits ?? project.drivingHabits} />
+            <TextField label="Disponibilité du secteur" name="shorePowerAvailability" defaultValue={usagesDraft?.shorePowerAvailability ?? project.shorePowerAvailability} />
             <label className={labelClass}>
               <span>Solaire envisagé ?</span>
-              <select name="solarPreference" defaultValue={project.solarPreference ?? ""} className={fieldClass}>
+              <select name="solarPreference" defaultValue={usagesDraft?.solarPreference ?? project.solarPreference ?? ""} className={fieldClass}>
                 <option value="">À étudier ensemble</option>
                 <option value="Souhaité">Souhaité</option>
                 <option value="Non souhaité">Non souhaité</option>
                 <option value="À étudier">À étudier</option>
               </select>
             </label>
-            <TextField label="Fixe ou portable ?" name="solarMounting" defaultValue={project.solarMounting} />
-            <TextAreaField label="Espace et obstacles sur le toit" name="solarRoofSpaceNotes" defaultValue={project.solarRoofSpaceNotes} />
-            <TextAreaField label="Autres sources d'énergie envisagées" name="otherEnergySources" defaultValue={project.otherEnergySources} />
-            <TextAreaField label="Évolutions futures envisagées" name="plannedEquipmentNotes" defaultValue={project.plannedEquipmentNotes} />
+            <TextField label="Fixe ou portable ?" name="solarMounting" defaultValue={usagesDraft?.solarMounting ?? project.solarMounting} />
+            <TextAreaField label="Espace et obstacles sur le toit" name="solarRoofSpaceNotes" defaultValue={usagesDraft?.solarRoofSpaceNotes ?? project.solarRoofSpaceNotes} />
+            <TextAreaField label="Autres sources d'énergie envisagées" name="otherEnergySources" defaultValue={usagesDraft?.otherEnergySources ?? project.otherEnergySources} />
+            <TextAreaField label="Évolutions futures envisagées" name="plannedEquipmentNotes" defaultValue={usagesDraft?.plannedEquipmentNotes ?? project.plannedEquipmentNotes} />
             <div className="sm:col-span-2">
               <Button type="submit" className="w-full sm:w-auto">Enregistrer</Button>
             </div>

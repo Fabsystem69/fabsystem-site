@@ -235,30 +235,41 @@ export async function addQuickCoachingNoteAction(formData: FormData) {
   await requireSession();
 
   const projectId = getString(formData, "projectId");
+  const channel = getString(formData, "channel");
+  const subject = getString(formData, "subject");
+  const conclusion = getString(formData, "conclusion");
+  const nextActionLabel = getString(formData, "nextActionLabel");
+  const nextActionResponsible = getString(formData, "nextActionResponsible");
+  const nextActionDueDate = getString(formData, "nextActionDueDate");
+  const sharedWithClient = getString(formData, "sharedWithClient");
   let target: string;
   try {
-    const dueDateRaw = getString(formData, "nextActionDueDate");
-    const nextActionLabel = getString(formData, "nextActionLabel");
     await addQuickCoachingNote({
       projectId,
-      channel: getString(formData, "channel"),
-      subject: getString(formData, "subject"),
-      conclusion: getString(formData, "conclusion"),
+      channel,
+      subject,
+      conclusion,
       nextAction: nextActionLabel
         ? {
             label: nextActionLabel,
-            responsible: (getString(formData, "nextActionResponsible") || null) as CoachingResponsible | null,
-            dueDate: dueDateRaw ? new Date(dueDateRaw) : null,
+            responsible: (nextActionResponsible || null) as CoachingResponsible | null,
+            dueDate: nextActionDueDate ? new Date(nextActionDueDate) : null,
           }
         : null,
-      sharedWithClient: getString(formData, "sharedWithClient") === "true",
+      sharedWithClient: sharedWithClient === "true",
       actor: { kind: "coach" },
     });
     revalidatePath(`/dashboard/crm/projects/${projectId}`);
     revalidatePath("/dashboard/crm");
     target = `/dashboard/crm/projects/${projectId}?success=${encodeURIComponent("Note enregistrée.")}`;
   } catch (error) {
-    target = `/dashboard/crm/projects/${projectId}?error=${encodeURIComponent(errorMessage(error))}`;
+    // D13 (audit) : même principe que updateEntretienInfoAction — une note
+    // tapée pendant un vrai appel ne doit jamais disparaître derrière un
+    // message d'erreur (ex. sujet oublié).
+    const draft = encodeURIComponent(
+      JSON.stringify({ channel, subject, conclusion, nextActionLabel, nextActionResponsible, nextActionDueDate, sharedWithClient })
+    );
+    target = `/dashboard/crm/projects/${projectId}?error=${encodeURIComponent(errorMessage(error))}&noteDraft=${draft}`;
   }
   redirect(target);
 }
