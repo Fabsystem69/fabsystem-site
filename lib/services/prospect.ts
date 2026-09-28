@@ -1,5 +1,6 @@
 import { badRequest, notFound } from "@/lib/http-errors";
 import { prisma } from "@/lib/prisma";
+import { notifyCoachOfNewCoachingClient } from "@/lib/services/coaching-project";
 import type { ProspectSource, ProspectStatus } from "@/lib/generated/prisma/client";
 
 export async function listProspects(filters?: { status?: ProspectStatus; search?: string }) {
@@ -168,7 +169,7 @@ export async function convertProspectToClient(input: {
   const projectTitle = input.projectTitle.trim();
   if (!projectTitle) throw badRequest("Titre du projet requis.");
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const customer = await tx.customer.upsert({
       where: { email },
       update: {},
@@ -205,6 +206,13 @@ export async function convertProspectToClient(input: {
 
     return { customerId: customer.id, projectId: project.id };
   });
+
+  // Hors transaction : un incident SMTP ne doit jamais annuler la
+  // conversion, et une transaction DB ne doit jamais rester ouverte le
+  // temps d'un envoi réseau. Voir notifyCoachOfNewCoachingClient.
+  await notifyCoachOfNewCoachingClient(result.customerId);
+
+  return result;
 }
 
 const DEFAULT_PROSPECT_MESSAGE_TEMPLATES: { key: string; label: string; body: string }[] = [

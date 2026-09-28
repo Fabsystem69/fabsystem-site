@@ -86,15 +86,36 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
+// D13 (AUDIT_INDEPENDANT_FABSYSTEM.md) : "la saisie en cours n'est pas
+// reprise" — `raw` vient d'un paramètre d'URL, jamais fait confiance sans
+// un parsing défensif (JSON invalide/absent = simplement pas de brouillon).
+function parseDraft(raw: string | undefined): Record<string, string> | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function DashboardCrmProjectDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ error?: string; success?: string; scenario?: string; entretienDraft?: string; noteDraft?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    success?: string;
+    scenario?: string;
+    entretienDraft?: string;
+    noteDraft?: string;
+    projectDraft?: string;
+  }>;
 }) {
   const { projectId } = await params;
-  const { error, success, scenario: scenarioIdParam, entretienDraft, noteDraft } = await searchParams;
+  const { error, success, scenario: scenarioIdParam, entretienDraft, noteDraft, projectDraft: rawProjectDraft } = await searchParams;
+  const projectDraft = parseDraft(rawProjectDraft);
   const [project, balance] = await Promise.all([
     getCoachingProjectForDetail(projectId),
     getCoachingProjectTimeBalance(projectId),
@@ -160,11 +181,11 @@ export default async function DashboardCrmProjectDetailPage({
           <div className="grid gap-4 sm:grid-cols-2">
             <label className={labelClass}>
               Titre
-              <input name="title" defaultValue={project.title} required className={fieldClass} />
+              <input name="title" defaultValue={projectDraft?.title ?? project.title} required className={fieldClass} />
             </label>
             <label className={labelClass}>
               Statut
-              <select name="status" defaultValue={project.status} className={fieldClass}>
+              <select name="status" defaultValue={projectDraft?.status ?? project.status} className={fieldClass}>
                 <option value="A_DEMARRER">À démarrer</option>
                 <option value="EN_COURS">En cours</option>
                 <option value="EN_ATTENTE">En attente</option>
@@ -174,19 +195,39 @@ export default async function DashboardCrmProjectDetailPage({
           </div>
           <label className={labelClass}>
             Description
-            <textarea name="description" rows={3} defaultValue={project.description ?? ""} className={`${fieldClass} h-auto py-2.5`} />
+            <textarea
+              name="description"
+              rows={3}
+              defaultValue={projectDraft?.description ?? project.description ?? ""}
+              className={`${fieldClass} h-auto py-2.5`}
+            />
           </label>
           <label className={labelClass}>
             Questions en attente
-            <textarea name="questionsEnAttente" rows={2} defaultValue={project.questionsEnAttente ?? ""} className={`${fieldClass} h-auto py-2.5`} />
+            <textarea
+              name="questionsEnAttente"
+              rows={2}
+              defaultValue={projectDraft?.questionsEnAttente ?? project.questionsEnAttente ?? ""}
+              className={`${fieldClass} h-auto py-2.5`}
+            />
           </label>
           <label className={labelClass}>
             Actions à préparer avant la prochaine séance
-            <textarea name="actionsAPreparer" rows={2} defaultValue={project.actionsAPreparer ?? ""} className={`${fieldClass} h-auto py-2.5`} />
+            <textarea
+              name="actionsAPreparer"
+              rows={2}
+              defaultValue={projectDraft?.actionsAPreparer ?? project.actionsAPreparer ?? ""}
+              className={`${fieldClass} h-auto py-2.5`}
+            />
           </label>
           <label className={labelClass}>
             Notes internes
-            <textarea name="notesInternes" rows={2} defaultValue={project.notesInternes ?? ""} className={`${fieldClass} h-auto py-2.5`} />
+            <textarea
+              name="notesInternes"
+              rows={2}
+              defaultValue={projectDraft?.notesInternes ?? project.notesInternes ?? ""}
+              className={`${fieldClass} h-auto py-2.5`}
+            />
           </label>
           <AdminButton type="submit" variant="primary" className="h-11 self-start px-6">Enregistrer</AdminButton>
         </form>

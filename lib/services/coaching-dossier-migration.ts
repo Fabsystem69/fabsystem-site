@@ -1,5 +1,6 @@
 import { badRequest, notFound } from "@/lib/http-errors";
 import { prisma } from "@/lib/prisma";
+import { notifyCoachOfNewCoachingClient } from "@/lib/services/coaching-project";
 import type { DossierOffre } from "@/lib/generated/prisma/client";
 
 // Reprise DossierClient -> CoachingProject (plan de consolidation,
@@ -227,7 +228,7 @@ async function copyDossierSatellitesInto(
 // géante) : permet une progression et une reprise partielles sur un vrai
 // volume, sans tout bloquer sur un seul cas.
 async function createCoachingProjectFromDossier(dossier: DossierWithSatellites) {
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const project = await tx.coachingProject.create({
       data: {
         customerId: dossier.customerId,
@@ -262,6 +263,11 @@ async function createCoachingProjectFromDossier(dossier: DossierWithSatellites) 
     const { documentConflicts } = await copyDossierSatellitesInto(tx, dossier, project.id);
     return { coachingProjectId: project.id, documentConflicts };
   });
+
+  // Hors transaction, best-effort — voir notifyCoachOfNewCoachingClient.
+  await notifyCoachOfNewCoachingClient(dossier.customerId);
+
+  return result;
 }
 
 export type ResolveAmbiguousDecision = { kind: "create_new" } | { kind: "attach_to"; coachingProjectId: string };

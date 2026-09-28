@@ -1,7 +1,9 @@
 import { badRequest, conflict, forbidden, notFound } from "@/lib/http-errors";
 import { computeCoachingProjectTimeBalance } from "@/lib/coaching-time-balance";
 import type { CoachingProjectTimeBalance } from "@/lib/coaching-time-balance";
+import { buildCustomerVcard, customerVcardFilename } from "@/lib/customer-vcard";
 import { prisma } from "@/lib/prisma";
+import { logServerEvent } from "@/lib/server-log";
 import type { CoachingActor } from "@/lib/services/coaching-actor";
 import { logCoachingProjectEvent } from "@/lib/services/coaching-project-events";
 import type {
@@ -64,12 +66,66 @@ export async function getCoachingClient(customerId: string) {
   return customer;
 }
 
+async function getDefaultSendMail() {
+  const { sendMail } = await import("@/lib/server/nodemailer");
+  return sendMail;
+}
+
+// Retour utilisateur : "rajoute automatique des contacts à mon téléphone
+// si passe en client coaching" — aucune API web ne permet d'écrire
+// silencieusement dans le carnet d'adresses d'un téléphone. Le plus proche
+// du besoin sans intégration OAuth lourde (Google/Apple Contacts) : un
+// e-mail au coach avec la fiche du client en pièce jointe (.vcf), envoyé
+// dès la création du premier CoachingProject — un seul geste (ouvrir la
+// pièce jointe) suffit alors, au lieu de ressaisir à la main. Best-effort,
+// jamais bloquant : un incident SMTP ne doit jamais empêcher la création
+// réelle du dossier. Appelée APRÈS la transaction qui crée le projet
+// (jamais dedans : un envoi SMTP lent ne doit jamais retenir une
+// transaction DB ouverte), depuis les trois points de création d'un
+// CoachingProject : createCoachingProject ci-dessous, la conversion d'un
+// prospect (lib/services/prospect.ts) et la bascule commande -> dossier
+// (lib/services/coaching-dossier-migration.ts).
+export async function notifyCoachOfNewCoachingClient(
+  customerId: string,
+  sendMailImpl?: Awaited<ReturnType<typeof getDefaultSendMail>>
+) {
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+      select: { name: true, email: true, phone: true },
+    });
+    if (!customer) return;
+
+    const impl = sendMailImpl ?? (await getDefaultSendMail());
+    const to = process.env.CONTACT_TO?.trim() || "contact@fabsystem.fr";
+    const from = process.env.CONTACT_FROM?.trim() || process.env.SMTP_USER?.trim() || to;
+    const displayName = customer.name?.trim() || customer.email;
+
+    await impl({
+      to,
+      from,
+      subject: `Nouveau client coaching : ${displayName}`,
+      text: `${displayName} vient de passer en accompagnement coaching.\n\nSa fiche contact est en pièce jointe (.vcf) — ouvrez-la pour l'ajouter à votre carnet d'adresses.`,
+      attachments: [
+        {
+          filename: customerVcardFilename(customer),
+          content: buildCustomerVcard(customer),
+          contentType: "text/vcard",
+        },
+      ],
+    });
+  } catch (error) {
+    logServerEvent("error", "failed to notify coach of new coaching client", { error, customerId });
+  }
+}
+
 export async function createCoachingProject(input: {
   customerId: string;
   title: string;
   description?: string | null;
   objectifs?: string | null;
   niveauClient?: ClientLevel | null;
+  sendMailImpl?: Awaited<ReturnType<typeof getDefaultSendMail>>;
 }) {
   const customer = await prisma.customer.findUnique({ where: { id: input.customerId }, select: { id: true } });
   if (!customer) throw notFound("Client introuvable.");
@@ -77,7 +133,7 @@ export async function createCoachingProject(input: {
   const title = input.title.trim();
   if (!title) throw badRequest("Titre du projet requis.");
 
-  return prisma.coachingProject.create({
+  const project = await prisma.coachingProject.create({
     data: {
       customerId: input.customerId,
       title,
@@ -86,6 +142,10 @@ export async function createCoachingProject(input: {
       niveauClient: input.niveauClient ?? null,
     },
   });
+
+  await notifyCoachOfNewCoachingClient(input.customerId, input.sendMailImpl);
+
+  return project;
 }
 
 export async function getCoachingProjectForDetail(projectId: string) {

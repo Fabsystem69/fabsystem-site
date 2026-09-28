@@ -5,7 +5,7 @@ const contactCountry = "France";
 
 export const contactVcardFilename = "Fabien-Lages-FabSystem.vcf";
 
-function escapeVcardValue(value: string) {
+export function escapeVcardValue(value: string) {
   return value
     .replace(/\\/g, "\\\\")
     .replace(/\n/g, "\\n")

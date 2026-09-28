@@ -90,22 +90,32 @@ export async function updateCoachingProjectAction(formData: FormData) {
   await requireSession();
 
   const projectId = getString(formData, "projectId");
+  const title = getString(formData, "title");
+  const description = getString(formData, "description");
+  const status = getString(formData, "status");
+  const questionsEnAttente = getString(formData, "questionsEnAttente");
+  const actionsAPreparer = getString(formData, "actionsAPreparer");
+  const notesInternes = getString(formData, "notesInternes");
   let target: string;
   try {
     await updateCoachingProject({
       projectId,
-      title: getString(formData, "title"),
-      description: getString(formData, "description") || null,
-      status: (getString(formData, "status") || undefined) as CoachingProjectStatus | undefined,
-      questionsEnAttente: getString(formData, "questionsEnAttente") || null,
-      actionsAPreparer: getString(formData, "actionsAPreparer") || null,
-      notesInternes: getString(formData, "notesInternes") || null,
+      title,
+      description: description || null,
+      status: (status || undefined) as CoachingProjectStatus | undefined,
+      questionsEnAttente: questionsEnAttente || null,
+      actionsAPreparer: actionsAPreparer || null,
+      notesInternes: notesInternes || null,
     });
     revalidatePath(`/dashboard/crm/projects/${projectId}`);
     revalidatePath("/dashboard/crm/clients");
     target = `/dashboard/crm/projects/${projectId}?success=${encodeURIComponent("Projet mis à jour.")}`;
   } catch (error) {
-    target = `/dashboard/crm/projects/${projectId}?error=${encodeURIComponent(errorMessage(error))}`;
+    // D13 (audit) : même principe que le reste de ce fichier.
+    const draft = encodeURIComponent(
+      JSON.stringify({ title, description, status, questionsEnAttente, actionsAPreparer, notesInternes })
+    );
+    target = `/dashboard/crm/projects/${projectId}?error=${encodeURIComponent(errorMessage(error))}&projectDraft=${draft}`;
   }
   redirect(target);
 }

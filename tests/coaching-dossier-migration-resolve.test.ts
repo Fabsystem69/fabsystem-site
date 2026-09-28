@@ -40,6 +40,9 @@ function loadService(deps: Record<string, unknown>) {
     exports: loadedModule.exports,
     require: (id: string) => {
       if (id in deps) return deps[id];
+      // Notification best-effort (retour utilisateur : "rajoute automatique
+      // des contacts à mon téléphone") — pas l'objet de ce test.
+      if (id === "@/lib/services/coaching-project") return { notifyCoachOfNewCoachingClient: async () => {} };
       if (id.startsWith("@/")) return {};
       throw new Error(`Unexpected import ${id}`);
     },
