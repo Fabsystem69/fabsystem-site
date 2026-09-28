@@ -4,19 +4,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { badRequest, isHttpError } from "@/lib/http-errors";
 import { requireSession } from "@/lib/require-session";
+import { parseAdminVehicleFields } from "@/lib/coaching-vehicle-form";
+import type { CoachingInvitationState } from "@/lib/coaching-invitation";
 import { parseLocalDateTimeInTimeZone } from "@/lib/timezone";
 import {
   addCoachingProjectDocument,
   assertCoachingProjectStorageQuota,
   createCoachingActionItem,
-  createCoachingProject,
   createCoachingProposal,
   createCoachingSession,
   deleteCoachingActionItem,
   deleteCoachingProjectDocumentRecord,
   deleteCoachingSession,
   updateCoachingActionStatus,
-  updateCoachingProject,
   updateCoachingProposal,
   updateCoachingSessionReport,
   updateCoachingSessionSchedule,
@@ -41,7 +41,6 @@ import { getRequiredBaseUrl } from "@/lib/server/env";
 import { prisma } from "@/lib/prisma";
 import { deleteCoachingProjectDocumentFile, uploadCoachingProjectDocument } from "@/lib/server/coaching-project-storage";
 import type {
-  ClientLevel,
   CoachingActionStatus,
   CoachingCalcMethod,
   CoachingCircuitReviewStatus,
@@ -52,8 +51,8 @@ import type {
   CoachingMaterialCategory,
   CoachingPaymentStatus,
   CoachingPowerSupply,
-  CoachingProjectStatus,
   CoachingProposalStatus,
+  CoachingResponsible,
   CoachingSchemaStatus,
   CoachingSessionStatus,
 } from "@/lib/generated/prisma/client";
@@ -73,84 +72,6 @@ function getOptionalNumber(formData: FormData, key: string) {
 function errorMessage(error: unknown) {
   if (isHttpError(error)) return error.message;
   return error instanceof Error ? error.message : "Une erreur est survenue.";
-}
-
-export async function createCoachingProjectAction(formData: FormData) {
-  await requireSession();
-
-  const customerId = getString(formData, "customerId");
-  let target: string;
-  try {
-    const project = await createCoachingProject({
-      customerId,
-      title: getString(formData, "title"),
-      description: getString(formData, "description") || null,
-      objectifs: getString(formData, "objectifs") || null,
-      niveauClient: (getString(formData, "niveauClient") || null) as ClientLevel | null,
-    });
-    revalidatePath(`/dashboard/crm/clients/${customerId}`);
-    revalidatePath("/dashboard/crm/clients");
-    target = `/dashboard/crm/projects/${project.id}`;
-  } catch (error) {
-    target = `/dashboard/crm/clients/${customerId}?error=${encodeURIComponent(errorMessage(error))}`;
-  }
-  redirect(target);
-}
-
-// Retour utilisateur : "comment je rajoute mes projets en cours" — un
-// client déjà accompagné aujourd'hui (hors pipeline Prospect) a déjà un
-// Customer (achat, dossier existant...) mais aucun CoachingProject. Même
-// principe de recherche par email que createManualDossierAction
-// (app/dashboard/accompagnements/actions.ts) : jamais de création de
-// Customer ici, seulement une recherche — la création de compte se fait
-// ailleurs (achat, inscription, ou fiche client e-commerce).
-export async function createCoachingProjectForExistingCustomerAction(formData: FormData) {
-  await requireSession();
-
-  let target: string;
-  try {
-    const email = getString(formData, "email").trim().toLowerCase();
-    if (!email) throw badRequest("Email du client requis.");
-
-    const customer = await prisma.customer.findUnique({ where: { email }, select: { id: true } });
-    if (!customer) throw badRequest(`Aucun client trouvé avec l'email ${email}. Créez d'abord sa fiche depuis /dashboard/customers.`);
-
-    const project = await createCoachingProject({
-      customerId: customer.id,
-      title: getString(formData, "title"),
-    });
-    revalidatePath("/dashboard/crm/clients");
-    target = `/dashboard/crm/projects/${project.id}`;
-  } catch (error) {
-    target = `/dashboard/crm/clients/new?error=${encodeURIComponent(errorMessage(error))}`;
-  }
-  redirect(target);
-}
-
-export async function updateCoachingProjectAction(formData: FormData) {
-  await requireSession();
-
-  const projectId = getString(formData, "projectId");
-  let target: string;
-  try {
-    await updateCoachingProject({
-      projectId,
-      title: getString(formData, "title"),
-      description: getString(formData, "description") || null,
-      objectifs: getString(formData, "objectifs") || null,
-      niveauClient: (getString(formData, "niveauClient") || null) as ClientLevel | null,
-      status: (getString(formData, "status") || undefined) as CoachingProjectStatus | undefined,
-      questionsEnAttente: getString(formData, "questionsEnAttente") || null,
-      actionsAPreparer: getString(formData, "actionsAPreparer") || null,
-      notesInternes: getString(formData, "notesInternes") || null,
-    });
-    revalidatePath(`/dashboard/crm/projects/${projectId}`);
-    revalidatePath("/dashboard/crm/clients");
-    target = `/dashboard/crm/projects/${projectId}?success=${encodeURIComponent("Projet mis à jour.")}`;
-  } catch (error) {
-    target = `/dashboard/crm/projects/${projectId}?error=${encodeURIComponent(errorMessage(error))}`;
-  }
-  redirect(target);
 }
 
 export async function createCoachingSessionAction(formData: FormData) {
@@ -246,6 +167,7 @@ export async function createCoachingActionItemAction(formData: FormData) {
       sessionId: getString(formData, "sessionId") || null,
       label: getString(formData, "label"),
       dueDate: dueDateRaw ? new Date(dueDateRaw) : null,
+      responsible: (getString(formData, "responsible") || null) as CoachingResponsible | null,
     });
     revalidatePath(`/dashboard/crm/projects/${projectId}`);
     revalidatePath("/dashboard/crm");
@@ -406,26 +328,7 @@ export async function updateVehicleInfoAdminAction(formData: FormData) {
       projectId,
       actor: { kind: "coach" },
       expectedVehicleInfoUpdatedAt: new Date(getString(formData, "expectedVehicleInfoUpdatedAt")),
-      fields: {
-        vehicleBrand: getString(formData, "vehicleBrand") || null,
-        vehicleModel: getString(formData, "vehicleModel") || null,
-        vehicleYear: getString(formData, "vehicleYear") || null,
-        vehicleEngine: getString(formData, "vehicleEngine") || null,
-        vehicleFormat: getString(formData, "vehicleFormat") || null,
-        vehicleDimensions: getString(formData, "vehicleDimensions") || null,
-        registrationCountry: getString(formData, "registrationCountry") || null,
-        usageCountry: getString(formData, "usageCountry") || null,
-        homologationNotes: getString(formData, "homologationNotes") || null,
-        projectStage: getString(formData, "projectStage") || null,
-        niveauClient: (getString(formData, "niveauClient") || null) as ClientLevel | null,
-        whoDoesTheWork: getString(formData, "whoDoesTheWork") || null,
-        coachingTopics: getString(formData, "coachingTopics") || null,
-        objectifs: getString(formData, "objectifs") || null,
-        threePriorities: getString(formData, "threePriorities") || null,
-        startDeadline: getString(formData, "startDeadline") || null,
-        materialBudgetCents: getOptionalNumber(formData, "materialBudgetCents"),
-        laborBudgetCents: getOptionalNumber(formData, "laborBudgetCents"),
-      },
+      fields: parseAdminVehicleFields(formData),
     });
     revalidatePath(`/dashboard/crm/projects/${projectId}`);
     target = `/dashboard/crm/projects/${projectId}?success=${encodeURIComponent("Enregistré.")}`;
@@ -490,21 +393,23 @@ export async function markProjectReviewedAction(formData: FormData) {
 // automatique (contrairement à l'action équivalente sur la fiche client
 // e-commerce, app/dashboard/customers/[id]/actions.ts, qui envoie un
 // e-mail) : ici le lien est juste affiché pour être copié.
-export async function generateInviteLinkAction(formData: FormData) {
+export async function generateInviteLinkAction(
+  _previousState: CoachingInvitationState,
+  formData: FormData
+): Promise<CoachingInvitationState> {
   await requireSession();
   const projectId = getString(formData, "projectId");
-  let target: string;
   try {
     const project = await prisma.coachingProject.findUniqueOrThrow({ where: { id: projectId }, include: { customer: true } });
     const result = await requestMagicLoginLink({ email: project.customer.email, name: project.customer.name ?? undefined, baseUrl: getRequiredBaseUrl() });
     if (result.status !== "created" || !result.magicLink) {
-      throw new Error("Impossible de générer le lien.");
+      return { status: "error", message: "Impossible de générer le lien." };
     }
-    target = `/dashboard/crm/projects/${projectId}?inviteLink=${encodeURIComponent(result.magicLink)}`;
-  } catch (error) {
-    target = `/dashboard/crm/projects/${projectId}?error=${encodeURIComponent(errorMessage(error))}`;
+    // Le jeton reste dans la réponse authentifiée, jamais dans l'URL du dashboard.
+    return { status: "created", magicLink: result.magicLink, expiresAt: result.expiresAt.toISOString() };
+  } catch {
+    return { status: "error", message: "Impossible de générer le lien. Réessayez dans un instant." };
   }
-  redirect(target);
 }
 
 export async function createScenarioAction(formData: FormData) {
@@ -570,7 +475,7 @@ export async function deleteDeviceAdminAction(formData: FormData) {
   const projectId = getString(formData, "projectId");
   let target: string;
   try {
-    await deleteDevice(getString(formData, "deviceId"));
+    await deleteDevice(getString(formData, "deviceId"), projectId, { kind: "coach" });
     revalidatePath(`/dashboard/crm/projects/${projectId}`);
     target = `/dashboard/crm/projects/${projectId}?success=${encodeURIComponent("Appareil retiré.")}`;
   } catch (error) {
@@ -584,7 +489,7 @@ export async function deleteDeviceUsageAction(formData: FormData) {
   const projectId = getString(formData, "projectId");
   let target: string;
   try {
-    await deleteDeviceUsage(getString(formData, "usageId"));
+    await deleteDeviceUsage(getString(formData, "usageId"), { kind: "coach" });
     revalidatePath(`/dashboard/crm/projects/${projectId}`);
     target = `/dashboard/crm/projects/${projectId}?success=${encodeURIComponent("Usage retiré.")}`;
   } catch (error) {
@@ -654,7 +559,7 @@ export async function deleteMaterialAdminAction(formData: FormData) {
   const projectId = getString(formData, "projectId");
   let target: string;
   try {
-    await deleteMaterial(getString(formData, "materialId"));
+    await deleteMaterial(getString(formData, "materialId"), projectId, { kind: "coach" });
     revalidatePath(`/dashboard/crm/projects/${projectId}`);
     target = `/dashboard/crm/projects/${projectId}?success=${encodeURIComponent("Matériel retiré.")}`;
   } catch (error) {

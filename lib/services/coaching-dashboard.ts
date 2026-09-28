@@ -1,5 +1,11 @@
 import { listDueProspectFollowUps } from "@/lib/services/prospect";
-import { listOverdueActions, listProjectsRunningLowOnTime, listSessionsInRange } from "@/lib/services/coaching-project";
+import {
+  listAcceptedProposalsAwaitingPayment,
+  listActiveProjectsWithoutNextAction,
+  listOverdueActions,
+  listProjectsRunningLowOnTime,
+  listSessionsInRange,
+} from "@/lib/services/coaching-project";
 import { listProjectsAwaitingReview, listProjectsWithIncompleteBilan } from "@/lib/services/coaching-van-dossier";
 
 // Agrégation pour /dashboard/crm ("Aujourd'hui") — retour utilisateur :
@@ -15,16 +21,27 @@ export async function getCoachingDashboardData(now: Date = new Date()) {
   const endOfUpcomingWindow = new Date(now);
   endOfUpcomingWindow.setDate(endOfUpcomingWindow.getDate() + 7);
 
-  const [prospectsToFollowUp, sessionsToday, upcomingSessions, overdueActions, projectsLowOnTime, projectsAwaitingReview, projectsWithIncompleteBilan] =
-    await Promise.all([
-      listDueProspectFollowUps(now),
-      listSessionsInRange(startOfToday, endOfToday),
-      listSessionsInRange(new Date(endOfToday.getTime() + 1), endOfUpcomingWindow),
-      listOverdueActions(now),
-      listProjectsRunningLowOnTime(),
-      listProjectsAwaitingReview(),
-      listProjectsWithIncompleteBilan(),
-    ]);
+  const [
+    prospectsToFollowUp,
+    sessionsToday,
+    upcomingSessions,
+    overdueActions,
+    projectsLowOnTime,
+    projectsAwaitingReview,
+    projectsWithIncompleteBilan,
+    projectsWithoutNextAction,
+    proposalsAwaitingPayment,
+  ] = await Promise.all([
+    listDueProspectFollowUps(now),
+    listSessionsInRange(startOfToday, endOfToday),
+    listSessionsInRange(new Date(endOfToday.getTime() + 1), endOfUpcomingWindow),
+    listOverdueActions(now),
+    listProjectsRunningLowOnTime(),
+    listProjectsAwaitingReview(),
+    listProjectsWithIncompleteBilan(),
+    listActiveProjectsWithoutNextAction(),
+    listAcceptedProposalsAwaitingPayment(),
+  ]);
 
   return {
     prospectsToFollowUp,
@@ -34,5 +51,7 @@ export async function getCoachingDashboardData(now: Date = new Date()) {
     projectsLowOnTime,
     projectsAwaitingReview,
     projectsWithIncompleteBilan,
+    projectsWithoutNextAction,
+    proposalsAwaitingPayment,
   };
 }

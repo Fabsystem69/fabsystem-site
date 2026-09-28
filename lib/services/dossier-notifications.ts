@@ -138,12 +138,20 @@ export async function runDossierNotifications(
     }
   }
 
-  // 4a. Avertissement de purge (~11 mois post-livraison)
+  // 4a. Avertissement de purge (~11 mois post-livraison) — preuve durable
+  // écrite uniquement APRÈS un envoi confirmé réussi, jamais avant la
+  // tentative. L'ancien cooldown posé avant l'essai marquait un envoi
+  // échoué comme "fait" pour ~12 mois sans qu'aucun garde-fou en tienne
+  // compte côté purge (constat d'audit — avertissement échoué n'empêchait
+  // pas la purge). `purgeWarningSentAt: null` dans le filtre suffit à ne
+  // jamais relancer un avertissement déjà confirmé, et permet de réessayer
+  // automatiquement le lendemain tant qu'aucun envoi n'a encore réussi.
   const purgeWarningThreshold = new Date(now.getTime() - PURGE_WARNING_AFTER_DAYS * 24 * 60 * 60 * 1000);
   const purgeWarningCandidates = await prisma.dossierClient
     .findMany({
       where: {
         dateLivraison: { lte: purgeWarningThreshold },
+        purgeWarningSentAt: null,
         documents: { some: {} },
       },
       include: { customer: { select: { email: true, name: true } } },
@@ -151,24 +159,31 @@ export async function runDossierNotifications(
     .catch(() => []);
 
   for (const dossier of purgeWarningCandidates) {
-    const canSend = await tryAcquireCooldown(`dossier-purge-warning:${dossier.id}`, PURGE_AFTER_DAYS * 24 * 60 * 60 * 1000);
-    if (!canSend) continue;
-
     try {
       await sendTemplatedEmail(sendMailImpl, dossier.customer.email, "dossier-purge-warning", {
         greeting: greetingFor(dossier.customer.name),
       });
+      await prisma.dossierClient.update({ where: { id: dossier.id }, data: { purgeWarningSentAt: now } });
       result.purgeWarningsSent += 1;
     } catch (error) {
       logServerEvent("error", "failed to send dossier purge warning", { error, dossierId: dossier.id });
     }
   }
 
-  // 4b. Purge effective (~12 mois post-livraison)
+  // 4b. Purge effective (~12 mois post-livraison) — exige désormais un
+  // avertissement confirmé et vieux d'au moins le délai annoncé, en plus de
+  // dateLivraison : un avertissement jamais réellement envoyé (ou envoyé
+  // trop récemment) bloque la purge au lieu de l'ignorer.
   const purgeThreshold = new Date(now.getTime() - PURGE_AFTER_DAYS * 24 * 60 * 60 * 1000);
+  const purgeWarningMinAgeMs = (PURGE_AFTER_DAYS - PURGE_WARNING_AFTER_DAYS) * 24 * 60 * 60 * 1000;
+  const purgeWarningOldEnoughThreshold = new Date(now.getTime() - purgeWarningMinAgeMs);
   const purgeCandidates = await prisma.dossierClient
     .findMany({
-      where: { dateLivraison: { lte: purgeThreshold }, documents: { some: {} } },
+      where: {
+        dateLivraison: { lte: purgeThreshold },
+        purgeWarningSentAt: { lte: purgeWarningOldEnoughThreshold },
+        documents: { some: {} },
+      },
       include: { documents: true },
     })
     .catch(() => []);
@@ -176,28 +191,43 @@ export async function runDossierNotifications(
   const { deleteDossierDocumentFile } = await import("@/lib/server/dossier-storage");
 
   for (const dossier of purgeCandidates) {
-    try {
-      for (const document of dossier.documents) {
-        await deleteDossierDocumentFile(document.path).catch((error) => {
-          logServerEvent("error", "failed to delete dossier document file during purge", {
-            error,
-            documentId: document.id,
-          });
+    const successfullyDeletedIds: string[] = [];
+    let hadFailure = false;
+
+    for (const document of dossier.documents) {
+      try {
+        await deleteDossierDocumentFile(document.path);
+        successfullyDeletedIds.push(document.id);
+      } catch (error) {
+        hadFailure = true;
+        logServerEvent("error", "failed to delete dossier document file during purge", {
+          error,
+          documentId: document.id,
         });
       }
+    }
 
+    // Seul un fichier réellement supprimé du stockage perd sa référence en
+    // base — un échec physique ne doit jamais faire disparaître le seul
+    // moyen de le retrouver ou de retenter sa suppression (constat d'audit
+    // — suppression physique échouée perdait sa référence DB).
+    if (successfullyDeletedIds.length === 0) continue;
+
+    try {
       await prisma.$transaction([
-        prisma.dossierDocument.deleteMany({ where: { dossierId: dossier.id } }),
+        prisma.dossierDocument.deleteMany({ where: { id: { in: successfullyDeletedIds }, dossierId: dossier.id } }),
         prisma.dossierEvent.create({
           data: {
             dossierId: dossier.id,
             type: "NOTE",
-            note: `${dossier.documents.length} document(s) purgé(s) automatiquement (12 mois après livraison).`,
+            note: hadFailure
+              ? `${successfullyDeletedIds.length}/${dossier.documents.length} document(s) purgé(s) automatiquement (12 mois après livraison) ; le reste sera retenté.`
+              : `${successfullyDeletedIds.length} document(s) purgé(s) automatiquement (12 mois après livraison).`,
           },
         }),
       ]);
 
-      result.dossiersPurged += 1;
+      if (!hadFailure) result.dossiersPurged += 1;
     } catch (error) {
       logServerEvent("error", "failed to purge dossier documents", { error, dossierId: dossier.id });
     }

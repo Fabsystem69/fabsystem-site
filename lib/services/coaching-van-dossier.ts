@@ -1,4 +1,4 @@
-import { badRequest, conflict, notFound } from "@/lib/http-errors";
+import { badRequest, conflict, forbidden, notFound } from "@/lib/http-errors";
 import { prisma } from "@/lib/prisma";
 import { computeScenarioBilan, type CoachingDeviceUsageInput, type ScenarioDeviceInput } from "@/lib/calc/coaching-consumption";
 import type { CoachingActor } from "@/lib/services/coaching-actor";
@@ -12,6 +12,7 @@ import type {
   CoachingDeviceState,
   CoachingMeasurementPoint,
   CoachingPowerSupply,
+  ProjectAssetType,
 } from "@/lib/generated/prisma/client";
 
 // Dossier client van évolutif (docs/_local/Prompt_Claude_Fabsystem_Dossier_Van.md,
@@ -23,6 +24,11 @@ import type {
 // --- Étape 1 : projet & véhicule ---------------------------------------------
 
 export type VehicleInfoFields = Partial<{
+  // Support (van/camping-car/bateau/autre) — PROMPT_CLAUDE_APRES_FUSION_SUPPORTS.md.
+  // Reutilise ProjectAssetType (deja utilise par l'editeur), jamais
+  // Customer.assetType qui a un sens different (fiche profil generale).
+  // Nullable = inconnu ; ne rien deduire automatiquement d'un ancien dossier.
+  assetType: ProjectAssetType | null;
   vehicleBrand: string | null;
   vehicleModel: string | null;
   vehicleYear: string | null;
@@ -49,17 +55,21 @@ export async function updateVehicleInfo(input: {
   fields: VehicleInfoFields;
   actor: CoachingActor;
 }) {
-  const project = await prisma.coachingProject.findUnique({ where: { id: input.projectId }, select: { vehicleInfoUpdatedAt: true } });
-  if (!project) throw notFound("Projet introuvable.");
-  if (project.vehicleInfoUpdatedAt.getTime() !== input.expectedVehicleInfoUpdatedAt.getTime()) {
-    throw conflict("Cette section a été modifiée entre-temps — rechargez la page pour voir les derniers changements.");
-  }
-
   return prisma.$transaction(async (tx) => {
-    const updated = await tx.coachingProject.update({
-      where: { id: input.projectId },
+    // Vérification de version ET écriture dans la même requête SQL : entre
+    // un `findUnique` puis un `update` séparés, une écriture concurrente
+    // pourrait passer entre les deux et être silencieusement écrasée
+    // (constat d'audit — condition ID+version doit être atomique).
+    const result = await tx.coachingProject.updateMany({
+      where: { id: input.projectId, vehicleInfoUpdatedAt: input.expectedVehicleInfoUpdatedAt },
       data: { ...input.fields, vehicleInfoUpdatedAt: new Date(), derniereActivite: new Date() },
     });
+    if (result.count === 0) {
+      const project = await tx.coachingProject.findUnique({ where: { id: input.projectId }, select: { id: true } });
+      if (!project) throw notFound("Projet introuvable.");
+      throw conflict("Cette section a été modifiée entre-temps — rechargez la page pour voir les derniers changements.");
+    }
+    const updated = await tx.coachingProject.findUniqueOrThrow({ where: { id: input.projectId } });
     await logCoachingProjectEvent(tx, input.projectId, "VEHICLE_INFO", input.actor);
     return updated;
   });
@@ -91,17 +101,17 @@ export async function updateUsagesInfo(input: {
   fields: UsagesInfoFields;
   actor: CoachingActor;
 }) {
-  const project = await prisma.coachingProject.findUnique({ where: { id: input.projectId }, select: { usagesUpdatedAt: true } });
-  if (!project) throw notFound("Projet introuvable.");
-  if (project.usagesUpdatedAt.getTime() !== input.expectedUsagesUpdatedAt.getTime()) {
-    throw conflict("Cette section a été modifiée entre-temps — rechargez la page pour voir les derniers changements.");
-  }
-
   return prisma.$transaction(async (tx) => {
-    const updated = await tx.coachingProject.update({
-      where: { id: input.projectId },
+    const result = await tx.coachingProject.updateMany({
+      where: { id: input.projectId, usagesUpdatedAt: input.expectedUsagesUpdatedAt },
       data: { ...input.fields, usagesUpdatedAt: new Date(), derniereActivite: new Date() },
     });
+    if (result.count === 0) {
+      const project = await tx.coachingProject.findUnique({ where: { id: input.projectId }, select: { id: true } });
+      if (!project) throw notFound("Projet introuvable.");
+      throw conflict("Cette section a été modifiée entre-temps — rechargez la page pour voir les derniers changements.");
+    }
+    const updated = await tx.coachingProject.findUniqueOrThrow({ where: { id: input.projectId } });
     await logCoachingProjectEvent(tx, input.projectId, "USAGES", input.actor);
     return updated;
   });
@@ -123,17 +133,17 @@ export async function updateImplantationInfo(input: {
   fields: ImplantationInfoFields;
   actor: CoachingActor;
 }) {
-  const project = await prisma.coachingProject.findUnique({ where: { id: input.projectId }, select: { implantationUpdatedAt: true } });
-  if (!project) throw notFound("Projet introuvable.");
-  if (project.implantationUpdatedAt.getTime() !== input.expectedImplantationUpdatedAt.getTime()) {
-    throw conflict("Cette section a été modifiée entre-temps — rechargez la page pour voir les derniers changements.");
-  }
-
   return prisma.$transaction(async (tx) => {
-    const updated = await tx.coachingProject.update({
-      where: { id: input.projectId },
+    const result = await tx.coachingProject.updateMany({
+      where: { id: input.projectId, implantationUpdatedAt: input.expectedImplantationUpdatedAt },
       data: { ...input.fields, implantationUpdatedAt: new Date(), derniereActivite: new Date() },
     });
+    if (result.count === 0) {
+      const project = await tx.coachingProject.findUnique({ where: { id: input.projectId }, select: { id: true } });
+      if (!project) throw notFound("Projet introuvable.");
+      throw conflict("Cette section a été modifiée entre-temps — rechargez la page pour voir les derniers changements.");
+    }
+    const updated = await tx.coachingProject.findUniqueOrThrow({ where: { id: input.projectId } });
     await logCoachingProjectEvent(tx, input.projectId, "IMPLANTATION", input.actor);
     return updated;
   });
@@ -277,10 +287,22 @@ export async function updateDevice(input: { deviceId: string; actor: CoachingAct
   });
 }
 
-export async function deleteDevice(deviceId: string) {
-  const device = await prisma.coachingDevice.findUnique({ where: { id: deviceId }, select: { id: true } });
+// projectId vient toujours de l'appelant, déjà revérifié contre l'acteur
+// (ownership client ou session admin) — jamais du seul deviceId envoyé par
+// le formulaire, sinon un projectId valide mais forgé laisserait supprimer
+// l'appareil d'un autre projet (constat d'audit D8/ownership). La
+// suppression, le marqueur "à revoir" et l'événement d'historique forment
+// une seule opération : un appareil ne doit jamais disparaître sans laisser
+// de trace (constat d'audit — suppressions non journalisées).
+export async function deleteDevice(deviceId: string, projectId: string, actor: CoachingActor) {
+  const device = await prisma.coachingDevice.findUnique({ where: { id: deviceId }, select: { id: true, projectId: true, name: true } });
   if (!device) throw notFound("Appareil introuvable.");
-  return prisma.coachingDevice.delete({ where: { id: deviceId } });
+  if (device.projectId !== projectId) throw forbidden("Cet appareil n'appartient pas à ce projet.");
+  return prisma.$transaction(async (tx) => {
+    await tx.coachingDevice.delete({ where: { id: deviceId } });
+    await tx.coachingProject.update({ where: { id: projectId }, data: { derniereActivite: new Date() } });
+    await logCoachingProjectEvent(tx, projectId, "DEVICE", actor, `Appareil supprimé : ${device.name}`);
+  });
 }
 
 // --- Usage par scénario ----------------------------------------------------
@@ -321,10 +343,17 @@ export async function upsertDeviceUsage(input: { deviceId: string; scenarioId: s
   });
 }
 
-export async function deleteDeviceUsage(usageId: string) {
-  const usage = await prisma.coachingDeviceUsage.findUnique({ where: { id: usageId }, select: { id: true } });
+export async function deleteDeviceUsage(usageId: string, actor: CoachingActor) {
+  const usage = await prisma.coachingDeviceUsage.findUnique({
+    where: { id: usageId },
+    select: { id: true, device: { select: { projectId: true, name: true } } },
+  });
   if (!usage) throw notFound("Usage introuvable.");
-  return prisma.coachingDeviceUsage.delete({ where: { id: usageId } });
+  return prisma.$transaction(async (tx) => {
+    await tx.coachingDeviceUsage.delete({ where: { id: usageId } });
+    await tx.coachingProject.update({ where: { id: usage.device.projectId }, data: { derniereActivite: new Date() } });
+    await logCoachingProjectEvent(tx, usage.device.projectId, "DEVICE", actor, `Usage retiré : ${usage.device.name}`);
+  });
 }
 
 // --- Bilan -----------------------------------------------------------------

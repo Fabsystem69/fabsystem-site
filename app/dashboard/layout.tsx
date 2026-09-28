@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireSession } from "@/lib/require-session";
 import { DashboardShell } from "@/components/dashboard/shell/DashboardShell";
+import "./dashboard-theme.css";
 
 export const dynamic = "force-dynamic";
 

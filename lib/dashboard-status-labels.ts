@@ -251,6 +251,7 @@ export const PROSPECT_SOURCE_LABELS: Record<ProspectSource, string> = {
   GROUPE_FACEBOOK: "Groupe Facebook",
   COMMENTAIRE: "Commentaire",
   PUBLICITE: "Publicité",
+  SITE_WEB: "Formulaire du site",
   AUTRE: "Autre",
 };
 

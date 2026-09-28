@@ -3,17 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NAV_GROUPS, resolveActiveNavHref } from "@/components/dashboard/shell/nav-data";
 import { CloseIcon, LogoutIcon, MenuIcon } from "@/components/dashboard/shell/icons";
 
-export function MobileMenuButton({ onOpen }: { onOpen: () => void }) {
+export function MobileMenuButton({ onOpen, open }: { onOpen: () => void; open: boolean }) {
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label="Ouvrir la navigation"
-      className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-200 lg:hidden"
+      aria-expanded={open}
+      aria-controls="dashboard-mobile-navigation"
+      className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-200 lg:hidden"
     >
       <MenuIcon className="h-5 w-5" />
     </button>
@@ -21,36 +23,52 @@ export function MobileMenuButton({ onOpen }: { onOpen: () => void }) {
 }
 
 export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
   const activeHref = resolveActiveNavHref(pathname);
 
   // Ferme le tiroir automatiquement apres un changement de route.
   useEffect(() => {
     onClose();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, onClose]);
 
   useEffect(() => {
-    if (!open) return;
+    const dialog = dialogRef.current;
+    if (!dialog || !open) return;
 
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    if (desktop.matches) {
+      onClose();
+      return;
+    }
+    const closeOnDesktop = () => { if (desktop.matches) onClose(); };
+    desktop.addEventListener("change", closeOnDesktop);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    dialog.showModal();
+    closeButtonRef.current?.focus();
     return () => {
+      desktop.removeEventListener("change", closeOnDesktop);
+      dialog.close();
       document.body.style.overflow = previousOverflow;
     };
-  }, [open]);
-
-  if (!open) {
-    return null;
-  }
+  }, [open, onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden">
+    <dialog
+      ref={dialogRef}
+      id="dashboard-mobile-navigation"
+      aria-label="Navigation du tableau de bord"
+      onCancel={(event) => { event.preventDefault(); onClose(); }}
+      className="fixed inset-0 m-0 h-dvh max-h-none w-full max-w-none border-0 bg-transparent p-0 text-white backdrop:bg-black/60"
+    >
       <button
         type="button"
         aria-label="Fermer la navigation"
         onClick={onClose}
-        className="absolute inset-0 bg-black/60"
+        tabIndex={-1}
+        className="absolute inset-0"
       />
       <div className="absolute inset-y-0 left-0 flex w-[85%] max-w-[300px] flex-col border-r border-neutral-800 bg-[#111113] shadow-2xl">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-800/80 px-5">
@@ -64,16 +82,17 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
             </span>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             aria-label="Fermer la navigation"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-900 hover:text-neutral-100"
           >
             <CloseIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
+        <nav aria-label="Menu principal" className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-6">
             {NAV_GROUPS.map((group, groupIndex) => (
               <li key={group.title ?? `group-${groupIndex}`}>
@@ -94,6 +113,7 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
                         ) : null}
                         <Link
                           href={item.href}
+                          aria-current={active ? "page" : undefined}
                           className={`flex min-h-11 items-center gap-3 rounded-lg px-2.5 text-sm font-medium transition-colors duration-150 ${
                             active
                               ? "bg-neutral-800/70 text-white"
@@ -131,15 +151,13 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
           </form>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
 
 export function useMobileDrawer() {
   const [open, setOpen] = useState(false);
-  return {
-    open,
-    onOpen: () => setOpen(true),
-    onClose: () => setOpen(false),
-  };
+  const onOpen = useCallback(() => setOpen(true), []);
+  const onClose = useCallback(() => setOpen(false), []);
+  return { open, onOpen, onClose };
 }

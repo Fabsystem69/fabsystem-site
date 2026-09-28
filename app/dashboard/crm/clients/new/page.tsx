@@ -1,5 +1,5 @@
 import { AdminAlert, AdminButton, AdminPageHeader, DashboardPageShell } from "@/components/dashboard/ui";
-import { createCoachingProjectForExistingCustomerAction } from "../../actions";
+import { createCoachingProjectForExistingCustomerAction } from "../../project-lifecycle-actions";
 
 export const dynamic = "force-dynamic";
 

@@ -587,3 +587,317 @@ Le MVP ne modele pas encore:
 - `ServiceBooking`
 
 Ils seront traites plus tard, par domaine, quand ils deviendront des besoins reels.
+
+## Correctif ponctuel (27 septembre 2026) : preuve durable de l'avertissement de purge
+
+Contexte : `lib/services/dossier-notifications.ts` purge les documents d'un
+`DossierClient` livre depuis ~12 mois, avec un avertissement cense partir un
+mois avant. Constat d'audit repris dans `PROMPT_REPRISE_CLAUDE_CRM.md` :
+
+- La purge effective (etape 4b) ne verifie que `dateLivraison`, jamais si
+  l'avertissement a reellement ete envoye avec succes. Le seul garde-fou
+  cote avertissement etait un cooldown (`tryAcquireCooldown`) consomme
+  *avant* la tentative d'envoi : un envoi qui echoue laisse quand meme le
+  cooldown pose pour ~12 mois, sans aucune preuve durable en base et sans
+  jamais bloquer la purge (qui ne consulte pas ce cooldown de toute facon).
+- Une suppression physique de fichier qui echoue n'empechait pas la
+  suppression du `DossierDocument` correspondant : le fichier restait
+  orphelin sur le stockage, sans plus aucune reference en base pour le
+  retrouver ou reessayer.
+
+Decision : ajouter un champ additif nullable `purgeWarningSentAt DateTime?`
+sur `DossierClient`, ecrit uniquement apres un envoi reussi (jamais avant
+tentative). La purge effective exige desormais `purgeWarningSentAt` non nul
+et vieux d'au moins le delai annonce, en plus du critere existant sur
+`dateLivraison`. Un document dont la suppression physique echoue n'est plus
+retire de la base : seuls les documents reellement supprimes du stockage
+sortent de `DossierDocument`, et le dossier n'est compte comme purge que
+si tous ses documents ont ete traites avec succes.
+
+Migration : additive uniquement (`ADD COLUMN` nullable, pas de
+`NOT NULL`/`DEFAULT` retroactif, aucune donnee existante modifiee) —
+voir `prisma/migrations/20260927160000_add_dossier_purge_warning_marker/`.
+Retour arriere : supprimer la colonne ne perd que la preuve d'avertissement
+la plus recente, jamais les documents ni le dossier.
+
+## Correctif ponctuel (27 septembre 2026) : preuve durable de l'e-mail de confirmation post-achat
+
+Meme famille de defaut que le correctif de purge ci-dessus. Constat d'audit :
+`createDossierClientForOrder` (`lib/services/dossier-client.ts`, appele par
+le webhook Stripe a chaque `checkout.session.completed`, y compris en
+redelivery) verifiait `existing` (le `DossierClient` deja cree pour cette
+commande, idempotent par `orderId` unique) et retournait immediatement des
+que ce dossier existait deja — AVANT meme d'essayer d'envoyer l'e-mail de
+confirmation. Si l'envoi initial avait echoue (le `catch` ne faisait que
+logger, sans jamais faire echouer la creation du dossier), aucune
+redelivery Stripe ulterieure ne pouvait plus jamais reessayer cet envoi :
+le dossier existant coupait court avant d'atteindre le code d'envoi.
+
+Decision : ajouter un champ additif nullable `confirmationEmailSentAt
+DateTime?` sur `DossierClient`, ecrit uniquement apres un envoi reussi.
+Quand le dossier existe deja mais que ce champ est encore nul, le service
+retente l'envoi au lieu de s'arreter au seul test d'existence — en
+reutilisant la redelivery Stripe deja en place comme mecanique de rejeu
+(aucun second moteur de paiement, aucune file d'attente ajoutee).
+
+Migration : additive uniquement, meme forme que le champ precedent — voir
+`prisma/migrations/20260927163000_add_dossier_confirmation_email_marker/`.
+Retour arriere : supprimer la colonne ne perd que la preuve d'envoi la plus
+recente, jamais la commande, le paiement ni le dossier.
+
+## Plan de consolidation CRM (27 septembre 2026)
+
+**Statut : plan de donnees uniquement. Aucun champ ajoute, aucune migration
+ecrite, aucun ecran modifie par ce plan a la date ci-dessus. C'est le
+document a valider/ajuster AVANT toute modification de `schema.prisma` pour
+la fusion — voir `PROMPT_REPRISE_CLAUDE_CRM.md`, `PLAN_AMELIORATION_CRM_FABSYSTEM.md`
+(cible produit, deja confirmee par Fabien), `PROMPT_CLAUDE_APRES_FUSION_SUPPORTS.md`,
+`NOTE_CLAUDE_REUTILISER_EDITEUR_EXISTANT.md` et `PROMPT_CLAUDE_ACCESSIBILITE_ET_GUIDAGE.md`.**
+
+Contexte : trois systemes distincts existent aujourd'hui pour un meme
+accompagnement, sans lien entre eux au niveau donnees :
+
+1. `DossierClient` + `DossierEvent`/`DossierDocument`/`DossierAppointment` —
+   cree automatiquement par le webhook Stripe apres achat d'une offre
+   `accompagnement-*`, etapes figees par offre, `orderId` unique.
+2. `CoachingProject` + son groupe de modeles (`CoachingSession`,
+   `CoachingActionItem`, `CoachingProposal`, `CoachingScenario`,
+   `CoachingDevice(Usage)`, `CoachingMaterial`, `CoachingCircuit`,
+   `CoachingSchemaRevision`, `CoachingProjectDocument`, `CoachingProjectEvent`) —
+   cree depuis le CRM (`/dashboard/crm`), issu d'un `Prospect` ou cree
+   directement pour un `Customer` existant, sans lien avec une commande.
+3. `Project` + `ProjectSchema`/`ProjectSchemaVersion` (+ `ProjectRetainedValue`,
+   `ProjectValueDependency`, `ProjectFollowUpReview/Event`) — l'editeur de
+   schema electrique reel (canevas nœuds/cables), attribuable a un client
+   par l'admin (`createProjectForCustomerByAdmin`) ou cree par le client,
+   totalement independant des deux systemes ci-dessus (confirme par lecture,
+   `NOTE_CLAUDE_REUTILISER_EDITEUR_EXISTANT.md`).
+
+### 1. Modele pivot
+
+**Decision (deja actee dans `PLAN_AMELIORATION_CRM_FABSYSTEM.md` §3, confirmee ici) :
+`CoachingProject` reste le dossier d'accompagnement unique.** Raison : c'est
+deja le modele le plus riche (entretien, materiel, circuits, evenements,
+seances, propositions), il autorise deja plusieurs projets par client sans
+etape figee, et son propietaire (`Customer`) est la meme ancre d'identite
+que `DossierClient`. `Project`/`ProjectSchema` n'est **pas** absorbe dans
+`CoachingProject` : il reste l'editeur technique, relie par une reference
+explicite (§4). Aucun troisieme modele « dossier universel » n'est cree.
+
+`DossierClient` et ses trois tables satellites (`DossierEvent`,
+`DossierDocument`, `DossierAppointment`) sont **repris** dans
+`CoachingProject` et son groupe de modeles existant, puis conserves
+temporairement en lecture seule pendant la coexistence (etape 5 de l'ordre
+d'execution), avant suppression physique dans une migration separee et
+documentee — jamais dans ce lot.
+
+### 2. Table de correspondance des champs
+
+| Champ/notion `DossierClient` | Devenir dans `CoachingProject` | Regle de reprise |
+|---|---|---|
+| `orderId` (unique, nullable) | Nouveau champ additif `CoachingProject.orderId String? @unique` | Copie telle quelle. Un `CoachingProject` issu du CRM (sans achat) garde `orderId = null`. Jamais invente. |
+| `offre` (`DossierOffre`: DECOUVERTE/CONSEIL/GUIDE/CONCEPTION) | Nouveau champ additif `CoachingProject.offre DossierOffre?` | Copie telle quelle ; `null` pour un dossier CRM sans offre figee. Ne remplace pas `CoachingProposal` (accord negocie manuellement) — les deux peuvent coexister (§6). |
+| `whatsapp` | Fusionne avec l'equivalent implicite deja porte par le suivi CoachingProject (aucun champ dedie actuellement) → nouveau champ additif `CoachingProject.whatsapp String?` | Copie telle quelle si present. |
+| `statutSimple`/`compteRendu` (offre CONSEIL) | Conserves tels quels en champs additifs, **non fusionnes** avec `status` (`CoachingProjectStatus`) qui a une semantique differente | Copie telle quelle ; a lire ensemble a l'affichage, jamais l'un ecrase l'autre. |
+| `etapeActuelle`/`etapeOverride`/`iterationCount` (timeline figee par offre GUIDE/CONCEPTION) | Additifs sur `CoachingProject`, **distincts** de `CoachingProject.status` | Copie telle quelle. La timeline a etapes fixes de `lib/dossier-client.ts` (`getDossierSteps`) reste utilisable pour les dossiers qui l'utilisaient deja ; ne pas la forcer sur un `CoachingProject` cree hors achat. |
+| `dateLivraison` | Additif `CoachingProject.dateLivraison DateTime?` | Copie telle quelle ; pilote purge/J+30/temoignage (§7). |
+| `consentementPartage`/`consentementPartageAt` | Additifs | Copie telle quelle — ne pas confondre avec la visibilite privee/partagee au niveau du contenu (§8), qui est une regle de code, pas ce consentement commercial. |
+| `temoignageDemande`/`temoignageRecu`/`j30MessageEnvoye` | Additifs | Copie telle quelle ; `lib/services/dossier-notifications.ts` lit desormais `CoachingProject` au lieu de `DossierClient` pour ces trois flags (a livrer avec la bascule d'ecriture, §9). |
+| `purgeWarningSentAt`/`confirmationEmailSentAt` (ajoutes ce lot) | Additifs identiques | Copie telle quelle ; memes garanties (§ correctifs ci-dessus) a preserver a l'identique sur le nouveau champ. |
+| `besoinVehicule`/`besoinDescription`/`besoinProgress`/`besoinDeadline`/`besoinAutre` (formulaire de besoin pre-achat) | Additifs, **distincts** de `objectifs`/`threePriorities`/`coachingTopics` deja presents sur `CoachingProject` | Copie telle quelle. Les deux jeux de champs peuvent legitimement differer (besoin exprime avant paiement vs. entretien realise apres) — ne jamais ecraser l'un par l'autre a la reprise. |
+| `notesInternes` | `CoachingProject.notesInternes` existe deja | Concatener les deux si un meme `CoachingProject` recoit les deux sources (cas de rapprochement, rare), avec un separateur horodate explicite ; ne jamais silencieusement en perdre un. |
+| `DossierEvent` | Reprend dans `CoachingProjectEvent` (meme forme : `type` texte libre, `authorName`, `note`, `createdAt`) | Import direct ligne a ligne, `type` prefixe si besoin de distinguer l'origine (ex. `LEGACY_DOSSIER:<type>`) pour l'audit, jamais perdu. |
+| `DossierDocument` | Reprend dans `CoachingProjectDocument` (memes champs : filename/bucket/path/contentType/sizeBytes/uploadedBy) | Import direct ; **ne jamais deplacer les fichiers physiques eux-memes**, seulement les lignes qui pointent dessus (regle explicite de `PROMPT_REPRISE_CLAUDE_CRM.md`). Verifier la contrainte `@@unique([bucket, path])` deja partagee par les deux tables avant l'import (memes valeurs `bucket`/`path` possibles cote coaching → detecter les collisions, ne pas les fusionner aveuglement). |
+| `DossierAppointment` | Reprend dans `CoachingSession` (`scheduledAt`, `durationMinutes`, `status` a deduire de `compteRendu` rempli ou non, `prochaineEtape`/`sujetsAbordes` a defaut vide) | Import direct ; **conserver l'UID ICS existant** (`app/api/calendar/accompagnements.ics`) en ajoutant un champ additif `legacyDossierAppointmentId String? @unique` sur `CoachingSession` pour ne jamais dupliquer un abonnement webcal deja installe sur un telephone. |
+
+### 3. Prospect → conversion
+
+`Prospect.convertedCustomerId` pointe deja vers `Customer`, pas vers un
+projet — inchange. La conversion (`lib/services/prospect.ts`) doit devenir
+le point d'entree unique de creation d'un `CoachingProject` a partir d'un
+prospect (deja largement le cas). Rien a fusionner ici, seulement confirmer
+qu'aucun second chemin de conversion n'existe (`DossierClient` n'a pas
+d'equivalent prospect — un achat direct sans prospect prealable cree
+directement le `CoachingProject`, §9).
+
+### 4. Integration `Project`/`ProjectSchema` (editeur), sans fusion
+
+D'apres `NOTE_CLAUDE_REUTILISER_EDITEUR_EXISTANT.md` : conserver l'editeur
+existant tel quel, ne jamais dupliquer nœuds/cables dans le CRM. Decision :
+
+- Nouveau champ additif `CoachingProject.linkedProjectId String? @unique` +
+  relation optionnelle vers `Project` (`onDelete: SetNull` : la suppression
+  d'un `Project` ne doit jamais entrainer celle de l'accompagnement).
+  **Cardinalite proposee 1:1 optionnelle** (un accompagnement a au plus un
+  espace de travail schema actif a la fois) — a confirmer avec Fabien si un
+  besoin reel de plusieurs `Project` actifs par accompagnement apparaît
+  (ex. deux circuits totalement independants sur le meme vehicule) ; rien
+  n'empeche techniquement de passer a une relation 1:N plus tard (migration
+  additive supplementaire), mais ne pas l'anticiper sans besoin observe.
+- Les actions cote CRM/compte client reutilisent **telles quelles** les
+  actions existantes (`createProjectForCustomerAction`/
+  `createProjectForCustomerByAdmin`, ouverture `/outils/schema/editeur?projectId=...`),
+  simplement invoquees depuis le dossier unifie avec `linkedProjectId` mis a
+  jour au lieu de dupliquer la creation. Si un `Project` existe deja pour ce
+  client et ce besoin, le proposer au rattachement plutot que d'en creer un
+  second (deja demande explicitement par la note).
+- `CoachingCircuit`/`CoachingSchemaRevision` ne sont **pas** remplaces par
+  `Project`/`ProjectSchema` : ce sont des enregistrements structures de
+  dimensionnement/bilan fige (courant calcule, section de cable, protection,
+  snapshot du bilan de consommation), pas un canevas visuel — role
+  different et complementaire de `ProjectSchema` (nœuds/cables/miniature).
+  Les deux peuvent coexister sous le meme `CoachingProject` sans creer un
+  second parcours concurrent, conformement a la note (« plusieurs tables
+  specialisees peuvent subsister »).
+- La proposition anterieure de Codex (« brouillon prive → version figee
+  partagee ») **n'est pas retenue par defaut** : `ProjectSchemaVersion`
+  existe deja pour figer des etapes, et `ShareSchemaDialog`/`shareToken`
+  gerent deja un partage explicite. Le plan de consolidation reutilise ces
+  mecanismes existants sans les dupliquer ; toute evolution de ce modele de
+  partage doit d'abord verifier ces ecrans reels, pas partir d'une
+  hypothese non confirmee.
+
+### 5. Type de support (van/camping-car/bateau/autre)
+
+D'apres `PROMPT_CLAUDE_APRES_FUSION_SUPPORTS.md` : le type doit etre porte
+par le dossier accompagne, pas par le client. Decision :
+
+- Nouveau champ additif `CoachingProject.assetType ProjectAssetType?`
+  (reutilise l'enum **existant** de l'editeur : `BOAT`/`VAN`/`MOTORHOME`/`OTHER`,
+  deja plus granulaire que `Customer.assetType`/`AssetType` qui melange
+  VAN et MOTORHOME sous `VEHICLE` — confirme par lecture du schema).
+  **Nullable = inconnu**, aucune valeur par defaut : un ancien
+  `CoachingProject` (implicitement « van » aujourd'hui) n'est **jamais**
+  reecrit automatiquement a la reprise ; le coach peut le preciser
+  ulterieurement.
+- Aucune extension d'enum necessaire dans l'immediat (contrairement a ce
+  que le document suggerait en prevoyant une extension minimale) : le
+  caractere nullable du champ couvre deja « pas encore su » sans avoir
+  besoin d'une valeur `UNKNOWN` dans `ProjectAssetType` — a revoir seulement
+  si l'UI a besoin de distinguer explicitement « jamais demande » de
+  « demande, client ne sait pas », ce qui n'est pas confirme comme
+  necessaire.
+- `Customer.assetType` **n'est pas touche** : il garde son sens actuel de
+  fiche profil generale, distinct du support d'un accompagnement precis
+  (confirme par Fabien : « Customer.assetType a un autre sens »).
+- Les champs `vehicleBrand`/`vehicleModel`/`vehicleYear`/`vehicleEngine`/
+  `vehicleFormat`/`vehicleDimensions`/`registrationCountry`/`usageCountry`/
+  `homologationNotes` existants restent le socle commun (marque/modele/
+  annee/contexte) reutilisable pour van, camping-car ou bateau sans
+  renommage — leurs libelles a l'ecran deviennent conditionnels a
+  `assetType` (ex. « immatriculation » n'a pas de sens pour un bateau sans
+  numero de coque ; l'ecran adapte le libelle, le champ reste generique en
+  base). Aucun champ specifique nautique n'est ajoute sans besoin observe
+  (interdiction explicite d'inventer un questionnaire nautique complet).
+
+### 6. Commercial : deux parcours preserves, jamais fusionnes
+
+`Order`/`Payment` (achat Stripe, `DossierClient.orderId` d'origine) et
+`CoachingProposal` (accord negocie manuellement, deja sur `CoachingProject`)
+restent deux mecanismes distincts et **continuent de coexister** sur le
+meme `CoachingProject` : un accompagnement peut avoir ete propose
+manuellement (`CoachingProposal`) puis effectivement paye sur le site
+(`orderId` renseigne ensuite), ou l'inverse (achat direct sans proposition
+prealable). Aucune ecriture ne doit inventer l'un a partir de l'autre.
+`Quote`/`Invoice` gardent leur role documentaire propre, retrouvables
+depuis le dossier sans qu'il en fabrique une seconde version (deja acte
+dans `PLAN_AMELIORATION_CRM_FABSYSTEM.md` §3).
+
+### 7. Notifications/cron
+
+`lib/services/dossier-notifications.ts` (inactivite, J+30, temoignage,
+avertissement+purge — corriges ce lot sur `DossierClient`) doit, apres la
+bascule d'ecriture (§9), lire/ecrire les memes flags sur `CoachingProject`.
+**Ne pas dupliquer le cron** : une seule execution quotidienne, sur la
+table qui fait foi a ce moment de la transition (voir §9 sur la coexistence
+temporaire).
+
+### 8. Visibilite privee/partagee
+
+Regle unique proposee, reprise de `PLAN_AMELIORATION_CRM_FABSYSTEM.md` §4.5 :
+un champ que le client renseigne dans les rubriques communes est visible au
+coach ; les brouillons/notes internes du coach (`notesInternes`,
+`CoachingProposal` en `BROUILLON`, sections privees futures de la fiche
+d'entretien) restent prives par construction serveur (jamais un simple
+masquage CSS) ; un document/compte-rendu devient visible au client
+seulement par une action de partage explicite. Ce plan ne cree pas de
+nouveau champ de visibilite generique : chaque type de contenu garde sa
+propre regle de filtrage cote service, comme c'est deja le cas pour
+`notesInternes` aujourd'hui (jamais renvoye aux routes `mon-compte/*`).
+
+### 9. Bascule d'ecriture et coexistence temporaire
+
+Ordre propose (detaille en code lors de l'implementation, pas ici) :
+
+1. Migration additive (tous les champs/relations ci-dessus), aucune
+   donnee deplacee.
+2. Script de reprise idempotent (a blanc d'abord) : pour chaque
+   `DossierClient`, trouver ou creer le `CoachingProject` correspondant
+   (rapprochement par `customerId` + `orderId` si un `CoachingProject` a
+   deja ete cree manuellement pour ce client avant l'achat — **jamais par
+   nom/e-mail seul**), copier les champs et satellites selon le tableau du
+   §2, avec comptage des cas ambigus (plusieurs `CoachingProject` possibles
+   pour un meme client) signales pour resolution manuelle plutot
+   qu'automatique.
+3. Webhook Stripe (`createDossierClientForOrder`) et actions CRM bascules
+   pour ecrire uniquement sur `CoachingProject` (derriere un idempotence
+   par `orderId` unique, meme garantie qu'aujourd'hui).
+4. Ecrans dashboard/compte client reunis sur un seul jeu de routes ; les
+   anciennes (`/dashboard/accompagnements/*`, `/mon-compte/mon-accompagnement`)
+   redirigent avec controle d'acces vers le dossier `CoachingProject`
+   correspondant.
+5. Periode de coexistence : `DossierClient` et satellites restent en base
+   (lecture seule, plus aucune ecriture) pour permettre un retour arriere
+   sans perte, avec un critere de sortie explicite avant suppression
+   physique (ex. : N jours sans acces en lecture aux anciennes routes,
+   verification manuelle des comptages de reprise).
+6. Suppression physique des anciennes tables : migration separee et
+   documentee, hors de ce lot.
+
+### 10. Conflits et retour arriere
+
+Reprend le meme motif que les correctifs de ce lot : toute ecriture
+partagee coach/client sur un champ repris doit passer par la meme
+verification version+ID atomique (`updateMany` conditionne, jamais
+lecture-puis-ecriture separees) deja appliquee a
+`updateVehicleInfo`/`updateUsagesInfo`/`updateImplantationInfo`. Les
+nouveaux champs additifs commerciaux (`orderId`, `offre`, `dateLivraison`,
+etc.) n'ont pas besoin d'un marqueur de version dedie : ils ne sont
+ecrits que par le webhook/l'admin, jamais concurrentiellement par le
+client. Retour arriere : chaque etape ci-dessus est une migration additive
+distincte, reversible independamment (supprimer une colonne ne perd que
+cette colonne, jamais les tables sources tant que l'etape 6 n'est pas
+executee).
+
+### 11. Accessibilite/guidage : exigence transverse, pas une etape separee
+
+Conformement a `PROMPT_CLAUDE_ACCESSIBILITE_ET_GUIDAGE.md` (point 4 : « ne
+programme pas trois refontes successives des memes ecrans »), les ecrans du
+dossier unifie (§9 point 4) doivent etre concus directement selon ces
+exigences (une action principale par ecran, francais courant, labels
+visibles, confirmations explicites, conservation de la saisie en cas
+d'erreur/conflit, cibles tactiles ≥44px, contrastes et clavier verifies) —
+pas ecrits une premiere fois puis retouches ensuite. Ce plan de donnees
+n'impose aucune contrainte de schema supplementaire pour cela ; c'est une
+exigence d'implementation d'ecran, notee ici pour qu'elle soit prise en
+compte des la conception des memes ecrans que la fusion, pas apres.
+
+### 12. Ce que ce plan ne decide pas (a confirmer avant migration)
+
+- Cardinalite exacte `CoachingProject` ↔ `Project` si un besoin reel de
+  plusieurs schemas actifs simultanes apparait (§4).
+- Sort exact de `etapeActuelle`/`etapeOverride` (timeline figee par offre)
+  une fois le dossier commun en place : rester un mode d'affichage
+  alternatif pour les dossiers issus d'achat, ou etre progressivement
+  remplace par le suivi libre de `CoachingProject` — non tranche, a device
+  avec Fabien a l'usage du lot 1 de `PLAN_AMELIORATION_CRM_FABSYSTEM.md`.
+  volume ambigu.
+- Politique de conservation post-cloture (`PLAN_AMELIORATION_CRM_FABSYSTEM.md`
+  §4.6 : « Clôturer, archiver et supprimer sont trois operations
+  distinctes ») applicable au `CoachingProject` unifie — la purge actuelle
+  (§ correctif ci-dessus) ne concerne que `DossierClient` et devra etre
+  reportee/adaptee explicitement, pas suppposee identique.
+- Date/critere de sortie precis de la coexistence temporaire (§9 point 5).
+
+Ce plan n'est pas fige : toute decision ci-dessus peut changer avant
+migration, tant que le changement est documente ici avant d'etre code.

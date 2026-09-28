@@ -2,8 +2,10 @@ import type Stripe from "stripe";
 import { badRequest, notFound } from "@/lib/http-errors";
 import { getDossierSteps } from "@/lib/dossier-client";
 import { prisma } from "@/lib/prisma";
+import { migrateOneDossierClient } from "@/lib/services/coaching-dossier-migration";
 import { PRESTATIONS_BENEFIT_REASON } from "@/lib/services/prestations-benefits";
 import { renderEmailTemplate } from "@/lib/services/email-templates";
+import { logCoachingProjectEvent } from "@/lib/services/coaching-project-events";
 import { logServerEvent } from "@/lib/server-log";
 
 const OFFER_SLUG_TO_DOSSIER_OFFRE: Record<string, "CONSEIL" | "GUIDE" | "CONCEPTION"> = {
@@ -87,27 +89,38 @@ export async function createDossierClientForOrder(
     return { status: "not_applicable" };
   }
 
-  const existing = await prisma.dossierClient.findUnique({ where: { orderId: order.id }, select: { id: true } });
-  if (existing) {
+  const existing = await prisma.dossierClient.findUnique({
+    where: { orderId: order.id },
+    select: { id: true, offre: true, confirmationEmailSentAt: true },
+  });
+
+  // L'existence du dossier (idempotence par orderId) ne doit jamais, à elle
+  // seule, interrompre le rejeu : si l'envoi initial a échoué, une
+  // redelivery Stripe ultérieure doit encore pouvoir réessayer l'e-mail
+  // (constat d'audit — mécanique de rejeu déjà en place côté webhook,
+  // aucun second moteur ajouté ici).
+  if (existing?.confirmationEmailSentAt) {
     return { status: "already_exists", dossierId: existing.id };
   }
 
-  const offre = OFFER_SLUG_TO_DOSSIER_OFFRE[offerItem.productSlug];
+  const offre = existing?.offre ?? OFFER_SLUG_TO_DOSSIER_OFFRE[offerItem.productSlug];
 
-  const dossier = await prisma.dossierClient.create({
-    data: {
-      customerId: order.customerId,
-      orderId: order.id,
-      offre,
-      statutSimple: offre === "CONSEIL" ? "A_VENIR" : null,
-      whatsapp: metadataValue(sessionMetadata, "needsWhatsapp"),
-      besoinVehicule: metadataValue(sessionMetadata, "needsVehicle"),
-      besoinDescription: metadataValue(sessionMetadata, "needsDescription"),
-      besoinProgress: metadataValue(sessionMetadata, "needsProgress"),
-      besoinDeadline: metadataValue(sessionMetadata, "needsDeadline"),
-      besoinAutre: metadataValue(sessionMetadata, "needsOther"),
-    },
-  });
+  const dossier = existing
+    ? existing
+    : await prisma.dossierClient.create({
+        data: {
+          customerId: order.customerId,
+          orderId: order.id,
+          offre,
+          statutSimple: offre === "CONSEIL" ? "A_VENIR" : null,
+          whatsapp: metadataValue(sessionMetadata, "needsWhatsapp"),
+          besoinVehicule: metadataValue(sessionMetadata, "needsVehicle"),
+          besoinDescription: metadataValue(sessionMetadata, "needsDescription"),
+          besoinProgress: metadataValue(sessionMetadata, "needsProgress"),
+          besoinDeadline: metadataValue(sessionMetadata, "needsDeadline"),
+          besoinAutre: metadataValue(sessionMetadata, "needsOther"),
+        },
+      });
 
   const sendMailImpl = deps?.sendMailImpl ?? (await getDefaultSendMail());
   try {
@@ -120,11 +133,57 @@ export async function createDossierClientForOrder(
       Boolean(purchasedProduct?.includedEditorAccessDays && purchasedProduct.includedEditorAccessDays > 0),
       sendMailImpl
     );
+    await prisma.dossierClient.update({ where: { id: dossier.id }, data: { confirmationEmailSentAt: new Date() } });
   } catch (error) {
     logServerEvent("error", "failed to send dossier confirmation email", { error, dossierId: dossier.id });
   }
 
-  return { status: "created", dossierId: dossier.id };
+  // Rattache/cree le CoachingProject correspondant (plan de consolidation,
+  // docs/03-DATABASE.md) des la creation reelle — pont temporaire pendant la
+  // coexistence : DossierClient reste la source de verite lue par les ecrans
+  // existants (aucun changement ici), CoachingProject devient disponible
+  // pour les futurs ecrans unifies sans attendre une reprise en masse
+  // ulterieure. Un cas ambigu ou une erreur ici NE DOIT JAMAIS faire echouer
+  // la creation du dossier ni son e-mail de confirmation, deja traites
+  // au-dessus.
+  try {
+    await migrateOneDossierClient(dossier.id, { dryRun: false });
+  } catch (error) {
+    logServerEvent("error", "failed to sync dossier into coaching project", { error, dossierId: dossier.id });
+  }
+
+  return { status: existing ? "already_exists" : "created", dossierId: dossier.id };
+}
+
+// Miroir best-effort d'une mutation DossierClient vers le CoachingProject
+// lie par createDossierClientForOrder (etape 4, plan de consolidation,
+// docs/03-DATABASE.md) — jamais bloquant : un dossier "decouverte" (aucun
+// orderId) ou pas encore repris n'a simplement pas de cible, ce n'est pas
+// une erreur. Seul lien fort disponible a ce stade : orderId. Ne couvre
+// QUE les champs scalaires simples (statut/notes/whatsapp/livraison) ;
+// documents et rendez-vous suivent une logique de miroir differente
+// (retrouver/creer par contenu, pas un simple patch de champ) et ne sont
+// pas couverts ici — limite assumee, a traiter separement si besoin.
+async function mirrorIntoCoachingProject(
+  dossierId: string,
+  patch: Record<string, unknown>,
+  event?: { type: string; note?: string }
+) {
+  try {
+    const dossier = await prisma.dossierClient.findUnique({ where: { id: dossierId }, select: { orderId: true } });
+    if (!dossier?.orderId) return;
+    const linked = await prisma.coachingProject.findUnique({ where: { orderId: dossier.orderId }, select: { id: true } });
+    if (!linked) return;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.coachingProject.update({ where: { id: linked.id }, data: { ...patch, derniereActivite: new Date() } });
+      if (event) {
+        await logCoachingProjectEvent(tx, linked.id, event.type, { kind: "coach" }, event.note);
+      }
+    });
+  } catch (error) {
+    logServerEvent("error", "failed to mirror dossier update into coaching project", { error, dossierId });
+  }
 }
 
 // Creation manuelle depuis le dashboard : seul chemin pour "decouverte"
@@ -159,7 +218,7 @@ export async function updateDossierSimpleStatus(input: {
     throw badRequest("Ce dossier utilise une timeline à étapes, pas un statut simple.");
   }
 
-  return prisma.dossierClient.update({
+  const updated = await prisma.dossierClient.update({
     where: { id: input.dossierId },
     data: {
       statutSimple: input.statutSimple,
@@ -167,6 +226,11 @@ export async function updateDossierSimpleStatus(input: {
       derniereActivite: new Date(),
     },
   });
+  await mirrorIntoCoachingProject(input.dossierId, {
+    statutSimple: input.statutSimple,
+    compteRendu: input.compteRendu?.trim() || null,
+  });
+  return updated;
 }
 
 export async function advanceDossierStep(input: { dossierId: string; stepKey: string; note?: string }) {
@@ -179,7 +243,7 @@ export async function advanceDossierStep(input: { dossierId: string; stepKey: st
   const validKeys = getDossierSteps(dossier.offre).map((step) => step.key);
   if (!validKeys.includes(input.stepKey)) throw badRequest("Étape invalide.");
 
-  return prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx) => {
     const updated = await tx.dossierClient.update({
       where: { id: input.dossierId },
       data: { etapeActuelle: input.stepKey, derniereActivite: new Date() },
@@ -197,6 +261,12 @@ export async function advanceDossierStep(input: { dossierId: string; stepKey: st
 
     return updated;
   });
+  await mirrorIntoCoachingProject(
+    input.dossierId,
+    { etapeActuelle: input.stepKey },
+    { type: "LEGACY_DOSSIER:STEP_CHANGE", note: [`${dossier.etapeActuelle ?? "?"} -> ${input.stepKey}`, input.note?.trim()].filter(Boolean).join(" — ") }
+  );
+  return updated;
 }
 
 export async function addDossierIteration(input: { dossierId: string; note: string }) {
@@ -206,7 +276,7 @@ export async function addDossierIteration(input: { dossierId: string; note: stri
   const note = input.note.trim();
   if (!note) throw badRequest("La note d'itération est requise.");
 
-  return prisma.$transaction(async (tx) => {
+  const updated = await prisma.$transaction(async (tx) => {
     const updated = await tx.dossierClient.update({
       where: { id: input.dossierId },
       data: { iterationCount: { increment: 1 }, derniereActivite: new Date() },
@@ -218,26 +288,36 @@ export async function addDossierIteration(input: { dossierId: string; note: stri
 
     return updated;
   });
+  await mirrorIntoCoachingProject(
+    input.dossierId,
+    { iterationCount: updated.iterationCount },
+    { type: "LEGACY_DOSSIER:ITERATION", note }
+  );
+  return updated;
 }
 
 export async function updateDossierNotesInternes(input: { dossierId: string; notesInternes: string }) {
   const dossier = await prisma.dossierClient.findUnique({ where: { id: input.dossierId }, select: { id: true } });
   if (!dossier) throw notFound("Dossier introuvable.");
 
-  return prisma.dossierClient.update({
+  const updated = await prisma.dossierClient.update({
     where: { id: input.dossierId },
     data: { notesInternes: input.notesInternes.trim() || null },
   });
+  await mirrorIntoCoachingProject(input.dossierId, { notesInternes: input.notesInternes.trim() || null });
+  return updated;
 }
 
 export async function setDossierWhatsapp(input: { dossierId: string; whatsapp: string }) {
   const dossier = await prisma.dossierClient.findUnique({ where: { id: input.dossierId }, select: { id: true } });
   if (!dossier) throw notFound("Dossier introuvable.");
 
-  return prisma.dossierClient.update({
+  const updated = await prisma.dossierClient.update({
     where: { id: input.dossierId },
     data: { whatsapp: input.whatsapp.trim() || null },
   });
+  await mirrorIntoCoachingProject(input.dossierId, { whatsapp: input.whatsapp.trim() || null });
+  return updated;
 }
 
 // Marque le dossier comme livré (ou annule ce marquage) — retour utilisateur
@@ -249,7 +329,8 @@ export async function setDossierDelivered(input: { dossierId: string; delivered:
   const dossier = await prisma.dossierClient.findUnique({ where: { id: input.dossierId }, select: { id: true } });
   if (!dossier) throw notFound("Dossier introuvable.");
 
-  return prisma.$transaction(async (tx) => {
+  const note = input.delivered ? "Dossier marqué comme livré." : "Marquage \"livré\" annulé.";
+  const updated = await prisma.$transaction(async (tx) => {
     const updated = await tx.dossierClient.update({
       where: { id: input.dossierId },
       data: { dateLivraison: input.delivered ? new Date() : null, derniereActivite: new Date() },
@@ -259,12 +340,18 @@ export async function setDossierDelivered(input: { dossierId: string; delivered:
       data: {
         dossierId: input.dossierId,
         type: "NOTE",
-        note: input.delivered ? "Dossier marqué comme livré." : "Marquage \"livré\" annulé.",
+        note,
       },
     });
 
     return updated;
   });
+  await mirrorIntoCoachingProject(
+    input.dossierId,
+    { dateLivraison: updated.dateLivraison },
+    { type: "LEGACY_DOSSIER:NOTE", note }
+  );
+  return updated;
 }
 
 export async function listDossiers() {

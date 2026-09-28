@@ -1,4 +1,4 @@
-import { badRequest, notFound } from "@/lib/http-errors";
+import { badRequest, forbidden, notFound } from "@/lib/http-errors";
 import { prisma } from "@/lib/prisma";
 import type { CoachingActor } from "@/lib/services/coaching-actor";
 import { logCoachingProjectEvent } from "@/lib/services/coaching-project-events";
@@ -89,8 +89,22 @@ export async function updateMaterial(input: { materialId: string; actor: Coachin
   });
 }
 
-export async function deleteMaterial(materialId: string) {
-  const material = await prisma.coachingMaterial.findUnique({ where: { id: materialId }, select: { id: true } });
+// projectId revérifié pour la même raison que deleteDevice (ci-dessus,
+// coaching-van-dossier.ts) : le formulaire ne prouve la propriété que du
+// projectId, jamais du materialId lui-même. Suppression + marqueur "à
+// revoir" + événement d'historique forment une seule opération (constat
+// d'audit — suppressions non journalisées).
+export async function deleteMaterial(materialId: string, projectId: string, actor: CoachingActor) {
+  const material = await prisma.coachingMaterial.findUnique({
+    where: { id: materialId },
+    select: { id: true, projectId: true, category: true, brand: true, reference: true },
+  });
   if (!material) throw notFound("Matériel introuvable.");
-  return prisma.coachingMaterial.delete({ where: { id: materialId } });
+  if (material.projectId !== projectId) throw forbidden("Ce matériel n'appartient pas à ce projet.");
+  const label = [material.category, material.brand, material.reference].filter(Boolean).join(" ");
+  return prisma.$transaction(async (tx) => {
+    await tx.coachingMaterial.delete({ where: { id: materialId } });
+    await tx.coachingProject.update({ where: { id: projectId }, data: { derniereActivite: new Date() } });
+    await logCoachingProjectEvent(tx, projectId, "MATERIAL", actor, `Matériel supprimé : ${label}`);
+  });
 }

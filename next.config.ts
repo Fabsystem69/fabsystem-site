@@ -10,6 +10,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  experimental: {
+    // Les documents restent limités à 2 Mo par les validateurs métier.
+    // La requête multipart contient aussi les champs et ses séparateurs.
+    serverActions: { bodySizeLimit: "3mb" },
+  },
   // Autorise les essais de l'éditeur sur un téléphone du même réseau Wi-Fi.
   // Cette origine n'est prise en compte que par `next dev`, jamais en production.
   allowedDevOrigins: ["192.168.1.23"],

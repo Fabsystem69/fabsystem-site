@@ -84,6 +84,7 @@ export default async function DashboardCrmProspectDetailPage({
                 <option value="GROUPE_FACEBOOK">Groupe Facebook</option>
                 <option value="COMMENTAIRE">Commentaire</option>
                 <option value="PUBLICITE">Publicité</option>
+                <option value="SITE_WEB">Formulaire du site</option>
                 <option value="AUTRE">Autre</option>
               </select>
             </label>

@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { formatCustomerDisplayName, formatDate } from "@/lib/format";
-import { getCoachingProjectStatusLabel, getCoachingProjectStatusTone } from "@/lib/dashboard-status-labels";
+import {
+  getCoachingProjectStatusLabel,
+  getCoachingProjectStatusTone,
+  getProspectSourceLabel,
+  getProspectStatusLabel,
+  getProspectStatusTone,
+} from "@/lib/dashboard-status-labels";
 import { getCoachingClient } from "@/lib/services/coaching-project";
 import { AdminAlert, AdminBadge, AdminButton, AdminCard, AdminPageHeader, DashboardPageShell } from "@/components/dashboard/ui";
-import { createCoachingProjectAction } from "../../actions";
+import { createCoachingProjectAction } from "../../project-lifecycle-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +38,57 @@ export default async function DashboardCrmClientDetailPage({
       />
 
       {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
+
+      {customer.convertedFromProspect ? (
+        <AdminCard
+          title="Prospection"
+          description="Historique avant conversion — retrouvé ici plutôt que recopié dans le dossier."
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm text-neutral-300">
+              Origine : {getProspectSourceLabel(customer.convertedFromProspect.source)}
+              {customer.convertedFromProspect.facebookLink ? (
+                <>
+                  {" · "}
+                  <a
+                    href={customer.convertedFromProspect.facebookLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-neutral-600 hover:text-white"
+                  >
+                    Lien de la conversation
+                  </a>
+                </>
+              ) : null}
+            </span>
+            <AdminBadge tone={getProspectStatusTone(customer.convertedFromProspect.status)}>
+              {getProspectStatusLabel(customer.convertedFromProspect.status)}
+            </AdminBadge>
+          </div>
+          {customer.convertedFromProspect.besoinElectricite ? (
+            <p className="mt-3 text-sm text-neutral-400">
+              <span className="font-semibold text-neutral-300">Besoin exprimé : </span>
+              {customer.convertedFromProspect.besoinElectricite}
+            </p>
+          ) : null}
+          {customer.convertedFromProspect.notesInternes ? (
+            <p className="mt-3 whitespace-pre-wrap text-sm text-neutral-400">
+              <span className="font-semibold text-neutral-300">Notes internes : </span>
+              {customer.convertedFromProspect.notesInternes}
+            </p>
+          ) : null}
+          {customer.convertedFromProspect.events.length > 0 ? (
+            <ul className="mt-4 space-y-2 border-t border-neutral-800/80 pt-3">
+              {customer.convertedFromProspect.events.map((event) => (
+                <li key={event.id} className="text-sm text-neutral-500">
+                  <span className="text-neutral-400">{formatDate(event.createdAt)}</span>
+                  {event.note ? ` — ${event.note}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </AdminCard>
+      ) : null}
 
       <AdminCard title="Projets électriques">
         {customer.coachingProjects.length === 0 ? (

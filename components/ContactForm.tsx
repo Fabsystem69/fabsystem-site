@@ -1,7 +1,7 @@
 "use client";
 
 import { track } from "@/lib/client/track";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 type Status = null | "ok" | "error";
 
@@ -17,6 +17,7 @@ export default function ContactForm({
    * est plus contrainte que sur la page /contact. */
   compact?: boolean;
 }) {
+  const formId = useId();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<Status>(null);
   const [urgent, setUrgent] = useState(false);
@@ -99,8 +100,8 @@ export default function ContactForm({
     <form className={compact ? "space-y-3" : "mt-6 space-y-4"} onSubmit={onSubmit}>
       {/* Honeypot */}
       <div className="hidden" aria-hidden="true">
-        <label htmlFor="company">Company</label>
-        <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+        <label htmlFor={`${formId}-company`}>Company</label>
+        <input id={`${formId}-company`} name="company" type="text" tabIndex={-1} autoComplete="off" />
         <input name="startedAt" type="hidden" value={startedAt} readOnly />
       </div>
 
@@ -112,22 +113,24 @@ export default function ContactForm({
       {/* Ligne 1 : Nom / Email */}
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
-          <label className={labelClass}>Nom *</label>
-          <input name="name" required type="text" placeholder="Votre nom" className={fieldClass} />
+          <label htmlFor={`${formId}-name`} className={labelClass}>Nom *</label>
+          <input id={`${formId}-name`} name="name" required autoComplete="name" type="text" placeholder="Votre nom" className={fieldClass} />
         </div>
 
         <div className="space-y-1">
-          <label className={labelClass}>Email *</label>
-          <input name="email" required type="email" placeholder="votre@email.fr" className={fieldClass} />
+          <label htmlFor={`${formId}-email`} className={labelClass}>Email *</label>
+          <input id={`${formId}-email`} name="email" required autoComplete="email" type="email" placeholder="votre@email.fr" className={fieldClass} />
         </div>
       </div>
 
       {/* Message */}
       <div className="space-y-1">
-        <label className={labelClass}>Message *</label>
+        <label htmlFor={`${formId}-message`} className={labelClass}>Message *</label>
         <textarea
-          name="message"
+          id={`${formId}-message`} name="message"
           required
+          minLength={10}
+          maxLength={8000}
           rows={compact ? 5 : 6}
           defaultValue={defaultMessage}
           placeholder="Expliquez-nous simplement votre besoin — quelques phrases suffisent."
@@ -148,14 +151,14 @@ export default function ContactForm({
           {/* Téléphone / Support */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <label className={labelClass}>Téléphone</label>
-              <input name="phone" type="text" placeholder="Ex : 06..." className={fieldClass} />
+              <label htmlFor={`${formId}-phone`} className={labelClass}>Téléphone</label>
+              <input id={`${formId}-phone`} name="phone" type="tel" autoComplete="tel" placeholder="Ex : 06..." className={fieldClass} />
               <p className={hintClass}>Utile si vous souhaitez être rappelé.</p>
             </div>
 
             <div className="space-y-1">
-              <label className={labelClass}>Support concerné</label>
-              <select name="supportType" className={fieldClass} defaultValue="">
+              <label htmlFor={`${formId}-supportType`} className={labelClass}>Support concerné</label>
+              <select id={`${formId}-supportType`} name="supportType" className={fieldClass} defaultValue="">
                 {supportOptions.map((opt) => (
                   <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
                     {opt.label}
@@ -168,8 +171,8 @@ export default function ContactForm({
 
           {/* Type de demande + urgence regroupés */}
           <div className="space-y-1">
-            <label className={labelClass}>Type de demande</label>
-            <select name="requestType" className={fieldClass} defaultValue="">
+            <label htmlFor={`${formId}-requestType`} className={labelClass}>Type de demande</label>
+            <select id={`${formId}-requestType`} name="requestType" className={fieldClass} defaultValue="">
               {requestOptions.map((opt) => (
                 <option key={opt.value} value={opt.value} disabled={opt.value === ""}>
                   {opt.label}
@@ -190,9 +193,9 @@ export default function ContactForm({
 
           {/* Modèle / infos rapides */}
           <div className="space-y-1">
-            <label className={labelClass}>Modèle / infos utiles</label>
+            <label htmlFor={`${formId}-context`} className={labelClass}>Modèle / infos utiles</label>
             <input
-              name="context"
+              id={`${formId}-context`} name="context"
               type="text"
               placeholder="Ex : Bayliner 2556 / fourgon L2H2 / 2 batteries lithium / solaire 400W…"
               className={fieldClass}

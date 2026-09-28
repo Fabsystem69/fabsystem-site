@@ -470,15 +470,19 @@ model Project {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 
-  retainedValues    ProjectRetainedValue[]
-  valueDependencies ProjectValueDependency[]
-  schema            ProjectSchema?
-  followUpReviews   ProjectFollowUpReview[]
-  followUpEvents    ProjectFollowUpEvent[]
+  retainedValues        ProjectRetainedValue[]
+  valueDependencies     ProjectValueDependency[]
+  schema                ProjectSchema?
+  followUpReviews       ProjectFollowUpReview[]
+  followUpEvents        ProjectFollowUpEvent[]
   // v2.1 : commandes de deverrouillage (SCHEMA_UNLOCK) liees a ce Project.
   // Optionnel cote Order (un Order "normal" n'a pas de Project) — voir
   // Order.projectId.
-  orders            Order[]
+  orders                Order[]
+  // Reciproque de CoachingProject.linkedProjectId (plan de consolidation,
+  // docs/03-DATABASE.md §4) — un Project peut etre rattache a au plus un
+  // dossier d'accompagnement.
+  linkedCoachingProject CoachingProject?
 
   @@index([customerId])
   @@index([kitId])
@@ -925,6 +929,7 @@ model Order {
   downloadGrants      DownloadGrant[]
   discountRedemptions DiscountRedemption[]
   dossierClient       DossierClient?
+  coachingProject     CoachingProject?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   paidAt              DateTime?
@@ -1266,15 +1271,25 @@ model DossierClient {
   etapeOverride  String?
   iterationCount Int     @default(0)
 
-  dateLivraison         DateTime?
-  consentementPartage   Boolean   @default(false)
-  consentementPartageAt DateTime?
-  temoignageDemande     Boolean   @default(false)
-  temoignageRecu        Boolean   @default(false)
+  dateLivraison           DateTime?
+  consentementPartage     Boolean   @default(false)
+  consentementPartageAt   DateTime?
+  temoignageDemande       Boolean   @default(false)
+  temoignageRecu          Boolean   @default(false)
   // Message de prise de nouvelles J+30 apres livraison (Phase 8) — flag
   // "deja envoye", meme principe que temoignageDemande, pour ne jamais
   // relancer deux fois.
-  j30MessageEnvoye      Boolean   @default(false)
+  j30MessageEnvoye        Boolean   @default(false)
+  // Preuve durable qu'un avertissement de purge a ete envoye AVEC SUCCES
+  // (jamais pose avant tentative) — la purge effective (documents) exige ce
+  // champ non nul et suffisamment ancien, en plus de dateLivraison (constat
+  // d'audit : un avertissement echoue ne doit jamais etre suivi d'une purge).
+  purgeWarningSentAt      DateTime?
+  // Preuve durable que l'e-mail de confirmation post-achat a ete envoye AVEC
+  // SUCCES — sans ce marqueur, l'existence du dossier a elle seule
+  // interrompait tout rejeu webhook Stripe et empechait de reessayer un
+  // envoi initial en echec (constat d'audit).
+  confirmationEmailSentAt DateTime?
 
   notesInternes String? @db.Text
 
@@ -1373,6 +1388,11 @@ enum ProspectSource {
   GROUPE_FACEBOOK
   COMMENTAIRE
   PUBLICITE
+  // Formulaire de contact du site public (app/api/contact/route.ts) —
+  // scenario explicite du plan : "Contact web, panne de notification ->
+  // Demande retrouvable et alerte retentable". La demande doit rester
+  // retrouvable meme si l'e-mail de notification echoue.
+  SITE_WEB
   AUTRE
 }
 
@@ -1455,6 +1475,14 @@ enum ClientLevel {
   AVANCE
 }
 
+// Fiche d'entretien (FICHE_ENTRETIEN_ET_SUIVI_COACHING.md) : "une action
+// comporte un libelle, une personne attendue - vous ou le client -, une
+// date eventuelle et un etat" (PLAN_AMELIORATION_CRM_FABSYSTEM.md §4.3).
+enum CoachingResponsible {
+  COACH
+  CLIENT
+}
+
 enum CoachingProjectStatus {
   A_DEMARRER
   EN_COURS
@@ -1472,6 +1500,28 @@ model CoachingProject {
   objectifs    String?               @db.Text
   niveauClient ClientLevel?
   status       CoachingProjectStatus @default(A_DEMARRER)
+
+  // Cloture (PLAN_AMELIORATION_CRM_FABSYSTEM.md §4.6) : "resultat obtenu,
+  // documents remis, points restants, situation commerciale, eventuel
+  // rendez-vous ulterieur" - une courte synthese, jamais un formulaire
+  // disproportionne. Distincte de `status` (qui peut repasser a EN_COURS a
+  // la reprise) : clotureAt/clotureResume gardent la DERNIERE synthese de
+  // cloture meme apres une reprise - "cloturer, archiver et supprimer sont
+  // trois operations distinctes", la reprise ne doit jamais modifier
+  // retroactivement le livrable precedent (l'historique complet reste dans
+  // CoachingProjectEvent, jamais ecrase ici).
+  clotureResume String?   @db.Text
+  clotureAt     DateTime?
+
+  // Bilan interne de cloture (PLAN_EXECUTION_CRM_CLAUDE.md §4 lot E :
+  // "bilan ce qui a aide / ce qui a pris du temps / a changer pour le
+  // prochain client") - distinct de clotureResume : jamais expose au
+  // client, sert uniquement a Fabien pour ameliorer son offre au fil des
+  // accompagnements. Meme regle que clotureResume/clotureAt : une reprise
+  // ne les efface jamais retroactivement.
+  bilanCeQuiAAide        String? @db.Text
+  bilanCeQuiAPrisDuTemps String? @db.Text
+  bilanAAmeliorer        String? @db.Text
 
   // "Historique du suivi" delibrement non duplique dans un journal a part :
   // c'est la suite chronologique des comptes-rendus de CoachingSession, deja
@@ -1544,6 +1594,21 @@ model CoachingProject {
   vehicleElectricalSource String?
   implantationUpdatedAt   DateTime @default(now())
 
+  // Fiche d'entretien / accord commercial specifique a ce client
+  // (FICHE_ENTRETIEN_ET_SUIVI_COACHING.md §2 "Synthese et proposition") —
+  // distinct de `offre` (le produit/SKU achete) : ici, ce qui est REELEMENT
+  // convenu avec CE client (les tarifs evoluent, cf. PLAN_AMELIORATION_CRM_FABSYSTEM.md).
+  // resumePartage est le SEUL champ de ce bloc explicitement destine au
+  // client (meme convention que `objectifs`, deja rendu sur
+  // /mon-compte/mon-van) ; les autres restent prives par simple omission
+  // des ecrans client, comme `notesInternes`.
+  preoccupations     String?  @db.Text
+  accordPrixCents    Int?
+  accordPerimetre    String?  @db.Text
+  accordMiseAuPropre String?
+  resumePartage      String?  @db.Text
+  entretienUpdatedAt DateTime @default(now())
+
   // Relecture (retour utilisateur : bouton "Envoyer pour relecture", espace
   // partage cote et coach cote client) - s'applique aux champs partages
   // ci-dessus et aux CoachingDevice/CoachingDeviceUsage du projet, jamais a
@@ -1551,6 +1616,49 @@ model CoachingProject {
   readyForReviewAt      DateTime?
   lastReviewedAt        DateTime?
   hasChangesSinceReview Boolean   @default(false)
+
+  // --- Reprise DossierClient (plan de consolidation, docs/03-DATABASE.md) ---
+  // Champs additifs pour absorber DossierClient sans perdre son historique
+  // commercial/de suivi. Nullable/valeurs par defaut neutres : un
+  // CoachingProject cree hors achat (CRM pur) garde tout ce bloc a sa valeur
+  // neutre, jamais une valeur inventee a la reprise.
+  orderId                 String?              @unique
+  order                   Order?               @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  offre                   DossierOffre?
+  whatsapp                String?
+  statutSimple            DossierStatutSimple?
+  compteRendu             String?              @db.Text
+  etapeActuelle           String?
+  etapeOverride           String?
+  iterationCount          Int                  @default(0)
+  dateLivraison           DateTime?
+  consentementPartage     Boolean              @default(false)
+  consentementPartageAt   DateTime?
+  temoignageDemande       Boolean              @default(false)
+  temoignageRecu          Boolean              @default(false)
+  j30MessageEnvoye        Boolean              @default(false)
+  purgeWarningSentAt      DateTime?
+  confirmationEmailSentAt DateTime?
+  besoinVehicule          String?
+  besoinDescription       String?              @db.Text
+  besoinProgress          String?
+  besoinDeadline          String?
+  besoinAutre             String?              @db.Text
+
+  // --- Support multi-vehicules (PROMPT_CLAUDE_APRES_FUSION_SUPPORTS.md) ---
+  // Reutilise l'enum existant de l'editeur (plus granulaire que
+  // Customer.assetType/AssetType, qui a un sens different : fiche profil
+  // generale, pas le support d'un accompagnement precis). Nullable =
+  // inconnu ; aucun ancien dossier n'est reecrit automatiquement en "VAN".
+  assetType ProjectAssetType?
+
+  // --- Lien vers l'editeur de schema existant (NOTE_CLAUDE_REUTILISER_EDITEUR_EXISTANT.md) ---
+  // Aucun second editeur : ce champ rattache le dossier a un Project/
+  // ProjectSchema deja existant plutot que d'en dupliquer le contenu ici.
+  // 1:1 optionnel (voir docs/03-DATABASE.md §4 pour la cardinalite a
+  // reconfirmer si un besoin de plusieurs schemas actifs apparait).
+  linkedProjectId String?  @unique
+  linkedProject   Project? @relation(fields: [linkedProjectId], references: [id], onDelete: SetNull)
 
   derniereActivite DateTime @default(now())
   createdAt        DateTime @default(now())
@@ -1613,6 +1721,10 @@ model CoachingSession {
   scheduledAt     DateTime
   durationMinutes Int                   @default(60)
   status          CoachingSessionStatus @default(PREVUE)
+  // Note rapide (FICHE_ENTRETIEN_ET_SUIVI_COACHING.md §5) : "WhatsApp /
+  // visio / appel / autre" - String libre (pas d'enum ferme), coherent avec
+  // le reste du modele : une valeur imprevue ne doit jamais bloquer la saisie.
+  channel         String?
 
   // Compte-rendu (retour utilisateur : "sujets abordes, explications
   // donnees, difficultes et prochaine etape") - jamais un champ qui
@@ -1621,6 +1733,18 @@ model CoachingSession {
   explicationsDonnees String? @db.Text
   difficultes         String? @db.Text
   prochaineEtape      String? @db.Text
+
+  // Visibilite explicite (retour utilisateur : "la synthese partagee doit
+  // etre identifiable avant publication") - par defaut privee ; aucun ecran
+  // client n'affiche encore CoachingSession aujourd'hui, mais ce marqueur
+  // doit exister avant qu'un tel ecran soit construit, pas apres.
+  sharedWithClient Boolean @default(false)
+
+  // Reprise DossierAppointment (plan de consolidation, docs/03-DATABASE.md
+  // §2) : conserve l'UID ICS existant pour ne jamais dupliquer un
+  // abonnement webcal deja installe (app/api/calendar/accompagnements.ics).
+  // Nul pour toute seance creee nativement dans le CRM.
+  legacyDossierAppointmentId String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1638,18 +1762,21 @@ enum CoachingActionStatus {
 }
 
 model CoachingActionItem {
-  id        String               @id @default(cuid())
-  projectId String
-  project   CoachingProject      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id          String               @id @default(cuid())
+  projectId   String
+  project     CoachingProject      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   // Optionnel : une action peut naitre d'une seance precise, ou etre ajoutee
   // directement sur le projet.
-  sessionId String?
-  session   CoachingSession?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  label     String
-  dueDate   DateTime?
-  status    CoachingActionStatus @default(A_FAIRE)
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
+  sessionId   String?
+  session     CoachingSession?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  label       String
+  dueDate     DateTime?
+  status      CoachingActionStatus @default(A_FAIRE)
+  // Qui doit agir — nullable : les actions existantes n'ont pas cette
+  // information et ne doivent pas se voir attribuer une valeur inventee.
+  responsible CoachingResponsible?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
 
   @@index([projectId])
   @@index([status, dueDate])

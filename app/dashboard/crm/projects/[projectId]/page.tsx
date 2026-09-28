@@ -1,3 +1,7 @@
+import { CoachingInvitation } from "@/components/dashboard/crm/CoachingInvitation";
+import { EntretienSection } from "@/components/dashboard/crm/EntretienSection";
+import { ClotureCard, HistoriqueCard } from "@/components/dashboard/crm/ProjectStatusPanel";
+import { SchemaLinkCard } from "@/components/dashboard/crm/SchemaLinkCard";
 import Link from "next/link";
 import { formatCustomerDisplayName, formatDate, formatDateTime, formatEuroFromCents } from "@/lib/format";
 import {
@@ -19,6 +23,8 @@ import {
   getCoachingSessionStatusTone,
 } from "@/lib/dashboard-status-labels";
 import { getCoachingProjectForDetail, getCoachingProjectTimeBalance } from "@/lib/services/coaching-project";
+import { listProjectsForCustomer } from "@/lib/services/project";
+import { PROJECT_ASSET_TYPE_LABELS } from "@/lib/project-labels";
 import { ensureDefaultScenario, getScenarioBilan, listDevicesForProject, listScenarios } from "@/lib/services/coaching-van-dossier";
 import { listMaterialsForProject } from "@/lib/services/coaching-material";
 import { listCircuitsForProject } from "@/lib/services/coaching-circuit";
@@ -44,7 +50,6 @@ import {
   markProjectReviewedAction,
   updateCircuitReviewStatusAction,
   updateCoachingActionStatusAction,
-  updateCoachingProjectAction,
   updateCoachingProposalAction,
   updateCoachingSessionReportAction,
   updateImplantationInfoAdminAction,
@@ -53,11 +58,20 @@ import {
   updateVehicleInfoAdminAction,
   uploadCoachingProjectDocumentAction,
 } from "../../actions";
+import {
+  addQuickCoachingNoteAction,
+  closeCoachingProjectAction,
+  linkCoachingProjectSchemaAction,
+  reopenCoachingProjectAction,
+  unlinkCoachingProjectSchemaAction,
+  updateCoachingProjectAction,
+  updateEntretienInfoAction,
+} from "../../project-lifecycle-actions";
 
 export const dynamic = "force-dynamic";
 
 const fieldClass =
-  "h-11 rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base normal-case tracking-normal text-white placeholder:text-neutral-500 outline-none focus:border-brand-400";
+  "h-11 min-w-0 max-w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 text-base normal-case tracking-normal text-white placeholder:text-neutral-500 outline-none focus:border-brand-400";
 const labelClass = "grid gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-500";
 
 function minutesLabel(minutes: number) {
@@ -77,10 +91,10 @@ export default async function DashboardCrmProjectDetailPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ error?: string; success?: string; inviteLink?: string; scenario?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; scenario?: string; entretienDraft?: string }>;
 }) {
   const { projectId } = await params;
-  const { error, success, inviteLink, scenario: scenarioIdParam } = await searchParams;
+  const { error, success, scenario: scenarioIdParam, entretienDraft } = await searchParams;
   const [project, balance] = await Promise.all([
     getCoachingProjectForDetail(projectId),
     getCoachingProjectTimeBalance(projectId),
@@ -89,13 +103,17 @@ export default async function DashboardCrmProjectDetailPage({
   await ensureDefaultScenario(projectId);
   const scenarios = await listScenarios(projectId);
   const activeScenario = scenarios.find((s) => s.id === scenarioIdParam) ?? scenarios[0];
-  const [{ bilan }, devices, materials, circuits, schemaRevisions, needsSchemaReview] = await Promise.all([
+  const [{ bilan }, devices, materials, circuits, schemaRevisions, needsSchemaReview, linkableSchemaProjects] = await Promise.all([
     getScenarioBilan(activeScenario.id),
     listDevicesForProject(projectId),
     listMaterialsForProject(projectId),
     listCircuitsForProject(projectId),
     listSchemaRevisions(projectId),
     projectNeedsSchemaReview(projectId),
+    // Éditeur de schéma existant (docs/03-DATABASE.md §4) — propose de
+    // rattacher un Project déjà présent chez ce client plutôt que d'en
+    // créer un second sans le savoir.
+    listProjectsForCustomer({ role: "admin" }, project.customerId),
   ]);
 
   return (
@@ -110,6 +128,12 @@ export default async function DashboardCrmProjectDetailPage({
 
       {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}
       {success ? <AdminAlert tone="success">{success}</AdminAlert> : null}
+
+      <ClotureCard
+        project={project}
+        closeCoachingProjectAction={closeCoachingProjectAction}
+        reopenCoachingProjectAction={reopenCoachingProjectAction}
+      />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <AdminCard>
@@ -127,6 +151,8 @@ export default async function DashboardCrmProjectDetailPage({
           </p>
         </AdminCard>
       </div>
+
+      <HistoriqueCard project={project} />
 
       <AdminCard title="Fiche projet">
         <form action={updateCoachingProjectAction} className="grid gap-4">
@@ -151,19 +177,6 @@ export default async function DashboardCrmProjectDetailPage({
             <textarea name="description" rows={3} defaultValue={project.description ?? ""} className={`${fieldClass} h-auto py-2.5`} />
           </label>
           <label className={labelClass}>
-            Objectifs
-            <textarea name="objectifs" rows={2} defaultValue={project.objectifs ?? ""} className={`${fieldClass} h-auto py-2.5`} />
-          </label>
-          <label className={labelClass}>
-            Niveau du client
-            <select name="niveauClient" defaultValue={project.niveauClient ?? ""} className={fieldClass}>
-              <option value="">Non précisé</option>
-              <option value="DEBUTANT">Débutant</option>
-              <option value="INTERMEDIAIRE">Intermédiaire</option>
-              <option value="AVANCE">Avancé</option>
-            </select>
-          </label>
-          <label className={labelClass}>
             Questions en attente
             <textarea name="questionsEnAttente" rows={2} defaultValue={project.questionsEnAttente ?? ""} className={`${fieldClass} h-auto py-2.5`} />
           </label>
@@ -182,6 +195,13 @@ export default async function DashboardCrmProjectDetailPage({
         ) : null}
       </AdminCard>
 
+      <EntretienSection
+        project={project}
+        draft={entretienDraft}
+        updateEntretienInfoAction={updateEntretienInfoAction}
+        addQuickCoachingNoteAction={addQuickCoachingNoteAction}
+      />
+
       <AdminCard title="Dossier client van" description="Espace partagé — le client peut aussi compléter ces sections depuis son compte.">
         <div className="flex flex-wrap items-center gap-2">
           {project.readyForReviewAt ? <AdminBadge tone="info">En attente de relecture</AdminBadge> : null}
@@ -189,10 +209,6 @@ export default async function DashboardCrmProjectDetailPage({
           {project.lastReviewedAt ? <span className="text-xs text-neutral-500">Dernière relecture le {formatDate(project.lastReviewedAt)}</span> : null}
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <form action={generateInviteLinkAction}>
-            <input type="hidden" name="projectId" value={project.id} />
-            <AdminButton type="submit" variant="secondary" size="sm">Générer un lien d&apos;invitation</AdminButton>
-          </form>
           {project.readyForReviewAt || project.hasChangesSinceReview ? (
             <form action={markProjectReviewedAction}>
               <input type="hidden" name="projectId" value={project.id} />
@@ -200,18 +216,21 @@ export default async function DashboardCrmProjectDetailPage({
             </form>
           ) : null}
         </div>
-        {inviteLink ? (
-          <div className="mt-3 rounded-lg border border-neutral-700 bg-neutral-950 p-3">
-            <p className="text-xs text-neutral-500">Lien à copier et envoyer vous-même sur Messenger — expire dans 24h.</p>
-            <input readOnly value={inviteLink} onFocus={(e) => e.currentTarget.select()} className={`${fieldClass} mt-2 w-full`} />
-          </div>
-        ) : null}
+        <CoachingInvitation projectId={project.id} action={generateInviteLinkAction} />
       </AdminCard>
 
       <AdminCard title="Véhicule & projet" description="Étape 1 — modifiable par vous ou par le client.">
         <form action={updateVehicleInfoAdminAction} className="grid gap-4 sm:grid-cols-2">
           <input type="hidden" name="projectId" value={project.id} />
           <input type="hidden" name="expectedVehicleInfoUpdatedAt" value={project.vehicleInfoUpdatedAt.toISOString()} />
+          <label className={labelClass}>Support
+            <select name="assetType" defaultValue={project.assetType ?? ""} className={fieldClass}>
+              <option value="">Je ne sais pas encore</option>
+              {Object.entries(PROJECT_ASSET_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </label>
           <label className={labelClass}>Marque<input name="vehicleBrand" defaultValue={project.vehicleBrand ?? ""} className={fieldClass} /></label>
           <label className={labelClass}>Modèle<input name="vehicleModel" defaultValue={project.vehicleModel ?? ""} className={fieldClass} /></label>
           <label className={labelClass}>Année<input name="vehicleYear" defaultValue={project.vehicleYear ?? ""} className={fieldClass} /></label>
@@ -232,11 +251,20 @@ export default async function DashboardCrmProjectDetailPage({
           </label>
           <label className={labelClass}>Qui réalise les travaux<input name="whoDoesTheWork" defaultValue={project.whoDoesTheWork ?? ""} className={fieldClass} /></label>
           <label className={labelClass}>Échéance de départ<input name="startDeadline" defaultValue={project.startDeadline ?? ""} className={fieldClass} /></label>
-          <label className={labelClass}>Budget matériel (€)<input name="materialBudgetCents" type="number" min={0} defaultValue={project.materialBudgetCents ? project.materialBudgetCents / 100 : ""} className={fieldClass} /></label>
-          <label className={labelClass}>Budget pose (€)<input name="laborBudgetCents" type="number" min={0} defaultValue={project.laborBudgetCents ? project.laborBudgetCents / 100 : ""} className={fieldClass} /></label>
+          <label className={labelClass}>Niveau du client
+            <select name="niveauClient" defaultValue={project.niveauClient ?? ""} className={fieldClass}>
+              <option value="">Non précisé</option>
+              <option value="DEBUTANT">Débutant</option>
+              <option value="INTERMEDIAIRE">Intermédiaire</option>
+              <option value="AVANCE">Avancé</option>
+            </select>
+          </label>
+          <label className={labelClass}>Budget matériel (€)<input name="materialBudgetEuros" type="number" min={0} step="0.01" inputMode="decimal" defaultValue={project.materialBudgetCents != null ? project.materialBudgetCents / 100 : ""} className={fieldClass} /></label>
+          <label className={labelClass}>Budget pose (€)<input name="laborBudgetEuros" type="number" min={0} step="0.01" inputMode="decimal" defaultValue={project.laborBudgetCents != null ? project.laborBudgetCents / 100 : ""} className={fieldClass} /></label>
           <label className={`${labelClass} sm:col-span-2`}>Homologation<textarea name="homologationNotes" rows={2} defaultValue={project.homologationNotes ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
           <label className={`${labelClass} sm:col-span-2`}>Sujets d&apos;accompagnement<textarea name="coachingTopics" rows={2} defaultValue={project.coachingTopics ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
           <label className={`${labelClass} sm:col-span-2`}>Trois priorités<textarea name="threePriorities" rows={2} defaultValue={project.threePriorities ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
+          <label className={`${labelClass} sm:col-span-2`}>Objectifs<textarea name="objectifs" rows={2} defaultValue={project.objectifs ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
           <div className="sm:col-span-2"><AdminButton type="submit" variant="primary" className="h-11 px-6">Enregistrer</AdminButton></div>
         </form>
       </AdminCard>
@@ -328,7 +356,7 @@ export default async function DashboardCrmProjectDetailPage({
                     <form action={deleteDeviceAdminAction}>
                       <input type="hidden" name="projectId" value={project.id} />
                       <input type="hidden" name="deviceId" value={device.id} />
-                      <AdminButton type="submit" variant="ghost" size="sm">✕</AdminButton>
+                      <AdminButton type="submit" variant="ghost" size="sm" className="min-h-11 min-w-11" aria-label="Supprimer cet appareil">✕</AdminButton>
                     </form>
                   </span>
                 </li>
@@ -387,7 +415,7 @@ export default async function DashboardCrmProjectDetailPage({
                 <form action={deleteMaterialAdminAction}>
                   <input type="hidden" name="projectId" value={project.id} />
                   <input type="hidden" name="materialId" value={material.id} />
-                  <AdminButton type="submit" variant="ghost" size="sm">✕</AdminButton>
+                  <AdminButton type="submit" variant="ghost" size="sm" className="min-h-11 min-w-11" aria-label="Supprimer ce matériel">✕</AdminButton>
                 </form>
               </li>
             ))}
@@ -447,19 +475,20 @@ export default async function DashboardCrmProjectDetailPage({
                   {circuit.returnLengthM ? ` · ${circuit.returnLengthM} m retour` : " · retour non renseigné"}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <form action={updateCircuitReviewStatusAction} className="flex items-center gap-2">
+                  <form action={updateCircuitReviewStatusAction} className="flex min-w-0 flex-wrap items-center gap-2">
                     <input type="hidden" name="projectId" value={project.id} />
                     <input type="hidden" name="circuitId" value={circuit.id} />
-                    <select name="reviewStatus" defaultValue={circuit.reviewStatus} className={`${fieldClass} h-9`} onChange={(e) => e.currentTarget.form?.requestSubmit()}>
+                    <select name="reviewStatus" aria-label={`État de relecture de ${circuit.label}`} defaultValue={circuit.reviewStatus} className={fieldClass}>
                       <option value="A_FAIRE">À faire</option>
                       <option value="A_REVOIR">À revoir</option>
                       <option value="VALIDE">Validé</option>
                     </select>
+                    <AdminButton type="submit" className="min-h-11">Enregistrer</AdminButton>
                   </form>
                   <form action={deleteCircuitAction}>
                     <input type="hidden" name="projectId" value={project.id} />
                     <input type="hidden" name="circuitId" value={circuit.id} />
-                    <AdminButton type="submit" variant="ghost" size="sm">✕</AdminButton>
+                    <AdminButton type="submit" variant="ghost" size="sm" className="min-h-11 min-w-11" aria-label="Supprimer ce circuit">✕</AdminButton>
                   </form>
                 </div>
               </li>
@@ -467,6 +496,13 @@ export default async function DashboardCrmProjectDetailPage({
           </ul>
         )}
       </AdminCard>
+
+      <SchemaLinkCard
+        project={project}
+        linkableProjects={linkableSchemaProjects}
+        linkCoachingProjectSchemaAction={linkCoachingProjectSchemaAction}
+        unlinkCoachingProjectSchemaAction={unlinkCoachingProjectSchemaAction}
+      />
 
       <AdminCard title="Révisions de schéma" description="Fige un instantané du dossier et du bilan — la version de travail continue d'évoluer séparément. Le statut ne vaut pas certification réglementaire.">
         {needsSchemaReview ? (
@@ -487,24 +523,25 @@ export default async function DashboardCrmProjectDetailPage({
                   <span className="block text-sm font-semibold text-white">Révision #{revision.revisionNumber}</span>
                   <span className="text-xs text-neutral-500">Figée le {formatDate(revision.createdAt)}</span>
                 </span>
-                <span className="flex items-center gap-2">
-                  <form action={updateSchemaRevisionStatusAction}>
+                <div className="flex min-w-0 w-full flex-wrap items-center gap-2 sm:w-auto">
+                  <form action={updateSchemaRevisionStatusAction} className="flex min-w-0 flex-wrap items-center gap-2">
                     <input type="hidden" name="projectId" value={project.id} />
                     <input type="hidden" name="revisionId" value={revision.id} />
-                    <select name="status" defaultValue={revision.status} className={`${fieldClass} h-9`} onChange={(e) => e.currentTarget.form?.requestSubmit()}>
+                    <select name="status" aria-label={`Statut de la révision ${revision.revisionNumber}`} defaultValue={revision.status} className={`${fieldClass} w-full sm:w-auto`}>
                       <option value="BROUILLON">Brouillon</option>
                       <option value="A_REVOIR">À revoir</option>
                       <option value="REVU_POUR_REALISATION">Revu pour réalisation</option>
                       <option value="MIS_A_JOUR_SELON_INSTALLATION">Mis à jour selon installation</option>
                     </select>
+                    <AdminButton type="submit" className="min-h-11">Enregistrer</AdminButton>
                   </form>
                   <AdminBadge tone={getCoachingSchemaStatusTone(revision.status)}>{getCoachingSchemaStatusLabel(revision.status)}</AdminBadge>
                   <form action={deleteSchemaRevisionAction}>
                     <input type="hidden" name="projectId" value={project.id} />
                     <input type="hidden" name="revisionId" value={revision.id} />
-                    <AdminButton type="submit" variant="ghost" size="sm">✕</AdminButton>
+                    <AdminButton type="submit" variant="ghost" size="sm" className="min-h-11 min-w-11" aria-label="Supprimer cette révision">✕</AdminButton>
                   </form>
-                </span>
+                </div>
               </li>
             ))}
           </ul>
@@ -540,8 +577,14 @@ export default async function DashboardCrmProjectDetailPage({
             {project.sessions.map((session) => (
               <li key={session.id} className="rounded-xl border border-neutral-800/80 bg-neutral-950/40 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-base font-semibold text-white">{formatDateTime(session.scheduledAt)} · {session.durationMinutes} min</span>
-                  <AdminBadge tone={getCoachingSessionStatusTone(session.status)}>{getCoachingSessionStatusLabel(session.status)}</AdminBadge>
+                  <span className="text-base font-semibold text-white">
+                    {session.channel ? `${session.channel} · ` : ""}
+                    {formatDateTime(session.scheduledAt)} · {session.durationMinutes} min
+                  </span>
+                  <span className="flex items-center gap-2">
+                    {session.sharedWithClient ? <AdminBadge tone="info">Partagé au client</AdminBadge> : null}
+                    <AdminBadge tone={getCoachingSessionStatusTone(session.status)}>{getCoachingSessionStatusLabel(session.status)}</AdminBadge>
+                  </span>
                 </div>
                 <form action={updateCoachingSessionReportAction} className="mt-3 grid gap-2">
                   <input type="hidden" name="projectId" value={project.id} />
@@ -586,11 +629,19 @@ export default async function DashboardCrmProjectDetailPage({
       </AdminCard>
 
       <AdminCard title="Actions à suivre">
-        <form action={createCoachingActionItemAction} className="mb-5 grid gap-3 border-b border-neutral-800/80 pb-5 sm:grid-cols-[1fr_10rem_auto] sm:items-end">
+        <form action={createCoachingActionItemAction} className="mb-5 grid gap-3 border-b border-neutral-800/80 pb-5 sm:grid-cols-[1fr_8rem_10rem_auto] sm:items-end">
           <input type="hidden" name="projectId" value={project.id} />
           <label className={labelClass}>
             Action
             <input name="label" required placeholder="Envoyer le schéma annoté" className={fieldClass} />
+          </label>
+          <label className={labelClass}>
+            Pour
+            <select name="responsible" defaultValue="" className={fieldClass}>
+              <option value="">—</option>
+              <option value="CLIENT">Client</option>
+              <option value="COACH">Vous</option>
+            </select>
           </label>
           <label className={labelClass}>
             Échéance
@@ -607,7 +658,10 @@ export default async function DashboardCrmProjectDetailPage({
               <li key={action.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-neutral-800/80 bg-neutral-950/40 p-3">
                 <span>
                   <span className="block text-base font-semibold text-white">{action.label}</span>
-                  {action.dueDate ? <span className="mt-0.5 block text-sm text-neutral-500">Échéance {formatDate(action.dueDate)}</span> : null}
+                  <span className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
+                    {action.responsible ? <AdminBadge tone="info">{action.responsible === "CLIENT" ? "Pour le client" : "Pour vous"}</AdminBadge> : null}
+                    {action.dueDate ? <span>Échéance {formatDate(action.dueDate)}</span> : null}
+                  </span>
                 </span>
                 <span className="flex items-center gap-2">
                   <form action={updateCoachingActionStatusAction}>
@@ -621,7 +675,7 @@ export default async function DashboardCrmProjectDetailPage({
                   <form action={deleteCoachingActionItemAction}>
                     <input type="hidden" name="projectId" value={project.id} />
                     <input type="hidden" name="actionId" value={action.id} />
-                    <AdminButton type="submit" variant="ghost" size="sm">✕</AdminButton>
+                    <AdminButton type="submit" variant="ghost" size="sm" className="min-h-11 min-w-11" aria-label="Supprimer cette action">✕</AdminButton>
                   </form>
                 </span>
               </li>

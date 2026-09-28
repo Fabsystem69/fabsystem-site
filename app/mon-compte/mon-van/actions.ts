@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { badRequest, forbidden, isHttpError, notFound } from "@/lib/http-errors";
+import { projectAssetTypeSchema } from "@/lib/project-payload";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import type { OwnershipActor } from "@/lib/ownership";
 import { prisma } from "@/lib/prisma";
@@ -17,10 +18,15 @@ import {
   upsertDeviceUsage,
 } from "@/lib/services/coaching-van-dossier";
 import { createMaterial, deleteMaterial } from "@/lib/services/coaching-material";
-import { addCoachingProjectDocument, assertCoachingProjectStorageQuota } from "@/lib/services/coaching-project";
+import {
+  addCoachingProjectDocument,
+  assertCoachingProjectStorageQuota,
+  updateCoachingActionStatusByClient,
+} from "@/lib/services/coaching-project";
 import { uploadCoachingProjectDocument } from "@/lib/server/coaching-project-storage";
 import type {
   ClientLevel,
+  CoachingActionStatus,
   CoachingCalcMethod,
   CoachingDevicePhase,
   CoachingDevicePriority,
@@ -68,6 +74,13 @@ export async function updateVehicleInfoAction(formData: FormData) {
       actor: { kind: "client" },
       expectedVehicleInfoUpdatedAt: new Date(getString(formData, "expectedVehicleInfoUpdatedAt")),
       fields: {
+        assetType: (() => {
+          const raw = getString(formData, "assetType").trim();
+          if (!raw) return null; // "je ne sais pas encore" — jamais une valeur inventée
+          const parsed = projectAssetTypeSchema.safeParse(raw);
+          if (!parsed.success) throw badRequest("Support invalide.");
+          return parsed.data;
+        })(),
         vehicleBrand: getString(formData, "vehicleBrand") || null,
         vehicleModel: getString(formData, "vehicleModel") || null,
         vehicleYear: getString(formData, "vehicleYear") || null,
@@ -182,7 +195,7 @@ export async function deleteDeviceAction(formData: FormData) {
   let target: string;
   try {
     await assertOwnedProject(actor, projectId);
-    await deleteDevice(getString(formData, "deviceId"));
+    await deleteDevice(getString(formData, "deviceId"), projectId, { kind: "client" });
     target = `/mon-compte/mon-van/${projectId}?step=3&success=${encodeURIComponent("Appareil retiré.")}`;
   } catch (error) {
     target = `/mon-compte/mon-van/${projectId}?step=3&error=${encodeURIComponent(errorMessage(error))}`;
@@ -263,7 +276,7 @@ export async function deleteMaterialAction(formData: FormData) {
   let target: string;
   try {
     await assertOwnedProject(actor, projectId);
-    await deleteMaterial(getString(formData, "materialId"));
+    await deleteMaterial(getString(formData, "materialId"), projectId, { kind: "client" });
     target = `/mon-compte/mon-van/${projectId}?step=4&success=${encodeURIComponent("Matériel retiré.")}`;
   } catch (error) {
     target = `/mon-compte/mon-van/${projectId}?step=4&error=${encodeURIComponent(errorMessage(error))}`;
@@ -305,6 +318,30 @@ export async function uploadOwnCoachingProjectDocumentAction(formData: FormData)
     target = `/mon-compte/mon-van/${projectId}?step=4&success=${encodeURIComponent("Document envoyé.")}`;
   } catch (error) {
     target = `/mon-compte/mon-van/${projectId}?step=4&error=${encodeURIComponent(errorMessage(error))}`;
+  }
+  revalidatePath(`/mon-compte/mon-van/${projectId}`);
+  redirect(target);
+}
+
+// "Ce qu'il vous reste à faire" (page projet) était jusqu'ici en lecture
+// seule — le client devait prévenir son coach par un autre canal pour
+// qu'une action soit cochée. L'ownership et le champ `responsible` sont
+// revérifiés côté service (updateCoachingActionStatusByClient), pas
+// seulement ici : un projectId de formulaire ne suffit jamais à lui seul.
+export async function markOwnActionStatusAction(formData: FormData) {
+  const actor = await requireCustomerActor();
+  const projectId = getString(formData, "projectId");
+  let target: string;
+  try {
+    if (actor.role !== "customer") throw forbidden("Accès client requis.");
+    await updateCoachingActionStatusByClient({
+      actionId: getString(formData, "actionId"),
+      customerId: actor.customerId,
+      status: getString(formData, "status") as CoachingActionStatus,
+    });
+    target = `/mon-compte/mon-van/${projectId}?success=${encodeURIComponent("Mis à jour.")}`;
+  } catch (error) {
+    target = `/mon-compte/mon-van/${projectId}?error=${encodeURIComponent(errorMessage(error))}`;
   }
   revalidatePath(`/mon-compte/mon-van/${projectId}`);
   redirect(target);

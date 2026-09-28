@@ -1,6 +1,11 @@
 import Link from "next/link";
-import { formatCustomerDisplayName, formatDate, formatDateTime } from "@/lib/format";
-import { getProspectStatusLabel, getProspectStatusTone } from "@/lib/dashboard-status-labels";
+import { formatCustomerDisplayName, formatDate, formatDateTime, formatEuroFromCents } from "@/lib/format";
+import {
+  getCoachingPaymentStatusLabel,
+  getCoachingPaymentStatusTone,
+  getProspectStatusLabel,
+  getProspectStatusTone,
+} from "@/lib/dashboard-status-labels";
 import { getCoachingDashboardData } from "@/lib/services/coaching-dashboard";
 import { AdminBadge, AdminButton, AdminCard, AdminEmptyState, AdminPageHeader, DashboardPageShell } from "@/components/dashboard/ui";
 
@@ -22,6 +27,8 @@ export default async function DashboardCrmTodayPage() {
     projectsLowOnTime,
     projectsAwaitingReview,
     projectsWithIncompleteBilan,
+    projectsWithoutNextAction,
+    proposalsAwaitingPayment,
   } = await getCoachingDashboardData();
 
   return (
@@ -177,6 +184,48 @@ export default async function DashboardCrmTodayPage() {
                     </span>
                   </span>
                   <AdminBadge tone="danger">En retard</AdminBadge>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </AdminCard>
+
+      <AdminCard title="Règlements à traiter" description="Accord accepté par le client, paiement pas encore complet — la facturation garde son propre état, « accepté » ne veut jamais dire « payé ».">
+        {proposalsAwaitingPayment.length === 0 ? (
+          <AdminEmptyState title="Aucun règlement en attente." />
+        ) : (
+          <ul className="divide-y divide-neutral-800/80">
+            {proposalsAwaitingPayment.map((proposal) => (
+              <li key={proposal.id} className="py-3 first:pt-0 last:pb-0">
+                <Link href={`/dashboard/crm/projects/${proposal.projectId}`} className="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    <span className="block text-base font-semibold text-white">{formatCustomerDisplayName(proposal.project.customer)}</span>
+                    <span className="mt-0.5 block text-sm text-neutral-500">
+                      {proposal.intitule} · {formatEuroFromCents(proposal.montantRecuCents)} / {formatEuroFromCents(proposal.montantCents)} reçu
+                    </span>
+                  </span>
+                  <AdminBadge tone={getCoachingPaymentStatusTone(proposal.paymentStatus)}>{getCoachingPaymentStatusLabel(proposal.paymentStatus)}</AdminBadge>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </AdminCard>
+
+      <AdminCard title="Sans prochaine action" description="Le suivi s'est arrêté sans qu'aucune action ne reste ouverte — à vérifier avant que ce ne soit un oubli.">
+        {projectsWithoutNextAction.length === 0 ? (
+          <AdminEmptyState title="Tous les dossiers actifs ont une prochaine action." />
+        ) : (
+          <ul className="divide-y divide-neutral-800/80">
+            {projectsWithoutNextAction.map((project) => (
+              <li key={project.id} className="py-3 first:pt-0 last:pb-0">
+                <Link href={`/dashboard/crm/projects/${project.id}`} className="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    <span className="block text-base font-semibold text-white">{formatCustomerDisplayName(project.customer)}</span>
+                    <span className="mt-0.5 block text-sm text-neutral-500">{project.title} · dernière activité le {formatDate(project.derniereActivite)}</span>
+                  </span>
+                  <AdminBadge tone="warning">Sans action</AdminBadge>
                 </Link>
               </li>
             ))}

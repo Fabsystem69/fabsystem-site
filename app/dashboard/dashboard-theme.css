@@ -1,0 +1,120 @@
+/*
+ * Mode clair pour le dashboard admin (retour utilisateur : "difficilement
+ * visible le jour" en extérieur). Le dashboard entier est construit en
+ * classes Tailwind sombres codées en dur (aucun composant n'utilise déjà de
+ * couleurs claires, sauf de rares exceptions volontaires) — plutôt que de
+ * réécrire chaque fichier en variantes dark:/variables CSS (gros chantier,
+ * risqué à faire vite pendant un usage réel), ce fichier surcharge
+ * directement les classes utilitaires connues sous [data-theme="light"],
+ * posé sur le conteneur racine du dashboard (voir DashboardShell.tsx).
+ * Le mode sombre reste le comportement par défaut, strictement inchangé.
+ */
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Fonds sombres -> clairs */
+[data-theme="light"] .bg-neutral-950,
+[data-theme="light"] .bg-\[\#0a0a0b\],
+[data-theme="light"] .bg-\[\#111113\] {
+  background-color: #f8fafc;
+}
+[data-theme="light"] .bg-neutral-950\/40 {
+  background-color: rgb(248 250 252 / 0.4);
+}
+[data-theme="light"] .bg-neutral-950\/60 {
+  background-color: rgb(248 250 252 / 0.6);
+}
+[data-theme="light"] .bg-neutral-900 {
+  background-color: #ffffff;
+}
+[data-theme="light"] .bg-neutral-900\/30 {
+  background-color: rgb(255 255 255 / 0.5);
+}
+[data-theme="light"] .bg-neutral-900\/60 {
+  background-color: rgb(255 255 255 / 0.75);
+}
+[data-theme="light"] .bg-neutral-900\/80 {
+  background-color: rgb(255 255 255 / 0.9);
+}
+[data-theme="light"] .bg-neutral-800,
+[data-theme="light"] .bg-neutral-700 {
+  background-color: #f1f5f9;
+}
+[data-theme="light"] .bg-neutral-800\/30 {
+  background-color: rgb(241 245 249 / 0.5);
+}
+[data-theme="light"] .bg-neutral-800\/60 {
+  background-color: rgb(241 245 249 / 0.8);
+}
+[data-theme="light"] .bg-neutral-800\/70 {
+  background-color: rgb(241 245 249 / 0.85);
+}
+[data-theme="light"] .bg-neutral-600,
+[data-theme="light"] .bg-neutral-500 {
+  background-color: #cbd5e1;
+}
+
+/* Textes clairs (pensés pour un fond sombre) -> foncés */
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-neutral-100,
+[data-theme="light"] .text-neutral-200 {
+  color: #0f172a;
+}
+[data-theme="light"] .text-neutral-300 {
+  color: #1e293b;
+}
+[data-theme="light"] .text-neutral-400 {
+  color: #334155;
+}
+[data-theme="light"] .text-neutral-500 {
+  color: #64748b;
+}
+
+/* Bordures sombres -> claires */
+[data-theme="light"] .border-neutral-800,
+[data-theme="light"] .border-neutral-700,
+[data-theme="light"] .border-neutral-600,
+[data-theme="light"] .border-neutral-500 {
+  border-color: #e2e8f0;
+}
+[data-theme="light"] .border-neutral-800\/60 {
+  border-color: rgb(226 232 240 / 0.9);
+}
+[data-theme="light"] .border-neutral-800\/80 {
+  border-color: rgb(226 232 240 / 0.95);
+}
+[data-theme="light"] .divide-neutral-800\/80 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(226 232 240 / 0.95);
+}
+
+/* Champs de formulaire (input/textarea/select) : placeholder assombri pour
+   rester lisible sur fond clair. */
+[data-theme="light"] .placeholder\:text-neutral-500::placeholder {
+  color: #94a3b8;
+}
+
+/* Effet de survol des cartes cliquables (hover:bg-neutral-800 notamment). */
+[data-theme="light"] .hover\:bg-neutral-800:hover {
+  background-color: #f1f5f9;
+}
+[data-theme="light"] .hover\:bg-neutral-800\/30:hover {
+  background-color: rgb(241 245 249 / 0.5);
+}
+[data-theme="light"] .hover\:bg-neutral-800\/60:hover {
+  background-color: rgb(241 245 249 / 0.8);
+}
+[data-theme="light"] .hover\:bg-neutral-900:hover {
+  background-color: #f8fafc;
+}
+[data-theme="light"] .hover\:border-neutral-500:hover,
+[data-theme="light"] .hover\:border-neutral-600:hover,
+[data-theme="light"] .hover\:border-neutral-700:hover {
+  border-color: #cbd5e1;
+}
+[data-theme="light"] .hover\:text-neutral-100:hover,
+[data-theme="light"] .hover\:text-neutral-200:hover,
+[data-theme="light"] .hover\:text-neutral-300:hover {
+  color: #0f172a;
+}

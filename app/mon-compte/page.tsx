@@ -40,7 +40,15 @@ export default async function MonComptePage() {
     prisma.coachingProject.findMany({
       where: { customerId },
       orderBy: { derniereActivite: "desc" },
-      select: { id: true, title: true, derniereActivite: true, readyForReviewAt: true },
+      select: {
+        id: true,
+        title: true,
+        derniereActivite: true,
+        readyForReviewAt: true,
+        // "Prochaine action concrète" visible dès l'accueil, pas seulement
+        // après avoir cliqué dans le dossier (PROMPT_CLAUDE_ACCESSIBILITE_ET_GUIDAGE.md §2).
+        _count: { select: { actions: { where: { responsible: "CLIENT", status: "A_FAIRE" } } } },
+      },
     }),
   ]);
   const recentVanProject = vanProjects[0];
@@ -76,9 +84,11 @@ export default async function MonComptePage() {
               <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Votre dossier de coaching</p>
               <h2 className="mt-2 text-lg font-semibold text-neutral-950">{recentVanProject.title}</h2>
               <p className="mt-1 text-sm text-neutral-600">
-                {recentVanProject.readyForReviewAt
-                  ? "Envoyé à votre coach — en attente de relecture."
-                  : "Complétez votre projet, vos usages et vos appareils pour préparer votre bilan de consommation."}
+                {recentVanProject._count.actions > 0
+                  ? `${recentVanProject._count.actions} action${recentVanProject._count.actions > 1 ? "s" : ""} à faire de votre côté.`
+                  : recentVanProject.readyForReviewAt
+                    ? "Envoyé à votre coach — en attente de relecture."
+                    : "Complétez votre projet, vos usages et vos appareils pour préparer votre bilan de consommation."}
               </p>
               <span className="mt-3 inline-block text-sm font-semibold text-neutral-900 underline underline-offset-4">
                 Continuer mon dossier →

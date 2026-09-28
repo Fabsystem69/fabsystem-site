@@ -3,17 +3,19 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatEuroFromCents } from "@/lib/format";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import { prisma } from "@/lib/prisma";
 import { ensureDefaultScenario, getScenarioBilan } from "@/lib/services/coaching-van-dossier";
 import { listMaterialsForProject } from "@/lib/services/coaching-material";
 import { getCoachingMaterialCategoryLabel, getCoachingPowerSupplyLabel } from "@/lib/dashboard-status-labels";
+import { PROJECT_ASSET_TYPE_LABELS } from "@/lib/project-labels";
 import {
   updateVehicleInfoAction,
   updateUsagesInfoAction,
   createDeviceAction,
   deleteDeviceAction,
+  markOwnActionStatusAction,
   sendForReviewAction,
   createMaterialAction,
   deleteMaterialAction,
@@ -27,6 +29,19 @@ const fieldClass =
   "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-neutral-900";
 const labelClass = "block space-y-1.5 text-sm font-medium text-neutral-900";
 const hintClass = "text-xs font-normal text-neutral-500";
+
+// Libellés adaptés au support choisi (PROMPT_CLAUDE_APRES_FUSION_SUPPORTS.md) :
+// uniquement des ajustements de vocabulaire objectivement corrects ("véhicule"
+// ne convient pas à un bateau), jamais un questionnaire nautique inventé.
+// "VAN"/"MOTORHOME"/null (inconnu) gardent le vocabulaire véhicule existant.
+function vehicleNoun(assetType: string | null) {
+  return assetType === "BOAT" ? "bateau" : "véhicule";
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
 
 function TextField({ label, name, defaultValue, placeholder }: { label: string; name: string; defaultValue?: string | null; placeholder?: string }) {
   return (
@@ -60,13 +75,28 @@ export default async function MonVanProjectPage({
   const { step, error, success } = await searchParams;
   const activeStep = ["2", "3", "4", "5"].includes(step ?? "") ? Number(step) : 1;
 
-  const project = await prisma.coachingProject.findUnique({ where: { id: projectId } });
+  const project = await prisma.coachingProject.findUnique({
+    where: { id: projectId },
+    // "Qu'ai-je à faire maintenant ?" (PROMPT_CLAUDE_ACCESSIBILITE_ET_GUIDAGE.md
+    // — l'une des 3 questions auxquelles le client doit pouvoir répondre sans
+    // aide). Uniquement les actions qui lui sont explicitement destinées et
+    // encore ouvertes — jamais les actions internes du coach.
+    include: {
+      actions: { where: { responsible: "CLIENT", status: "A_FAIRE" }, orderBy: { dueDate: "asc" } },
+      linkedProject: { select: { id: true, name: true } },
+    },
+  });
   if (!project || project.customerId !== actor.customerId) notFound();
 
   const devices = activeStep === 3 ? await prisma.coachingDevice.findMany({ where: { projectId }, orderBy: { createdAt: "asc" } }) : [];
   const scenario = activeStep === 3 ? await ensureDefaultScenario(projectId) : null;
   const { bilan } = scenario ? await getScenarioBilan(scenario.id) : { bilan: null };
   const materials = activeStep === 4 ? await listMaterialsForProject(projectId) : [];
+  // "Où retrouver le dernier document que Fabien m'a transmis ?"
+  // (PROMPT_CLAUDE_ACCESSIBILITE_ET_GUIDAGE.md) — un nouvel envoi ne doit
+  // jamais donner l'impression que les précédents ont disparu.
+  const documents =
+    activeStep === 4 ? await prisma.coachingProjectDocument.findMany({ where: { projectId }, orderBy: { createdAt: "desc" } }) : [];
 
   const stepClass = (n: number) =>
     `rounded-full px-4 py-2 text-sm font-semibold ${activeStep === n ? "bg-neutral-900 text-white" : "border border-neutral-300 text-neutral-700"}`;
@@ -90,6 +120,79 @@ export default async function MonVanProjectPage({
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
       {success ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div> : null}
 
+      {project.resumePartage ? (
+        <Card className="border-neutral-900/10 bg-neutral-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Où vous en êtes</p>
+          <p className="mt-2 whitespace-pre-wrap text-base text-neutral-900">{project.resumePartage}</p>
+        </Card>
+      ) : null}
+
+      {project.actions.length > 0 ? (
+        <Card className="border-amber-200 bg-amber-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Ce qu&apos;il vous reste à faire</p>
+          <ul className="mt-2 space-y-2">
+            {project.actions.map((action) => (
+              <li key={action.id} className="flex flex-wrap items-center justify-between gap-3 py-1">
+                <span className="text-base text-neutral-900">
+                  {action.label}
+                  {action.dueDate ? <span className="ml-2 text-sm text-neutral-600">avant le {formatDate(action.dueDate)}</span> : null}
+                </span>
+                <form action={markOwnActionStatusAction}>
+                  <input type="hidden" name="projectId" value={project.id} />
+                  <input type="hidden" name="actionId" value={action.id} />
+                  <input type="hidden" name="status" value="FAIT" />
+                  <button
+                    type="submit"
+                    className="min-h-11 rounded-lg border border-amber-300 bg-white px-3 text-sm font-semibold text-amber-900 hover:bg-amber-100"
+                  >
+                    C&apos;est fait
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+      {project.accordPrixCents != null || project.accordPerimetre || project.accordMiseAuPropre ? (
+        <Card className="border-neutral-200 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Ce qui est prévu</p>
+          <dl className="mt-2 space-y-2 text-sm text-neutral-700">
+            {project.accordPrixCents != null ? (
+              <div>
+                <dt className="font-medium text-neutral-900">Prix convenu</dt>
+                <dd>{formatEuroFromCents(project.accordPrixCents)}</dd>
+              </div>
+            ) : null}
+            {project.accordPerimetre ? (
+              <div>
+                <dt className="font-medium text-neutral-900">Ce qui est inclus</dt>
+                <dd className="whitespace-pre-wrap">{project.accordPerimetre}</dd>
+              </div>
+            ) : null}
+            {project.accordMiseAuPropre ? (
+              <div>
+                <dt className="font-medium text-neutral-900">Mise au propre du schéma</dt>
+                <dd>{project.accordMiseAuPropre}</dd>
+              </div>
+            ) : null}
+          </dl>
+        </Card>
+      ) : null}
+
+      {project.linkedProject ? (
+        <Card className="border-neutral-200 p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Votre schéma</p>
+          <p className="mt-2 text-base text-neutral-900">{project.linkedProject.name}</p>
+          <Link
+            href={`/mon-compte/projets/${project.linkedProject.id}`}
+            className="mt-3 inline-block text-sm font-semibold text-neutral-900 underline underline-offset-4"
+          >
+            Voir mon schéma →
+          </Link>
+        </Card>
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
         <Link href={`/mon-compte/mon-van/${projectId}?step=1`} className={stepClass(1)}>1. Mon projet</Link>
         <Link href={`/mon-compte/mon-van/${projectId}?step=2`} className={stepClass(2)}>2. Mes usages</Link>
@@ -100,15 +203,28 @@ export default async function MonVanProjectPage({
 
       {activeStep === 1 ? (
         <Card className="p-5">
-          <h2 className="text-lg font-semibold text-neutral-950">Votre projet et votre véhicule</h2>
+          <h2 className="text-lg font-semibold text-neutral-950">Votre projet et votre {vehicleNoun(project.assetType)}</h2>
           <form action={updateVehicleInfoAction} className="mt-4 grid gap-4 sm:grid-cols-2">
             <input type="hidden" name="projectId" value={project.id} />
             <input type="hidden" name="expectedVehicleInfoUpdatedAt" value={project.vehicleInfoUpdatedAt.toISOString()} />
-            <TextField label="Marque du véhicule" name="vehicleBrand" defaultValue={project.vehicleBrand} />
+            <label className={labelClass}>
+              <span>Votre support</span>
+              <select name="assetType" defaultValue={project.assetType ?? ""} className={fieldClass}>
+                <option value="">Je ne sais pas encore</option>
+                {Object.entries(PROJECT_ASSET_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </label>
+            <TextField label={`Marque du ${vehicleNoun(project.assetType)}`} name="vehicleBrand" defaultValue={project.vehicleBrand} />
             <TextField label="Modèle" name="vehicleModel" defaultValue={project.vehicleModel} />
             <TextField label="Année" name="vehicleYear" defaultValue={project.vehicleYear} />
             <TextField label="Motorisation" name="vehicleEngine" defaultValue={project.vehicleEngine} />
-            <TextField label="Gabarit (L2H2...)" name="vehicleFormat" defaultValue={project.vehicleFormat} />
+            <TextField
+              label={project.assetType === "VAN" || project.assetType === null ? "Gabarit (L2H2...)" : "Gabarit"}
+              name="vehicleFormat"
+              defaultValue={project.vehicleFormat}
+            />
             <TextField label="Dimensions utiles" name="vehicleDimensions" defaultValue={project.vehicleDimensions} />
             <TextField label="Pays d'immatriculation" name="registrationCountry" defaultValue={project.registrationCountry} />
             <TextField label="Pays d'usage" name="usageCountry" defaultValue={project.usageCountry} />
@@ -375,6 +491,25 @@ export default async function MonVanProjectPage({
           <Card className="p-5">
             <h2 className="text-lg font-semibold text-neutral-950">Photos, plans et documents</h2>
             <p className={`mt-1 ${hintClass}`}>Uniquement des photos prises sans danger — sans dépose de protections ni accès à des parties sous tension.</p>
+            {documents.length > 0 ? (
+              <ul className="mt-4 divide-y divide-neutral-200">
+                {documents.map((document) => (
+                  <li key={document.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                    <a
+                      href={`/api/coaching-projects/documents/${document.id}`}
+                      className="text-base font-medium text-neutral-900 underline underline-offset-2"
+                    >
+                      {document.filename}
+                    </a>
+                    <span className="text-sm text-neutral-500">
+                      {formatFileSize(document.sizeBytes)} · {formatDate(document.createdAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-neutral-500">Aucun document pour l&apos;instant.</p>
+            )}
             <form action={uploadOwnCoachingProjectDocumentAction} encType="multipart/form-data" className="mt-4 flex flex-wrap items-end gap-3">
               <input type="hidden" name="projectId" value={project.id} />
               <input name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" required className="text-sm text-neutral-700" />
