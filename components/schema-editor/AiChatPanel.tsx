@@ -12,6 +12,29 @@ import type { SchemaAiChatMessage } from "@/lib/services/schema-ai-chat";
 // client). Voir l'échec réel corrigé le 29/09/2026.
 import { SCHEMA_AI_MODELS, type SchemaAiModelId } from "@/lib/ai/schema-ai-models";
 
+// Retour utilisateur : "je veux que la chatbox garde en mémoire la
+// discussion sur chaque projet" — historique persisté dans localStorage,
+// une clé par projet (schema.projectId), jamais côté serveur : c'est une
+// commodité pour un seul admin sur son propre navigateur, pas une donnée
+// partagée. Un schéma pas encore enregistré (projectId null) n'a pas
+// d'identité stable : son historique reste seulement en mémoire (perdu au
+// rechargement), comme avant.
+function chatHistoryStorageKey(projectId: string) {
+  return `fabsystem:schema-ai-chat:${projectId}`;
+}
+
+function loadStoredHistory(projectId: string | null): SchemaAiChatMessage[] {
+  if (!projectId || typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(chatHistoryStorageKey(projectId));
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as SchemaAiChatMessage[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 // Retour utilisateur : "je le veux vraiment mode chat box quand je suis sur
 // mon éditeur en mode admin, pour créer ou évaluer les schémas, me faire
 // gagner du temps". Panneau flottant, replié par défaut (n'empiète jamais
@@ -22,7 +45,8 @@ import { SCHEMA_AI_MODELS, type SchemaAiModelId } from "@/lib/ai/schema-ai-model
 // figé au premier tour — voir lib/services/schema-ai-chat.ts.
 export function AiChatPanel() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<SchemaAiChatMessage[]>([]);
+  const projectId = useSchemaStore((s) => s.projectId);
+  const [messages, setMessages] = useState<SchemaAiChatMessage[]>(() => loadStoredHistory(projectId));
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +54,22 @@ export function AiChatPanel() {
   const projectName = useSchemaStore((s) => s.projectName);
   const { getNodes, getEdges } = useReactFlow();
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Recharge l'historique quand on change de projet (le composant, lui, ne
+  // démonte pas forcément entre deux schémas dans la même session éditeur).
+  useEffect(() => {
+    setMessages(loadStoredHistory(projectId));
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(chatHistoryStorageKey(projectId), JSON.stringify(messages));
+    } catch {
+      // Stockage indisponible (navigation privée, quota, etc.) — l'historique
+      // reste utilisable en mémoire pour la session en cours, silencieusement.
+    }
+  }, [projectId, messages]);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -87,8 +127,8 @@ export function AiChatPanel() {
         </button>
       </div>
 
-      <div className="border-b border-slate-200 px-4 py-2">
-        <label className="flex items-center gap-2 text-xs text-slate-500">
+      <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2">
+        <label className="flex flex-1 items-center gap-2 text-xs text-slate-500">
           Modèle
           <select
             value={model}
@@ -102,6 +142,15 @@ export function AiChatPanel() {
             ))}
           </select>
         </label>
+        {messages.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => setMessages([])}
+            className="whitespace-nowrap text-xs text-slate-400 underline-offset-2 hover:text-slate-600 hover:underline"
+          >
+            Effacer
+          </button>
+        ) : null}
       </div>
 
       <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
