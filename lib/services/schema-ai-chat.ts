@@ -5,6 +5,9 @@ import { buildSchemaSummaryText } from "@/lib/ai/schema-summary";
 import { computeSchemaIssues } from "@/lib/electrical-components/checks";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 import { badRequest } from "@/lib/http-errors";
+import type { SchemaAiModelId } from "@/lib/ai/schema-ai-models";
+
+export { SCHEMA_AI_MODELS, type SchemaAiModelId, schemaAiModelSchema } from "@/lib/ai/schema-ai-models";
 
 // Retour utilisateur : "je le veux vraiment mode chat box quand je suis sur
 // mon éditeur en mode admin" — assistant conversationnel réservé à l'admin
@@ -21,21 +24,6 @@ const chatMessageSchema = z.object({
 export type SchemaAiChatMessage = z.infer<typeof chatMessageSchema>;
 
 export const schemaAiChatMessagesSchema = z.array(chatMessageSchema).min(1).max(40);
-
-// Retour utilisateur : "laisse-moi le choix directement dans le chatbox" —
-// liste fermée plutôt qu'une chaîne libre envoyée par le client (jamais
-// confiance dans un nom de modèle arbitraire venant du navigateur, autant
-// pour la sécurité/le coût que pour éviter un nom de modèle mal orthographié
-// qui échouerait silencieusement). Opus par défaut (comportement inchangé
-// pour un appel sans `model`).
-export const SCHEMA_AI_MODELS = {
-  "claude-opus-5": "Opus 5 (plus précis)",
-  "claude-sonnet-5": "Sonnet 5 (plus rapide, moins cher)",
-} as const;
-export type SchemaAiModelId = keyof typeof SCHEMA_AI_MODELS;
-export const schemaAiModelSchema = z.enum(
-  Object.keys(SCHEMA_AI_MODELS) as [SchemaAiModelId, ...SchemaAiModelId[]]
-);
 
 const SYSTEM_PROMPT = `Tu es un assistant technique en électricité embarquée basse tension (12V/24V DC), pour des vans, fourgons, camping-cars et bateaux. Tu discutes avec un électricien professionnel qui conçoit un schéma dans son éditeur — il peut te demander un avis global, une question précise sur un composant ou un câble, ou juste réfléchir à voix haute avec toi.
 

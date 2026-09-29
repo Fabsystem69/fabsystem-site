@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
-import { SCHEMA_AI_MODELS, type SchemaAiChatMessage, type SchemaAiModelId } from "@/lib/services/schema-ai-chat";
+import type { SchemaAiChatMessage } from "@/lib/services/schema-ai-chat";
+// Import depuis lib/ai/schema-ai-models.ts, jamais depuis
+// lib/services/schema-ai-chat.ts : ce dernier importe (transitivement)
+// lib/server/anthropic.ts, marqué "server-only" — un import de *valeur*
+// depuis ce fichier dans ce composant client ferait échouer le build
+// production (webpack inclurait tout le graphe serveur dans le bundle
+// client). Voir l'échec réel corrigé le 29/09/2026.
+import { SCHEMA_AI_MODELS, type SchemaAiModelId } from "@/lib/ai/schema-ai-models";
 
 // Retour utilisateur : "je le veux vraiment mode chat box quand je suis sur
 // mon éditeur en mode admin, pour créer ou évaluer les schémas, me faire
