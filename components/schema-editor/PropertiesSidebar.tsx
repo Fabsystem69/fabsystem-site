@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSchemaStore, ZONE_COLORS } from "@/features/schemas/store/useSchemaStore";
 import { getComponentDefinition, getEffectiveHandles } from "@/lib/electrical-components/definitions";
+import { getBendPoints } from "@/lib/schema-editor/cable-bend-points";
 import { FuseBlockOutputs, useBrandModelSelector, useNodeFieldChange } from "./ItemPropertiesPopup";
 import type { ComponentHandleDef, HandleKind } from "@/types/schema";
 import { CABLE_SECTIONS } from "@/types/schema";
@@ -67,6 +68,68 @@ function MobileSelectionBar({ title, subtitle, darkMode, onOpen, onDelete, onClo
   </div>;
 }
 
+// Retour utilisateur : "rajoute une option que je puisse [écarter les
+// câbles superposés] manuellement car auto tu n'y arrives pas" — le
+// glisser existant (voir CableEdge.tsx) devient quasi impossible à viser
+// quand plusieurs câbles sont parfaitement superposés (impossible d'attraper
+// LE bon). Ces boutons contournent le problème : un clic déplace le point
+// de coude d'un pas fixe, sans jamais avoir besoin de l'attraper à la
+// souris. S'il n'existe pas encore de coude, on en crée un au milieu du
+// segment source→destination (approximation simple, pas le tracé exact
+// auto — suffisant comme point de départ, affinable ensuite au clic ou en
+// glissant le point désormais réel).
+const CABLE_NUDGE_STEP = 16;
+
+function nudgeCableBendPoint(
+  edge: { id: string; source: string; target: string; data?: unknown },
+  nodes: { id: string; position: { x: number; y: number } }[],
+  updateEdgeData: (edgeId: string, data: Record<string, unknown>) => void,
+  direction: "up" | "down" | "left" | "right"
+) {
+  const current = getBendPoints(edge.data as Parameters<typeof getBendPoints>[0])[0];
+  let base = current;
+  if (!base) {
+    const sourceNode = nodes.find((n) => n.id === edge.source);
+    const targetNode = nodes.find((n) => n.id === edge.target);
+    base = sourceNode && targetNode
+      ? { x: (sourceNode.position.x + targetNode.position.x) / 2, y: (sourceNode.position.y + targetNode.position.y) / 2 }
+      : { x: 0, y: 0 };
+  }
+  const next =
+    direction === "up" ? { x: base.x, y: base.y - CABLE_NUDGE_STEP }
+    : direction === "down" ? { x: base.x, y: base.y + CABLE_NUDGE_STEP }
+    : direction === "left" ? { x: base.x - CABLE_NUDGE_STEP, y: base.y }
+    : { x: base.x + CABLE_NUDGE_STEP, y: base.y };
+  updateEdgeData(edge.id, { bendPoints: [next] });
+}
+
+function CableNudgeControl({ edge, darkMode }: { edge: { id: string; source: string; target: string; data?: unknown }; darkMode: boolean }) {
+  const nodes = useSchemaStore((s) => s.nodes);
+  const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
+  const buttonClass = `flex h-9 w-9 items-center justify-center rounded-lg border text-base font-semibold ${
+    darkMode ? "border-neutral-700 hover:bg-neutral-900" : "border-slate-300 hover:bg-slate-50"
+  }`;
+
+  return (
+    <div className="mb-3">
+      <p className={`mb-2 text-sm ${darkMode ? "text-neutral-400" : "text-slate-500"}`}>
+        Écarter ce câble (utile quand plusieurs câbles se superposent)
+      </p>
+      <div className="grid w-fit grid-cols-3 gap-1.5">
+        <span />
+        <button type="button" aria-label="Décaler le câble vers le haut" className={buttonClass} onClick={() => nudgeCableBendPoint(edge, nodes, updateEdgeData, "up")}>↑</button>
+        <span />
+        <button type="button" aria-label="Décaler le câble vers la gauche" className={buttonClass} onClick={() => nudgeCableBendPoint(edge, nodes, updateEdgeData, "left")}>←</button>
+        <span />
+        <button type="button" aria-label="Décaler le câble vers la droite" className={buttonClass} onClick={() => nudgeCableBendPoint(edge, nodes, updateEdgeData, "right")}>→</button>
+        <span />
+        <button type="button" aria-label="Décaler le câble vers le bas" className={buttonClass} onClick={() => nudgeCableBendPoint(edge, nodes, updateEdgeData, "down")}>↓</button>
+        <span />
+      </div>
+    </div>
+  );
+}
+
 function WirePropertiesSidebar({ edge, darkMode }: { edge: NonNullable<ReturnType<typeof useSchemaStore.getState>["edges"][number]>; darkMode: boolean }) {
   const nodes = useSchemaStore((s) => s.nodes);
   const updateEdgeData = useSchemaStore((s) => s.updateEdgeData);
@@ -89,7 +152,7 @@ function WirePropertiesSidebar({ edge, darkMode }: { edge: NonNullable<ReturnTyp
       <section className={sectionClass}><h3 className={headingClass}>Longueur du cheminement</h3><p className={`mb-3 rounded-lg px-3 py-2 text-sm ${darkMode ? "bg-neutral-900 text-neutral-300" : "bg-slate-50 text-slate-600"}`}>→ {sourceLabel} → {targetLabel}</p><div className="grid grid-cols-[1fr_5.5rem] gap-3"><label><span className="mb-1.5 block text-sm">Longueur aller</span><input className={inputClass(darkMode)} type="number" min={0} step={0.1} value={edge.data?.length ?? ""} placeholder="ex. 2,5" onChange={(event) => updateEdgeData(edge.id, { length: event.target.value === "" ? undefined : Number(event.target.value) })} /></label><label><span className="mb-1.5 block text-sm">Unité</span><select className={inputClass(darkMode)} defaultValue="m"><option value="m">m</option><option value="cm">cm</option></select></label></div></section>
       <section className={sectionClass}><h3 className={headingClass}>Paramètres de calcul</h3><label className="block"><span className="mb-1.5 block text-sm">Chute de tension maximale</span><select value={String(edge.data?.voltageDropLimit ?? 3)} onChange={(event) => updateEdgeData(edge.id, { voltageDropLimit: Number(event.target.value) })} className={inputClass(darkMode)}><option value="3">3% (recommandé)</option><option value="5">5%</option><option value="10">10%</option></select></label><label className="mt-4 block"><span className="mb-1.5 block text-sm">Température ambiante</span><select value={String(edge.data?.ambientTemperature ?? 30)} onChange={(event) => updateEdgeData(edge.id, { ambientTemperature: Number(event.target.value) })} className={inputClass(darkMode)}><option value="20">20 °C</option><option value="30">30 °C (par défaut)</option><option value="40">40 °C</option><option value="50">50 °C</option></select></label></section>
       <section className={sectionClass}><h3 className={headingClass}>Apparence</h3><label className="block"><span className="mb-1.5 block text-sm">Libellé</span><input className={inputClass(darkMode)} value={String(edge.data?.label ?? "")} placeholder="ex. Alimentation principale" onChange={(event) => updateEdgeData(edge.id, { label: event.target.value })} /></label><label className="mt-4 flex items-center justify-between"><span className="text-sm">Couleur</span><input type="color" value={String(edge.data?.color ?? "#6b7280")} onChange={(event) => updateEdgeData(edge.id, { color: event.target.value })} className="h-9 w-12 rounded border border-slate-300 p-1" /></label></section>
-      <section><h3 className={headingClass}>Actions</h3><button type="button" onClick={() => updateEdgeData(edge.id, { bendPoints: [] })} className={`mb-3 w-full rounded-lg border px-4 py-2.5 text-sm font-semibold ${darkMode ? "border-neutral-700 hover:bg-neutral-900" : "border-slate-300 hover:bg-slate-50"}`}>↻ Réinitialiser les coudes</button><button type="button" onClick={deleteSelected} className="w-full rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">⌫ Supprimer le câble</button></section>
+      <section><h3 className={headingClass}>Actions</h3><CableNudgeControl edge={edge} darkMode={darkMode} /><button type="button" onClick={() => updateEdgeData(edge.id, { bendPoints: [] })} className={`mb-3 w-full rounded-lg border px-4 py-2.5 text-sm font-semibold ${darkMode ? "border-neutral-700 hover:bg-neutral-900" : "border-slate-300 hover:bg-slate-50"}`}>↻ Réinitialiser les coudes</button><button type="button" onClick={deleteSelected} className="w-full rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">⌫ Supprimer le câble</button></section>
     </div>
     <ScrollHint visible={hasMoreContent} darkMode={darkMode} />
   </aside></>;

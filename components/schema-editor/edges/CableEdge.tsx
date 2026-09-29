@@ -267,6 +267,24 @@ export function CableEdge({
   // qu'à ce tout premier geste.
   const [draggingPoint, setDraggingPoint] = useState<{ x: number; y: number } | null>(null);
 
+  // Retour utilisateur : plusieurs sorties d'un même composant (ex. platine
+  // de fusibles -1 à -6) se superposent parfaitement avec un `offset` fixe
+  // identique pour tous — chacune tourne à la même distance de sa borne.
+  // Décale ce point de retournement selon le rang du câble parmi ses
+  // "frères" (même nœud source, aucun coude posé à la main sur l'un ou
+  // l'autre — jamais appliqué à un câble déjà ajusté manuellement, pour ne
+  // jamais annuler un réglage voulu). Tri par sourceHandle : stable et
+  // correspond à l'ordre visuel des bornes (-1, -2, -3...).
+  const siblingOffsetIndex = useSchemaStore((s) => {
+    if (getBendPoints(data).length > 0) return 0;
+    const siblings = s.edges
+      .filter((e) => e.source === source && getBendPoints(e.data as CableEdgeData | undefined).length === 0)
+      .map((e) => e.sourceHandle ?? e.id)
+      .sort();
+    const index = siblings.indexOf(sourceHandleId ?? id);
+    return index >= 0 ? index : 0;
+  });
+
   const [autoPath, autoX, autoY] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -277,7 +295,7 @@ export function CableEdge({
     borderRadius: 8,
     // Garde une sortie droite lisible à chaque borne avant le coude. Le
     // câble ne repart plus immédiatement derrière le composant voisin.
-    offset: 36,
+    offset: 36 + siblingOffsetIndex * 10,
   });
 
   // Points de coude choisis à la main, en coordonnées absolues (retour

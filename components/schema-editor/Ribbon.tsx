@@ -263,6 +263,7 @@ function EditorMenuBar({
     report("Liste de matériel prête à imprimer");
   }
 
+
   // Retour utilisateur : "liste de matériel et demande de devis... visible
   // en basique mais clic dessus ouvre le pop up pour souscrire et non la
   // page" — le menu reste visible et cliquable pour tout le monde (jamais

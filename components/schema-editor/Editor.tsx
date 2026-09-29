@@ -26,6 +26,7 @@ import { EditorStartPicker } from "./EditorStartPicker";
 import { ModelPickerModal } from "./ModelPickerModal";
 import { FreemiumLimitModal } from "./FreemiumLimitModal";
 import { HelpNudgeWidget } from "./HelpNudgeWidget";
+import { AiChatPanel } from "./AiChatPanel";
 import { ProjectSharingConsentBanner } from "./ProjectSharingConsentBanner";
 import { PwaInstallPrompt } from "./PwaInstallPrompt";
 import { SaveAssistantBanner } from "./SaveAssistantBanner";
@@ -103,6 +104,7 @@ export function Editor() {
   const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
   const isLoggedIn = useSchemaStore((s) => s.isLoggedIn);
   const setIsLoggedIn = useSchemaStore((s) => s.setIsLoggedIn);
+  const isAdmin = useSchemaStore((s) => s.isAdmin);
   const setIsAdmin = useSchemaStore((s) => s.setIsAdmin);
   const setAccountInitials = useSchemaStore((s) => s.setAccountInitials);
   const setCustomCatalogItems = useSchemaStore((s) => s.setCustomCatalogItems);
@@ -401,6 +403,7 @@ export function Editor() {
       <InstallAssistant />
       <HelpNudgeWidget />
       <PwaInstallPrompt />
+      {isAdmin ? <AiChatPanel /> : null}
     </ReactFlowProvider>
   );
 }

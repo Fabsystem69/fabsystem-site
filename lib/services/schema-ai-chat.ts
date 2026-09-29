@@ -1,0 +1,77 @@
+import { z } from "zod";
+import type { Node, Edge } from "@xyflow/react";
+import { getAnthropicClient } from "@/lib/server/anthropic";
+import { buildSchemaSummaryText } from "@/lib/ai/schema-summary";
+import { computeSchemaIssues } from "@/lib/electrical-components/checks";
+import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
+import { badRequest } from "@/lib/http-errors";
+
+// Retour utilisateur : "je le veux vraiment mode chat box quand je suis sur
+// mon éditeur en mode admin" — assistant conversationnel réservé à l'admin
+// (vérifié côté route, pas ici), pour évaluer ou discuter d'un schéma en
+// cours d'édition. Le contexte du schéma est reconstruit à CHAQUE message
+// (jamais mis en cache d'un tour à l'autre) : le schéma change pendant la
+// conversation, un contexte figé au premier message deviendrait faux dès la
+// moindre modification du canevas.
+const chatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(4000),
+});
+
+export type SchemaAiChatMessage = z.infer<typeof chatMessageSchema>;
+
+export const schemaAiChatMessagesSchema = z.array(chatMessageSchema).min(1).max(40);
+
+const SYSTEM_PROMPT = `Tu es un assistant technique en électricité embarquée basse tension (12V/24V DC), pour des vans, fourgons, camping-cars et bateaux. Tu discutes avec un électricien professionnel qui conçoit un schéma dans son éditeur — il peut te demander un avis global, une question précise sur un composant ou un câble, ou juste réfléchir à voix haute avec toi.
+
+Règles impératives :
+- Tu donnes des AVIS et des pistes, jamais une certification. Ne dis jamais qu'un schéma est "sûr", "conforme" ou "prêt à installer" — dis plutôt "à vérifier", "attire l'attention sur", "pourrait mériter".
+- Le message ci-dessous te donne l'état ACTUEL du schéma (composants, câbles, contrôles automatiques déjà signalés) à chaque tour — ne répète jamais les contrôles automatiques déjà listés, concentre-toi sur ce qu'une relecture humaine ajouterait.
+- Réponds de façon concise et concrète, en français, comme dans une conversation entre professionnels — pas de longue liste si la question est simple.
+- Si le schéma est vide ou que la question ne s'y rapporte pas, réponds normalement sans forcer une référence au schéma.`;
+
+function buildSchemaContextBlock(
+  nodes: Node<ElectricalNodeData>[],
+  edges: Edge<CableEdgeData>[],
+  projectName: string
+) {
+  const existingIssues = computeSchemaIssues(nodes, edges).map((issue) => `- [${issue.severity ?? "warning"}] ${issue.message}`);
+  return `[État actuel du schéma « ${projectName} », à prendre en compte pour ta réponse — ne le recopie pas]
+${buildSchemaSummaryText(nodes, edges)}
+
+Contrôles automatiques déjà signalés (ne les répète pas) :
+${existingIssues.length > 0 ? existingIssues.join("\n") : "(aucun)"}`;
+}
+
+export async function chatAboutSchema(
+  history: SchemaAiChatMessage[],
+  nodes: Node<ElectricalNodeData>[],
+  edges: Edge<CableEdgeData>[],
+  projectName: string
+): Promise<string> {
+  if (history.length === 0) throw badRequest("Aucun message.");
+  const lastMessage = history[history.length - 1];
+  if (lastMessage.role !== "user") throw badRequest("Le dernier message doit venir de l'utilisateur.");
+
+  // Contexte injecté juste avant le dernier message plutôt que dans `system`
+  // (qui, lui, resterait figé sur l'état du schéma au tout premier tour si
+  // on voulait profiter du cache de prompt) — ici on préfère la fraîcheur du
+  // contexte à l'économie de cache, un schéma d'édition change vite.
+  const messages = [
+    ...history.slice(0, -1).map((m) => ({ role: m.role, content: m.content })),
+    { role: "user" as const, content: `${buildSchemaContextBlock(nodes, edges, projectName)}\n\n${lastMessage.content}` },
+  ];
+
+  const client = getAnthropicClient();
+  const response = await client.messages.create({
+    model: "claude-opus-5",
+    max_tokens: 2048,
+    thinking: { type: "adaptive" },
+    system: SYSTEM_PROMPT,
+    messages,
+  });
+
+  const textBlock = response.content.find((block) => block.type === "text");
+  if (!textBlock || textBlock.type !== "text") throw badRequest("L'IA n'a renvoyé aucun texte exploitable.");
+  return textBlock.text;
+}

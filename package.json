@@ -18,6 +18,7 @@
     "seed:prestations-packs": "tsx scripts/seed-prestations-packs.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0",
     "@dagrejs/dagre": "^3.1.1",
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "^6.19.2",
