@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import { z } from "zod";
 
 // app/api/schema-editor/ai-chat/route.ts : réservé à l'admin, jamais
 // accessible à un client (même en connaissant l'URL). Ce test exécute la
@@ -54,6 +55,7 @@ function loadRoute(deps: {
             return (deps.chatAboutSchemaImpl ?? (async () => "Réponse."))(...args);
           },
           schemaAiChatMessagesSchema: { safeParse: (value: unknown) => (Array.isArray(value) && value.length > 0 ? { success: true, data: value } : { success: false }) },
+          schemaAiModelSchema: z.enum(["claude-opus-5", "claude-sonnet-5"]),
         };
       }
       if (id.startsWith("@/")) return {};
@@ -95,6 +97,41 @@ test("POST /ai-chat: refuse des messages invalides (400)", async () => {
   );
 
   assert.equal(response.status, 400);
+});
+
+test("POST /ai-chat: refuse un modèle hors liste fermée (400)", async () => {
+  const { route, chatCalls } = loadRoute({});
+
+  const response = await route.POST(
+    new Request("http://localhost/x", {
+      method: "POST",
+      body: JSON.stringify({ messages: [{ role: "user", content: "salut" }], nodes: [], edges: [], model: "gpt-4" }),
+    })
+  );
+
+  assert.equal(response.status, 400);
+  assert.equal(chatCalls.length, 0, "the AI must never be called with an unvalidated model");
+});
+
+test("POST /ai-chat: transmet le modèle choisi à chatAboutSchema", async () => {
+  const { route, chatCalls } = loadRoute({});
+
+  await route.POST(
+    new Request("http://localhost/x", {
+      method: "POST",
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "salut" }],
+        nodes: [],
+        edges: [],
+        projectName: "Van",
+        model: "claude-sonnet-5",
+      }),
+    })
+  );
+
+  assert.equal(chatCalls.length, 1);
+  const args = chatCalls[0] as unknown[];
+  assert.equal(args[4], "claude-sonnet-5");
 });
 
 test("POST /ai-chat: session admin valide -> appelle chatAboutSchema et renvoie la réponse", async () => {

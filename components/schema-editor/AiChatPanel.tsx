@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
-import type { SchemaAiChatMessage } from "@/lib/services/schema-ai-chat";
+import { SCHEMA_AI_MODELS, type SchemaAiChatMessage, type SchemaAiModelId } from "@/lib/services/schema-ai-chat";
 
 // Retour utilisateur : "je le veux vraiment mode chat box quand je suis sur
 // mon éditeur en mode admin, pour créer ou évaluer les schémas, me faire
@@ -19,6 +19,7 @@ export function AiChatPanel() {
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [model, setModel] = useState<SchemaAiModelId>("claude-opus-5");
   const projectName = useSchemaStore((s) => s.projectName);
   const { getNodes, getEdges } = useReactFlow();
   const listRef = useRef<HTMLDivElement>(null);
@@ -39,7 +40,7 @@ export function AiChatPanel() {
       const response = await fetch("/api/schema-editor/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, nodes: getNodes(), edges: getEdges(), projectName }),
+        body: JSON.stringify({ messages: nextMessages, nodes: getNodes(), edges: getEdges(), projectName, model }),
       });
       if (!response.ok) {
         const body = await response.json().catch(() => null);
@@ -77,6 +78,23 @@ export function AiChatPanel() {
         <button type="button" onClick={() => setOpen(false)} className="text-2xl text-slate-500" aria-label="Fermer l'assistant">
           ×
         </button>
+      </div>
+
+      <div className="border-b border-slate-200 px-4 py-2">
+        <label className="flex items-center gap-2 text-xs text-slate-500">
+          Modèle
+          <select
+            value={model}
+            onChange={(event) => setModel(event.target.value as SchemaAiModelId)}
+            className="flex-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 outline-none focus:border-amber-500"
+          >
+            {Object.entries(SCHEMA_AI_MODELS).map(([id, label]) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
