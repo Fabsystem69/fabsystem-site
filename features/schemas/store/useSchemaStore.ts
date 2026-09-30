@@ -23,6 +23,7 @@ import { optimizeBusbarHandleLayout } from "@/lib/schema-editor/busbar-layout";
 import { computeAutoLayout } from "@/lib/schema-editor/auto-layout";
 import { applyGuidedPlan, buildStructuredCanvas } from "@/lib/schema-editor/guided-plan";
 import type { SolarInstallPlan } from "@/lib/schema-editor/guided-install/solar";
+import type { GeneratedSchemaPlan } from "@/lib/schema-editor/generated-plan";
 import type { CustomCatalogItem } from "@/features/schemas/customCatalogApi";
 import type { ElectricalNodeData, CableEdgeData, HandleKind, IconStyle } from "@/types/schema";
 
@@ -561,6 +562,15 @@ interface SchemaState {
   // l'id de la zone créée pour que l'UI puisse la sélectionner/centrer la
   // vue dessus.
   insertGuidedInstall: (plan: SolarInstallPlan) => string;
+  /** Pose une proposition de l'assistant IA de génération (voir
+   * lib/services/schema-ai-generate.ts) : même principe qu'insertGuidedInstall
+   * (nouvelle zone autonome, un seul pas d'historique), mais un plan déjà
+   * validé contre le catalogue plutôt qu'une réponse de wizard à boutons.
+   * Les sections de câble calculables sont posées immédiatement (même
+   * moteur que "Recalculer les sections") ; celles qui ne le sont pas
+   * (ex. données solaires manquantes) restent vides et signalées par le
+   * rappel "À vérifier" déjà existant, jamais une valeur inventée. */
+  insertGeneratedPlan: (plan: GeneratedSchemaPlan) => string;
   /** Pose et câble un ensemble homogène (champ solaire ou parc batteries)
    * en une seule opération, donc annulable en un seul Ctrl/Cmd+Z. */
   buildSystem: (config: SystemBuilderConfig) => void;
@@ -1645,6 +1655,110 @@ export const useSchemaStore = create<SchemaState>((set) => ({
         selectedNodeId: zoneNode.id,
         selectedEdgeId: null,
         installAssistantOpen: false,
+        lastMeaningfulActionAt: Date.now(),
+        pickerCancelStreak: 0,
+        ...commit(state),
+      };
+    });
+    return zoneId;
+  },
+
+  insertGeneratedPlan: (plan) => {
+    let zoneId = "";
+    set((state) => {
+      const maxX = state.nodes.length > 0 ? Math.max(...state.nodes.map((n) => n.position.x + (n.width ?? 220))) : 0;
+      const minY = state.nodes.length > 0 ? Math.min(...state.nodes.map((n) => n.position.y)) : 0;
+      const anchor = { x: state.nodes.length > 0 ? maxX + 120 : 40, y: state.nodes.length > 0 ? minY : 40 };
+
+      const zoneNode: SchemaNode = {
+        id: nextId("zone"),
+        type: "zone",
+        position: anchor,
+        zIndex: -1,
+        width: plan.zoneWidth,
+        height: plan.zoneHeight,
+        data: {
+          componentType: "zone",
+          label: plan.zoneLabel,
+          color: ZONE_COLORS[state.nodes.filter((n) => n.type === "zone").length % ZONE_COLORS.length],
+        },
+      };
+      zoneId = zoneNode.id;
+
+      const keyToId = new Map<string, string>();
+      const newNodes: SchemaNode[] = [zoneNode];
+      for (const comp of plan.components) {
+        const def = getComponentDefinition(comp.type);
+        if (!def) continue; // déjà rejeté côté service si le catalogue ne le reconnaît pas
+        const id = nextId(comp.type);
+        keyToId.set(comp.key, id);
+        newNodes.push({
+          id,
+          type: "electrical",
+          position: { x: anchor.x + comp.offsetX, y: anchor.y + comp.offsetY },
+          // componentType/label toujours APRÈS dataOverride dans le spread
+          // (défense en profondeur, en plus du refine côté
+          // generatedSchemaPlanSchema) : dataOverride est entièrement
+          // contrôlé par l'IA, il ne doit jamais pouvoir faire poser sur le
+          // canevas un type/libellé différent de celui validé contre le
+          // catalogue et affiché dans la carte de preview. Revue de
+          // sécurité du 30/09/2026.
+          data: { ...def.defaultData, ...comp.dataOverride, componentType: comp.type, label: comp.label },
+        });
+      }
+
+      // Couleur/type de câble déduits de la polarité réelle de la borne
+      // source (même logique qu'onConnect, pour qu'un câble posé par l'IA
+      // soit indiscernable d'un câble tiré à la main) ; longueur/section par
+      // défaut comme pour un câble tiré à la main (getEdgeDefaultPreset).
+      const newEdges: SchemaEdge[] = plan.edges.flatMap((e) => {
+        const sourceId = keyToId.get(e.sourceKey);
+        const targetId = keyToId.get(e.targetKey);
+        if (!sourceId || !targetId) return [];
+        const sourceNode = newNodes.find((n) => n.id === sourceId);
+        const targetNode = newNodes.find((n) => n.id === targetId);
+        const def = sourceNode ? getComponentDefinition(sourceNode.data.componentType) : undefined;
+        const handleDef = def && sourceNode ? getEffectiveHandles(def, sourceNode.data).find((h) => h.id === e.sourceHandle) : undefined;
+        const kind = handleDef && def ? (def.resolveHandleKind ? def.resolveHandleKind(sourceNode!.data, handleDef) : handleDef.kind) : undefined;
+        const color = kind ? HANDLE_COLORS[kind] : HANDLE_COLORS.neutral;
+        const cableType = kind ? DEFAULT_CABLE_TYPE_BY_KIND[kind] : "other";
+        const defaultPreset = getEdgeDefaultPreset(sourceNode?.data.componentType, targetNode?.data.componentType, cableType);
+
+        return [
+          {
+            id: nextId("edge"),
+            source: sourceId,
+            sourceHandle: e.sourceHandle,
+            target: targetId,
+            targetHandle: e.targetHandle,
+            type: "cable",
+            data: { color, cableType, ...defaultPreset },
+          } satisfies SchemaEdge,
+        ];
+      });
+
+      // Recalcule les sections calculables avec le même moteur que le
+      // bouton "Recalculer toutes les sections", mais UNIQUEMENT sur les
+      // câbles neufs : la zone est isolée du reste du schéma au niveau de
+      // la topologie, mais `recalculateCableSections` recalcule et
+      // réécrit la section de TOUT câble de la liste passée dont le
+      // diagnostic actuel diffère de la valeur déjà stockée — y compris un
+      // câble déjà présent, réglé à la main, jamais concerné par cet
+      // ajout. Revue de sécurité du 30/09/2026 (corrigé après repro réel :
+      // un câble existant remis à une section très différente en
+      // appliquant une zone IA sans aucun rapport). On ne reprend donc que
+      // la partie de la sortie correspondant aux câbles neufs — les câbles
+      // déjà existants (`state.edges`) restent la même référence,
+      // inchangés bit à bit.
+      const combinedNodes = [...state.nodes, ...newNodes];
+      const { edges: recalculatedNewEdges } = recalculateCableSections(combinedNodes, [...state.edges, ...newEdges]);
+      const sizedNewEdges = recalculatedNewEdges.slice(state.edges.length);
+
+      return {
+        nodes: combinedNodes,
+        edges: [...state.edges, ...sizedNewEdges],
+        selectedNodeId: zoneNode.id,
+        selectedEdgeId: null,
         lastMeaningfulActionAt: Date.now(),
         pickerCancelStreak: 0,
         ...commit(state),
