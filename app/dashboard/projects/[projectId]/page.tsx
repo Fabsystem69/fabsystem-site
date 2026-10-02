@@ -51,7 +51,13 @@ export default async function DashboardProjectDetailPage({
   const { error, success } = await searchParams;
   const [project, kits] = await Promise.all([
     prisma.project.findFirst({
-      where: { id: projectId, customer: { dataShareConsent: true } },
+      // Même condition que app/dashboard/projects/page.tsx (la liste qui
+      // mène ici) : un schéma que l'admin a construit lui-même pour un
+      // client reste accessible même si ce client n'a jamais activé le
+      // partage de son dossier. Sans ce OR, un lien "Ouvrir le suivi" posé
+      // par la page liste sur un tel projet retombait sur ce findFirst
+      // vide -> notFound() -> 404, alors que le lien venait d'être affiché.
+      where: { id: projectId, OR: [{ customer: { dataShareConsent: true } }, { createdByAdmin: true }] },
       include: {
         customer: true,
         retainedValues: true,
