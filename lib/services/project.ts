@@ -7,7 +7,7 @@ import type {
   ProjectVoltage,
 } from "@/lib/generated/prisma/client";
 import { badRequest, conflict, notFound } from "@/lib/http-errors";
-import { requireOwnerOrAdmin, type OwnershipActor } from "@/lib/ownership";
+import { isAdminActor, requireOwnerOrAdmin, type OwnershipActor } from "@/lib/ownership";
 
 type PrismaClientLike = PrismaClient;
 
@@ -177,15 +177,26 @@ export function createProjectService(db: ProjectDb, deps?: ProjectDeps) {
 
       requireOwnerOrAdmin(actor, customerId);
 
-      const [existingCount, hasPlusAccess] = await Promise.all([
-        db.countCustomerProjects(customerId),
-        hasSchemaEditorPlusAccess(customerId),
-      ]);
+      // La limite ci-dessous est un plafond de portefeuille self-service
+      // (MASTER-06 §7) : elle n'a jamais eu vocation à bloquer un Admin qui
+      // crée délibérément un Projet pour un client (accompagnement,
+      // préparation d'un dossier, démo) — voir le commentaire sur
+      // requireProjectActor (lib/server/project-actor.ts) qui documente
+      // explicitement ce flux. Avant ce correctif, le comptage s'appliquait
+      // quand même à l'Admin : un client déjà à sa limite personnelle
+      // bloquait aussi Fabien lorsqu'il essayait de créer un schéma pour lui
+      // depuis le dashboard — jamais l'intention.
+      if (!isAdminActor(actor)) {
+        const [existingCount, hasPlusAccess] = await Promise.all([
+          db.countCustomerProjects(customerId),
+          hasSchemaEditorPlusAccess(customerId),
+        ]);
 
-      if (!hasPlusAccess && existingCount >= STANDARD_PROJECT_LIMIT) {
-        throw conflict(
-          `Standard accounts are limited to ${STANDARD_PROJECT_LIMIT} personal projects`
-        );
+        if (!hasPlusAccess && existingCount >= STANDARD_PROJECT_LIMIT) {
+          throw conflict(
+            `Standard accounts are limited to ${STANDARD_PROJECT_LIMIT} personal projects`
+          );
+        }
       }
 
       return db.createProject({

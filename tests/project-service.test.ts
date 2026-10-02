@@ -194,6 +194,31 @@ test(`createProject enforces the standard limit of ${STANDARD_PROJECT_LIMIT} pro
   );
 });
 
+test("createProject lets an Admin create a project for a customer already at the standard limit", async () => {
+  // Bug réel (retour utilisateur : "je ne veux pas être bloqué par ce
+  // message si je crée un schéma... si c'est moi l'admin qui crée le
+  // schéma") — la limite de portefeuille self-service bloquait aussi un
+  // Admin créant délibérément un Projet pour un client déjà à sa limite
+  // personnelle, alors que ce flux est documenté comme volontairement
+  // non limité (lib/server/project-actor.ts, requireProjectActor).
+  const existing = Array.from({ length: STANDARD_PROJECT_LIMIT }, (_, index) =>
+    createProjectRecord({ id: `proj_existing_${index}`, customerId: "cust_1" })
+  );
+  const { db, state } = createMockProjectDb({ projects: existing });
+  const service = createProjectService(db);
+
+  const project = await service.createProject(ADMIN, {
+    customerId: "cust_1",
+    name: "Schéma préparé par Fabien",
+    assetType: "BOAT",
+    voltage: "UNKNOWN",
+    createdByAdmin: true,
+  });
+
+  assert.equal(project.customerId, "cust_1");
+  assert.equal(state.created.length, 1);
+});
+
 test("createProject counts archived projects toward the limit (MASTER-06 §7)", async () => {
   const existing = Array.from({ length: STANDARD_PROJECT_LIMIT }, (_, index) =>
     createProjectRecord({ id: `proj_existing_${index}`, customerId: "cust_1", status: "ARCHIVED" })
