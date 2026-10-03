@@ -8,6 +8,7 @@ import {
 } from "@/lib/crm/meeting-notes-format";
 import { meetingCommitSchema, type MeetingCommit } from "@/lib/crm/meeting-notes-contract";
 import { prisma } from "@/lib/prisma";
+import { advisoryXactLock } from "@/lib/server/advisory-lock";
 import { logCoachingProjectEvent } from "@/lib/services/coaching-project-events";
 
 export type MeetingApplyResult = {
@@ -17,13 +18,6 @@ export type MeetingApplyResult = {
 };
 
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
-
-// Verrou transactionnel sur la cle de soumission : deux requetes
-// simultanees (double clic, nouvelle tentative) se serialisent, la
-// seconde voit alors la trace de la premiere et ne cree rien.
-async function lockSubmission(tx: Tx, submissionKey: string) {
-  await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${submissionKey}))`;
-}
 
 async function applyToCoachingProject(tx: Tx, commit: MeetingCommit, projectId: string): Promise<MeetingApplyResult> {
   const href = `/dashboard/crm/projects/${projectId}`;
@@ -116,7 +110,7 @@ export async function applyMeetingNotes(rawCommit: unknown): Promise<MeetingAppl
   const commit = parsed.data;
 
   return prisma.$transaction(async (tx) => {
-    await lockSubmission(tx, commit.submissionKey);
+    await advisoryXactLock(tx, commit.submissionKey);
 
     return commit.target.kind === "coaching_project"
       ? applyToCoachingProject(tx, commit, commit.target.projectId)

@@ -25,6 +25,17 @@ import {
 import { getCoachingProjectForDetail, getCoachingProjectTimeBalance } from "@/lib/services/coaching-project";
 import { listProjectsForCustomer } from "@/lib/services/project";
 import { PROJECT_ASSET_TYPE_LABELS } from "@/lib/project-labels";
+import { ChoiceSelect } from "@/components/shared/ChoiceSelect";
+import { ExistingInstallationFields } from "@/components/shared/ExistingInstallationFields";
+import {
+  CLIENT_LEVEL_OPTIONS,
+  DAYS_WITHOUT_RECHARGE_CHOICES,
+  EMPTY_CHOICE_LABEL,
+  PROJECT_STAGE_OPTIONS,
+  SOLAR_PREFERENCE_CHOICES,
+  USAGE_PATTERN_CHOICES,
+} from "@/lib/coaching-form-options";
+import { parseExistingInstallation } from "@/lib/crm/existing-installation";
 import { ensureDefaultScenario, getScenarioBilan, listDevicesForProject, listScenarios } from "@/lib/services/coaching-van-dossier";
 import { listMaterialsForProject } from "@/lib/services/coaching-material";
 import { listCircuitsForProject } from "@/lib/services/coaching-circuit";
@@ -290,24 +301,18 @@ export default async function DashboardCrmProjectDetailPage({
           <label className={labelClass}>Pays d&apos;usage<input name="usageCountry" defaultValue={project.usageCountry ?? ""} className={fieldClass} /></label>
           <label className={labelClass}>Avancement
             <select name="projectStage" defaultValue={project.projectStage ?? ""} className={fieldClass}>
-              <option value="">Non précisé</option>
-              <option value="Idée">Idée</option>
-              <option value="Véhicule acheté">Véhicule acheté</option>
-              <option value="Aménagement en cours">Aménagement en cours</option>
-              <option value="Installation partielle">Installation partielle</option>
-              <option value="Installation existante à modifier">Installation existante à modifier</option>
+              <option value="">{EMPTY_CHOICE_LABEL}</option>
+              {PROJECT_STAGE_OPTIONS.map((stage) => (
+                <option key={stage} value={stage}>{stage}</option>
+              ))}
+              {project.projectStage && !(PROJECT_STAGE_OPTIONS as readonly string[]).includes(project.projectStage) ? (
+                <option value={project.projectStage}>{project.projectStage}</option>
+              ) : null}
             </select>
           </label>
           <label className={labelClass}>Qui réalise les travaux<input name="whoDoesTheWork" defaultValue={project.whoDoesTheWork ?? ""} className={fieldClass} /></label>
           <label className={labelClass}>Échéance de départ<input name="startDeadline" defaultValue={project.startDeadline ?? ""} className={fieldClass} /></label>
-          <label className={labelClass}>Niveau du client
-            <select name="niveauClient" defaultValue={project.niveauClient ?? ""} className={fieldClass}>
-              <option value="">Non précisé</option>
-              <option value="DEBUTANT">Débutant</option>
-              <option value="INTERMEDIAIRE">Intermédiaire</option>
-              <option value="AVANCE">Avancé</option>
-            </select>
-          </label>
+          <ChoiceSelect label="Niveau du client" name="niveauClient" options={CLIENT_LEVEL_OPTIONS} defaultValue={project.niveauClient} labelClassName={labelClass} selectClassName={fieldClass} />
           <label className={labelClass}>Budget matériel (€)<input name="materialBudgetEuros" type="number" min={0} step="0.01" inputMode="decimal" defaultValue={project.materialBudgetCents != null ? project.materialBudgetCents / 100 : ""} className={fieldClass} /></label>
           <label className={labelClass}>Budget pose (€)<input name="laborBudgetEuros" type="number" min={0} step="0.01" inputMode="decimal" defaultValue={project.laborBudgetCents != null ? project.laborBudgetCents / 100 : ""} className={fieldClass} /></label>
           <label className={`${labelClass} sm:col-span-2`}>Homologation<textarea name="homologationNotes" rows={2} defaultValue={project.homologationNotes ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
@@ -323,12 +328,12 @@ export default async function DashboardCrmProjectDetailPage({
           <input type="hidden" name="projectId" value={project.id} />
           <input type="hidden" name="expectedUsagesUpdatedAt" value={project.usagesUpdatedAt.toISOString()} />
           <label className={labelClass}>Voyageurs<input name="travelerCount" defaultValue={project.travelerCount ?? ""} className={fieldClass} /></label>
-          <label className={labelClass}>Utilisation<input name="usagePattern" defaultValue={project.usagePattern ?? ""} className={fieldClass} /></label>
+          <ChoiceSelect label="Utilisation" name="usagePattern" options={USAGE_PATTERN_CHOICES} defaultValue={project.usagePattern} labelClassName={labelClass} selectClassName={fieldClass} />
           <label className={labelClass}>Stationnement<input name="parkingExposure" defaultValue={project.parkingExposure ?? ""} className={fieldClass} /></label>
-          <label className={labelClass}>Jours sans recharge<input name="daysWithoutRecharge" defaultValue={project.daysWithoutRecharge ?? ""} className={fieldClass} /></label>
+          <ChoiceSelect label="Jours sans recharge" name="daysWithoutRecharge" options={DAYS_WITHOUT_RECHARGE_CHOICES} defaultValue={project.daysWithoutRecharge} labelClassName={labelClass} selectClassName={fieldClass} />
           <label className={labelClass}>Autonomie minimale<input name="minAutonomyNoRecharge" defaultValue={project.minAutonomyNoRecharge ?? ""} className={fieldClass} /></label>
           <label className={labelClass}>Disponibilité secteur<input name="shorePowerAvailability" defaultValue={project.shorePowerAvailability ?? ""} className={fieldClass} /></label>
-          <label className={labelClass}>Solaire envisagé<input name="solarPreference" defaultValue={project.solarPreference ?? ""} className={fieldClass} /></label>
+          <ChoiceSelect label="Solaire envisagé" name="solarPreference" options={SOLAR_PREFERENCE_CHOICES} defaultValue={project.solarPreference} labelClassName={labelClass} selectClassName={fieldClass} />
           <label className={labelClass}>Fixe ou portable<input name="solarMounting" defaultValue={project.solarMounting ?? ""} className={fieldClass} /></label>
           <label className={`${labelClass} sm:col-span-2`}>Télétravail<textarea name="remoteWorkNotes" rows={2} defaultValue={project.remoteWorkNotes ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
           <label className={`${labelClass} sm:col-span-2`}>Saisons / régions / températures<textarea name="seasonsRegionsNotes" rows={2} defaultValue={project.seasonsRegionsNotes ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
@@ -481,6 +486,7 @@ export default async function DashboardCrmProjectDetailPage({
           <label className={`${labelClass} sm:col-span-2`}>Position des prises, éclairages et commandes<textarea name="outletsLightingNotes" rows={2} defaultValue={project.outletsLightingNotes ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
           <label className={`${labelClass} sm:col-span-2`}>Tension, alternateur, contraintes constructeur<textarea name="vehicleElectricalNotes" rows={2} defaultValue={project.vehicleElectricalNotes ?? ""} className={`${fieldClass} h-auto py-2.5`} /></label>
           <label className={labelClass}>Source de cette information<input name="vehicleElectricalSource" defaultValue={project.vehicleElectricalSource ?? ""} className={fieldClass} /></label>
+          <ExistingInstallationFields variant="admin" current={parseExistingInstallation(project.existingInstallation)} />
           <div className="sm:col-span-2"><AdminButton type="submit" variant="primary" className="h-11 px-6">Enregistrer</AdminButton></div>
         </form>
       </AdminCard>

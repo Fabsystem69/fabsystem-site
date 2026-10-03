@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { badRequest, isHttpError } from "@/lib/http-errors";
 import { requireSession } from "@/lib/require-session";
 import { parseAdminVehicleFields } from "@/lib/coaching-vehicle-form";
+import { readExistingInstallationPatchFromForm } from "@/lib/crm/existing-installation";
 import type { CoachingInvitationState } from "@/lib/coaching-invitation";
 import { parseLocalDateTimeInTimeZone } from "@/lib/timezone";
 import {
@@ -505,9 +506,12 @@ export async function updateImplantationInfoAdminAction(formData: FormData) {
   const projectId = getString(formData, "projectId");
   let target: string;
   try {
+    const patch = readExistingInstallationPatchFromForm(formData);
+    if (!patch.success) throw badRequest(patch.error);
     await updateImplantationInfo({
       projectId,
       actor: { kind: "coach" },
+      existingInstallationPatch: patch.data,
       expectedImplantationUpdatedAt: new Date(getString(formData, "expectedImplantationUpdatedAt")),
       fields: {
         implantationNotes: getString(formData, "implantationNotes") || null,

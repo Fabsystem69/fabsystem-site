@@ -7,6 +7,7 @@ import {
   getProspectStatusTone,
 } from "@/lib/dashboard-status-labels";
 import { getCoachingDashboardData } from "@/lib/services/coaching-dashboard";
+import { PendingReviewNotifications } from "@/components/dashboard/crm/PendingReviewNotifications";
 import { AdminBadge, AdminButton, AdminCard, AdminEmptyState, AdminPageHeader, DashboardPageShell } from "@/components/dashboard/ui";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,8 @@ export default async function DashboardCrmTodayPage() {
           <p className="mt-2 text-3xl font-semibold text-white">{projectsLowOnTime.length}</p>
         </AdminCard>
       </div>
+
+      <PendingReviewNotifications />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <AdminCard title="À relire">

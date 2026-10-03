@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
+import * as existingInstallation from "@/lib/crm/existing-installation";
 
 // D13 (AUDIT_INDEPENDANT_FABSYSTEM.md) : "la saisie en cours n'est pas
 // reprise" — les formulaires "Votre projet et votre véhicule" (16 champs)
@@ -48,6 +49,8 @@ function loadActions(deps: {
   const httpErrors = deps.httpErrors ?? httpErrorStubs();
   const moduleDeps: Record<string, unknown> = {
     "@/lib/http-errors": httpErrors,
+    // Module pur (zod seulement) : on utilise le vrai, pas une simulation.
+    "@/lib/crm/existing-installation": existingInstallation,
     "@/lib/project-payload": {
       projectAssetTypeSchema: {
         safeParse: (value: string) =>

@@ -1605,6 +1605,13 @@ model CoachingProject {
   vehicleElectricalSource String?
   implantationUpdatedAt   DateTime @default(now())
 
+  // Installation existante declaree (fiche de decouverte, docs/17) : pour
+  // chaque element (battery, solar, driving_charge, shore_power, inverter)
+  // PRESENT / ABSENT / UNKNOWN + detail libre. Nullable : une cle absente =
+  // non renseigne, distinct de UNKNOWN ("je ne sais pas"). Meme section et
+  // meme jeton de concurrence (implantationUpdatedAt) que l'implantation.
+  existingInstallation Json?
+
   // Fiche d'entretien / accord commercial specifique a ce client
   // (FICHE_ENTRETIEN_ET_SUIVI_COACHING.md §2 "Synthese et proposition") —
   // distinct de `offre` (le produit/SKU achete) : ici, ce qui est REELEMENT

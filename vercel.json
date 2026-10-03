@@ -20,6 +20,10 @@
       "schedule": "0 10 * * *"
     },
     {
+      "path": "/api/internal/jobs/review-notifications",
+      "schedule": "30 9 * * *"
+    },
+    {
       "path": "/api/internal/jobs/purge-pending-orders",
       "schedule": "0 4 * * *"
     }

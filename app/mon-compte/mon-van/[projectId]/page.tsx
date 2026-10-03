@@ -8,58 +8,20 @@ import { requireCustomerActor } from "@/lib/server/project-actor";
 import { prisma } from "@/lib/prisma";
 import { ensureDefaultScenario, getScenarioBilan } from "@/lib/services/coaching-van-dossier";
 import { listMaterialsForProject } from "@/lib/services/coaching-material";
-import { getCoachingMaterialCategoryLabel, getCoachingPowerSupplyLabel } from "@/lib/dashboard-status-labels";
-import { PROJECT_ASSET_TYPE_LABELS } from "@/lib/project-labels";
+import { getCoachingPowerSupplyLabel } from "@/lib/dashboard-status-labels";
+import { SubmissionReceipt } from "@/components/customer/mon-van/SubmissionReceipt";
+import { VehicleStep } from "@/components/customer/mon-van/VehicleStep";
+import { UsagesStep } from "@/components/customer/mon-van/UsagesStep";
+import { ImplantationStep } from "@/components/customer/mon-van/ImplantationStep";
+import { MaterialsStep } from "@/components/customer/mon-van/MaterialsStep";
+import { TextField, fieldClass, hintClass, labelClass } from "@/components/customer/mon-van/FormFields";
 import {
-  updateVehicleInfoAction,
-  updateUsagesInfoAction,
   createDeviceAction,
   deleteDeviceAction,
   markOwnActionStatusAction,
-  sendForReviewAction,
-  createMaterialAction,
-  deleteMaterialAction,
-  updateImplantationInfoAction,
-  uploadOwnCoachingProjectDocumentAction,
 } from "../actions";
 
 export const dynamic = "force-dynamic";
-
-const fieldClass =
-  "w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-base text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-neutral-900";
-const labelClass = "block space-y-1.5 text-sm font-medium text-neutral-900";
-const hintClass = "text-xs font-normal text-neutral-500";
-
-// Libellés adaptés au support choisi (PROMPT_CLAUDE_APRES_FUSION_SUPPORTS.md) :
-// uniquement des ajustements de vocabulaire objectivement corrects ("véhicule"
-// ne convient pas à un bateau), jamais un questionnaire nautique inventé.
-// "VAN"/"MOTORHOME"/null (inconnu) gardent le vocabulaire véhicule existant.
-function vehicleNoun(assetType: string | null) {
-  return assetType === "BOAT" ? "bateau" : "véhicule";
-}
-
-function formatFileSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
-}
-
-function TextField({ label, name, defaultValue, placeholder }: { label: string; name: string; defaultValue?: string | null; placeholder?: string }) {
-  return (
-    <label className={labelClass}>
-      <span>{label}</span>
-      <input name={name} defaultValue={defaultValue ?? ""} placeholder={placeholder ?? "À définir avec Fabsystem"} className={fieldClass} />
-    </label>
-  );
-}
-
-function TextAreaField({ label, name, defaultValue }: { label: string; name: string; defaultValue?: string | null }) {
-  return (
-    <label className={`${labelClass} sm:col-span-2`}>
-      <span>{label}</span>
-      <textarea name={name} defaultValue={defaultValue ?? ""} rows={2} placeholder="À définir avec Fabsystem" className={fieldClass} />
-    </label>
-  );
-}
 
 // D13 (AUDIT_INDEPENDANT_FABSYSTEM.md) : "la saisie en cours n'est pas
 // reprise" en cas d'erreur — `raw` vient d'un paramètre d'URL, jamais fait
@@ -140,7 +102,7 @@ export default async function MonVanProjectPage({
         </Link>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold tracking-tight text-neutral-950">{project.title}</h1>
-          {project.readyForReviewAt ? <Badge tone="info">Envoyé pour relecture</Badge> : null}
+          {project.readyForReviewAt ? <Badge tone="info">Projet transmis</Badge> : null}
           {project.hasChangesSinceReview ? <Badge tone="warning">Modifié depuis la dernière relecture</Badge> : null}
         </div>
         <p className="mt-1 text-sm text-neutral-600">
@@ -150,6 +112,8 @@ export default async function MonVanProjectPage({
 
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
       {success ? <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div> : null}
+
+      <SubmissionReceipt readyForReviewAt={project.readyForReviewAt} inReview={project.readyForReviewAt !== null} />
 
       {project.resumePartage ? (
         <Card className="border-neutral-900/10 bg-neutral-50 p-5">
@@ -232,110 +196,9 @@ export default async function MonVanProjectPage({
         <Link href={`/mon-compte/mon-van/${projectId}?step=5`} className={stepClass(5)}>5. Mon implantation</Link>
       </div>
 
-      {activeStep === 1 ? (
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold text-neutral-950">Votre projet et votre {vehicleNoun(project.assetType)}</h2>
-          <form action={updateVehicleInfoAction} className="mt-4 grid gap-4 sm:grid-cols-2">
-            <input type="hidden" name="projectId" value={project.id} />
-            <input type="hidden" name="expectedVehicleInfoUpdatedAt" value={project.vehicleInfoUpdatedAt.toISOString()} />
-            <label className={labelClass}>
-              <span>Votre support</span>
-              <select name="assetType" defaultValue={vehicleDraft?.assetType ?? project.assetType ?? ""} className={fieldClass}>
-                <option value="">Je ne sais pas encore</option>
-                {Object.entries(PROJECT_ASSET_TYPE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
-                ))}
-              </select>
-            </label>
-            <TextField label={`Marque du ${vehicleNoun(project.assetType)}`} name="vehicleBrand" defaultValue={vehicleDraft?.vehicleBrand ?? project.vehicleBrand} />
-            <TextField label="Modèle" name="vehicleModel" defaultValue={vehicleDraft?.vehicleModel ?? project.vehicleModel} />
-            <TextField label="Année" name="vehicleYear" defaultValue={vehicleDraft?.vehicleYear ?? project.vehicleYear} />
-            <TextField label="Motorisation" name="vehicleEngine" defaultValue={vehicleDraft?.vehicleEngine ?? project.vehicleEngine} />
-            <TextField
-              label={project.assetType === "VAN" || project.assetType === null ? "Gabarit (L2H2...)" : "Gabarit"}
-              name="vehicleFormat"
-              defaultValue={vehicleDraft?.vehicleFormat ?? project.vehicleFormat}
-            />
-            <TextField label="Dimensions utiles" name="vehicleDimensions" defaultValue={vehicleDraft?.vehicleDimensions ?? project.vehicleDimensions} />
-            <TextField label="Pays d'immatriculation" name="registrationCountry" defaultValue={vehicleDraft?.registrationCountry ?? project.registrationCountry} />
-            <TextField label="Pays d'usage" name="usageCountry" defaultValue={vehicleDraft?.usageCountry ?? project.usageCountry} />
-            <TextAreaField label="Démarche d'homologation" name="homologationNotes" defaultValue={vehicleDraft?.homologationNotes ?? project.homologationNotes} />
-            <label className={labelClass}>
-              <span>Où en êtes-vous ?</span>
-              <select name="projectStage" defaultValue={vehicleDraft?.projectStage ?? project.projectStage ?? ""} className={fieldClass}>
-                <option value="">À définir avec Fabsystem</option>
-                <option value="Idée">Idée</option>
-                <option value="Véhicule acheté">Véhicule acheté</option>
-                <option value="Aménagement en cours">Aménagement en cours</option>
-                <option value="Installation partielle">Installation partielle</option>
-                <option value="Installation existante à modifier">Installation existante à modifier</option>
-              </select>
-            </label>
-            <label className={labelClass}>
-              <span>Votre niveau en électricité</span>
-              <select name="niveauClient" defaultValue={vehicleDraft?.niveauClient ?? project.niveauClient ?? ""} className={fieldClass}>
-                <option value="">À définir avec Fabsystem</option>
-                <option value="DEBUTANT">Je débute</option>
-                <option value="INTERMEDIAIRE">J&apos;ai quelques bases</option>
-                <option value="AVANCE">J&apos;ai déjà pratiqué</option>
-              </select>
-            </label>
-            <TextField label="Qui réalisera les travaux ?" name="whoDoesTheWork" defaultValue={vehicleDraft?.whoDoesTheWork ?? project.whoDoesTheWork} />
-            <TextField label="Échéance de départ souhaitée" name="startDeadline" defaultValue={vehicleDraft?.startDeadline ?? project.startDeadline} />
-            <TextAreaField label="Sujets sur lesquels être accompagné" name="coachingTopics" defaultValue={vehicleDraft?.coachingTopics ?? project.coachingTopics} />
-            <TextAreaField label="Votre objectif principal" name="objectifs" defaultValue={vehicleDraft?.objectifs ?? project.objectifs} />
-            <TextAreaField label="Vos trois priorités" name="threePriorities" defaultValue={vehicleDraft?.threePriorities ?? project.threePriorities} />
-            <div className="sm:col-span-2">
-              <Button type="submit" className="w-full sm:w-auto">Enregistrer</Button>
-            </div>
-          </form>
-        </Card>
-      ) : null}
+      {activeStep === 1 ? <VehicleStep project={project} draft={vehicleDraft} /> : null}
 
-      {activeStep === 2 ? (
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold text-neutral-950">Votre quotidien et votre recharge</h2>
-          <form action={updateUsagesInfoAction} className="mt-4 grid gap-4 sm:grid-cols-2">
-            <input type="hidden" name="projectId" value={project.id} />
-            <input type="hidden" name="expectedUsagesUpdatedAt" value={project.usagesUpdatedAt.toISOString()} />
-            <TextField label="Nombre de voyageurs" name="travelerCount" defaultValue={usagesDraft?.travelerCount ?? project.travelerCount} />
-            <label className={labelClass}>
-              <span>Votre utilisation</span>
-              <select name="usagePattern" defaultValue={usagesDraft?.usagePattern ?? project.usagePattern ?? ""} className={fieldClass}>
-                <option value="">À définir avec Fabsystem</option>
-                <option value="Week-ends">Week-ends</option>
-                <option value="Vacances">Vacances</option>
-                <option value="Longs voyages">Longs voyages</option>
-                <option value="Vie à l'année">Vie à l&apos;année</option>
-              </select>
-            </label>
-            <TextAreaField label="Télétravail (durée quotidienne)" name="remoteWorkNotes" defaultValue={usagesDraft?.remoteWorkNotes ?? project.remoteWorkNotes} />
-            <TextAreaField label="Saisons, régions, températures" name="seasonsRegionsNotes" defaultValue={usagesDraft?.seasonsRegionsNotes ?? project.seasonsRegionsNotes} />
-            <TextField label="Stationnement (soleil / ombre)" name="parkingExposure" defaultValue={usagesDraft?.parkingExposure ?? project.parkingExposure} />
-            <TextField label="Jours souhaités sans recharge" name="daysWithoutRecharge" defaultValue={usagesDraft?.daysWithoutRecharge ?? project.daysWithoutRecharge} />
-            <TextField label="Autonomie minimale sans recharge" name="minAutonomyNoRecharge" defaultValue={usagesDraft?.minAutonomyNoRecharge ?? project.minAutonomyNoRecharge} />
-            <TextAreaField label="Appareils indispensables si énergie limitée" name="criticalDevicesWhenLow" defaultValue={usagesDraft?.criticalDevicesWhenLow ?? project.criticalDevicesWhenLow} />
-            <TextAreaField label="Conduite : temps et fréquence" name="drivingHabits" defaultValue={usagesDraft?.drivingHabits ?? project.drivingHabits} />
-            <TextField label="Disponibilité du secteur" name="shorePowerAvailability" defaultValue={usagesDraft?.shorePowerAvailability ?? project.shorePowerAvailability} />
-            <label className={labelClass}>
-              <span>Solaire envisagé ?</span>
-              <select name="solarPreference" defaultValue={usagesDraft?.solarPreference ?? project.solarPreference ?? ""} className={fieldClass}>
-                <option value="">À étudier ensemble</option>
-                <option value="Souhaité">Souhaité</option>
-                <option value="Non souhaité">Non souhaité</option>
-                <option value="À étudier">À étudier</option>
-              </select>
-            </label>
-            <TextField label="Fixe ou portable ?" name="solarMounting" defaultValue={usagesDraft?.solarMounting ?? project.solarMounting} />
-            <TextAreaField label="Espace et obstacles sur le toit" name="solarRoofSpaceNotes" defaultValue={usagesDraft?.solarRoofSpaceNotes ?? project.solarRoofSpaceNotes} />
-            <TextAreaField label="Autres sources d'énergie envisagées" name="otherEnergySources" defaultValue={usagesDraft?.otherEnergySources ?? project.otherEnergySources} />
-            <TextAreaField label="Évolutions futures envisagées" name="plannedEquipmentNotes" defaultValue={usagesDraft?.plannedEquipmentNotes ?? project.plannedEquipmentNotes} />
-            <div className="sm:col-span-2">
-              <Button type="submit" className="w-full sm:w-auto">Enregistrer</Button>
-            </div>
-          </form>
-        </Card>
-      ) : null}
+      {activeStep === 2 ? <UsagesStep project={project} draft={usagesDraft} /> : null}
 
       {activeStep === 3 ? (
         <>
@@ -444,141 +307,16 @@ export default async function MonVanProjectPage({
         </>
       ) : null}
 
-      {activeStep === 4 ? (
-        <>
-          <Card className="p-5">
-            <h2 className="text-lg font-semibold text-neutral-950">Ajouter un matériel</h2>
-            <p className={`mt-1 ${hintClass}`}>Batterie, panneaux, régulateur, chargeur… ce que vous avez déjà ou avez choisi.</p>
-            <form action={createMaterialAction} className="mt-4 grid gap-4 sm:grid-cols-2">
-              <input type="hidden" name="projectId" value={project.id} />
-              <label className={labelClass}>
-                <span>Catégorie</span>
-                <select name="category" defaultValue="BATTERIE" className={fieldClass}>
-                  <option value="BATTERIE">Batterie</option>
-                  <option value="BMS">BMS</option>
-                  <option value="PANNEAU_SOLAIRE">Panneau solaire</option>
-                  <option value="REGULATEUR">Régulateur</option>
-                  <option value="CHARGEUR_MOTEUR">Chargeur moteur</option>
-                  <option value="CHARGEUR_SECTEUR">Chargeur secteur</option>
-                  <option value="CONVERTISSEUR">Convertisseur</option>
-                  <option value="DISTRIBUTION">Distribution</option>
-                  <option value="PROTECTION">Protection</option>
-                  <option value="AUTRE">Autre</option>
-                </select>
-              </label>
-              <label className={labelClass}>
-                <span>Quantité</span>
-                <input name="quantity" type="number" min={1} defaultValue={1} className={fieldClass} />
-              </label>
-              <TextField label="Marque" name="brand" />
-              <TextField label="Référence" name="reference" />
-              <label className={labelClass}>
-                <span>État</span>
-                <select name="state" defaultValue="ENVISAGE" className={fieldClass}>
-                  <option value="ENVISAGE">Envisagé</option>
-                  <option value="CHOISI">Choisi</option>
-                  <option value="ACHETE">Acheté</option>
-                  <option value="INSTALLE">Installé</option>
-                </select>
-              </label>
-              <label className={labelClass}>
-                <span>Déjà en place, à conserver ?</span>
-                <select name="keepExisting" defaultValue="" className={fieldClass}>
-                  <option value="">Sans objet (pas encore en place)</option>
-                  <option value="true">Oui, à conserver</option>
-                  <option value="false">Non, à remplacer</option>
-                </select>
-              </label>
-              <TextAreaField label="Dysfonctionnements connus (si déjà en place)" name="knownIssues" />
-              <div className="sm:col-span-2">
-                <Button type="submit" className="w-full sm:w-auto">＋ Ajouter</Button>
-              </div>
-            </form>
-          </Card>
+      {activeStep === 4 ? <MaterialsStep projectId={project.id} materials={materials} documents={documents} /> : null}
 
-          <Card className="p-5">
-            <h2 className="text-lg font-semibold text-neutral-950">Mon matériel</h2>
-            {materials.length === 0 ? (
-              <p className="mt-3 text-sm text-neutral-600">Aucun matériel pour l&apos;instant.</p>
-            ) : (
-              <ul className="mt-4 divide-y divide-neutral-200">
-                {materials.map((material) => (
-                  <li key={material.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                    <div>
-                      <p className="font-semibold text-neutral-900">{getCoachingMaterialCategoryLabel(material.category)}</p>
-                      <p className="text-xs text-neutral-500">{material.brand ?? "—"} {material.reference ?? ""} · {material.quantity} ×</p>
-                    </div>
-                    <form action={deleteMaterialAction}>
-                      <input type="hidden" name="projectId" value={project.id} />
-                      <input type="hidden" name="materialId" value={material.id} />
-                      <Button type="submit" variant="tertiary">Retirer</Button>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
+      {activeStep === 5 ? <ImplantationStep project={project} draft={implantationDraft} /> : null}
 
-          <Card className="p-5">
-            <h2 className="text-lg font-semibold text-neutral-950">Photos, plans et documents</h2>
-            <p className={`mt-1 ${hintClass}`}>Uniquement des photos prises sans danger — sans dépose de protections ni accès à des parties sous tension.</p>
-            {documents.length > 0 ? (
-              <ul className="mt-4 divide-y divide-neutral-200">
-                {documents.map((document) => (
-                  <li key={document.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                    <a
-                      href={`/api/coaching-projects/documents/${document.id}`}
-                      className="text-base font-medium text-neutral-900 underline underline-offset-2"
-                    >
-                      {document.filename}
-                    </a>
-                    <span className="text-sm text-neutral-500">
-                      {formatFileSize(document.sizeBytes)} · {formatDate(document.createdAt)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-4 text-sm text-neutral-500">Aucun document pour l&apos;instant.</p>
-            )}
-            <form action={uploadOwnCoachingProjectDocumentAction} encType="multipart/form-data" className="mt-4 flex flex-wrap items-end gap-3">
-              <input type="hidden" name="projectId" value={project.id} />
-              <input name="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" required className="text-sm text-neutral-700" />
-              <Button type="submit" variant="secondary">Envoyer</Button>
-            </form>
-          </Card>
-        </>
-      ) : null}
-
-      {activeStep === 5 ? (
-        <Card className="p-5">
-          <h2 className="text-lg font-semibold text-neutral-950">Votre implantation</h2>
-          <form action={updateImplantationInfoAction} className="mt-4 grid gap-4">
-            <input type="hidden" name="projectId" value={project.id} />
-            <input type="hidden" name="expectedImplantationUpdatedAt" value={project.implantationUpdatedAt.toISOString()} />
-            <TextAreaField label="Croquis, emplacements et volumes disponibles pour la batterie" name="implantationNotes" defaultValue={implantationDraft?.implantationNotes ?? project.implantationNotes} />
-            <TextAreaField label="Contraintes de ventilation, température, eau, accessibilité" name="ventilationConstraints" defaultValue={implantationDraft?.ventilationConstraints ?? project.ventilationConstraints} />
-            <TextAreaField label="Position des prises, éclairages et commandes" name="outletsLightingNotes" defaultValue={implantationDraft?.outletsLightingNotes ?? project.outletsLightingNotes} />
-            <TextAreaField label="Tension, alternateur, contraintes constructeur (si connu)" name="vehicleElectricalNotes" defaultValue={implantationDraft?.vehicleElectricalNotes ?? project.vehicleElectricalNotes} />
-            <TextField
-              label="D'où vient cette information ?"
-              name="vehicleElectricalSource"
-              defaultValue={implantationDraft?.vehicleElectricalSource ?? project.vehicleElectricalSource}
-              placeholder="Manuel constructeur, mesure, estimation…"
-            />
-            <div>
-              <Button type="submit" className="w-full sm:w-auto">Enregistrer</Button>
-            </div>
-          </form>
-        </Card>
-      ) : null}
-
-      <form action={sendForReviewAction}>
-        <input type="hidden" name="projectId" value={project.id} />
-        <Button type="submit" variant="secondary" className="w-full sm:w-auto" disabled={Boolean(project.readyForReviewAt)}>
-          {project.readyForReviewAt ? "Relecture demandée ✓" : "Envoyer pour relecture"}
-        </Button>
-      </form>
+      <Link
+        href={`/mon-compte/mon-van/${project.id}/transmettre`}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800 sm:w-auto"
+      >
+        {project.readyForReviewAt ? "Revoir ce que j'ai transmis" : "Vérifier et transmettre mon projet"}
+      </Link>
     </div>
   );
 }

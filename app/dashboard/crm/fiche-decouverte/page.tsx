@@ -122,6 +122,18 @@ function FieldBlock({ field }: { field: DiscoveryField }) {
   );
 }
 
+// Regroupe les champs "text" consecutifs (une ligne chacun) ; tout autre
+// type de champ reste seul, pleine largeur.
+function groupFieldBlocks(fields: readonly DiscoveryField[]): DiscoveryField[][] {
+  return fields.reduce<DiscoveryField[][]>((blocks, field) => {
+    const last = blocks[blocks.length - 1];
+    if (field.kind === "text" && last && last[0].kind === "text") {
+      return [...blocks.slice(0, -1), [...last, field]];
+    }
+    return [...blocks, [field]];
+  }, []);
+}
+
 function SheetSection({ section }: { section: DiscoverySection }) {
   const headingId = `sec-${section.id}`;
   return (
@@ -132,10 +144,20 @@ function SheetSection({ section }: { section: DiscoverySection }) {
       <h2 id={headingId} className="mb-3 border-b-2 border-black pb-1 text-lg font-bold uppercase">
         {section.number}. {section.title}
       </h2>
-      <div className="space-y-4">
-        {section.fields.map((field) => (
-          <FieldBlock key={field.key} field={field} />
-        ))}
+      <div className="space-y-4 print:space-y-3">
+        {groupFieldBlocks(section.fields).map((block) =>
+          block.length === 1 && block[0].kind !== "text" ? (
+            <FieldBlock key={block[0].key} field={block[0]} />
+          ) : (
+            // Champs courts consecutifs : deux colonnes, la place gagnee
+            // sert aux zones d'ecriture libres.
+            <div key={block[0].key} className="grid grid-cols-2 gap-x-6 gap-y-3">
+              {block.map((field) => (
+                <FieldBlock key={field.key} field={field} />
+              ))}
+            </div>
+          )
+        )}
       </div>
     </section>
   );
@@ -154,13 +176,17 @@ export default async function DiscoverySheetPage({ searchParams }: PageProps) {
           <Link href="/dashboard/crm" className="min-h-11 content-center text-sm font-medium underline">
             Retour au CRM
           </Link>
+          <Link href="/dashboard/crm/notes?mode=fiche" className="min-h-11 content-center text-sm font-medium underline print:hidden">
+            Photographier une fiche remplie
+          </Link>
           <PrintButton />
         </div>
 
         {groups.map((group, groupIndex) => (
           <div
             key={group[0].id}
-            className={`space-y-8 pb-10 ${groupIndex < groups.length - 1 ? "print:break-after-page" : ""}`}
+            data-sheet-group={groupIndex + 1}
+            className={`space-y-8 pb-10 print:space-y-4 print:pb-0 ${groupIndex > 0 ? "print:break-before-page" : ""}`}
           >
             <header className="border-b-4 border-black pb-3">
               {groupIndex === 0 ? (

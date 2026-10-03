@@ -39,7 +39,7 @@ function loadModule(path: string, modules: Record<string, unknown>) {
 type CreateParams = {
   system: string;
   messages: Array<{ role: string; content: Array<Record<string, unknown>> }>;
-  tool_choice: { type: string; name: string };
+  tool_choice: { type: string };
 };
 
 const extractService = loadModule("lib/services/crm-notes-extract.ts", {
@@ -183,7 +183,8 @@ test("extractCrmNotes: cas nominal renvoie les entrées normalisées", async () 
   );
 
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].tool_choice.name, "enregistrer_notes_crm");
+  assert.equal(calls[0].tool_choice.type, "auto");
+  assert.match(calls[0].system, /enregistrer_notes_crm/);
   assert.equal(result.entries.length, 1);
   assert.equal(result.entries[0].name, "Jérôme Dupont");
   assert.equal(result.entries[0].email, "jerome.dupont@example.com");

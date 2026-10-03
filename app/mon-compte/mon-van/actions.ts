@@ -4,6 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { badRequest, forbidden, isHttpError, notFound } from "@/lib/http-errors";
 import { projectAssetTypeSchema } from "@/lib/project-payload";
+import {
+  EXISTING_INSTALLATION_KEYS,
+  existingInstallationFieldNames,
+  readExistingInstallationPatchFromForm,
+} from "@/lib/crm/existing-installation";
+import { parseOptionalEuroBudget } from "@/lib/coaching-vehicle-form";
 import { requireCustomerActor } from "@/lib/server/project-actor";
 import type { OwnershipActor } from "@/lib/ownership";
 import { prisma } from "@/lib/prisma";
@@ -11,7 +17,6 @@ import {
   createDevice,
   deleteDevice,
   ensureDefaultScenario,
-  markProjectReadyForReview,
   updateImplantationInfo,
   updateUsagesInfo,
   updateVehicleInfo,
@@ -86,6 +91,8 @@ const VEHICLE_INFO_FIELD_NAMES = [
   "objectifs",
   "threePriorities",
   "startDeadline",
+  "materialBudgetEuros",
+  "laborBudgetEuros",
 ] as const;
 
 export async function updateVehicleInfoAction(formData: FormData) {
@@ -123,6 +130,11 @@ export async function updateVehicleInfoAction(formData: FormData) {
         objectifs: raw.objectifs || null,
         threePriorities: raw.threePriorities || null,
         startDeadline: raw.startDeadline || null,
+        // Budgets : absents du formulaire (ancien onglet ouvert) = conservés.
+        ...(formData.has("materialBudgetEuros")
+          ? { materialBudgetCents: parseOptionalEuroBudget(raw.materialBudgetEuros) }
+          : {}),
+        ...(formData.has("laborBudgetEuros") ? { laborBudgetCents: parseOptionalEuroBudget(raw.laborBudgetEuros) } : {}),
       },
     });
     target = `/mon-compte/mon-van/${projectId}?step=1&success=${encodeURIComponent("Enregistré.")}`;
@@ -252,21 +264,6 @@ export async function deleteDeviceAction(formData: FormData) {
   redirect(target);
 }
 
-export async function sendForReviewAction(formData: FormData) {
-  const actor = await requireCustomerActor();
-  const projectId = getString(formData, "projectId");
-  let target: string;
-  try {
-    await assertOwnedProject(actor, projectId);
-    await markProjectReadyForReview(projectId);
-    target = `/mon-compte/mon-van/${projectId}?success=${encodeURIComponent("Envoyé pour relecture — votre coach va recevoir une alerte.")}`;
-  } catch (error) {
-    target = `/mon-compte/mon-van/${projectId}?error=${encodeURIComponent(errorMessage(error))}`;
-  }
-  revalidatePath(`/mon-compte/mon-van/${projectId}`);
-  redirect(target);
-}
-
 const IMPLANTATION_INFO_FIELD_NAMES = [
   "implantationNotes",
   "ventilationConstraints",
@@ -278,13 +275,20 @@ const IMPLANTATION_INFO_FIELD_NAMES = [
 export async function updateImplantationInfoAction(formData: FormData) {
   const actor = await requireCustomerActor();
   const projectId = getString(formData, "projectId");
-  const raw = Object.fromEntries(IMPLANTATION_INFO_FIELD_NAMES.map((name) => [name, getString(formData, name)]));
+  const existingNames = EXISTING_INSTALLATION_KEYS.flatMap((key) => {
+    const names = existingInstallationFieldNames(key);
+    return [names.status, names.detail];
+  });
+  const raw = Object.fromEntries([...IMPLANTATION_INFO_FIELD_NAMES, ...existingNames].map((name) => [name, getString(formData, name)]));
   let target: string;
   try {
     await assertOwnedProject(actor, projectId);
+    const patch = readExistingInstallationPatchFromForm(formData);
+    if (!patch.success) throw badRequest(patch.error);
     await updateImplantationInfo({
       projectId,
       actor: { kind: "client" },
+      existingInstallationPatch: patch.data,
       expectedImplantationUpdatedAt: new Date(getString(formData, "expectedImplantationUpdatedAt")),
       fields: {
         implantationNotes: raw.implantationNotes || null,

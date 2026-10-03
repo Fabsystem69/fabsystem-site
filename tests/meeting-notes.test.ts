@@ -6,6 +6,7 @@ import ts from "typescript";
 import * as httpErrors from "@/lib/http-errors";
 import * as meetingContract from "@/lib/crm/meeting-notes-contract";
 import * as meetingFormat from "@/lib/crm/meeting-notes-format";
+import * as advisoryLock from "@/lib/server/advisory-lock";
 import type { MeetingCommit, MeetingExtraction, MeetingExtractRequest } from "@/lib/crm/meeting-notes-contract";
 
 // "Compte rendu d'échange -> dossier existant (projet coaching ou prospect)".
@@ -235,7 +236,7 @@ test("detectTargetMismatch: prénom commun -> null, autre personne -> avertissem
 type CreateParams = {
   system: string;
   messages: Array<{ role: string; content: Array<Record<string, unknown>> }>;
-  tool_choice: { type: string; name: string };
+  tool_choice: { type: string };
 };
 
 const extractService = loadModule("lib/services/meeting-notes-extract.ts", {
@@ -290,7 +291,8 @@ test("extractMeetingNotes: cas nominal renvoie le compte rendu normalisé", asyn
   const result = await extractService.extractMeetingNotes(extractRequest(), { targetName: "Jérôme Dupont" }, { client });
 
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].tool_choice.name, "enregistrer_compte_rendu");
+  assert.equal(calls[0].tool_choice.type, "auto");
+  assert.match(calls[0].system, /enregistrer_compte_rendu/);
   assert.equal(result.summary, "Point lithium");
   assert.deepEqual(result.decisions, ["Passer en lithium"]);
   assert.equal(result.actions.length, 2);
@@ -409,7 +411,7 @@ function createFakePrisma(initial: State) {
     };
 
     return {
-      $queryRaw: async (strings: TemplateStringsArray, ...values: unknown[]) => {
+      $executeRaw: async (strings: TemplateStringsArray, ...values: unknown[]) => {
         assert.match(strings.join("?"), /pg_advisory_xact_lock/);
         harness.locks = [...harness.locks, ...values];
         return [];
@@ -476,6 +478,7 @@ const applyService = loadModule("lib/services/meeting-notes-apply.ts", {
   "@/lib/http-errors": httpErrors,
   "@/lib/crm/meeting-notes-format": meetingFormat,
   "@/lib/crm/meeting-notes-contract": meetingContract,
+  "@/lib/server/advisory-lock": advisoryLock,
   "@/lib/prisma": {
     prisma: {
       $transaction: (fn: (tx: unknown) => Promise<unknown>) => {

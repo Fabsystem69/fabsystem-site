@@ -3,6 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { computeScenarioBilan, type CoachingDeviceUsageInput, type ScenarioDeviceInput } from "@/lib/calc/coaching-consumption";
 import type { CoachingActor } from "@/lib/services/coaching-actor";
 import { logCoachingProjectEvent } from "@/lib/services/coaching-project-events";
+import {
+  mergeExistingInstallation,
+  parseExistingInstallation,
+  parseExistingInstallationPatch,
+  type ExistingInstallationPatch,
+} from "@/lib/crm/existing-installation";
+import type { Prisma } from "@/lib/generated/prisma/client";
 import type {
   ClientLevel,
   CoachingCalcMethod,
@@ -131,12 +138,40 @@ export async function updateImplantationInfo(input: {
   projectId: string;
   expectedImplantationUpdatedAt: Date;
   fields: ImplantationInfoFields;
+  // Installation existante tri-état : patch par clé. Une clé non fournie
+  // n'efface jamais l'existant (fusion immuable, voir mergeExistingInstallation).
+  existingInstallationPatch?: ExistingInstallationPatch;
   actor: CoachingActor;
 }) {
+  const patch = input.existingInstallationPatch;
+  const validatedPatch = patch ? parseExistingInstallationPatch(patch) : null;
+  if (validatedPatch && !validatedPatch.success) throw badRequest(validatedPatch.error);
+  const hasPatch = validatedPatch?.success === true && Object.keys(validatedPatch.data).length > 0;
+
   return prisma.$transaction(async (tx) => {
+    let existingInstallation: Prisma.InputJsonValue | undefined;
+    if (hasPatch && validatedPatch?.success) {
+      const current = await tx.coachingProject.findUnique({
+        where: { id: input.projectId },
+        select: { existingInstallation: true },
+      });
+      if (!current) throw notFound("Projet introuvable.");
+      existingInstallation = mergeExistingInstallation(
+        parseExistingInstallation(current.existingInstallation),
+        validatedPatch.data,
+      ) as unknown as Prisma.InputJsonValue;
+    }
+    // Vérification de version ET écriture dans la même requête SQL : une
+    // écriture concurrente entre la lecture ci-dessus et celle-ci change le
+    // jeton et provoque un conflit au lieu d'un écrasement silencieux.
     const result = await tx.coachingProject.updateMany({
       where: { id: input.projectId, implantationUpdatedAt: input.expectedImplantationUpdatedAt },
-      data: { ...input.fields, implantationUpdatedAt: new Date(), derniereActivite: new Date() },
+      data: {
+        ...input.fields,
+        ...(existingInstallation !== undefined ? { existingInstallation } : {}),
+        implantationUpdatedAt: new Date(),
+        derniereActivite: new Date(),
+      },
     });
     if (result.count === 0) {
       const project = await tx.coachingProject.findUnique({ where: { id: input.projectId }, select: { id: true } });
