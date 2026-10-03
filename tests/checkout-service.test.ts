@@ -772,7 +772,7 @@ test("buildCheckoutSessionParams adds needs-form answers to metadata when provid
   assert.equal(params.metadata?.needsWhatsapp, "+33612345678");
 });
 
-test("createCheckoutSessionForOrder refuses a pack order without needs-form answers", async () => {
+test("createCheckoutSessionForOrder creates a session for a pack order without needs-form answers", async () => {
   const order = createOrderRecord();
   const { db } = createMockCheckoutDb({
     orders: [order],
@@ -787,11 +787,8 @@ test("createCheckoutSessionForOrder refuses a pack order without needs-form answ
     getBaseUrl: () => "https://fabsystem.test",
   });
 
-  await assert.rejects(
-    () => service.createCheckoutSessionForOrder({ orderId: order.id }),
-    (error: unknown) => error instanceof HttpError && error.status === 400
-  );
-  assert.equal(stripe.createCalls.length, 0);
+  await service.createCheckoutSessionForOrder({ orderId: order.id });
+  assert.equal(stripe.createCalls.length, 1);
 });
 
 test("createCheckoutSessionForOrder creates a session for a pack order once needs-form answers are provided", async () => {

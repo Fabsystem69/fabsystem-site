@@ -16,6 +16,48 @@ export type EmailTemplateDefinition = {
 
 export const EMAIL_TEMPLATE_DEFAULTS: readonly EmailTemplateDefinition[] = [
   {
+    key: "purchase-link",
+    label: "Lien d'achat — démarche de paiement",
+    description: "Envoyé manuellement depuis Dashboard > Liens d'achat, après un premier contact avec le client.",
+    variables: [
+      { name: "greeting", description: "Bonjour {prénom}, ou Bonjour, si le nom n'est pas renseigné" },
+      { name: "product_name", description: "Nom du produit ou du pack proposé" },
+      { name: "price", description: "Prix formaté (ex. 149,00 €)" },
+      { name: "purchase_link", description: "Lien d'achat direct (ajoute le produit au panier)" },
+      { name: "customer_email", description: "Adresse e-mail du client (celle de son compte ou à utiliser pour en créer un)" },
+      {
+        name: "account_step",
+        description:
+          "Étape 2 — remplie automatiquement : connexion si le client a déjà une fiche/compte, création de compte sinon. Ne pas retirer sa position",
+      },
+      {
+        name: "personal_note",
+        description: "Message personnel saisi à l'envoi — vide si non renseigné, ne pas retirer sa position",
+      },
+    ],
+    subject: "Votre lien de paiement — {{product_name}}",
+    bodyText: [
+      "{{greeting}}",
+      "",
+      "Suite à notre échange, voici le lien pour régler \"{{product_name}}\" ({{price}}) :",
+      "",
+      "{{purchase_link}}",
+      "{{personal_note}}",
+      "Comment ça se passe :",
+      "1. Cliquez sur le lien ci-dessus : le produit est ajouté à votre panier.",
+      "{{account_step}}",
+      "3. Cochez l'acceptation des conditions de vente, puis cliquez sur le bouton de paiement.",
+      "4. Réglez en toute sécurité par carte bancaire sur la page Stripe.",
+      "5. Vous recevez un e-mail de confirmation, et votre achat apparaît dans votre espace client, rubrique \"Mes achats\".",
+      "",
+      "Aucune fiche à remplir : je reviens directement vers vous après votre paiement pour la suite.",
+      "",
+      "Si vous rencontrez la moindre difficulté, répondez simplement à cet e-mail.",
+      "",
+      "Fabien — FabSystem",
+    ].join("\n"),
+  },
+  {
     key: "ebook-download-links",
     label: "Confirmation d'achat — liens de téléchargement",
     description: "Envoyé après tout achat contenant au moins un fichier téléchargeable (ebook…).",

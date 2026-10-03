@@ -7,9 +7,7 @@ import { useRouter } from "next/navigation";
 import { createCheckoutFromCart } from "@/lib/checkout-flow";
 import {
   readStoredNeedsAnswers,
-  storePendingCheckoutInputs,
 } from "@/lib/client/prestations-needs-storage";
-import { requiresNeedsIntake } from "@/lib/prestations-needs";
 import type { CartSummary } from "@/lib/services/cart";
 import { CartAccountForm } from "@/components/cart/CartAccountForm";
 
@@ -108,28 +106,6 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
       return;
     }
 
-    const needsIntakeRequired = cart.lines.some((line) => requiresNeedsIntake(line.slug));
-
-    if (needsIntakeRequired) {
-      const storedNeedsAnswers = readStoredNeedsAnswers(cart.cartId);
-
-      if (!storedNeedsAnswers) {
-        // Le panier contient au moins un pack et le formulaire de projet n'a
-        // pas encore été rempli pour ce panier : on garde email/nom/code en
-        // session le temps du détour, puis on redirige vers l'étape dédiée.
-        storePendingCheckoutInputs(cart.cartId, {
-          customerEmail: resolvedSession.email,
-          customerName: resolvedSession.name ?? undefined,
-          discountCode: summary.appliedCode ?? undefined,
-          acceptsCgv: true,
-          acknowledgesImmediateDigitalDelivery: true,
-        });
-        setPending(true);
-        router.push("/panier/projet");
-        return;
-      }
-    }
-
     setPending(true);
 
     try {
@@ -138,7 +114,7 @@ export function CheckoutForm({ cart, disabled = false, customerSession }: Checko
         customerName: resolvedSession.name ?? undefined,
         existingOrderId: orderId ?? undefined,
         discountCode: summary.appliedCode ?? undefined,
-        needsAnswers: needsIntakeRequired ? readStoredNeedsAnswers(cart.cartId) ?? undefined : undefined,
+        needsAnswers: readStoredNeedsAnswers(cart.cartId) ?? undefined,
         acceptsCgv: true,
         acknowledgesImmediateDigitalDelivery: true,
       });

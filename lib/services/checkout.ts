@@ -20,7 +20,6 @@ import {
   PRESTATIONS_NEEDS_PROGRESS_LABELS,
   parsePrestationsNeedsAnswers,
   prestationsNeedsAnswersInputSchema,
-  requiresNeedsIntake,
   type PrestationsNeedsAnswers,
 } from "@/lib/prestations-needs";
 
@@ -118,10 +117,6 @@ function truncateForStripeMetadata(value: string) {
   return value.slice(0, 490);
 }
 
-function orderRequiresNeedsIntake(order: Pick<OrderWithRelations, "items">) {
-  return order.items.some((item) => requiresNeedsIntake(item.productSlug));
-}
-
 function buildNeedsAnswersMetadata(
   needsAnswers: PrestationsNeedsAnswers | null
 ): Record<string, string> {
@@ -208,21 +203,6 @@ async function ensureDiscountCoupon(input: {
   );
 
   return coupon.id;
-}
-
-// Blocage serveur (Mission 2) : un panier contenant au moins un pack ne peut
-// pas generer de session Stripe sans reponses valides au formulaire de
-// besoin. C'est la seule barriere qui compte reellement — la redirection
-// cote client vers /panier/projet n'est qu'une commodite UX.
-function assertNeedsAnswersProvidedIfRequired(
-  order: OrderWithRelations,
-  needsAnswers: PrestationsNeedsAnswers | null
-) {
-  if (orderRequiresNeedsIntake(order) && !needsAnswers) {
-    throw badRequest(
-      "Le formulaire de projet est requis pour valider cette prestation d'accompagnement."
-    );
-  }
 }
 
 function normalizeBaseUrl(value: string | undefined) {
@@ -393,7 +373,6 @@ export function createCheckoutService(db: CheckoutDb, deps: CheckoutServiceDeps)
 
         const payment = assertPaymentCanCreateCheckout(getLatestPendingStripePayment(order.payments));
         assertOrderSnapshotsAreValid(order);
-        assertNeedsAnswersProvidedIfRequired(order, needsAnswers);
         const baseUrl = normalizeBaseUrl(parsed.baseUrl ?? deps.getBaseUrl?.());
 
         if (!payment.stripeCheckoutSessionId) {
