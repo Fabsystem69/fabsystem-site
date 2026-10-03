@@ -9,10 +9,10 @@ import { SignupForm } from "@/components/customer/SignupForm";
 // créer un [compte], genre un popup de connexion et si pas inscrit bascule
 // sur une inscription" ("c'est un montage basique de beaucoup de site").
 export function ConnexionClientForms({ returnTo }: { returnTo?: string | null }) {
-  const [mode, setMode] = useState<"password" | "magic-link" | "signup">("password");
+  const [mode, setMode] = useState<"password" | "forgot" | "first-login" | "signup">("password");
 
-  if (mode === "magic-link") {
-    return <LoginRequestForm onBack={() => setMode("password")} />;
+  if (mode === "forgot" || mode === "first-login") {
+    return <LoginRequestForm variant={mode === "forgot" ? "forgot" : "first-login"} onBack={() => setMode("password")} />;
   }
 
   if (mode === "signup") {
@@ -21,7 +21,11 @@ export function ConnexionClientForms({ returnTo }: { returnTo?: string | null })
 
   return (
     <div className="space-y-3">
-      <PasswordLoginForm onSwitchToMagicLink={() => setMode("magic-link")} returnTo={returnTo} />
+      <PasswordLoginForm
+        onForgotPassword={() => setMode("forgot")}
+        onFirstLogin={() => setMode("first-login")}
+        returnTo={returnTo}
+      />
       <button
         type="button"
         onClick={() => setMode("signup")}

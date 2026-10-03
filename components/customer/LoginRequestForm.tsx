@@ -16,7 +16,27 @@ type RequestLinkResponse = {
 // consumeMagicLoginToken), mais atterrit desormais sur
 // /mon-compte/definir-mot-de-passe plutot que /mon-compte (voir
 // app/api/client-auth/verify).
-export function LoginRequestForm({ onBack }: { onBack?: () => void }) {
+const VARIANT_COPY = {
+  forgot: {
+    title: "Mot de passe oublié",
+    intro:
+      "Saisissez votre email : vous recevrez un lien de connexion valable 15 minutes. Une fois connecté, vous pourrez choisir un nouveau mot de passe.",
+  },
+  "first-login": {
+    title: "Première connexion",
+    intro:
+      "Votre espace client a été créé par FabSystem, vous n'avez donc pas encore de mot de passe. Saisissez l'email utilisé lors de votre échange avec FabSystem : vous recevrez un lien pour vous connecter, puis vous pourrez choisir votre mot de passe.",
+  },
+} as const;
+
+export function LoginRequestForm({
+  onBack,
+  variant = "forgot",
+}: {
+  onBack?: () => void;
+  variant?: keyof typeof VARIANT_COPY;
+}) {
+  const copy = VARIANT_COPY[variant];
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [pending, setPending] = useState(false);
@@ -67,11 +87,8 @@ export function LoginRequestForm({ onBack }: { onBack?: () => void }) {
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-      <h2 className="text-lg font-semibold text-neutral-950">Mot de passe oublié ou première connexion</h2>
-      <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-        Saisissez votre email pour recevoir un lien qui vous permettra de définir votre mot de
-        passe.
-      </p>
+      <h2 className="text-lg font-semibold text-neutral-950">{copy.title}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-700">{copy.intro}</p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div>

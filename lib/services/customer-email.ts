@@ -76,6 +76,8 @@ export function buildCustomerMagicLoginEmail(
     "Ce lien est valable 15 minutes.",
     `Expiration : ${expiryLabel}.`,
     "",
+    "Une fois connecté, vous pourrez choisir votre mot de passe pour vos prochaines connexions.",
+    "",
     "Si vous n'avez rien demandé, vous pouvez simplement ignorer cet email.",
   ].join("\n");
 
@@ -85,6 +87,7 @@ export function buildCustomerMagicLoginEmail(
     `<p><a href="${input.magicLink}" style="display:inline-block;padding:12px 18px;background:#171717;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600;">Se connecter</a></p>`,
     `<p>Ou copiez-collez ce lien dans votre navigateur :<br /><a href="${input.magicLink}">${input.magicLink}</a></p>`,
     `<p>Ce lien est valable <strong>15 minutes</strong>.<br />Expiration : ${expiryLabel}.</p>`,
+    "<p>Une fois connecté, vous pourrez choisir votre mot de passe pour vos prochaines connexions.</p>",
     "<p>Si vous n'avez rien demandé, vous pouvez simplement ignorer cet email.</p>",
   ].join("");
 

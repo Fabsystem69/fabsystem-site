@@ -9,10 +9,12 @@ import { FormEvent, useState } from "react";
 // de passe — voir LoginRequestForm, desormais accessible via
 // onSwitchToMagicLink plutot qu'en mode de connexion principal.
 export function PasswordLoginForm({
-  onSwitchToMagicLink,
+  onForgotPassword,
+  onFirstLogin,
   returnTo,
 }: {
-  onSwitchToMagicLink: () => void;
+  onForgotPassword: () => void;
+  onFirstLogin: () => void;
   returnTo?: string | null;
 }) {
   const router = useRouter();
@@ -74,9 +76,18 @@ export function PasswordLoginForm({
         </div>
 
         <div>
-          <label htmlFor="login-password" className="block text-sm font-medium text-neutral-900">
-            Mot de passe
-          </label>
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="login-password" className="block text-sm font-medium text-neutral-900">
+              Mot de passe
+            </label>
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="text-sm font-medium text-neutral-600 underline underline-offset-4 hover:text-neutral-900"
+            >
+              Mot de passe oublié ?
+            </button>
+          </div>
           <div className="relative mt-2">
             <input
               id="login-password"
@@ -109,15 +120,26 @@ export function PasswordLoginForm({
         </button>
       </form>
 
-      {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <p className="mt-4 text-sm text-red-600">
+          {error} Pas encore de mot de passe ? Utilisez « Première connexion » ci-dessous.
+        </p>
+      ) : null}
 
-      <button
-        type="button"
-        onClick={onSwitchToMagicLink}
-        className="mt-5 block text-sm font-medium text-neutral-600 underline underline-offset-4 hover:text-neutral-900"
-      >
-        Mot de passe oublié ou première connexion ?
-      </button>
+      <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+        <p className="text-sm font-semibold text-neutral-950">Première connexion ?</p>
+        <p className="mt-1 text-sm leading-relaxed text-neutral-700">
+          Si FabSystem a créé votre espace client pour vous, vous n&apos;avez pas encore de mot de
+          passe : recevez un lien par email pour vous connecter et en choisir un.
+        </p>
+        <button
+          type="button"
+          onClick={onFirstLogin}
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-md border border-neutral-900 px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-white"
+        >
+          C&apos;est ma première connexion
+        </button>
+      </div>
     </div>
   );
 }
