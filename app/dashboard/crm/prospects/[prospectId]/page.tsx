@@ -34,6 +34,11 @@ export default async function DashboardCrmProspectDetailPage({
         backHref="/dashboard/crm/prospects"
         backLabel="Retour aux prospects"
         description={`${getProspectSourceLabel(prospect.source)} · ${getProspectStatusLabel(prospect.status)}`}
+        actions={
+          <Link href={`/dashboard/crm/notes?prospectId=${prospect.id}`} className="inline-flex h-10 items-center rounded-lg border border-neutral-700 px-3 text-sm font-medium text-neutral-200 hover:bg-neutral-800">
+            Ajouter des notes manuscrites
+          </Link>
+        }
       />
 
       {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}

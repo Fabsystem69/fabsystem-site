@@ -144,7 +144,14 @@ export default async function DashboardCrmProjectDetailPage({
         backHref={`/dashboard/crm/clients/${project.customerId}`}
         backLabel={formatCustomerDisplayName(project.customer)}
         description={`Dernière activité le ${formatDate(project.derniereActivite)}`}
-        actions={<AdminBadge tone={getCoachingProjectStatusTone(project.status)}>{getCoachingProjectStatusLabel(project.status)}</AdminBadge>}
+        actions={
+          <>
+            <Link href={`/dashboard/crm/notes?projectId=${project.id}`} className="inline-flex h-10 items-center rounded-lg border border-neutral-700 px-3 text-sm font-medium text-neutral-200 hover:bg-neutral-800">
+              Ajouter des notes manuscrites
+            </Link>
+            <AdminBadge tone={getCoachingProjectStatusTone(project.status)}>{getCoachingProjectStatusLabel(project.status)}</AdminBadge>
+          </>
+        }
       />
 
       {error ? <AdminAlert tone="danger">{error}</AdminAlert> : null}

@@ -11,7 +11,8 @@ type Project = Awaited<ReturnType<typeof getCoachingProjectForDetail>>;
 // CoachingProjectEvent.type est un texte libre (pas un enum) — aucun
 // libellé métier n'est inventé ici, seulement une mise en forme neutre.
 function formatEventType(type: string) {
-  return type.replace(/^LEGACY_DOSSIER:/, "").replace(/_/g, " ").toLowerCase();
+  // NOTES_IMPORT:<cle de soumission> : la cle sert a l'idempotence, pas a l'affichage.
+  return type.replace(/^LEGACY_DOSSIER:/, "").replace(/^(NOTES_IMPORT):.*$/, "$1").replace(/_/g, " ").toLowerCase();
 }
 
 // Clôture (PLAN_AMELIORATION_CRM_FABSYSTEM.md §4.6) — extraite de la page

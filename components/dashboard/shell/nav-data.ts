@@ -77,6 +77,8 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Aujourd'hui", href: "/dashboard/crm", icon: DashboardIcon },
       { label: "Prospects", href: "/dashboard/crm/prospects", icon: CrmIcon },
+      { label: "Notes en vrac", href: "/dashboard/crm/notes", icon: CrmIcon },
+      { label: "Fiche de découverte", href: "/dashboard/crm/fiche-decouverte", icon: FilesIcon },
       { label: "Clients coaching", href: "/dashboard/crm/clients", icon: CustomersIcon },
       { label: "Agenda", href: "/dashboard/crm/agenda", icon: AccompagnementIcon },
     ],
