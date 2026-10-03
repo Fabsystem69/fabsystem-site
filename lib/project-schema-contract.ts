@@ -33,6 +33,12 @@ export interface SaveProjectSchemaPayload {
   nodes: PersistedSchemaNode[];
   edges: PersistedSchemaEdge[];
   thumbnail?: string | null;
+  // Lot 3 dashboard client (docs/03-DATABASE.md) : updatedAt que l'appelant
+  // a lu en dernier (ISO 8601) — permet au serveur de détecter un
+  // écrasement concurrent plutôt que de l'appliquer silencieusement.
+  // Optionnel : un ancien client qui ne l'envoie pas garde le comportement
+  // précédent (jamais de régression pour un appelant pas encore mis à jour).
+  expectedUpdatedAt?: string;
 }
 
 export interface PortableSchemaFile {
@@ -73,6 +79,7 @@ const saveProjectSchemaInputSchema = z.object({
   nodes: z.array(schemaNodeSchema).max(MAX_NODES),
   edges: z.array(schemaEdgeSchema).max(MAX_EDGES),
   thumbnail: z.string().max(MAX_THUMBNAIL_LENGTH).startsWith("data:image/").nullable().optional(),
+  expectedUpdatedAt: z.string().datetime().optional(),
 });
 
 const portableSchemaFileSchema = z.object({

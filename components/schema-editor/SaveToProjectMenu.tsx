@@ -27,6 +27,8 @@ export function SaveToProjectMenu({ darkMode }: { darkMode: boolean }) {
   const edges = useSchemaStore((s) => s.edges);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
+  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
+  const setLastKnownSchemaUpdatedAt = useSchemaStore((s) => s.setLastKnownSchemaUpdatedAt);
 
   useEffect(() => {
     if (!open) return;
@@ -50,10 +52,21 @@ export function SaveToProjectMenu({ darkMode }: { darkMode: boolean }) {
   async function handleLink(id: string) {
     setSaving(true);
     const thumbnail = await captureSchemaThumbnail(nodes).catch(() => null);
-    const result = await saveProjectSchemaApi(id, { projectName, nodes, edges, thumbnail });
+    // expectedUpdatedAt n'a de sens que pour RE-sauvegarder le projet déjà
+    // ouvert — jamais pour lier ce brouillon à un AUTRE projet choisi dans
+    // la liste, pour lequel aucune lecture préalable n'existe (voir le même
+    // principe dans SaveMenu.tsx).
+    const result = await saveProjectSchemaApi(id, {
+      projectName,
+      nodes,
+      edges,
+      thumbnail,
+      updatedAt: id === projectId ? lastKnownSchemaUpdatedAt ?? undefined : undefined,
+    });
     setSaving(false);
     if (result.ok) {
       setProjectId(id);
+      setLastKnownSchemaUpdatedAt(result.updatedAt ?? null);
       setSaveAssistant(null);
       setSaveStatus("saved", { scope: "cloud", message: "Cloud enregistré" });
       const url = new URL(window.location.href);

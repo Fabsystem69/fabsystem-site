@@ -79,6 +79,7 @@ export async function PUT(request: Request, { params }: Params) {
       nodes: input.nodes as Prisma.InputJsonValue,
       edges: input.edges as Prisma.InputJsonValue,
       thumbnail: input.thumbnail ?? null,
+      expectedUpdatedAt: input.expectedUpdatedAt ? new Date(input.expectedUpdatedAt) : undefined,
     });
 
     return NextResponse.json({ schema });

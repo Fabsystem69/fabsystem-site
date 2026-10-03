@@ -25,6 +25,16 @@ export interface RemoteSchema {
   nodes: SchemaNode[];
   edges: SchemaEdge[];
   thumbnail?: string | null;
+  // Lot 3 dashboard client (docs/03-DATABASE.md) : plomberie posée pour la
+  // protection anti-écrasement, PAS ENCORE câblée aux appelants. fetchProjectSchema
+  // la renseigne déjà depuis la réponse serveur ; aucun des 4 points d'appel
+  // de saveProjectSchemaApi (Editor.tsx, SaveMenu.tsx, Ribbon.tsx,
+  // SaveToProjectMenu.tsx) ne la relit/l'envoie encore comme expectedUpdatedAt
+  // — un onglet resté ouvert peut donc toujours écraser silencieusement une
+  // sauvegarde plus récente tant que ce câblage n'est pas fait. Ne jamais
+  // présenter la protection comme terminée tant que ces 4 call sites ne
+  // l'utilisent pas réellement.
+  updatedAt?: string;
 }
 
 export interface ProjectSchemaVersionSummary {
@@ -65,7 +75,7 @@ export type ListProjectsResult =
   | { ok: false; problem: SchemaApiProblem };
 
 export type SaveProjectSchemaResult =
-  | { ok: true }
+  | { ok: true; updatedAt?: string }
   | { ok: false; problem: SchemaApiProblem };
 
 export type CreateProjectResult =
@@ -253,6 +263,7 @@ export async function fetchProjectSchema(projectId: string): Promise<FetchProjec
         nodes: data.schema.nodes,
         edges: data.schema.edges,
         thumbnail: data.schema.thumbnail ?? null,
+        updatedAt: data.schema.updatedAt,
       },
     };
   } catch {
@@ -266,14 +277,15 @@ export async function saveProjectSchemaApi(projectId: string, data: RemoteSchema
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, expectedUpdatedAt: data.updatedAt }),
     });
 
     if (!res.ok) {
       return { ok: false, problem: await readSchemaApiProblem(res) };
     }
 
-    return { ok: true };
+    const body = (await res.json().catch(() => null)) as { schema?: { updatedAt?: string } } | null;
+    return { ok: true, updatedAt: body?.schema?.updatedAt };
   } catch {
     return { ok: false, problem: networkProblem() };
   }

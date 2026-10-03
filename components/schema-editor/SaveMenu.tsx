@@ -32,6 +32,8 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
   const containerRef = useRef<HTMLDivElement>(null);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
+  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
+  const setLastKnownSchemaUpdatedAt = useSchemaStore((s) => s.setLastKnownSchemaUpdatedAt);
   const [projectsStatus, setProjectsStatus] = useState<"idle" | "loading" | "loaded">("idle");
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
   const [projectsProblem, setProjectsProblem] = useState<SchemaApiProblem | null>(null);
@@ -150,10 +152,22 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
     setLinking(true);
     setSaveFeedback(null);
     const thumbnail = await captureSchemaThumbnail(nodes).catch(() => null);
-    const result = await saveProjectSchemaApi(id, { projectName, nodes, edges, thumbnail });
+    // expectedUpdatedAt n'a de sens que pour RE-sauvegarder le projet déjà
+    // ouvert (lastKnownSchemaUpdatedAt lui correspond) — jamais pour lier ce
+    // brouillon à un AUTRE projet (nouveau ou choisi dans la liste), pour
+    // lequel aucune lecture préalable n'existe (docs/03-DATABASE.md "Lot 3
+    // dashboard client").
+    const result = await saveProjectSchemaApi(id, {
+      projectName,
+      nodes,
+      edges,
+      thumbnail,
+      updatedAt: id === projectId ? lastKnownSchemaUpdatedAt ?? undefined : undefined,
+    });
     setLinking(false);
     if (result.ok) {
       setProjectId(id);
+      setLastKnownSchemaUpdatedAt(result.updatedAt ?? null);
       setSaveAssistant(null);
       setSaveStatus("saved", { scope: "cloud", message: "Sauvegardé" });
       syncProjectInUrl(id);

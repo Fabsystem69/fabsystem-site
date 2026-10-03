@@ -2,17 +2,11 @@ import { NextResponse } from "next/server";
 import { badRequest } from "@/lib/http-errors";
 import { toErrorResponse } from "@/lib/server/error-response";
 import { requireProjectActor } from "@/lib/server/project-actor";
-import { createProjectSchemaVersion, listProjectSchemaVersions } from "@/lib/services/project-schema-version";
+import { authorFor, createProjectSchemaVersion, listProjectSchemaVersions } from "@/lib/services/project-schema-version";
 
 export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ projectId: string }> };
-
-function authorFor(actor: { role: "admin" } | { role: "customer"; customerId: string }) {
-  return actor.role === "admin"
-    ? { authorType: "ADMIN" as const, authorName: "FabSystem" }
-    : { authorType: "CUSTOMER" as const, authorName: "Client" };
-}
 
 export async function GET(_request: Request, { params }: Params) {
   try {

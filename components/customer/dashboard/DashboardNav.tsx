@@ -11,7 +11,16 @@ import { usePathname } from "next/navigation";
 // avec ou sans compte.
 const NAV_ITEMS = [
   { href: "/mon-compte", label: "Accueil" },
-  { href: "/mon-compte/mon-van", label: "Mon van" },
+  // Retour utilisateur (Fabien, 02/10/2026) : "les clients sont perdus,
+  // c'est compliqué" — "Mon van" juste au-dessus de "Mes projets" laissait
+  // croire aux deux qu'ils parlaient du même schéma électrique, alors que
+  // celui-ci est l'espace de travail accompagnement (véhicule, usages,
+  // appareils, matériel) et "Mes projets" le schéma lui-même. Libellé
+  // changé pour décrire le vrai contenu, sans reprendre "accompagnement"
+  // (déjà le titre d'une autre page, /mon-compte/mon-accompagnement, pour
+  // les rendez-vous). URL inchangée (/mon-compte/mon-van) pour ne rien
+  // casser côté liens déjà envoyés aux clients.
+  { href: "/mon-compte/mon-van", label: "Mon dossier technique" },
   { href: "/mon-compte/projets", label: "Mes projets" },
   { href: "/mon-compte/achats", label: "Mes achats" },
   { href: "/mon-compte/editeur", label: "Éditeur Plus" },

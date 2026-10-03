@@ -1,9 +1,10 @@
-import type { PrismaClient, ProjectSchema, Prisma } from "@/lib/generated/prisma/client";
-import { forbidden, notFound, serviceUnavailable } from "@/lib/http-errors";
+import type { PrismaClient, ProjectSchema, ProjectSchemaVersionAuthor, Prisma } from "@/lib/generated/prisma/client";
+import { conflict, forbidden, notFound, serviceUnavailable } from "@/lib/http-errors";
 import type { OwnershipActor } from "@/lib/ownership";
 import { logServerEvent } from "@/lib/server-log";
 import { getProject } from "@/lib/services/project";
 import { isProjectReadOnly } from "@/lib/services/schema-unlock";
+import { authorFor, asInputJson, nextVersionNumber, type VersionDb } from "@/lib/services/project-schema-version";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { displayName } from "@/lib/electrical-components/bom";
 import { randomBytes } from "crypto";
@@ -12,32 +13,92 @@ type PrismaClientLike = PrismaClient;
 
 // Schéma électrique de /outils/schema, lié à un Project (retour
 // utilisateur : "il manque enregistrer lié au compte client"). Même
-// structure DI que lib/services/project.ts, relation 1:1 avec Project :
-// pas d'historique de versions dans cette première ébauche, juste le
-// dernier état sauvegardé (upsert).
+// structure DI que lib/services/project.ts, relation 1:1 avec Project.
+//
+// Lot 3 dashboard client (docs/03-DATABASE.md "Lot 3 dashboard client",
+// 02/10/2026) : avant, une sauvegarde était un upsert nu, sans aucun
+// instantané ni trace d'auteur. saveWithHistory (plus bas) snapshotte
+// désormais atomiquement l'état REMPLACÉ dans ProjectSchemaVersion dès que
+// le contenu change réellement, et protège contre un écrasement concurrent
+// via `expectedUpdatedAt`.
 export type SaveProjectSchemaInput = {
   projectName: string;
   nodes: Prisma.InputJsonValue;
   edges: Prisma.InputJsonValue;
   thumbnail?: string | null;
+  // Optionnel : aucun appelant actuel ne le transmet encore (le contrat de
+  // /api/projects/[projectId]/schema PUT et l'éditeur React n'ont pas
+  // encore été mis à jour pour le suivre — voir docs/03-DATABASE.md, "Phase
+  // scindée volontairement"). Fourni => la sauvegarde échoue explicitement
+  // en conflit si l'état a changé depuis cette lecture, plutôt que
+  // d'écraser silencieusement. Absent => comportement actuel inchangé pour
+  // les appelants qui ne l'envoient pas encore.
+  expectedUpdatedAt?: Date;
 };
+
+export type SaveProjectSchemaResult =
+  | { status: "saved"; schema: ProjectSchema }
+  | { status: "conflict" };
 
 export type ProjectSchemaSummary = { projectId: string; thumbnail: string | null; updatedAt: Date };
 export type SharedProjectSchema = Pick<ProjectSchema, "projectName" | "nodes" | "edges" | "updatedAt">;
 
 export type ProjectSchemaDb = {
   findByProjectId(projectId: string): Promise<ProjectSchema | null>;
-  upsert(projectId: string, data: SaveProjectSchemaInput): Promise<ProjectSchema>;
+  saveWithHistory(
+    projectId: string,
+    input: SaveProjectSchemaInput,
+    author: { authorType: ProjectSchemaVersionAuthor; authorName: string }
+  ): Promise<SaveProjectSchemaResult>;
   findSummariesByProjectIds(projectIds: string[]): Promise<ProjectSchemaSummary[]>;
   setShareToken?(projectId: string, token: string | null): Promise<ProjectSchema>;
   findSharedByToken?(token: string): Promise<SharedProjectSchema | null>;
 };
+
+// Exporté pour test direct : décide si deux états de schéma diffèrent
+// réellement — contenu significatif seulement (jamais la miniature,
+// cosmétique/dérivée, ni les horodatages). Une sauvegarde identique au
+// contenu déjà en base ne doit jamais créer de copie inutile dans
+// l'historique.
+export function hasSchemaContentChanged(
+  current: { projectName: string; nodes: unknown; edges: unknown },
+  next: { projectName: string; nodes: unknown; edges: unknown }
+): boolean {
+  return (
+    current.projectName !== next.projectName ||
+    JSON.stringify(current.nodes) !== JSON.stringify(next.nodes) ||
+    JSON.stringify(current.edges) !== JSON.stringify(next.edges)
+  );
+}
 
 type ProjectSchemaServiceDeps = {
   assertOwnedProject?: typeof getProject;
   reportSchemaStorageMissing?: (operation: string, error: unknown) => void;
   checkProjectReadOnly?: typeof isProjectReadOnly;
 };
+
+// Sentinelle interne pour forcer un vrai ROLLBACK depuis `saveWithHistory`
+// (voir le commentaire sur place) — jamais exportée, jamais exposée en
+// dehors de ce fichier, convertie en `{status: "conflict"}` juste après la
+// transaction.
+class SaveConflictSignal extends Error {}
+
+// Filet de sécurité pour le cas plus rare qu'un verrou FOR UPDATE ne peut
+// pas couvrir : deux tout-premiers enregistrements concurrents pour le
+// même projet (ProjectSchema pas encore créé, rien à verrouiller), ou deux
+// instantanés concurrents visant le même (projectSchemaId, versionNumber)
+// malgré le verrou (ex. verrou posé par une AUTRE transaction qui ne
+// verrouille pas la même ligne — restauration/version manuelle, voir
+// project-schema-version.ts). Detection structurelle (code + contrainte),
+// même principe que isProjectSchemaTableMissingError ci-dessous.
+function isVersionNumberRaceError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: unknown; meta?: { target?: unknown } };
+  if (candidate.code !== "P2002") return false;
+  const target = candidate.meta?.target;
+  const targetText = Array.isArray(target) ? target.join(",") : String(target ?? "");
+  return targetText.includes("versionNumber") || targetText.includes("projectId");
+}
 
 function isProjectSchemaTableMissingError(error: unknown) {
   if (!error || typeof error !== "object") {
@@ -77,12 +138,98 @@ function createPrismaProjectSchemaDb(client: PrismaClientLike): ProjectSchemaDb 
     async findByProjectId(projectId) {
       return client.projectSchema.findUnique({ where: { projectId } });
     },
-    async upsert(projectId, data) {
-      return client.projectSchema.upsert({
-        where: { projectId },
-        create: { projectId, ...data },
-        update: data,
-      });
+    async saveWithHistory(projectId, input, author) {
+      try {
+        return await client.$transaction(async (tx) => {
+          // SELECT ... FOR UPDATE verrouille la ligne pour toute la
+          // transaction : une deuxième sauvegarde concurrente sur LE MÊME
+          // projet attend ici plutôt que de calculer le même "prochain
+          // numéro de version" en même temps. Repro réel (recette locale,
+          // deux sauvegardes lancées en parallèle) sans ce verrou : les
+          // deux lisaient le même maximum, violaient la contrainte unique
+          // (projectSchemaId, versionNumber) au lieu d'obtenir un conflit
+          // propre. Aucune ligne à verrouiller pour un tout premier
+          // enregistrement (ProjectSchema pas encore créé) — le filet de
+          // sécurité ci-dessous (catch P2002) couvre ce cas plus rare.
+          await tx.$queryRaw`SELECT id FROM "ProjectSchema" WHERE "projectId" = ${projectId} FOR UPDATE`;
+          const current = await tx.projectSchema.findUnique({ where: { projectId } });
+
+          if (!current) {
+            const created = await tx.projectSchema.create({
+              data: {
+                projectId,
+                projectName: input.projectName,
+                nodes: input.nodes,
+                edges: input.edges,
+                thumbnail: input.thumbnail ?? null,
+                lastModifiedByType: author.authorType,
+                lastModifiedByName: author.authorName,
+              },
+            });
+            return { status: "saved" as const, schema: created };
+          }
+
+          // IMPORTANT (revue) : un conflit doit annuler TOUTE la transaction,
+          // y compris un instantané déjà créé juste avant de le détecter —
+          // un simple `return` depuis ce callback vaudrait un COMMIT normal
+          // pour Prisma, ce qui aurait validé cet instantané orphelin.
+          // `throw` est la seule façon correcte de déclencher un vrai
+          // ROLLBACK ; converti en résultat "conflict" par le catch
+          // extérieur, jamais à l'intérieur de la transaction elle-même.
+          if (input.expectedUpdatedAt && current.updatedAt.getTime() !== input.expectedUpdatedAt.getTime()) {
+            throw new SaveConflictSignal();
+          }
+
+          if (hasSchemaContentChanged(current, input)) {
+            // Instantané atomique de l'état REMPLACÉ (pas du nouveau), attribué
+            // à SON PROPRE auteur connu — jamais celui de la modification qui
+            // arrive. UNKNOWN/"Auteur inconnu" pour un schéma antérieur à ce
+            // champ, jamais deviné.
+            const versionNumber = await nextVersionNumber(tx as unknown as VersionDb, current.id);
+            await tx.projectSchemaVersion.create({
+              data: {
+                projectSchemaId: current.id,
+                versionNumber,
+                authorType: current.lastModifiedByType ?? "UNKNOWN",
+                authorName: current.lastModifiedByName ?? "Auteur inconnu",
+                label: null,
+                projectName: current.projectName,
+                nodes: asInputJson(current.nodes),
+                edges: asInputJson(current.edges),
+                thumbnail: current.thumbnail,
+              },
+            });
+          }
+
+          // Mise à jour conditionnée sur l'updatedAt lu ci-dessus (jamais une
+          // lecture puis écriture séparées) : si une autre écriture a eu lieu
+          // entre la lecture et cet instant (deux onglets, admin+client),
+          // `count` vaut 0 — on annule TOUTE la transaction (y compris
+          // l'instantané ci-dessus) plutôt que de la laisser committer à moitié.
+          const result = await tx.projectSchema.updateMany({
+            where: { projectId, updatedAt: current.updatedAt },
+            data: {
+              projectName: input.projectName,
+              nodes: input.nodes,
+              edges: input.edges,
+              thumbnail: input.thumbnail ?? null,
+              lastModifiedByType: author.authorType,
+              lastModifiedByName: author.authorName,
+            },
+          });
+          if (result.count === 0) {
+            throw new SaveConflictSignal();
+          }
+
+          const updated = await tx.projectSchema.findUniqueOrThrow({ where: { projectId } });
+          return { status: "saved" as const, schema: updated };
+        });
+      } catch (error) {
+        if (error instanceof SaveConflictSignal || isVersionNumberRaceError(error)) {
+          return { status: "conflict" as const };
+        }
+        throw error;
+      }
     },
     async findSummariesByProjectIds(projectIds) {
       if (projectIds.length === 0) return [];
@@ -162,7 +309,11 @@ export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSch
         throw forbidden("Project schema is read-only: unlock has expired");
       }
       try {
-        return await db.upsert(project.id, input);
+        const result = await db.saveWithHistory(project.id, input, authorFor(actor));
+        if (result.status === "conflict") {
+          throw conflict("Ce schéma a été modifié ailleurs entre-temps — rechargez avant de réessayer.");
+        }
+        return result.schema;
       } catch (error) {
         if (isProjectSchemaTableMissingError(error)) {
           reportSchemaStorageMissing("saveProjectSchema", error);
@@ -213,12 +364,23 @@ export function createProjectSchemaService(db: ProjectSchemaDb, deps: ProjectSch
         if (value === undefined || !Number.isFinite(value) || value <= 0) return edge;
         return { ...edge, data: { ...(edge.data ?? {}), length: value } };
       });
-      await db.upsert(project.id, {
-        projectName: schema.projectName,
-        nodes: schema.nodes as Prisma.InputJsonValue,
-        edges: updatedEdges as unknown as Prisma.InputJsonValue,
-        thumbnail: schema.thumbnail,
-      });
+      const result = await db.saveWithHistory(
+        project.id,
+        {
+          projectName: schema.projectName,
+          nodes: schema.nodes as Prisma.InputJsonValue,
+          edges: updatedEdges as unknown as Prisma.InputJsonValue,
+          thumbnail: schema.thumbnail,
+          // Protège contre une écriture concurrente entre la lecture
+          // ci-dessus et cette sauvegarde (même schéma complété par le
+          // client pendant que l'admin l'édite dans l'éditeur).
+          expectedUpdatedAt: schema.updatedAt,
+        },
+        authorFor(actor)
+      );
+      if (result.status === "conflict") {
+        throw conflict("Ce schéma a été modifié ailleurs entre-temps — rechargez avant de réessayer.");
+      }
     },
 
     // Pas de vérification de propriété ici : réservé à un appelant qui a

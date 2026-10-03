@@ -187,6 +187,8 @@ function EditorMenuBar({
   const nodes = useSchemaStore((s) => s.nodes);
   const edges = useSchemaStore((s) => s.edges);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
+  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
+  const setLastKnownSchemaUpdatedAt = useSchemaStore((s) => s.setLastKnownSchemaUpdatedAt);
 
   const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
   const recalculateAllFuseRatings = useSchemaStore((s) => s.recalculateAllFuseRatings);
@@ -292,7 +294,17 @@ function EditorMenuBar({
   async function applyCableHarmonizationWithSnapshot(): Promise<number> {
     if (projectId) {
       const { saveProjectSchemaApi, createProjectSchemaVersionApi } = await import("@/features/schemas/projectSchemaApi");
-      await saveProjectSchemaApi(projectId, { projectName, nodes, edges });
+      // Lot 3 dashboard client : transmet la base connue ET met à jour le
+      // jeton après succès — sans ça, la toute prochaine autosave (déclenchée
+      // par l'harmonisation qui suit) utiliserait un expectedUpdatedAt déjà
+      // périmé par CETTE sauvegarde et se verrait refuser à tort.
+      const result = await saveProjectSchemaApi(projectId, {
+        projectName,
+        nodes,
+        edges,
+        updatedAt: lastKnownSchemaUpdatedAt ?? undefined,
+      });
+      if (result.ok) setLastKnownSchemaUpdatedAt(result.updatedAt ?? null);
       await createProjectSchemaVersionApi(projectId, "Avant harmonisation automatique des câbles");
     }
     const count = applyCableHarmonization();

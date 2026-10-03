@@ -100,6 +100,8 @@ export function Editor() {
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
   const projectId = useSchemaStore((s) => s.projectId);
   const setProjectId = useSchemaStore((s) => s.setProjectId);
+  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
+  const setLastKnownSchemaUpdatedAt = useSchemaStore((s) => s.setLastKnownSchemaUpdatedAt);
   const startGuidedMode = useSchemaStore((s) => s.startGuidedMode);
   const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
   const isLoggedIn = useSchemaStore((s) => s.isLoggedIn);
@@ -289,8 +291,15 @@ export function Editor() {
         // sur la carte projet du dashboard) — jamais côté brouillon local
         // seul, pas besoin d'une miniature qu'on ne montre nulle part.
         const thumbnail = await captureSchemaThumbnail(nodes).catch(() => null);
-        const result = await saveProjectSchemaApi(projectId, { projectName, nodes, edges, thumbnail });
+        const result = await saveProjectSchemaApi(projectId, {
+          projectName,
+          nodes,
+          edges,
+          thumbnail,
+          updatedAt: lastKnownSchemaUpdatedAt ?? undefined,
+        });
         if (result.ok) {
+          setLastKnownSchemaUpdatedAt(result.updatedAt ?? null);
           setSaveAssistant(null);
           setSaveStatus("saved", { scope: "cloud", message: "Cloud enregistré" });
           return;

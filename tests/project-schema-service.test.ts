@@ -38,6 +38,8 @@ function createProjectSchemaRecord(overrides: Partial<ProjectSchema> = {}): Proj
     thumbnail: overrides.thumbnail ?? null,
     shareToken: overrides.shareToken ?? null,
     shareEnabledAt: overrides.shareEnabledAt ?? null,
+    lastModifiedByType: overrides.lastModifiedByType ?? null,
+    lastModifiedByName: overrides.lastModifiedByName ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
   };
@@ -58,8 +60,8 @@ test("listProjectSchemaSummaries falls back to an empty map when ProjectSchema s
     async findByProjectId() {
       return createProjectSchemaRecord();
     },
-    async upsert() {
-      return createProjectSchemaRecord();
+    async saveWithHistory() {
+      return { status: "saved", schema: createProjectSchemaRecord() };
     },
     async findSummariesByProjectIds() {
       throw MISSING_PROJECT_SCHEMA_TABLE_ERROR;
@@ -85,8 +87,8 @@ test("getProjectSchema returns null when ProjectSchema storage is missing", asyn
     async findByProjectId() {
       throw MISSING_PROJECT_SCHEMA_TABLE_ERROR;
     },
-    async upsert() {
-      return createProjectSchemaRecord();
+    async saveWithHistory() {
+      return { status: "saved", schema: createProjectSchemaRecord() };
     },
     async findSummariesByProjectIds() {
       return [];
@@ -113,7 +115,7 @@ test("saveProjectSchema throws a 503 when ProjectSchema storage is missing", asy
     async findByProjectId() {
       return createProjectSchemaRecord();
     },
-    async upsert() {
+    async saveWithHistory() {
       throw MISSING_PROJECT_SCHEMA_TABLE_ERROR;
     },
     async findSummariesByProjectIds() {

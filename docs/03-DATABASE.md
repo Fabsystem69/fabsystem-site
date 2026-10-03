@@ -901,3 +901,82 @@ compte des la conception des memes ecrans que la fusion, pas apres.
 
 Ce plan n'est pas fige : toute decision ci-dessus peut changer avant
 migration, tant que le changement est documente ici avant d'etre code.
+
+## Lot 3 dashboard client (2 octobre 2026) : historique automatique et auteur du schéma
+
+Contexte : `PROMPT_CLAUDE_DASHBOARD_CLIENT_V1.md` Lot 3 — avant chaque
+sauvegarde qui change réellement le dessin, conserver atomiquement l'état
+complet remplacé, et savoir distinguer l'auteur de l'état sauvegardé de
+l'auteur de la modification qui le remplace. Travail local uniquement,
+migration préparée et appliquée sur la base de développement locale
+(`fabsystem_dev`) pour être réellement testée, **jamais sur la prod**.
+
+**Constat du code existant** (vérifié avant de modifier) :
+`lib/services/project-schema.ts:saveProjectSchema` fait un `upsert` nu, sans
+aucun instantané préalable ni aucune trace de l'auteur — seule la création
+EXPLICITE d'une version (`lib/services/project-schema-version.ts:create`,
+geste volontaire via un bouton) écrit dans `ProjectSchemaVersion`
+aujourd'hui, et seule `restore` snapshotte déjà correctement l'état remplacé
+avant d'écraser (bon comportement existant, non modifié ici).
+`ProjectSchema` n'a aucun champ d'auteur : impossible de savoir qui a écrit
+l'état actuel avant ce lot.
+
+**Changements additifs proposés** :
+
+1. `ProjectSchema` : deux nouveaux champs nullables, `lastModifiedByType
+   ProjectSchemaVersionAuthor?` et `lastModifiedByName String?`. Nullable
+   = inconnu — un schéma déjà existant avant ce lot n'a jamais son auteur
+   réellement connu, jamais une valeur inventée (ADMIN par défaut aurait
+   été une fabrication, pas une donnée).
+2. `enum ProjectSchemaVersionAuthor` : ajout de la valeur `UNKNOWN`, pour
+   permettre de snapshotter honnêtement l'état remplacé d'un schéma legacy
+   dont l'auteur n'a jamais été enregistré, sans jamais lui attribuer à
+   tort ADMIN ou CUSTOMER. Changement additif sur un enum déjà utilisé
+   uniquement par `ProjectSchemaVersion.authorType` (vérifié : aucun autre
+   usage dans le code) — aucune ligne existante n'est affectée, chaque
+   version déjà créée garde sa valeur concrète actuelle.
+3. Aucun nouveau champ de concurrence stocké en base : la protection contre
+   l'écrasement concurrent (§ ci-dessous) s'appuie sur `ProjectSchema.updatedAt`,
+   déjà existant et déjà maintenu automatiquement par Prisma (`@updatedAt`).
+
+**Mécanique de sauvegarde revue** (`saveProjectSchema`, dans une seule
+transaction) :
+
+1. Lire l'état actuel de `ProjectSchema` (s'il existe).
+2. Si le contenu significatif (nodes/edges/projectName — jamais la
+   miniature seule, cosmétique/dérivée, ni les horodatages) diffère
+   réellement de ce qui va être écrit : créer une `ProjectSchemaVersion` de
+   l'état REMPLACÉ, attribuée à `lastModifiedByType`/`lastModifiedByName`
+   du schéma actuel (`UNKNOWN`/"Auteur inconnu" si jamais enregistré —
+   jamais deviné). Une sauvegarde identique au contenu déjà en base ne crée
+   aucune copie.
+3. Écrire le nouvel état via une mise à jour conditionnée sur
+   `updatedAt` (lu à l'étape 1) — `updateMany` avec ce filtre, jamais une
+   lecture puis écriture séparées (même garde que celle déjà appliquée à
+   `updateVehicleInfo`/`updateUsagesInfo`, §10). Si aucune ligne n'est
+   affectée, c'est qu'une autre écriture a eu lieu entre la lecture et
+   l'écriture : conflit explicite, jamais un écrasement silencieux.
+4. Le nouvel état enregistre son propre auteur
+   (`lastModifiedByType`/`lastModifiedByName`, fournis par l'appelant —
+   admin ou client, résolus depuis `OwnershipActor`, même source que
+   `createProjectSchemaVersion`/`restore` déjà existants).
+
+**Phase scindée volontairement** : la détection de conflit ci-dessus exige
+que l'appelant transmette l'`updatedAt` qu'il a lu en dernier (paramètre
+`expectedUpdatedAt`, optionnel). Le contrat actuel du PUT
+(`app/api/projects/[projectId]/schema/route.ts`) ne transmet aujourd'hui
+AUCUN marqueur de ce type — l'éditeur client (React, autosave) ne le suit
+pas non plus. Rendre ce paramètre optionnel permet d'activer tout de suite
+l'instantané automatique (valeur sûre, aucun changement de contrat) sans
+risquer une régression sur le chemin de sauvegarde déjà utilisé en
+production par l'éditeur réel, en modifiant son comportement de
+concurrence dans le même geste qu'une réécriture plus large de son état
+React (zone à risque distincte, nécessitant son propre test de bout en
+bout) — voir le journal `PLAN_EXECUTION_CRM_CLAUDE.md` pour la suite
+explicitement prévue (câblage du client une fois ce socle validé).
+
+**`setCableLengths`** (même fichier) écrit aussi directement sur
+`ProjectSchema` en contournant toute trace d'auteur — basculé sur le même
+mécanisme pour ne pas laisser un deuxième chemin d'écriture non protégé
+(le prompt demande explicitement de vérifier TOUTES les voies d'écriture,
+pas seulement un bouton).

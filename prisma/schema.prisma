@@ -602,6 +602,12 @@ model ProjectSchema {
   // lecture du schema partage, jamais l'ecriture ni l'acces au projet.
   shareToken     String?   @unique
   shareEnabledAt DateTime?
+  // Auteur de CET état (distinct de l'auteur de la modification qui le
+  // remplacera — docs/03-DATABASE.md "Lot 3 dashboard client"). Nullable :
+  // un schéma déjà existant avant ce champ n'a jamais son auteur réellement
+  // connu, jamais une valeur inventée à la reprise.
+  lastModifiedByType ProjectSchemaVersionAuthor?
+  lastModifiedByName String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -611,6 +617,11 @@ model ProjectSchema {
 enum ProjectSchemaVersionAuthor {
   ADMIN
   CUSTOMER
+  // Instantané d'un ProjectSchema dont l'auteur n'a jamais été enregistré
+  // (schéma existant avant l'ajout de ProjectSchema.lastModifiedByType,
+  // docs/03-DATABASE.md "Lot 3 dashboard client") — jamais ADMIN/CUSTOMER
+  // deviné à sa place.
+  UNKNOWN
 }
 
 // Snapshot volontairement immuable d'une étape importante du schéma. Le

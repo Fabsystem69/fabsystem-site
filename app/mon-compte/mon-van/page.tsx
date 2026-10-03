@@ -6,7 +6,7 @@ import { requireCustomerActor } from "@/lib/server/project-actor";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "Mon van",
+  title: "Mon dossier technique",
   robots: { index: false, follow: false },
 };
 
@@ -30,7 +30,7 @@ export default async function MonVanIndexPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-neutral-950">Mon van</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-950">Mon dossier technique</h1>
         <p className="mt-1 text-sm text-neutral-600">Votre dossier d&apos;accompagnement électrique.</p>
       </div>
 

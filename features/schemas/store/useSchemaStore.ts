@@ -239,6 +239,7 @@ export type SchemaSaveAssistantCode =
   | "PAYLOAD_TOO_LARGE"
   | "BAD_REQUEST"
   | "NETWORK"
+  | "CONFLICT"
   | "UNKNOWN";
 
 export interface SchemaSaveAssistant {
@@ -370,6 +371,15 @@ interface SchemaState {
   // défaut, sans compte). Non persisté dans le schéma lui-même : c'est un
   // lien de sauvegarde, pas une donnée du dessin.
   projectId: string | null;
+  // Lot 3 dashboard client (docs/03-DATABASE.md "Lot 3 dashboard client") :
+  // dernier `updatedAt` du ProjectSchema cloud effectivement vu par CET
+  // onglet (chargement ou dernière sauvegarde réussie) — jamais la donnée
+  // du dessin elle-même, un simple jeton de fraîcheur. Envoyé comme
+  // `expectedUpdatedAt` à la sauvegarde suivante pour détecter un
+  // écrasement concurrent (un autre onglet, ou l'admin, a sauvegardé
+  // depuis) plutôt que d'écraser silencieusement. `null` = pas encore de
+  // schéma cloud chargé (brouillon local, ou tout premier enregistrement).
+  lastKnownSchemaUpdatedAt: string | null;
   // V2, retour utilisateur : "à chaque ajout d'élément comme batterie,
   // MPPT, DC-DC, Multiplus... ouvrir un pop up pour choisir le modèle avec
   // puissance" — posé par `addComponent` juste après la création d'un nœud
@@ -537,7 +547,8 @@ interface SchemaState {
     options?: { scope?: SchemaSaveScope; message?: string }
   ) => void;
   setSaveAssistant: (assistant: SchemaSaveAssistant | null) => void;
-  hydrate: (snapshot: { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[] }) => void;
+  hydrate: (snapshot: { projectName: string; nodes: SchemaNode[]; edges: SchemaEdge[]; updatedAt?: string | null }) => void;
+  setLastKnownSchemaUpdatedAt: (updatedAt: string | null) => void;
   dismissModelPicker: () => void;
   openLibraryPick: (type: string, position: { x: number; y: number }, dataOverride?: Record<string, unknown>) => void;
   cancelLibraryPick: () => void;
@@ -635,6 +646,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
   hiddenCategories: [],
   exportIsolatedZoneId: null,
   projectId: null,
+  lastKnownSchemaUpdatedAt: null,
   pendingModelPickerNodeId: null,
   pendingLibraryPick: null,
   pendingSizingTarget: null,
@@ -1509,11 +1521,19 @@ export const useSchemaStore = create<SchemaState>((set) => ({
 
   setSaveAssistant: (assistant) => set({ saveAssistant: assistant }),
 
+  setLastKnownSchemaUpdatedAt: (updatedAt) => set({ lastKnownSchemaUpdatedAt: updatedAt }),
+
   hydrate: (snapshot) =>
     set({
       projectName: snapshot.projectName,
       nodes: snapshot.nodes,
       edges: snapshot.edges,
+      // Toujours réécrit explicitement (jamais "garder l'ancienne valeur") :
+      // un hydrate() sans updatedAt connu (brouillon local, gabarit, projet
+      // cloud jamais encore enregistré) doit remettre à `null`, sinon changer
+      // de projet dans le même onglet pourrait faire porter par erreur le
+      // jeton de fraîcheur d'un AUTRE schéma.
+      lastKnownSchemaUpdatedAt: snapshot.updatedAt ?? null,
       past: [],
       future: [],
       saveStatus: "saved",

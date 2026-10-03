@@ -18,6 +18,8 @@ export function buildCloudStatusMessage(problem: SchemaApiProblem, phase: "open"
       return "Schéma refusé par le cloud";
     case "NETWORK":
       return "Cloud indisponible hors ligne";
+    case "CONFLICT":
+      return "Modifié ailleurs — rechargez";
     default:
       return phase === "open" ? "Ouverture cloud impossible" : "Erreur de sauvegarde cloud";
   }
@@ -85,6 +87,19 @@ export function buildCloudAssistant(problem: SchemaApiProblem, phase: "open" | "
         title: phase === "open" ? "Connexion au cloud impossible" : "Connexion au cloud perdue",
         message:
           "Le navigateur n'a pas réussi à joindre le cloud. Vous pouvez continuer en local et télécharger un fichier .fabschema en attendant le retour du réseau.",
+      };
+    // Lot 3 dashboard client : un autre onglet, ou l'admin, a déjà sauvegardé
+    // ce schéma depuis que CET onglet l'a chargé — jamais d'écrasement
+    // silencieux (docs/03-DATABASE.md "Lot 3 dashboard client"). Le travail
+    // en cours dans cet onglet n'est jamais effacé par cette erreur (aucun
+    // hydrate() n'est déclenché ici) ; téléchargez un .fabschema avant de
+    // recharger si vous voulez être certain de ne rien perdre.
+    case "CONFLICT":
+      return {
+        code: "CONFLICT",
+        title: "Ce schéma a été modifié ailleurs entre-temps",
+        message:
+          "Quelqu'un d'autre (ou un autre onglet) a enregistré une version plus récente de ce schéma. Votre travail en cours reste affiché ici, mais n'est plus synchronisé avec le cloud. Téléchargez un fichier .fabschema pour garder une copie de ce que vous voyez, puis rechargez la page pour repartir de la dernière version enregistrée.",
       };
     default:
       return {

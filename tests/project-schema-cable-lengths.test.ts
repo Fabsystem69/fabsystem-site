@@ -35,6 +35,8 @@ function createProjectSchemaRecord(overrides: Partial<ProjectSchema> = {}): Proj
     thumbnail: overrides.thumbnail ?? null,
     shareToken: overrides.shareToken ?? null,
     shareEnabledAt: overrides.shareEnabledAt ?? null,
+    lastModifiedByType: overrides.lastModifiedByType ?? null,
+    lastModifiedByName: overrides.lastModifiedByName ?? null,
     createdAt: overrides.createdAt ?? now,
     updatedAt: overrides.updatedAt ?? now,
   };
@@ -54,8 +56,8 @@ function baseDb(overrides: Partial<ProjectSchemaDb> = {}): ProjectSchemaDb {
     async findByProjectId() {
       return createProjectSchemaRecord();
     },
-    async upsert(_projectId, data) {
-      return createProjectSchemaRecord({ nodes: data.nodes as never, edges: data.edges as never });
+    async saveWithHistory(_projectId, data) {
+      return { status: "saved", schema: createProjectSchemaRecord({ nodes: data.nodes as never, edges: data.edges as never }) };
     },
     async findSummariesByProjectIds() {
       return [];
@@ -110,9 +112,9 @@ test("setCableLengths writes only the provided positive lengths, leaving other e
     async findByProjectId() {
       return createProjectSchemaRecord({ nodes: NODES as never, edges: edges as never });
     },
-    async upsert(_projectId, data) {
+    async saveWithHistory(_projectId, data) {
       savedEdges = data.edges;
-      return createProjectSchemaRecord({ nodes: data.nodes as never, edges: data.edges as never });
+      return { status: "saved", schema: createProjectSchemaRecord({ nodes: data.nodes as never, edges: data.edges as never }) };
     },
   });
   const service = createProjectSchemaService(db, {
@@ -134,9 +136,9 @@ test("setCableLengths ignores zero/negative/missing values instead of overwritin
     async findByProjectId() {
       return createProjectSchemaRecord({ nodes: NODES as never, edges: edges as never });
     },
-    async upsert(_projectId, data) {
+    async saveWithHistory(_projectId, data) {
       savedEdges = data.edges;
-      return createProjectSchemaRecord({ nodes: data.nodes as never, edges: data.edges as never });
+      return { status: "saved", schema: createProjectSchemaRecord({ nodes: data.nodes as never, edges: data.edges as never }) };
     },
   });
   const service = createProjectSchemaService(db, {
