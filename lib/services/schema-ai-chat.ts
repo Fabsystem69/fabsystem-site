@@ -38,7 +38,9 @@ function buildSchemaContextBlock(
   edges: Edge<CableEdgeData>[],
   projectName: string
 ) {
-  const existingIssues = computeSchemaIssues(nodes, edges).map((issue) => `- [${issue.severity ?? "warning"}] ${issue.message}`);
+  const existingIssues = computeSchemaIssues(nodes, edges).map(
+    (issue) => `- [${issue.severity ?? "warning"}] ${issue.message}${issue.suggestion ? ` ${issue.suggestion}` : ""}`,
+  );
   return `[État actuel du schéma « ${projectName} », à prendre en compte pour ta réponse — ne le recopie pas]
 ${buildSchemaSummaryText(nodes, edges)}
 

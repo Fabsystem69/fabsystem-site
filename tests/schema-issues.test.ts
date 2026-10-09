@@ -261,7 +261,11 @@ test("computeSchemaIssues signale un câble de puissance sans section et propose
   assert.ok(issue);
   assert.match(issue.message, /n'a pas de section renseignée/i);
   assert.match(issue.message, /protégé en 100,0 A/i);
-  assert.match(issue.message, /35 mm²/);
+  // La section recommandée est le résultat du dimensionnement auto (Éditeur
+  // Plus) : séparée du message, lisible en gratuit (onglet "Manuel" du
+  // widget de vigilance).
+  assert.doesNotMatch(issue.message, /35 mm²/);
+  assert.match(issue.suggestion ?? "", /35 mm²/);
   assert.equal(issue.action, "recalculate-all-cable-sections");
 });
 
@@ -273,7 +277,8 @@ test("computeSchemaIssues signale un câble trop petit pour le courant estimé",
   assert.ok(issue);
   assert.match(issue.message, /trop juste/i);
   assert.match(issue.message, /6 mm²/);
-  assert.match(issue.message, /35 mm²/);
+  assert.doesNotMatch(issue.message, /35 mm²/);
+  assert.match(issue.suggestion ?? "", /35 mm²/);
 });
 
 test("computeSchemaIssues ne signale pas un câble déjà dans la norme ou surdimensionné", () => {

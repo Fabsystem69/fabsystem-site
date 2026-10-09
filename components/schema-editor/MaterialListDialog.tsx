@@ -19,6 +19,11 @@ import { formatEuroFromCents } from "@/lib/format";
 // l'action "Appliquer au schéma" (réservée Éditeur Plus, retour utilisateur)
 // touche réellement les câbles, et toujours après un point de sauvegarde
 // pré-optimisation créé par l'appelant (voir Ribbon.tsx).
+//
+// Retour client (même principe Manuel/Automatique que SizingPopup) : la
+// liste réelle est gratuite ; la liste optimisée et l'harmonisation sont
+// Éditeur Plus — en gratuit, l'onglet "Liste optimisée" n'affiche jamais
+// son contenu, seulement une invitation à débloquer.
 export function MaterialListDialog({
   bomReal,
   bomOptimized,
@@ -26,6 +31,7 @@ export function MaterialListDialog({
   hasUnlimitedConsumers,
   onApplyHarmonization,
   onClose,
+  onUnlock,
 }: {
   bomReal: Bom;
   bomOptimized: Bom;
@@ -33,6 +39,7 @@ export function MaterialListDialog({
   hasUnlimitedConsumers: boolean;
   onApplyHarmonization: () => Promise<number>;
   onClose: () => void;
+  onUnlock: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [mode, setMode] = useState<"real" | "optimized">("real");
@@ -41,7 +48,8 @@ export function MaterialListDialog({
   useEscapeToClose(onClose);
 
   const hasSuggestions = bomReal.cableHarmonizationSuggestions.length > 0;
-  const bom = mode === "optimized" ? bomOptimized : bomReal;
+  const optimizedLocked = mode === "optimized" && !hasUnlimitedConsumers;
+  const bom = mode === "optimized" && hasUnlimitedConsumers ? bomOptimized : bomReal;
   const text = buildMaterialListText(bom, projectName);
 
   async function copy() {
@@ -93,15 +101,16 @@ export function MaterialListDialog({
                 onClick={() => setMode("optimized")}
                 className={`flex-1 rounded-md px-3 py-1.5 font-medium transition-base ${mode === "optimized" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
               >
-                Liste optimisée
+                Liste optimisée{" "}
+                <span className={`text-[10px] font-semibold uppercase ${mode === "optimized" ? "" : "text-amber-700"}`}>Plus</span>
               </button>
             </div>
 
-            <div className="relative mt-3">
-              <div className={hasUnlimitedConsumers ? undefined : "pointer-events-none select-none blur-sm"} aria-hidden={hasUnlimitedConsumers ? undefined : true}>
-                <p className="text-xs leading-relaxed text-slate-600">
-                  {bomReal.cableHarmonizationSuggestions.length} section{bomReal.cableHarmonizationSuggestions.length > 1 ? "s" : ""} avec un métrage trop faible pour justifier une bobine dédiée — la liste optimisée les regroupe vers une section supérieure.
-                </p>
+            <p className="mt-3 text-xs leading-relaxed text-slate-600">
+              {bomReal.cableHarmonizationSuggestions.length} section{bomReal.cableHarmonizationSuggestions.length > 1 ? "s" : ""} avec un métrage trop faible pour justifier une bobine dédiée — la liste optimisée les regroupe vers une section supérieure.
+            </p>
+            {hasUnlimitedConsumers ? (
+              <>
                 <button
                   type="button"
                   onClick={apply}
@@ -111,17 +120,22 @@ export function MaterialListDialog({
                   {applying ? "Application…" : "Appliquer l'harmonisation au schéma"}
                 </button>
                 {applyResult ? <p className="mt-1.5 text-xs text-emerald-700">{applyResult}</p> : null}
-              </div>
-              {!hasUnlimitedConsumers ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
-                  <p className="text-xs font-semibold text-slate-900">Réservé à Éditeur Plus</p>
-                  <p className="text-xs text-slate-500">Modifier le schéma directement depuis cette liste</p>
-                </div>
-              ) : null}
-            </div>
+              </>
+            ) : null}
           </div>
         ) : null}
 
+        {optimizedLocked ? (
+          <div className="mt-4 flex flex-col items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
+            <span className="text-lg" aria-hidden="true">🔒</span>
+            <p className="text-sm font-semibold text-slate-900">Liste optimisée réservée à Éditeur Plus</p>
+            <p className="text-xs text-slate-500">Regroupe les petites longueurs de câble pour acheter moins de bobines, et l&apos;applique au schéma en un clic.</p>
+            <button type="button" onClick={onUnlock} className="mt-1 rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800">
+              Débloquer →
+            </button>
+          </div>
+        ) : (
+          <>
         <textarea
           readOnly
           value={text}
@@ -168,6 +182,9 @@ export function MaterialListDialog({
           </p>
         ) : null}
 
+          </>
+        )}
+
         <div className="mt-4 flex flex-wrap justify-end gap-3">
           <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 px-4 py-2.5 font-medium text-slate-700">
             Fermer
@@ -175,11 +192,12 @@ export function MaterialListDialog({
           <button
             type="button"
             onClick={() => downloadMaterialListCsv(bom, projectName)}
-            className="rounded-xl border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
+            disabled={optimizedLocked}
+            className="rounded-xl border border-slate-300 px-4 py-2.5 font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40"
           >
             Exporter en Excel
           </button>
-          <button type="button" onClick={copy} className="rounded-xl bg-amber-500 px-4 py-2.5 font-semibold text-white hover:bg-amber-600">
+          <button type="button" onClick={copy} disabled={optimizedLocked} className="rounded-xl bg-amber-500 px-4 py-2.5 font-semibold text-white hover:bg-amber-600 disabled:opacity-40">
             {copied ? "Copié ✓" : "Copier"}
           </button>
         </div>

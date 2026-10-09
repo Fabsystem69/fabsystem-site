@@ -255,27 +255,20 @@ function EditorMenuBar({
     report("Copie du schéma téléchargée");
   }
 
+  // Liste réelle du schéma : gratuite (retour client, même principe
+  // Manuel/Automatique que SizingPopup) — seule la liste optimisée et
+  // l'harmonisation restent Éditeur Plus (voir MaterialListDialog).
   function exportBom() {
-    if (!adminMode && !hasUnlimitedConsumers) {
-      openFreemiumLimitPopup();
-      return;
-    }
     if (nodes.length === 0) return;
     openPrintableBom(computeBom(getNodes(), getEdges()), projectName);
     report("Liste de matériel prête à imprimer");
   }
 
 
-  // Retour utilisateur : "liste de matériel et demande de devis... visible
-  // en basique mais clic dessus ouvre le pop up pour souscrire et non la
-  // page" — le menu reste visible et cliquable pour tout le monde (jamais
-  // masqué ni désactivé), mais un compte gratuit obtient le popup
-  // d'abonnement au clic plutôt que le dialogue lui-même.
+  // Remplace l'ancien blocage complet ("clic dessus ouvre le pop up pour
+  // souscrire") — retour client : la liste réelle est gratuite, l'onglet
+  // "Liste optimisée" du dialogue reste réservé à Éditeur Plus.
   function exportMaterialListForQuote() {
-    if (!adminMode && !hasUnlimitedConsumers) {
-      openFreemiumLimitPopup();
-      return;
-    }
     if (nodes.length === 0) return;
     setMaterialListBoms({
       real: computeBom(getNodes(), getEdges()),
@@ -321,13 +314,26 @@ function EditorMenuBar({
     return count;
   }
 
+  // Recalculs en masse = dimensionnement automatique (Éditeur Plus) — même
+  // palier que les onglets "Automatique" de SizingPopup/SchemaIssuesWidget,
+  // sinon ces menus contournaient le verrou (retour client).
   function runCableRecalculation() {
+    if (!adminMode && !hasUnlimitedConsumers) {
+      openFreemiumLimitPopup();
+      setOpenMenu(null);
+      return;
+    }
     const count = recalculateAllCableSections();
     report(count > 0 ? `${count} section${count > 1 ? "s" : ""} de câble recalculée${count > 1 ? "s" : ""}` : "Aucune section de câble à modifier");
     setOpenMenu(null);
   }
 
   function runProtectionRecalculation() {
+    if (!adminMode && !hasUnlimitedConsumers) {
+      openFreemiumLimitPopup();
+      setOpenMenu(null);
+      return;
+    }
     const count = recalculateAllFuseRatings();
     report(count > 0 ? `${count} protection${count > 1 ? "s" : ""} recalculée${count > 1 ? "s" : ""}` : "Aucune protection à modifier");
     setOpenMenu(null);
@@ -527,9 +533,14 @@ function EditorMenuBar({
         bomReal={materialListBoms.real}
         bomOptimized={materialListBoms.optimized}
         projectName={projectName}
-        hasUnlimitedConsumers={hasUnlimitedConsumers}
+        hasUnlimitedConsumers={adminMode || hasUnlimitedConsumers}
         onApplyHarmonization={applyCableHarmonizationWithSnapshot}
         onClose={() => setMaterialListBoms(null)}
+        onUnlock={() => {
+          // Le dialogue (z-[70]) masquerait la modale d'abonnement (z-50).
+          setMaterialListBoms(null);
+          openFreemiumLimitPopup();
+        }}
       />
     ) : null}
     {exportPreviewKind ? <ExportPreviewDialog initialKind={exportPreviewKind} initialShowGrid={showGrid} onClose={() => setExportPreviewKind(null)} /> : null}

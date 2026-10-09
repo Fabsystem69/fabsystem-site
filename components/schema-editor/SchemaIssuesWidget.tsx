@@ -7,6 +7,7 @@ import { computeSchemaIssues, type SchemaIssueAction, type SchemaIssueSeverity }
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { VoltaAvatar } from "@/components/volta/VoltaAvatar";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
+import { PlusModeTabs } from "./PlusModeTabs";
 
 // Retour utilisateur : "les info-bulles À vérifier je veux vraiment qu'elle
 // soit visible... c'est un vrai plus de l'application qui n'est pas mis en
@@ -38,6 +39,14 @@ export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floati
   const openFreemiumLimitPopup = useSchemaStore((s) => s.openFreemiumLimitPopup);
   const { getNode, setCenter, getZoom } = useReactFlow();
   const [open, setOpen] = useState(false);
+  // Retour client : "j'ai le message à chaque fois" — en gratuit, tout le
+  // panneau était flouté ("Détail et correction réservés à Éditeur Plus") :
+  // on voyait un compteur d'alertes sans pouvoir les lire. Même principe que
+  // SizingPopup : onglet "Manuel" (lire les alertes, cliquer pour localiser,
+  // corriger soi-même — gratuit) et "Automatique" (suggestions chiffrées,
+  // corrections et recalculs en un clic — Éditeur Plus).
+  const [mode, setMode] = useState<"manual" | "auto">(hasUnlimitedConsumers ? "auto" : "manual");
+  const autoLocked = mode === "auto" && !hasUnlimitedConsumers;
 
   const issues = computeSchemaIssues(nodes, edges);
   const issueCounts = issues.reduce(
@@ -185,32 +194,38 @@ export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floati
             ) : null}
           </div>
 
+          <div className={`border-b px-2 py-2 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+            <PlusModeTabs darkMode={darkMode} mode={mode} onChange={setMode} className="" />
+          </div>
+
           <div className="relative">
-            <div className={hasUnlimitedConsumers ? undefined : "select-none blur-sm"} aria-hidden={hasUnlimitedConsumers ? undefined : true}>
-              <div className={`flex gap-1.5 border-b p-2 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
-                <button
-                  type="button"
-                  onClick={handleRecalculateSections}
-                  disabled={nodes.length === 0}
-                  className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
-                    darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                  }`}
-                  title="Recalcule en une fois la section de tous les câbles de puissance dont la charge en aval est estimable"
-                >
-                  Sections câble
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRecalculateFuses}
-                  disabled={nodes.length === 0}
-                  className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
-                    darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                  }`}
-                  title="Recalcule en une fois le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable"
-                >
-                  Calibres fusible
-                </button>
-              </div>
+            <div className={autoLocked ? "select-none blur-sm" : undefined} aria-hidden={autoLocked || undefined}>
+              {mode === "auto" ? (
+                <div className={`flex gap-1.5 border-b p-2 ${darkMode ? "border-neutral-800" : "border-neutral-100"}`}>
+                  <button
+                    type="button"
+                    onClick={handleRecalculateSections}
+                    disabled={nodes.length === 0}
+                    className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
+                      darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                    }`}
+                    title="Recalcule en une fois la section de tous les câbles de puissance dont la charge en aval est estimable"
+                  >
+                    Sections câble
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRecalculateFuses}
+                    disabled={nodes.length === 0}
+                    className={`flex-1 rounded-md border px-2 py-1.5 text-[11px] font-medium transition-base disabled:opacity-40 ${
+                      darkMode ? "border-neutral-700 text-neutral-300 hover:bg-neutral-800" : "border-neutral-200 text-neutral-600 hover:bg-neutral-100"
+                    }`}
+                    title="Recalcule en une fois le calibre de tous les fusibles/disjoncteurs dont le courant en aval est estimable"
+                  >
+                    Calibres fusible
+                  </button>
+                </div>
+              ) : null}
 
               <div className="max-h-80 overflow-y-auto p-3">
                 {issues.length === 0 ? (
@@ -219,6 +234,11 @@ export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floati
                   </p>
                 ) : (
                   <div className="space-y-1.5">
+                    {mode === "manual" ? (
+                      <p className={`px-1 pb-1 text-[11px] ${darkMode ? "text-neutral-500" : "text-neutral-400"}`}>
+                        Cliquez sur une alerte pour localiser l&apos;élément sur le schéma.
+                      </p>
+                    ) : null}
                     {issues.map((issue) => (
                       <div
                         key={issue.id}
@@ -230,8 +250,9 @@ export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floati
                           className={`block w-full text-left ${darkMode ? "hover:text-amber-300" : "hover:text-amber-900"}`}
                         >
                           {issue.message}
+                          {mode === "auto" && issue.suggestion ? <strong className="ml-1 font-semibold">{issue.suggestion}</strong> : null}
                         </button>
-                        {issue.action ? (
+                        {mode === "auto" && issue.action ? (
                           <button
                             type="button"
                             onClick={() => handleIssueAction(issue.action!)}
@@ -248,11 +269,11 @@ export function SchemaIssuesWidget({ variant = "floating" }: { variant?: "floati
                 )}
               </div>
             </div>
-            {!hasUnlimitedConsumers && issues.length > 0 ? (
+            {autoLocked ? (
               <div className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 px-3 text-center ${darkMode ? "bg-neutral-900/45" : "bg-white/45"}`}>
                 <span className="text-lg" aria-hidden="true">🔒</span>
                 <p className={`text-xs font-semibold ${darkMode ? "text-neutral-100" : "text-neutral-900"}`}>
-                  Détail et correction réservés à Éditeur Plus
+                  Suggestions et corrections automatiques réservées à Éditeur Plus
                 </p>
                 <button
                   type="button"

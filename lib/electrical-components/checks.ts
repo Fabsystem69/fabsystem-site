@@ -28,6 +28,10 @@ export interface SchemaIssue {
   category?: SchemaIssueCategory;
   reference?: SchemaIssueReference;
   action?: SchemaIssueAction;
+  /** Valeur issue du dimensionnement auto (Éditeur Plus) — séparée de
+   * `message` pour que le constat reste lisible en gratuit sans livrer le
+   * résultat du calcul (voir SchemaIssuesWidget, onglet "Manuel"). */
+  suggestion?: string;
 }
 
 type SchemaNodeInternal = Node<ElectricalNodeData>;
@@ -980,7 +984,8 @@ function computeCableSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdge
         id: `${edge.id}-missing-section`,
         targetKind: "edge",
         targetId: edge.id,
-        message: `${edgeLabel} n'a pas de section renseignée alors que ${currentContext}. Suggestion : ${recommended}.`,
+        message: `${edgeLabel} n'a pas de section renseignée alors que ${currentContext}.`,
+        suggestion: `Suggestion : ${recommended}.`,
         action: "recalculate-all-cable-sections",
       });
       continue;
@@ -990,7 +995,8 @@ function computeCableSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdge
       id: `${edge.id}-undersized-section`,
       targetKind: "edge",
       targetId: edge.id,
-      message: `${edgeLabel} est en ${diagnostic.currentSectionLabel}, trop juste alors que ${currentContext}. Suggestion : ${recommended}.`,
+      message: `${edgeLabel} est en ${diagnostic.currentSectionLabel}, trop juste alors que ${currentContext}.`,
+      suggestion: `Suggestion : ${recommended}.`,
       action: "recalculate-all-cable-sections",
     });
   }

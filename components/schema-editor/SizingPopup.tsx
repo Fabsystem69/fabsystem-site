@@ -13,6 +13,15 @@ import {
 } from "@/lib/electrical-components/auto-size";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { useEscapeToClose } from "@/lib/schema-editor/useEscapeToClose";
+import { CABLE_SECTIONS } from "@/types/schema";
+import { PlusModeTabs, type PlusMode } from "./PlusModeTabs";
+
+// Retour client : "j'ai le message à chaque fil" — la popup s'ouvre à chaque
+// câble de puissance, et en gratuit elle ne montrait qu'un résultat flouté
+// "Réservé à Éditeur Plus". Deux onglets : "Manuel" (choix direct de la
+// section/du calibre, gratuit) et "Automatique" (calcul, Éditeur Plus). Le
+// gratuit arrive sur "Manuel" : la popup lui sert à quelque chose et le
+// rappel Éditeur Plus n'est visible que s'il ouvre l'onglet lui-même.
 
 // Popup de dimensionnement à la connexion (V2, retour utilisateur : "pour
 // l'ajout de fusible ou câble, je veux la section et ampérage... automatique
@@ -46,6 +55,8 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
   useEscapeToClose(dismissSizingPopup);
   const edge = edges.find((e) => e.id === edgeId);
 
+  const [mode, setMode] = useState<PlusMode>(hasUnlimitedConsumers ? "auto" : "manual");
+  const [manualSection, setManualSection] = useState(String(edge?.data?.section ?? ""));
   const [amps, setAmps] = useState("");
   const [length, setLength] = useState("");
   const [tension, setTension] = useState("12");
@@ -80,6 +91,12 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
     dismissSizingPopup();
   }
 
+  function handleApplyManual() {
+    if (!manualSection) return;
+    updateEdgeData(edgeId, l > 0 ? { section: manualSection, length: l } : { section: manualSection });
+    dismissSizingPopup();
+  }
+
   // Ferme d'abord cette popup avant d'ouvrir la modale Éditeur Plus : les
   // deux partagent le même z-index (fixed inset-0 z-50), sinon la modale
   // s'ouvre visuellement derrière celle-ci (retour utilisateur : "si je
@@ -90,7 +107,18 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
   }
 
   return (
-    <SizingPopupShell darkMode={darkMode} onDismiss={dismissSizingPopup} eyebrow="Câble connecté" title="Section de câble suggérée">
+    <SizingPopupShell darkMode={darkMode} onDismiss={dismissSizingPopup} eyebrow="Câble connecté" title="Section du câble">
+      <PlusModeTabs darkMode={darkMode} mode={mode} onChange={setMode} />
+      {mode === "manual" ? (
+        <>
+          <SizingFields>
+            <SizingSelect darkMode={darkMode} label="Section" value={manualSection} onChange={setManualSection} placeholder="Choisir…" options={CABLE_SECTIONS.map((s) => ({ value: s, label: s }))} />
+            <SizingField darkMode={darkMode} label="Longueur aller (m)" value={length} onChange={setLength} />
+          </SizingFields>
+          <SizingActions darkMode={darkMode} onApply={handleApplyManual} onDismiss={dismissSizingPopup} applyLabel="Appliquer cette section" applyDisabled={!manualSection} />
+        </>
+      ) : (
+        <>
       <SizingFields>
         <SizingField darkMode={darkMode} label="Intensité (A)" value={amps} onChange={setAmps} />
         <SizingField darkMode={darkMode} label="Longueur aller (m)" value={length} onChange={setLength} />
@@ -136,6 +164,8 @@ function CableSizingPopup({ edgeId }: { edgeId: string }) {
       ) : (
         <SizingActions darkMode={darkMode} onApply={handleUnlock} onDismiss={dismissSizingPopup} applyLabel="Débloquer pour appliquer" applyDisabled={!result} />
       )}
+        </>
+      )}
     </SizingPopupShell>
   );
 }
@@ -151,6 +181,8 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
   useEscapeToClose(dismissSizingPopup);
   const node = nodes.find((n) => n.id === nodeId);
 
+  const [mode, setMode] = useState<PlusMode>(hasUnlimitedConsumers ? "auto" : "manual");
+  const [manualRating, setManualRating] = useState(node?.data.amperage ? String(node.data.amperage) : "");
   const [amps, setAmps] = useState("");
   const [explainOpen, setExplainOpen] = useState(false);
 
@@ -171,13 +203,29 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
     dismissSizingPopup();
   }
 
+  function handleApplyManual() {
+    if (!manualRating) return;
+    updateNodeData(nodeId, { amperage: Number(manualRating) });
+    dismissSizingPopup();
+  }
+
   function handleUnlock() {
     dismissSizingPopup();
     openFreemiumLimitPopup();
   }
 
   return (
-    <SizingPopupShell darkMode={darkMode} onDismiss={dismissSizingPopup} eyebrow={`${def?.label ?? "Protection"} connecté`} title="Calibre suggéré">
+    <SizingPopupShell darkMode={darkMode} onDismiss={dismissSizingPopup} eyebrow={`${def?.label ?? "Protection"} connecté`} title="Calibre de la protection">
+      <PlusModeTabs darkMode={darkMode} mode={mode} onChange={setMode} />
+      {mode === "manual" ? (
+        <>
+          <SizingFields>
+            <SizingSelect darkMode={darkMode} label="Calibre (A)" value={manualRating} onChange={setManualRating} placeholder="Choisir…" options={AVAILABLE_FUSES_A.map((a) => ({ value: String(a), label: `${a} A` }))} />
+          </SizingFields>
+          <SizingActions darkMode={darkMode} onApply={handleApplyManual} onDismiss={dismissSizingPopup} applyLabel="Appliquer ce calibre" applyDisabled={!manualRating} />
+        </>
+      ) : (
+        <>
       <SizingFields>
         <SizingField darkMode={darkMode} label="Intensité du circuit (A)" value={amps} onChange={setAmps} />
       </SizingFields>
@@ -202,6 +250,8 @@ function FuseSizingPopup({ nodeId }: { nodeId: string }) {
         <SizingActions darkMode={darkMode} onApply={handleApply} onDismiss={dismissSizingPopup} applyLabel="Appliquer ce calibre" applyDisabled={!rating} />
       ) : (
         <SizingActions darkMode={darkMode} onApply={handleUnlock} onDismiss={dismissSizingPopup} applyLabel="Débloquer pour appliquer" applyDisabled={!rating} />
+      )}
+        </>
       )}
     </SizingPopupShell>
   );
@@ -268,6 +318,42 @@ function SizingResultBox({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function SizingSelect({
+  darkMode,
+  label,
+  value,
+  onChange,
+  placeholder,
+  options,
+}: {
+  darkMode: boolean;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <label className="block">
+      <span className={`mb-1 block text-xs font-medium ${darkMode ? "text-neutral-400" : "text-neutral-600"}`}>{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full rounded-lg border px-2.5 py-1.5 text-sm outline-none ${
+          darkMode ? "border-neutral-700 bg-neutral-900 text-neutral-100" : "border-neutral-300 bg-white text-neutral-900"
+        }`}
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
