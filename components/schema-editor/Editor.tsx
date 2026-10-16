@@ -101,7 +101,6 @@ export function Editor() {
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
   const projectId = useSchemaStore((s) => s.projectId);
   const setProjectId = useSchemaStore((s) => s.setProjectId);
-  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
   const setLastKnownSchemaUpdatedAt = useSchemaStore((s) => s.setLastKnownSchemaUpdatedAt);
   const startGuidedMode = useSchemaStore((s) => s.startGuidedMode);
   const setHasUnlimitedConsumers = useSchemaStore((s) => s.setHasUnlimitedConsumers);
@@ -113,6 +112,11 @@ export function Editor() {
   const setCustomCatalogItems = useSchemaStore((s) => s.setCustomCatalogItems);
   useAdminCustomerSync();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Retour utilisateur : faux "modifié ailleurs" — deux autosaves se
+  // chevauchaient (miniature lente), la seconde partant avec le jeton
+  // updatedAt d'avant la première. Les sauvegardes cloud sont désormais
+  // enchaînées une par une, chacune relisant le jeton le plus récent.
+  const cloudSaveChainRef = useRef<Promise<void>>(Promise.resolve());
   const searchParams = useSearchParams();
   const urlProjectId = searchParams.get("projectId");
   const urlTemplateId = searchParams.get("template");
@@ -289,28 +293,31 @@ export function Editor() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       if (projectId) {
-        // Miniature régénérée à chaque sauvegarde liée à un projet (affichée
-        // sur la carte projet du dashboard) — jamais côté brouillon local
-        // seul, pas besoin d'une miniature qu'on ne montre nulle part.
-        const thumbnail = await captureSchemaThumbnail(nodes).catch(() => null);
-        const result = await saveProjectSchemaApi(projectId, {
-          projectName,
-          nodes,
-          edges,
-          thumbnail,
-          updatedAt: lastKnownSchemaUpdatedAt ?? undefined,
-        });
-        if (result.ok) {
-          setLastKnownSchemaUpdatedAt(result.updatedAt ?? null);
-          setSaveAssistant(null);
-          setSaveStatus("saved", { scope: "cloud", message: "Cloud enregistré" });
-          return;
-        }
-        setSaveStatus("error", {
-          scope: "cloud",
-          message: buildCloudStatusMessage(result.problem, "save"),
-        });
-        setSaveAssistant(buildCloudAssistant(result.problem, "save"));
+        const saveToCloud = async () => {
+          // Miniature régénérée à chaque sauvegarde liée à un projet (affichée
+          // sur la carte projet du dashboard) — jamais côté brouillon local
+          // seul, pas besoin d'une miniature qu'on ne montre nulle part.
+          const thumbnail = await captureSchemaThumbnail(nodes).catch(() => null);
+          const result = await saveProjectSchemaApi(projectId, {
+            projectName,
+            nodes,
+            edges,
+            thumbnail,
+            updatedAt: useSchemaStore.getState().lastKnownSchemaUpdatedAt ?? undefined,
+          });
+          if (result.ok) {
+            setLastKnownSchemaUpdatedAt(result.updatedAt ?? null);
+            setSaveAssistant(null);
+            setSaveStatus("saved", { scope: "cloud", message: "Cloud enregistré" });
+            return;
+          }
+          setSaveStatus("error", {
+            scope: "cloud",
+            message: buildCloudStatusMessage(result.problem, "save"),
+          });
+          setSaveAssistant(buildCloudAssistant(result.problem, "save"));
+        };
+        cloudSaveChainRef.current = cloudSaveChainRef.current.then(saveToCloud, saveToCloud);
         return;
       }
 

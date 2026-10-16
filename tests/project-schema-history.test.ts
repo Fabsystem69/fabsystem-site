@@ -6,6 +6,7 @@ import type { OwnershipActor } from "@/lib/ownership";
 import {
   createProjectSchemaService,
   hasSchemaContentChanged,
+  shouldSnapshotReplacedState,
   type ProjectSchemaDb,
   type SaveProjectSchemaResult,
 } from "@/lib/services/project-schema";
@@ -285,4 +286,50 @@ test("scénario déterministe A/B : la sauvegarde de B avec un expectedUpdatedAt
 
   assert.equal(saveAttempts, 2, "les deux tentatives doivent avoir atteint saveWithHistory");
   assert.deepEqual(currentNodes, [{ id: "a-wins" }], "le contenu final doit être celui de A, jamais celui de B");
+});
+
+// Retour utilisateur : "cela me gonfle l'historique de versions inutilement"
+// — une autosave toutes les ~secondes ne doit plus produire une version à
+// chaque fois : au plus une par fenêtre, plus une à chaque changement d'auteur.
+test("shouldSnapshotReplacedState: snapshot quand aucune version n'existe encore", () => {
+  assert.equal(
+    shouldSnapshotReplacedState({ replacedAuthorType: "ADMIN", incomingAuthorType: "ADMIN", lastVersionAt: null, now: new Date("2026-10-16T22:00:00Z") }),
+    true,
+  );
+});
+
+test("shouldSnapshotReplacedState: pas de nouvelle version pour une autosave du même auteur peu après la précédente", () => {
+  assert.equal(
+    shouldSnapshotReplacedState({
+      replacedAuthorType: "ADMIN",
+      incomingAuthorType: "ADMIN",
+      lastVersionAt: new Date("2026-10-16T22:00:00Z"),
+      now: new Date("2026-10-16T22:04:59Z"),
+    }),
+    false,
+  );
+});
+
+test("shouldSnapshotReplacedState: nouvelle version une fois la fenêtre écoulée", () => {
+  assert.equal(
+    shouldSnapshotReplacedState({
+      replacedAuthorType: "ADMIN",
+      incomingAuthorType: "ADMIN",
+      lastVersionAt: new Date("2026-10-16T22:00:00Z"),
+      now: new Date("2026-10-16T22:10:00Z"),
+    }),
+    true,
+  );
+});
+
+test("shouldSnapshotReplacedState: toujours une version quand l'auteur change (client puis admin)", () => {
+  assert.equal(
+    shouldSnapshotReplacedState({
+      replacedAuthorType: "CUSTOMER",
+      incomingAuthorType: "ADMIN",
+      lastVersionAt: new Date("2026-10-16T22:00:00Z"),
+      now: new Date("2026-10-16T22:00:05Z"),
+    }),
+    true,
+  );
 });

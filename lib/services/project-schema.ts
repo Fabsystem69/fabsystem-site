@@ -71,6 +71,25 @@ export function hasSchemaContentChanged(
   );
 }
 
+// Retour utilisateur : "cela me gonfle l'historique de versions
+// inutilement" — l'autosave de l'éditeur part ~1 s après chaque
+// modification ; un instantané par sauvegarde produisait une version toutes
+// les quelques secondes. On n'en garde plus qu'une par fenêtre de travail,
+// plus une à chaque changement d'auteur (client puis admin, ou l'inverse),
+// pour que chacun puisse toujours revenir à l'état laissé par l'autre.
+export const VERSION_SNAPSHOT_WINDOW_MS = 10 * 60 * 1000;
+
+export function shouldSnapshotReplacedState(input: {
+  replacedAuthorType: ProjectSchemaVersionAuthor | null;
+  incomingAuthorType: ProjectSchemaVersionAuthor;
+  lastVersionAt: Date | null;
+  now: Date;
+}): boolean {
+  if (!input.lastVersionAt) return true;
+  if (input.replacedAuthorType !== input.incomingAuthorType) return true;
+  return input.now.getTime() - input.lastVersionAt.getTime() >= VERSION_SNAPSHOT_WINDOW_MS;
+}
+
 type ProjectSchemaServiceDeps = {
   assertOwnedProject?: typeof getProject;
   reportSchemaStorageMissing?: (operation: string, error: unknown) => void;
@@ -180,7 +199,24 @@ function createPrismaProjectSchemaDb(client: PrismaClientLike): ProjectSchemaDb 
             throw new SaveConflictSignal();
           }
 
-          if (hasSchemaContentChanged(current, input)) {
+          const contentChanged = hasSchemaContentChanged(current, input);
+          const lastVersion = contentChanged
+            ? await tx.projectSchemaVersion.findFirst({
+                where: { projectSchemaId: current.id },
+                orderBy: { versionNumber: "desc" },
+                select: { createdAt: true },
+              })
+            : null;
+          const shouldSnapshot =
+            contentChanged &&
+            shouldSnapshotReplacedState({
+              replacedAuthorType: current.lastModifiedByType,
+              incomingAuthorType: author.authorType,
+              lastVersionAt: lastVersion?.createdAt ?? null,
+              now: new Date(),
+            });
+
+          if (shouldSnapshot) {
             // Instantané atomique de l'état REMPLACÉ (pas du nouveau), attribué
             // à SON PROPRE auteur connu — jamais celui de la modification qui
             // arrive. UNKNOWN/"Auteur inconnu" pour un schéma antérieur à ce

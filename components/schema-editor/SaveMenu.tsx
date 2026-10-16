@@ -35,7 +35,6 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
   const containerRef = useRef<HTMLDivElement>(null);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
-  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
   const setLastKnownSchemaUpdatedAt = useSchemaStore((s) => s.setLastKnownSchemaUpdatedAt);
   const [projectsStatus, setProjectsStatus] = useState<"idle" | "loading" | "loaded">("idle");
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
@@ -179,7 +178,7 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
       nodes,
       edges,
       thumbnail,
-      updatedAt: id === projectId ? lastKnownSchemaUpdatedAt ?? undefined : undefined,
+      updatedAt: id === projectId ? useSchemaStore.getState().lastKnownSchemaUpdatedAt ?? undefined : undefined,
     });
     setLinking(false);
     if (result.ok) {

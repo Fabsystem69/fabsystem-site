@@ -187,7 +187,6 @@ function EditorMenuBar({
   const nodes = useSchemaStore((s) => s.nodes);
   const edges = useSchemaStore((s) => s.edges);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
-  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
   const setLastKnownSchemaUpdatedAt = useSchemaStore((s) => s.setLastKnownSchemaUpdatedAt);
 
   const recalculateAllCableSections = useSchemaStore((s) => s.recalculateAllCableSections);
@@ -295,7 +294,7 @@ function EditorMenuBar({
         projectName,
         nodes,
         edges,
-        updatedAt: lastKnownSchemaUpdatedAt ?? undefined,
+        updatedAt: useSchemaStore.getState().lastKnownSchemaUpdatedAt ?? undefined,
       });
       if (result.ok) setLastKnownSchemaUpdatedAt(result.updatedAt ?? null);
       await createProjectSchemaVersionApi(projectId, "Avant harmonisation automatique des câbles");

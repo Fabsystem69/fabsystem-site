@@ -949,7 +949,13 @@ transaction) :
    l'état REMPLACÉ, attribuée à `lastModifiedByType`/`lastModifiedByName`
    du schéma actuel (`UNKNOWN`/"Auteur inconnu" si jamais enregistré —
    jamais deviné). Une sauvegarde identique au contenu déjà en base ne crée
-   aucune copie.
+   aucune copie. **Regroupement (16/10/2026)** : l'autosave de l'éditeur
+   part ~1 s après chaque modification, ce qui produisait une version
+   toutes les quelques secondes. L'instantané n'est désormais créé que si
+   aucune version n'existe, si l'auteur change (client ↔ admin), ou si la
+   dernière version date d'au moins 10 minutes
+   (`shouldSnapshotReplacedState`, `VERSION_SNAPSHOT_WINDOW_MS`). Les
+   versions manuelles et `restore` ne sont pas concernées.
 3. Écrire le nouvel état via une mise à jour conditionnée sur
    `updatedAt` (lu à l'étape 1) — `updateMany` avec ce filtre, jamais une
    lecture puis écriture séparées (même garde que celle déjà appliquée à
