@@ -123,9 +123,11 @@ function networkProblem(): SchemaApiProblem {
 
 // Liste les projets du client connecté — null si pas connecté (401),
 // jamais une exception pour ce cas attendu.
-export async function listMyProjects(): Promise<ListProjectsResult> {
+// `listUrl` : compte ciblé (voir resolveProjectAccountScope) — par défaut le
+// client connecté ; un Admin passe la route interne du client choisi.
+export async function listMyProjects(listUrl = "/api/projects"): Promise<ListProjectsResult> {
   try {
-    const res = await fetch("/api/projects", { credentials: "include" });
+    const res = await fetch(listUrl, { credentials: "include" });
     if (!res.ok) {
       return { ok: false, problem: await readSchemaApiProblem(res) };
     }
@@ -141,13 +143,16 @@ export async function listMyProjects(): Promise<ListProjectsResult> {
   }
 }
 
-export async function createProjectApi(input: CreateProjectInput): Promise<CreateProjectResult> {
+export async function createProjectApi(
+  input: CreateProjectInput,
+  target: { createUrl: string; customerId?: string } = { createUrl: "/api/projects" },
+): Promise<CreateProjectResult> {
   try {
-    const res = await fetch("/api/projects", {
+    const res = await fetch(target.createUrl, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
+      body: JSON.stringify(target.customerId ? { ...input, customerId: target.customerId } : input),
     });
 
     if (!res.ok) {

@@ -34,6 +34,7 @@ import { SizingPopup } from "./SizingPopup";
 import { BatteryPairPopup } from "./BatteryPairPopup";
 import { GuidedTutorial } from "./GuidedTutorial";
 import { InstallAssistant } from "./InstallAssistant";
+import { useAdminCustomerSync } from "./useAdminCustomerSync";
 
 const AUTOSAVE_DELAY_MS = 700;
 
@@ -110,6 +111,7 @@ export function Editor() {
   const setIsAdmin = useSchemaStore((s) => s.setIsAdmin);
   const setAccountInitials = useSchemaStore((s) => s.setAccountInitials);
   const setCustomCatalogItems = useSchemaStore((s) => s.setCustomCatalogItems);
+  useAdminCustomerSync();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchParams = useSearchParams();
   const urlProjectId = searchParams.get("projectId");

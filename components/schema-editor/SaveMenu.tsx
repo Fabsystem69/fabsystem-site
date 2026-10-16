@@ -15,6 +15,9 @@ import {
 import type { ProjectAssetType, ProjectVoltage } from "@/lib/generated/prisma/client";
 import { PROJECT_ASSET_TYPE_LABELS, PROJECT_VOLTAGE_LABELS } from "@/lib/project-labels";
 import { buildCloudAssistant, buildCloudStatusMessage } from "@/lib/schema-editor/save-assistant";
+import { resolveProjectAccountScope } from "@/lib/schema-editor/project-account-scope";
+import { useAdminCustomerStore } from "@/features/schemas/store/useAdminCustomerStore";
+import { AdminCustomerBar } from "./AdminCustomerBar";
 import { RibbonButton, RibbonPanel } from "./RibbonControls";
 
 // Retour utilisateur : "supprime cette idée de cloud et mets plutôt
@@ -47,6 +50,9 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
   const [createAssetType, setCreateAssetType] = useState<ProjectAssetType>(DEFAULT_CLOUD_ASSET_TYPE);
   const [createVoltage, setCreateVoltage] = useState<ProjectVoltage>(DEFAULT_CLOUD_VOLTAGE);
   const projectId = useSchemaStore((s) => s.projectId);
+  const isAdmin = useSchemaStore((s) => s.isAdmin);
+  const actingCustomerId = useAdminCustomerStore((s) => s.actingCustomer?.id ?? null);
+  const accountScope = resolveProjectAccountScope({ isAdmin, actingCustomerId });
   const saveStatus = useSchemaStore((s) => s.saveStatus);
   const setProjectId = useSchemaStore((s) => s.setProjectId);
   const projectName = useSchemaStore((s) => s.projectName);
@@ -107,11 +113,20 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
     return "Le projet n'a pas pu être supprimé pour le moment.";
   }
 
-  async function loadProjects() {
+  // `customerIdOverride` : client tout juste choisi dans AdminCustomerBar,
+  // pas encore relu depuis le store au moment de l'appel.
+  async function loadProjects(customerIdOverride?: string) {
+    const scope = resolveProjectAccountScope({ isAdmin, actingCustomerId: customerIdOverride ?? actingCustomerId });
+    setSaveFeedback(null);
+    if (scope.kind === "needs-customer") {
+      setProjects(null);
+      setProjectsProblem(null);
+      setProjectsStatus("idle");
+      return;
+    }
     setProjectsStatus("loading");
     setProjectsProblem(null);
-    setSaveFeedback(null);
-    const result = await listMyProjects();
+    const result = await listMyProjects(scope.listUrl);
     if (result.ok) {
       setProjects(result.projects);
       setProjectsProblem(null);
@@ -130,7 +145,9 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
   async function toggleOpen() {
     const next = !open;
     setOpen(next);
-    if (next && projectsStatus === "idle") await loadProjects();
+    // Rechargé à chaque ouverture : le client courant de l'Admin a pu
+    // changer entre-temps (ouverture d'un autre projet client).
+    if (next) await loadProjects();
   }
 
   async function handleHeaderSave() {
@@ -192,11 +209,17 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
     setCreatePending(true);
     setCreateError(null);
     setSaveFeedback(null);
-    const result = await createProjectApi({
-      name: trimmedName,
-      assetType: createAssetType,
-      voltage: createVoltage,
-    });
+    if (accountScope.kind === "needs-customer") {
+      setCreatePending(false);
+      setCreateError("Choisissez d'abord le client.");
+      return;
+    }
+    const result = await createProjectApi(
+      { name: trimmedName, assetType: createAssetType, voltage: createVoltage },
+      accountScope.kind === "customer"
+        ? { createUrl: accountScope.createUrl, customerId: accountScope.customerId }
+        : { createUrl: accountScope.createUrl },
+    );
     setCreatePending(false);
 
     if (!result.ok) {
@@ -293,12 +316,17 @@ export function SaveMenu({ darkMode, variant = "ribbon" }: { darkMode: boolean; 
       )}
       {open ? (
         <RibbonPanel darkMode={darkMode} width="w-72">
-          {projectId ? (
+          {isAdmin ? (
+            <div className="px-3 pb-1 pt-1.5">
+              <AdminCustomerBar darkMode={darkMode} onChange={(customer) => void loadProjects(customer.id)} />
+            </div>
+          ) : null}
+          {accountScope.kind === "needs-customer" ? null : projectId ? (
             <p className={`px-3 pb-1 pt-1.5 text-xs font-medium ${darkMode ? "text-emerald-400" : "text-emerald-700"}`}>
               Enregistré dans : {linkedProject?.name ?? "projet"}
             </p>
           ) : null}
-          {projectsStatus === "loading" ? (
+          {accountScope.kind === "needs-customer" ? null : projectsStatus === "loading" ? (
             <p className={`px-3 py-2 text-xs ${darkMode ? "text-neutral-400" : "text-neutral-500"}`}>Chargement…</p>
           ) : projectsProblem ? (
             <div className="px-3 py-2">

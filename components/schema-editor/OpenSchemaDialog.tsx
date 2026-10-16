@@ -5,12 +5,20 @@ import Link from "next/link";
 import { useSchemaStore } from "@/features/schemas/store/useSchemaStore";
 import { readPortableSchemaFile } from "@/features/schemas/file-transfer";
 import { fetchProjectSchema, listMyProjects, type ProjectSummary, type SchemaApiProblem } from "@/features/schemas/projectSchemaApi";
+import { useAdminCustomerStore } from "@/features/schemas/store/useAdminCustomerStore";
+import { resolveProjectAccountScope } from "@/lib/schema-editor/project-account-scope";
+import { AdminCustomerBar } from "./AdminCustomerBar";
 
 /** Ouvre un schéma sauvegardé ou un fichier local depuis une seule fenêtre. */
 export function OpenSchemaDialog({ onClose, onNew, onTemplates }: { onClose: () => void; onNew: () => void; onTemplates: () => void }) {
   const darkMode = useSchemaStore((s) => s.darkMode);
   const nodes = useSchemaStore((s) => s.nodes);
   const hydrate = useSchemaStore((s) => s.hydrate);
+  const projectId = useSchemaStore((s) => s.projectId);
+  const isAdmin = useSchemaStore((s) => s.isAdmin);
+  const actingCustomerId = useAdminCustomerStore((s) => s.actingCustomer?.id ?? null);
+  const needsCustomer = resolveProjectAccountScope({ isAdmin, actingCustomerId }).kind === "needs-customer";
+  const lastKnownSchemaUpdatedAt = useSchemaStore((s) => s.lastKnownSchemaUpdatedAt);
   const setProjectId = useSchemaStore((s) => s.setProjectId);
   const setSaveAssistant = useSchemaStore((s) => s.setSaveAssistant);
   const setSaveStatus = useSchemaStore((s) => s.setSaveStatus);
@@ -21,9 +29,18 @@ export function OpenSchemaDialog({ onClose, onNew, onTemplates }: { onClose: () 
   const [query, setQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function loadProjects() {
+  // Admin : projets du client choisi ("comme si j'étais sur son compte"),
+  // jamais ceux de sa propre session client éventuelle.
+  async function loadProjects(customerIdOverride?: string) {
+    const scope = resolveProjectAccountScope({ isAdmin, actingCustomerId: customerIdOverride ?? actingCustomerId });
+    if (scope.kind === "needs-customer") {
+      setProjects([]);
+      setProblem(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    const result = await listMyProjects();
+    const result = await listMyProjects(scope.listUrl);
     if (result.ok) {
       setProjects(result.projects);
       setProblem(null);
@@ -73,6 +90,18 @@ export function OpenSchemaDialog({ onClose, onNew, onTemplates }: { onClose: () 
       setSaveStatus("error", { scope: "local", message: result.message });
       return;
     }
+    // Retour utilisateur : "je charge mon schéma local pour le coller à un
+    // client, ça me remet sur mon compte" — si un projet est ouvert (ex. :
+    // projet créé depuis la fiche client puis ouvert dans l'éditeur), le
+    // fichier importé REMPLACE son contenu et reste enregistré dans ce
+    // projet, au lieu de détacher l'éditeur vers le mode local.
+    if (projectId) {
+      if (!window.confirm(`Remplacer le contenu du projet ouvert par « ${file.name} » ? Le schéma importé sera enregistré dans ce projet.`)) return;
+      hydrate({ ...result.schema, updatedAt: lastKnownSchemaUpdatedAt });
+      setSaveAssistant(null);
+      onClose();
+      return;
+    }
     if (nodes.some((node) => node.type !== "zone") && !window.confirm(`Importer « ${file.name} » à la place du schéma actuel ?`)) return;
     hydrate(result.schema);
     setProjectId(null);
@@ -106,13 +135,18 @@ export function OpenSchemaDialog({ onClose, onNew, onTemplates }: { onClose: () 
         </div>
 
         <main className="min-h-0 flex-1 overflow-y-auto p-5">
+          {isAdmin ? (
+            <div className="mb-4">
+              <AdminCustomerBar darkMode={darkMode} onChange={(customer) => void loadProjects(customer.id)} />
+            </div>
+          ) : null}
           {loading ? <p className={darkMode ? "text-neutral-400" : "text-slate-500"}>Chargement des schémas sauvegardés…</p> : null}
           {problem ? (
             <div className={`rounded-xl border p-4 text-sm ${darkMode ? "border-amber-500/40 bg-amber-500/10 text-amber-100" : "border-amber-200 bg-amber-50 text-amber-900"}`}>
               {problem.code === "AUTH_REQUIRED" || problem.code === "ACCESS_DENIED" ? <><p>Connectez-vous pour ouvrir vos schémas sauvegardés.</p><Link href="/connexion-client" className="mt-2 inline-block font-semibold underline">Se connecter</Link></> : <><p>Impossible de charger les schémas pour le moment.</p><button type="button" onClick={() => void loadProjects()} className="mt-2 font-semibold underline">Réessayer</button></>}
             </div>
           ) : null}
-          {!loading && !problem && filteredProjects.length === 0 ? <div className={`flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed text-center ${darkMode ? "border-neutral-700 text-neutral-400" : "border-slate-300 text-slate-500"}`}><span className="text-4xl">▤</span><p className="mt-3 font-semibold">Aucun schéma sauvegardé</p><p className="mt-1 text-sm">Créez un schéma, chargez un modèle ou importez un fichier.</p></div> : null}
+          {!loading && !problem && !needsCustomer && filteredProjects.length === 0 ? <div className={`flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed text-center ${darkMode ? "border-neutral-700 text-neutral-400" : "border-slate-300 text-slate-500"}`}><span className="text-4xl">▤</span><p className="mt-3 font-semibold">Aucun schéma sauvegardé</p><p className="mt-1 text-sm">Créez un schéma, chargez un modèle ou importez un fichier.</p></div> : null}
           {!loading && !problem && filteredProjects.length > 0 ? <div className="grid gap-2 sm:grid-cols-2">{filteredProjects.map((project) => <button key={project.id} type="button" onClick={() => void openProject(project)} disabled={openingId !== null} className={`rounded-xl border p-4 text-left transition-base disabled:opacity-50 ${darkMode ? "border-neutral-700 bg-neutral-950 hover:border-brand-500 hover:bg-neutral-800" : "border-slate-200 hover:border-brand-500 hover:bg-brand-50"}`}><span className="block text-sm font-semibold">{project.name}</span><span className={`mt-1 block text-xs ${darkMode ? "text-neutral-500" : "text-slate-500"}`}>{openingId === project.id ? "Ouverture…" : "Ouvrir ce schéma"}</span></button>)}</div> : null}
         </main>
       </div>
