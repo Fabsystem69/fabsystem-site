@@ -123,9 +123,13 @@ const DOC = {
     source: "Manuel Victron SmartShunt, caractéristiques techniques",
     sourceUrl: "https://www.victronenergy.com/media/pg/SmartShunt/en/technical-data.html",
   },
-  bmv: {
-    source: "Fiche technique Victron BMV-700 series",
-    sourceUrl: "https://www.victronenergy.com/upload/documents/Datasheet-BMV-700-series-EN.pdf",
+  bmvDrawing: {
+    source: "Plan coté Victron BMV-7xx (afficheur)",
+    sourceUrl: "https://www.victronenergy.com/upload/documents/BMV-7xx.pdf",
+  },
+  bmvShunt: {
+    source: "Plan coté Victron Shunt 500A/50mV (SHU500050100)",
+    sourceUrl: "https://www.victronenergy.com/upload/documents/Shunt-500A50mV.pdf",
   },
   cyrixCt: {
     source: "Fiche technique Victron Cyrix-ct 120 A / 230 A",
@@ -187,6 +191,8 @@ const DOC = {
 
 const COMPACT_NOTE = "Le manuel donne une valeur commune aux Compact 800, 1200 et 1600 VA.";
 const IP22_NOTE = "Même boîtier pour tous les Blue Smart IP22 (1 sortie).";
+const BMV_DISPLAY_NOTE = "Afficheur encastré : façade 68,7 × 68,7 mm, corps Ø 52 mm, 25,8 mm derrière la façade.";
+const BMV_SHUNT_NOTE = "Shunt 500 A/50 mV : 2 trous Ø 6,5 mm, entraxe 101,8 mm ; boulons M10.";
 
 const PHYSICAL_SPECS: Record<string, PhysicalSpec> = {
   // ─── Phoenix Inverter VE.Direct (valeurs des modèles 12 V) ───────────
@@ -257,9 +263,13 @@ const PHYSICAL_SPECS: Record<string, PhysicalSpec> = {
   // ─── Mesure, couplage, protection ────────────────────────────────────
   "victron-smartshunt-300a": spec([44, 120, 44], DOC.smartShunt),
   "victron-smartshunt-500a": spec([46, 120, 54], DOC.smartShunt),
-  "victron-bmv-712-display": spec([69, 69, 31], DOC.bmv, "Afficheur encastré : façade 69 × 69 mm, corps Ø 52 mm sur 31 mm de profondeur."),
-  "victron-bmv-702-display": spec([69, 69, 31], DOC.bmv, "Afficheur encastré : façade 69 × 69 mm, corps Ø 52 mm sur 31 mm de profondeur."),
-  "victron-bmv-700-display": spec([69, 69, 31], DOC.bmv, "Afficheur encastré : façade 69 × 69 mm, corps Ø 52 mm sur 31 mm de profondeur."),
+  "victron-bmv-712-display": spec([68.7, 68.7, 30.6], DOC.bmvDrawing, BMV_DISPLAY_NOTE),
+  "victron-bmv-702-display": spec([68.7, 68.7, 30.6], DOC.bmvDrawing, BMV_DISPLAY_NOTE),
+  "victron-bmv-700-display": spec([68.7, 68.7, 30.6], DOC.bmvDrawing, BMV_DISPLAY_NOTE),
+  // Shunt livré avec les BMV-7xx (fiche BMV : « Shunt (included) 500A / 50mV »).
+  "victron-bmv-712": spec([25.6, 121, 35], DOC.bmvShunt, BMV_SHUNT_NOTE),
+  "victron-bmv-702": spec([25.6, 121, 35], DOC.bmvShunt, BMV_SHUNT_NOTE),
+  "victron-bmv-700": spec([25.6, 121, 35], DOC.bmvShunt, BMV_SHUNT_NOTE),
   "victron-cyrix-ct-120a": spec([46, 46, 80, 0.11], DOC.cyrixCt),
   "victron-cyrix-ct-230a": spec([65, 100, 50, 0.27], DOC.cyrixCt),
   "victron-cyrix-li-ct-120a": spec([46, 46, 80, 0.11], DOC.cyrixLi),
@@ -280,6 +290,13 @@ const PHYSICAL_SPECS: Record<string, PhysicalSpec> = {
     [37, 126, 43.4],
     { source: "Plan coté Victron Fuse holder for MEGA-fuse (CIP000100001)", sourceUrl: "https://www.victronenergy.com/upload/documents/Fuse-holder-for-MEGA-fuse.pdf" },
     "Longueur pattes de fixation comprises ; entraxe des fixations 108 mm.",
+  ),
+  // Même boîtier que le porte-fusible MEGA (confirmé par FabSystem, 2026-10-17) :
+  // aucun plan Victron publié pour la version ANL.
+  "victron-fuse-holder-anl": spec(
+    [37, 126, 43.4],
+    { source: "Plan coté Victron Fuse holder for MEGA-fuse (même boîtier, confirmé par FabSystem)", sourceUrl: "https://www.victronenergy.com/upload/documents/Fuse-holder-for-MEGA-fuse.pdf" },
+    "Cotes du porte-fusible MEGA, même boîtier ; entraxe des fixations 108 mm.",
   ),
   "victron-fuse-holder-mega-6way": spec(
     [88, 181.5, 50.9],
