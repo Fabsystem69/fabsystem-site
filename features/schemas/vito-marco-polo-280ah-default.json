@@ -878,41 +878,6 @@
       }
     },
     {
-      "id": "vl-e37",
-      "source": "vl-socket-1",
-      "sourceHandle": "earth",
-      "target": "vl-ground",
-      "targetHandle": "ground",
-      "type": "cable",
-      "data": {
-        "color": "#84cc16",
-        "cableType": "earth",
-        "section": "1,5 mm²",
-        "length": 1,
-        "bendPoint": {
-          "x": 2236,
-          "y": -90
-        },
-        "bendPoints": []
-      },
-      "selected": false
-    },
-    {
-      "id": "vl-e38",
-      "source": "vl-socket-2",
-      "sourceHandle": "earth",
-      "target": "vl-ground",
-      "targetHandle": "ground",
-      "type": "cable",
-      "data": {
-        "color": "#84cc16",
-        "cableType": "earth",
-        "section": "2,5 mm²",
-        "length": 1
-      },
-      "selected": false
-    },
-    {
       "id": "edge_msw6yit0_3",
       "source": "vl-dcdc",
       "sourceHandle": "out-positive",

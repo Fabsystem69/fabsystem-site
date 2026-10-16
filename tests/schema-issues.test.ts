@@ -355,8 +355,11 @@ test("un DC-DC 30A générique protégé par un fusible 40A respecte la marge g�
 
 test("un Victron Orion-Tr Smart 30A exige 60A (calibre constructeur), pas seulement la marge générique de 40A", () => {
   const { nodes, edges } = createDcdcFuseFixture(40, { brandModelId: "victron-orion-tr-30a" });
-  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id === "fuse-undersized");
+  // Depuis les préconisations constructeur (manufacturer-checks.ts), c'est
+  // l'alerte "manufacturer" qui porte ce cas, avec la valeur du manuel.
+  const issue = computeSchemaIssues(nodes, edges).find((candidate) => candidate.id.startsWith("fuse-manufacturer-fuse-"));
   assert.ok(issue, "40A satisfait la marge générique mais pas le calibre constructeur (60A)");
+  assert.match(issue.message, /60 A/);
 });
 
 test("un Victron Orion-Tr Smart 30A avec un fusible 60A n'est signalé ni sous-calibré ni surdimensionné", () => {

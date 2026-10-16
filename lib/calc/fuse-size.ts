@@ -26,11 +26,9 @@ export const FUSE_FORMAT_DESCRIPTIONS: Record<FuseFormat, string> = {
   "classe-t": "Pouvoir de coupure élevé, indispensable près d'une grosse banque de batteries ou d'un onduleur.",
 };
 
-// Calibres réels au-delà du catalogue "petits circuits" de section-cable.ts
-// (MEGA/ANL/Classe T courent jusqu'à 400A+ sur un circuit batterie
-// principale/onduleur).
-const HIGH_CURRENT_FUSES_A = [150, 175, 200, 225, 250, 300, 350, 400];
-const ALL_FUSE_STEPS_A = [...AVAILABLE_FUSES_A, ...HIGH_CURRENT_FUSES_A];
+// Calibres forte intensité (MEGA/ANL/Classe T) désormais inclus dans le
+// catalogue commun de section-cable.ts.
+const ALL_FUSE_STEPS_A = AVAILABLE_FUSES_A;
 
 /** Marge de sécurité (tolérances fabricant, mesure imprécise…) appliquée même sur un circuit non continu. */
 const NON_CONTINUOUS_MARGIN = 1.1;

@@ -1,6 +1,7 @@
 import { getComponentDefinition, getEffectiveHandles } from "./definitions";
-import { estimateConnectedAmps, evaluateAcEdgeSection, evaluateEdgeSection, isPowerCableType, parseSectionMm2 } from "./auto-size";
-import { getBrandModel } from "./brand-models";
+import { estimateConnectedAmps, evaluateAcEdgeSection, evaluateEdgeSection, getBrandFuseFloorA, getEdgeParallelRuns, isPowerCableType, parseSectionMm2 } from "./auto-size";
+import { getManufacturerFuseCeilingA, getManufacturerSpec } from "./manufacturer-specs";
+import { computeManufacturerIssues } from "./manufacturer-checks";
 import { findWireRowByMm2, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
 import { CONTINUOUS_LOAD_MARGIN } from "@/lib/calc/section-cable";
 import type { ElectricalNodeData, CableEdgeData, HandleKind } from "@/types/schema";
@@ -413,8 +414,11 @@ function computeOversizedProtectionIssues(nodes: SchemaNodeInternal[], edges: Sc
     // Orion-Tr Smart : 60A recommandé pour un modèle 30A, voir
     // brand-models.ts `recommendedFuseA`) — jamais signalé "surdimensionné"
     // dans ce cas, même au-delà du ratio générique.
-    const brandModelId = typeof node.data.brandModelId === "string" ? node.data.brandModelId : null;
-    const recommendedFuseA = brandModelId ? Number(getBrandModel(brandModelId)?.defaults.recommendedFuseA) || 0 : 0;
+    // Préconisation de fusible constructeur (manufacturer-specs.ts) : c'est
+    // computeManufacturerIssues qui juge le calibre, avec la valeur du
+    // manuel — pas de second avertissement générique contradictoire.
+    if (getManufacturerFuseCeilingA(getManufacturerSpec(node.data.brandModelId)) > 0) continue;
+    const recommendedFuseA = getBrandFuseFloorA(node);
     const oversizeThreshold = Math.max(sourceAmps * PROTECTION_OVERSIZE_RATIO, recommendedFuseA);
 
     const protections = findNearestProtections(node.id, outputHandle, nodes, edges);
@@ -477,9 +481,9 @@ function computeUndersizedProtectionIssues(nodes: SchemaNodeInternal[], edges: S
           if (!getSourceAmps) return 0;
           const rawAmps = getSourceAmps(node.data);
           if (rawAmps <= 0) return 0;
-          const brandModelId = typeof node.data.brandModelId === "string" ? node.data.brandModelId : null;
-          const recommendedFuseA = brandModelId ? Number(getBrandModel(brandModelId)?.defaults.recommendedFuseA) || 0 : 0;
-          return Math.max(rawAmps * CONTINUOUS_LOAD_MARGIN, recommendedFuseA);
+          // Préconisation constructeur : jugée par computeManufacturerIssues.
+          if (getManufacturerFuseCeilingA(getManufacturerSpec(node.data.brandModelId)) > 0) return 0;
+          return Math.max(rawAmps * CONTINUOUS_LOAD_MARGIN, getBrandFuseFloorA(node));
         }),
     );
     const expectedAmps = Math.max(downstreamAmps, adjacentSourceAmps);
@@ -533,14 +537,17 @@ function computeProtectionExceedsCableAmpacityIssues(
       const wireRow = findWireRowByMm2(sectionMm2);
       if (!wireRow) continue;
 
-      const cableAmpacityA = getDeratedAmpacity(wireRow, "pvc", 30, "single");
+      // Câbles doublés ("Conducteurs" > 1, ex. Victron MultiPlus 12/3000 :
+      // 2 × 50 mm² sous 400 A) : l'ampacité s'additionne.
+      const conductors = getEdgeParallelRuns(edge);
+      const cableAmpacityA = getDeratedAmpacity(wireRow, "pvc", 30, "single") * conductors;
       if (rating <= cableAmpacityA) continue;
 
       issues.push({
         id: `${protectionNode.id}-${edge.id}-exceeds-cable-ampacity`,
         targetKind: "node",
         targetId: protectionNode.id,
-        message: `« ${label} » (${formatAmps(rating)} A) dépasse l'ampacité de ${getEdgeLabel(edge, nodes)} (${sectionMm2} mm² ≈ ${formatAmps(cableAmpacityA)} A max) : ce fusible ne coupera jamais avant que ce câble ne surchauffe. Réduisez le calibre de la protection ou augmentez la section du câble.`,
+        message: `« ${label} » (${formatAmps(rating)} A) dépasse l'ampacité de ${getEdgeLabel(edge, nodes)} (${conductors > 1 ? `${conductors} × ` : ""}${sectionMm2} mm² ≈ ${formatAmps(cableAmpacityA)} A max) : ce fusible ne coupera jamais avant que ce câble ne surchauffe. Réduisez le calibre de la protection ou augmentez la section du câble.`,
       });
     }
   }
@@ -1015,6 +1022,11 @@ function computeCableSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdge
 // un blocage (CDC §37). Un composant déjà signalé isolé n'est pas
 // re-signalé côté électrique : le vrai problème à corriger d'abord, c'est
 // qu'il n'est relié à rien.
+// Retour utilisateur (10/2026) : "on laisse naturellement une ou deux voies
+// libres sur les busbars pour les évolutions" — des bornes libres sur un
+// busbar ne sont pas un oubli (un busbar relié à rien reste signalé).
+const FREE_STUDS_ALLOWED_TYPES = new Set(["busbar"]);
+
 export function computeSchemaIssues(
   nodes: Node<ElectricalNodeData>[],
   edges: Edge<CableEdgeData>[],
@@ -1046,7 +1058,7 @@ export function computeSchemaIssues(
     } else if (handles.length === 2 && connectedCount === 1) {
       structurallyBlockedNodeIds.add(node.id);
       issues.push({ id: `${node.id}-partial`, targetKind: "node", targetId: node.id, message: `« ${label} » n'a qu'une seule borne reliée.` });
-    } else if (handles.length > 2 && connectedCount < handles.length) {
+    } else if (handles.length > 2 && connectedCount < handles.length && !FREE_STUDS_ALLOWED_TYPES.has(node.data.componentType)) {
       // Bug corrigé (retour utilisateur : "le dcdc avait sa sortie masse non
       // branché et zéro alerte") — cette règle ne portait que sur les
       // composants à exactement 2 bornes, donc un DC-DC (IN+/GND/OUT+, 3
@@ -1091,6 +1103,11 @@ export function computeSchemaIssues(
   );
   const solarDirectToBatteryIssues = computeSolarDirectToBatteryIssues(nodes, edges);
   const missingDifferentialIssues = computeMissingDifferentialIssues(nodes).filter((issue) => !structurallyBlockedNodeIds.has(issue.targetId));
+  const manufacturerIssues = computeManufacturerIssues(nodes, edges, findNearestProtections).filter((issue) => {
+    if (issue.targetKind === "node") return !structurallyBlockedNodeIds.has(issue.targetId);
+    const edge = edges.find((candidate) => candidate.id === issue.targetId);
+    return Boolean(edge) && !structurallyBlockedNodeIds.has(edge!.source) && !structurallyBlockedNodeIds.has(edge!.target);
+  });
 
   const result = [
     ...classifyIssues(issues, { severity: "warning", category: "topology" }),
@@ -1108,6 +1125,7 @@ export function computeSchemaIssues(
     ...classifyIssues(protectionExceedsCableAmpacityIssues, { severity: "error", category: "protection" }),
     ...classifyIssues(solarDirectToBatteryIssues, { severity: "error", category: "solar" }),
     ...classifyIssues(missingDifferentialIssues, { severity: "error", category: "ac-safety" }),
+    ...manufacturerIssues,
   ];
   cachedNodes = nodes;
   cachedEdges = edges;

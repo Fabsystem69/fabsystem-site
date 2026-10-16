@@ -1476,20 +1476,6 @@
       }
     },
     {
-      "id": "edge_mst20fmn_11",
-      "source": "socket-220v_mst1zy3g_6",
-      "sourceHandle": "earth",
-      "target": "ground_mst20cj7_10",
-      "targetHandle": "ground",
-      "type": "cable",
-      "data": {
-        "color": "#84cc16",
-        "cableType": "earth",
-        "section": "1,5 mm²",
-        "length": 0.5
-      }
-    },
-    {
       "id": "edge_mtev7yvo_5",
       "source": "shore-power_mst20n4n_13",
       "sourceHandle": "earth",

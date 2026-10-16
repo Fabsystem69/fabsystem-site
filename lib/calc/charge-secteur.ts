@@ -4,7 +4,7 @@
 // côté secteur 230V et compare au calibre de la borne disponible
 // (camping, port de plaisance).
 
-import { AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
+import { AVAILABLE_FUSES_A, FUSE_BEYOND_CATALOGUE_LABEL } from "@/lib/calc/section-cable";
 
 export type ChargeChemistry = "agm-gel" | "lithium";
 
@@ -61,7 +61,7 @@ export function computeChargeSecteur(
     mainsCurrentA,
     fitsAvailable,
     maxChargeCurrentForAvailableA,
-    dcFuseA: dcFuse ? `${dcFuse} A` : "> 125 A — prévoir un disjoncteur",
+    dcFuseA: dcFuse ? `${dcFuse} A` : FUSE_BEYOND_CATALOGUE_LABEL,
   };
 }
 

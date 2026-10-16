@@ -5,6 +5,14 @@ import { INVERTER_EFFICIENCY } from "@/lib/calc/inverter-size";
 import { CHARGER_EFFICIENCY, MAINS_VOLTAGE_V } from "@/lib/calc/charge-secteur";
 import { getEdgeDefaultLength } from "@/lib/electrical-components/cable-lengths";
 import { getBrandModel } from "@/lib/electrical-components/brand-models";
+import {
+  BATTERY_SIDE_HANDLES,
+  bandTotalSectionMm2,
+  findCableBand,
+  getManufacturerFuseFloorA,
+  getManufacturerSpec,
+  type ManufacturerSpec,
+} from "@/lib/electrical-components/manufacturer-specs";
 
 // Correctif sécurité (retour client : incohérences dangereuses relevées sur
 // des sections de câble, notamment DC-DC et MultiPlus) : `calcSection` ne
@@ -97,7 +105,54 @@ export function parseSectionMm2(section: string | undefined): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
-function getEdgeSizingLength(edge: SchemaEdge, nodes: SchemaNode[]): number {
+/** Nombre de conducteurs en parallèle par polarité (champ "Conducteurs" du panneau câble). */
+export function getEdgeParallelRuns(edge: SchemaEdge): number {
+  const runs = Math.floor(Number(edge.data?.parallelRuns) || 1);
+  return runs >= 1 ? runs : 1;
+}
+
+/** Calibre de fusible plancher imposé par un modèle de marque : préconisation
+ * constructeur (manufacturer-specs.ts) ou `recommendedFuseA` historique. */
+export function getBrandFuseFloorA(node: SchemaNode | undefined): number {
+  const brandModelId = node?.data.brandModelId;
+  if (typeof brandModelId !== "string") return 0;
+  const legacy = Number(getBrandModel(brandModelId)?.defaults.recommendedFuseA) || 0;
+  return Math.max(getManufacturerFuseFloorA(getManufacturerSpec(brandModelId)), legacy);
+}
+
+/** Appareil à préconisation constructeur raccordé à ce câble par une de ses
+ * bornes DC côté batterie (voir BATTERY_SIDE_HANDLES). */
+export function findManufacturerDeviceForEdge(
+  edge: SchemaEdge,
+  nodes: SchemaNode[],
+): { node: SchemaNode; spec: ManufacturerSpec; handle: string } | null {
+  for (const [nodeId, handle] of [
+    [edge.source, edge.sourceHandle],
+    [edge.target, edge.targetHandle],
+  ] as const) {
+    const node = nodes.find((n) => n.id === nodeId);
+    const spec = getManufacturerSpec(node?.data.brandModelId);
+    if (!node || !spec || !handle) continue;
+    const handleGroups = BATTERY_SIDE_HANDLES[node.data.componentType] ?? [];
+    if (handleGroups.some((group) => group.includes(handle))) return { node, spec, handle };
+  }
+  return null;
+}
+
+// Section par conducteur exigée par le constructeur pour ce câble (0 si aucune
+// préconisation ne s'applique) — plancher du dimensionnement automatique,
+// jamais un plafond : le moteur garde sa propre valeur si elle est plus grande.
+function getManufacturerSectionFloorMm2(edge: SchemaEdge, nodes: SchemaNode[], lengthM: number): number {
+  const device = findManufacturerDeviceForEdge(edge, nodes);
+  if (!device) return 0;
+  const band = findCableBand(device.spec, lengthM);
+  const total = band ? bandTotalSectionMm2(band) : null;
+  if (!total) return 0;
+  const perConductor = total / getEdgeParallelRuns(edge);
+  return AVAILABLE_SECTIONS_MM2.find((s) => s >= perConductor) ?? AVAILABLE_SECTIONS_MM2[AVAILABLE_SECTIONS_MM2.length - 1];
+}
+
+export function getEdgeSizingLength(edge: SchemaEdge, nodes: SchemaNode[]): number {
   const sourceType = nodes.find((n) => n.id === edge.source)?.data.componentType;
   const targetType = nodes.find((n) => n.id === edge.target)?.data.componentType;
   return edge.data?.length ?? getEdgeDefaultLength(sourceType, targetType, edge.data?.section ?? "", edge.data?.cableType) ?? 4;
@@ -471,8 +526,10 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
   // calcSectionSafe : chute de tension sur le courant réel (non margé,
   // même convention que lib/calc/wire-size.ts), ampacité sur le courant de
   // dimensionnement (×1,25, circuit continu) — la plus grande des deux,
-  // jamais la chute de tension seule.
-  const { section } = calcSectionSafe(amps, length, DC_MAX_VOLTAGE_DROP_PCT, voltage);
+  // jamais la chute de tension seule. Câbles doublés : chaque conducteur
+  // porte sa part du courant (résistance et échauffement divisés d'autant).
+  const engineSection = calcSectionSafe(amps / getEdgeParallelRuns(edge), length, DC_MAX_VOLTAGE_DROP_PCT, voltage).section;
+  const section = Math.max(engineSection, getManufacturerSectionFloorMm2(edge, nodes, length));
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
   const ampsSource: EdgeSectionDiagnostic["ampsSource"] =
@@ -714,7 +771,6 @@ export function recalculateFuseRatings(
   const nextNodes = nodes.map((node) => {
     if (node.data.componentType !== "fuse" && node.data.componentType !== "circuit-breaker") return node;
     const amps = estimateConnectedAmps(node.id, nodes, edges);
-    if (amps === null) return node;
     // Un modèle de marque vérifié peut imposer un calibre officiel
     // supérieur à la marge générique (ex. Victron Orion-Tr Smart : 60A
     // recommandé pour un modèle 30A — voir brand-models.ts
@@ -725,12 +781,13 @@ export function recalculateFuseRatings(
       ...edges
         .filter((edge) => edge.source === node.id || edge.target === node.id)
         .map((edge) => nodes.find((n) => n.id === (edge.source === node.id ? edge.target : edge.source)))
-        .map((adjacentNode) => {
-          const brandModelId = typeof adjacentNode?.data.brandModelId === "string" ? adjacentNode.data.brandModelId : null;
-          return brandModelId ? Number(getBrandModel(brandModelId)?.defaults.recommendedFuseA) || 0 : 0;
-        }),
+        .map((adjacentNode) => getBrandFuseFloorA(adjacentNode)),
     );
-    let rating = AVAILABLE_FUSES_A.find((f) => f >= Math.max(amps * 1.25, recommendedFuseA));
+    // Un fusible qui alimente un onduleur/MultiPlus n'a pas de courant aval
+    // estimable (pas de consommateur DC derrière) : la préconisation
+    // constructeur suffit alors à fixer le calibre.
+    if (amps === null && recommendedFuseA <= 0) return node;
+    let rating = AVAILABLE_FUSES_A.find((f) => f >= Math.max((amps ?? 0) * 1.25, recommendedFuseA));
     if (!rating) return node;
     const currentRating = Number(node.data.amperage) || 0;
     if (currentRating > 0 && rating < currentRating) {

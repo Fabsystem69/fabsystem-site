@@ -37,8 +37,20 @@ export const AVAILABLE_SECTIONS_MM2 = [0.5, 0.75, 1, 1.5, 2.5, 4, 6, 10, 16, 25,
 /**
  * Catalogue de référence utilisé par les suggestions. Les paliers courants
  * restent de 5 A en 5 A, avec 2 A conservé pour les très petits circuits.
+ * Au-delà de 125 A : calibres forte intensité réels (MEGA/ANL/Classe T),
+ * nécessaires aux onduleurs et MultiPlus (Victron MultiPlus 12/3000 :
+ * 400 A préconisés) — bug corrigé : le catalogue s'arrêtait à 125 A et le
+ * recalcul des protections ne proposait alors rien, sans message.
  */
-export const AVAILABLE_FUSES_A = [2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125];
+export const AVAILABLE_FUSES_A = [
+  2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125,
+  150, 175, 200, 225, 250, 300, 350, 400, 500,
+];
+
+const MAX_FUSE_A = AVAILABLE_FUSES_A[AVAILABLE_FUSES_A.length - 1];
+
+/** Libellé affiché quand le courant dépasse le plus gros calibre du catalogue. */
+export const FUSE_BEYOND_CATALOGUE_LABEL = `> ${MAX_FUSE_A} A — prévoir un disjoncteur`;
 
 export type SectionCableResult = {
   /** Section minimale calculée (mm²), non normalisée — valeur brute. */
@@ -118,5 +130,5 @@ export function calcSectionSafe(
  */
 export function fusibleRecommande(intensiteA: number): string {
   const f = AVAILABLE_FUSES_A.find((fuse) => fuse >= intensiteA * 1.25);
-  return f ? `${f} A` : "> 125 A — prévoir un disjoncteur";
+  return f ? `${f} A` : FUSE_BEYOND_CATALOGUE_LABEL;
 }

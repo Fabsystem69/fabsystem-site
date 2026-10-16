@@ -395,7 +395,6 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     // galvanique avant de rejoindre le point de masse commun, les terres
     // internes (tableau, prise) le rejoignent directement (bonding normal).
     buildEdge("qt-e4", "qt-ac-panel", "earth", "qt-ground", "ground", LIME, "earth", "1,5 mm²", 1),
-    buildEdge("qt-e5", "qt-socket", "earth", "qt-ground", "ground", LIME, "earth", "1,5 mm²", 1),
     buildEdge("qt-e26", "qt-shore", "earth", "qt-galvanic-isolator", "earth-in", LIME, "earth", "2,5 mm²", 2),
     buildEdge("qt-e27", "qt-galvanic-isolator", "earth-out", "qt-ground", "ground", LIME, "earth", "2,5 mm²", 1),
 
@@ -511,7 +510,6 @@ export function buildPowerStationTemplate(): { projectName: string; nodes: Schem
     buildEdge("ps-e4", "ps-station", "ac-out", "ps-ac-panel", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("ps-e5", "ps-ac-panel", "ac-out", "ps-socket", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("ps-e6", "ps-ac-panel", "earth", "ps-ground", "ground", LIME, "earth", "1,5 mm²", 1),
-    buildEdge("ps-e7", "ps-socket", "earth", "ps-ground", "ground", LIME, "earth", "1,5 mm²", 1),
 
     // Station → fusible → tableau de distribution (circuit 12V)
     buildEdge("ps-e8", "ps-station", "dc-positive", "ps-fuse-dc", "input", RED, "power-positive", "6 mm²", 1),
@@ -756,8 +754,6 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
     buildEdge("vl-e34", "vl-ac-panel", "ac-out", "vl-socket-1", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2, { x: 2360, y: -220 }),
     buildEdge("vl-e35", "vl-ac-panel", "ac-out", "vl-socket-2", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("vl-e36", "vl-ac-panel", "earth", "vl-ground", "ground", LIME, "earth", "1,5 mm²", 1),
-    buildEdge("vl-e37", "vl-socket-1", "earth", "vl-ground", "ground", LIME, "earth", "1,5 mm²", 1, { x: 2236, y: -90 }),
-    buildEdge("vl-e38", "vl-socket-2", "earth", "vl-ground", "ground", LIME, "earth", "1,5 mm²", 1),
     buildEdge("edge_msw6spxz_1", "vl-busbar-pos", "out-3", "vl-multiplus-breaker", "input", RED, "power-positive", "35 mm²", 1, { x: 1435.5, y: 130 }),
     buildEdge("edge_msw6yit0_3", "vl-dcdc", "out-positive", "fuse_msw6xsvo_2", "input", RED, "power-positive", "16 mm²", 1),
     buildEdge("edge_msw6ythr_4", "fuse_msw6xsvo_2", "output", "vl-service-battery", "positive", RED, "power-positive", "16 mm²", 1, { x: 840, y: 420 }),
@@ -907,8 +903,6 @@ export function buildAferiyP280Template(): { projectName: string; nodes: SchemaN
     buildEdge("af-e24", "af-ac-panel", "ac-out", "af-socket-1", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("af-e25", "af-ac-panel", "ac-out", "af-socket-2", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("af-e26", "af-ac-panel", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
-    buildEdge("af-e27", "af-socket-1", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
-    buildEdge("af-e28", "af-socket-2", "earth", "af-ground", "ground", LIME, "earth", "1,5 mm²", 1),
     buildEdge("edge_msvzcvid_2", "shore-power_msvzcqef_1", "ac", "af-station", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("edge_mtet2tyr_2", "af-panel", "out-3", "af-frigo", "positive", RED, "power-positive", "2,5 mm²", 3),
     buildEdge("edge_mtet3gj9_3", "af-panel", "out-1", "af-pompe", "positive", RED, "power-positive", "1,5 mm²", 3),
@@ -1090,8 +1084,6 @@ export function buildPremiumBoatTemplate(): { projectName: string; nodes: Schema
     buildEdge("pb-e26", "pb-ac-panel", "ac-out", "pb-socket-1", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 3),
     buildEdge("pb-e27", "pb-ac-panel", "ac-out", "pb-socket-2", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm²", 2),
     buildEdge("pb-e28", "pb-ac-panel", "earth", "pb-ground", "ground", LIME, "earth", "1,5 mm²", 1),
-    buildEdge("pb-e29", "pb-socket-1", "earth", "pb-ground", "ground", LIME, "earth", "1,5 mm²", 2),
-    buildEdge("pb-e30", "pb-socket-2", "earth", "pb-ground", "ground", LIME, "earth", "1,5 mm²", 1),
 
     // MultiPlus (DC) : tap dédié Classe T directement sur le bus Lynx,
     // en parallèle du Distributor (calibre trop élevé pour une sortie MEGA)

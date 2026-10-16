@@ -278,7 +278,6 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
 
     // Les fils de terre (tableau, prise) → caisse
     buildEdge("edge_mst20hpo_12", "ac-panel_mst2019n_7", "earth", "ground_mst20cj7_10", "ground", LIME, "earth", "1,5 mm²", 0.5),
-    buildEdge("edge_mst20fmn_11", "socket-220v_mst1zy3g_6", "earth", "ground_mst20cj7_10", "ground", LIME, "earth", "1,5 mm²", 0.5),
   ];
 
   const busbarUpdates = new Map(

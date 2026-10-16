@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calcSection, calcSectionSafe, pickSectionForAmpacity, fusibleRecommande } from "@/lib/calc/section-cable";
+import { calcSection, calcSectionSafe, pickSectionForAmpacity, fusibleRecommande, AVAILABLE_FUSES_A } from "@/lib/calc/section-cable";
 
 // Cas de référence croisé avec lib/engines/cable-engine.ts (même formule,
 // voir tests/cable-engine.test.ts "un seul circuit") : 5 A, 3 m aller
@@ -42,8 +42,20 @@ test("fusibleRecommande : cas limite exact sur un calibre du catalogue", () => {
   assert.equal(fusibleRecommande(8), "10 A");
 });
 
+// Bug : le catalogue s'arrêtait à 125 A, donc aucun calibre pour un
+// onduleur/MultiPlus (Victron MultiPlus 12/3000 : 400 A préconisés) — le
+// recalcul des protections ne faisait alors rien, sans message.
+test("fusibleRecommande : calibres forte intensité (MEGA/ANL/Classe T) jusqu'à 500 A", () => {
+  assert.equal(fusibleRecommande(150), "200 A");
+  assert.equal(fusibleRecommande(320), "400 A");
+});
+
 test("fusibleRecommande : au-delà du catalogue, recommande un disjoncteur", () => {
-  assert.equal(fusibleRecommande(150), "> 125 A — prévoir un disjoncteur");
+  assert.equal(fusibleRecommande(450), "> 500 A — prévoir un disjoncteur");
+});
+
+test("AVAILABLE_FUSES_A contient les calibres Victron des onduleurs 12 V", () => {
+  for (const rating of [150, 200, 250, 300, 400]) assert.ok(AVAILABLE_FUSES_A.includes(rating), `${rating} A manquant`);
 });
 
 // Correctif sécurité : calcSection seule ne vérifie que la chute de

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { dropRemovedHandleEdges } from "@/lib/schema-editor/removed-handles";
 import {
   applyNodeChanges,
   applyEdgeChanges,
@@ -1527,7 +1528,7 @@ export const useSchemaStore = create<SchemaState>((set) => ({
     set({
       projectName: snapshot.projectName,
       nodes: snapshot.nodes,
-      edges: snapshot.edges,
+      edges: dropRemovedHandleEdges(snapshot.nodes, snapshot.edges),
       // Toujours réécrit explicitement (jamais "garder l'ancienne valeur") :
       // un hydrate() sans updatedAt connu (brouillon local, gabarit, projet
       // cloud jamais encore enregistré) doit remettre à `null`, sinon changer

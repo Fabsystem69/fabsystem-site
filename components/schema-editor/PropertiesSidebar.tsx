@@ -10,6 +10,7 @@ import { CABLE_SECTIONS } from "@/types/schema";
 import { CABLE_TYPES, getCableType } from "@/lib/electrical-components/cable-types";
 import { getAwgEquivalent } from "@/lib/electrical-components/section-to-awg";
 import { SupplierBadge } from "./SupplierBadge";
+import { ManufacturerSpecCard } from "./ManufacturerSpecCard";
 
 type PanelTab = "properties" | "ports" | "protection" | "fuses" | "display";
 type PortSide = ComponentHandleDef["side"];
@@ -319,6 +320,7 @@ export function PropertiesSidebar() {
         <div className={`mt-5 grid border-b ${darkMode ? "border-neutral-800" : "border-slate-200"}`} style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>{tabs.map((item) => <button key={item.id} type="button" onClick={() => setTab(item.id)} className={`border-b-2 px-1 py-3 text-xs font-semibold transition-base ${tab === item.id ? "border-amber-500 text-amber-600" : "border-transparent text-slate-500 hover:text-slate-900"}`}><span className="mb-1 block text-base">{item.icon}</span>{item.label}</button>)}</div>
 
         {tab === "properties" ? <div className="space-y-4 pt-5">
+          {node && !isZone ? <ManufacturerSpecCard brandModelId={node.data.brandModelId} darkMode={darkMode} /> : null}
           {node ? <label className="block"><span className={`mb-1.5 block text-sm ${darkMode ? "text-neutral-300" : "text-slate-600"}`}>Libellé</span><input className={inputClass(darkMode)} value={String(node.data.label ?? "")} onChange={(event) => updateNodeData(node.id, { label: event.target.value })} /></label> : null}
           {node && !isZone && definition?.fields.filter((field) => field.key !== "label").map((field) => <label key={field.key} className="grid grid-cols-[minmax(0,1fr)_9.5rem] items-center gap-3"><span className={`min-w-0 truncate text-sm ${darkMode ? "text-neutral-300" : "text-slate-600"}`} title={field.label}>{field.label}{field.type === "number" && field.unit ? ` (${field.unit})` : ""}</span>{field.type === "select" ? <select className={inputClass(darkMode)} value={String(node.data[field.key] ?? "")} onChange={(event) => handleFieldChange(field.key, event.target.value)}>{field.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : field.type === "number" ? <input className={inputClass(darkMode)} type="number" min={field.min} max={field.max} step={field.step} value={Number(node.data[field.key] ?? 0)} onChange={(event) => handleFieldChange(field.key, Number(event.target.value))} /> : <input className={inputClass(darkMode)} value={String(node.data[field.key] ?? "")} onChange={(event) => handleFieldChange(field.key, event.target.value)} />}</label>)}
           {isZone && node ? <div><span className={`mb-2 block text-sm ${darkMode ? "text-neutral-300" : "text-slate-600"}`}>Couleur</span><div className="flex gap-2">{ZONE_COLORS.map((color) => <button key={color} type="button" onClick={() => updateNodeData(node.id, { color })} className="h-7 w-7 rounded-full border-2" style={{ backgroundColor: color, borderColor: color === node.data.color ? "#f59e0b" : "transparent" }} />)}</div></div> : null}

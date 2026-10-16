@@ -1688,10 +1688,10 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
     subtitle: "Prise secteur",
     icon: "/schema-icons/consumer.svg",
     iconPro: "/schema-icons/pro/family/socket-220v.png",
-    handles: [
-      { id: "ac-in", label: "230V", kind: "neutral", side: "left" },
-      { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
-    ],
+    // Pas de borne terre séparée (retour utilisateur, 10/2026) : une prise
+    // 230 V est tirée en 3G, la terre est déjà dans le câble ac-in. Les
+    // anciens fils de terre sont retirés au chargement (removed-handles.ts).
+    handles: [{ id: "ac-in", label: "230V", kind: "neutral", side: "left" }],
     defaultData: { powerW: 500 },
     fields: [
       { key: "label", label: "Nom", type: "text" },
