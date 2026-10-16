@@ -5,6 +5,7 @@ import { buildMaterialListCsv, COACHING_DISCOUNT_NOTE, type Bom } from "@/lib/el
 import { CABLE_TYPES } from "@/lib/electrical-components/cable-types";
 import { formatEuroFromCents } from "@/lib/format";
 import type { CableEdgeData, ElectricalNodeData } from "@/types/schema";
+import { computePrintLayout, type PrintFormat } from "@/lib/schema-editor/print-layout";
 
 // Export image (CDC §38-40) : capture uniquement le canvas (pas la barre
 // d'outils ni les panneaux), cadré automatiquement sur le contenu — pas une
@@ -734,19 +735,20 @@ export async function captureSchemaCarousel(
   projectName: string,
   showGrid = true,
   watermark = true,
+  pixelRatio = EXPORT_PIXEL_RATIO,
 ): Promise<CarouselCapture[] | null> {
   const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
   if (!viewportEl || nodes.length === 0) return null;
 
   const legend = buildCableLegend(edges);
-  const raw = await captureRawSchema(viewportEl, nodes);
+  const raw = await captureRawSchema(viewportEl, nodes, pixelRatio);
   const overviewDataUrl = await postProcess(
     raw.dataUrl,
     raw.width,
     raw.height,
     showGrid,
     projectName,
-    EXPORT_PIXEL_RATIO,
+    pixelRatio,
     "Vue d'ensemble",
     undefined,
     legend,
@@ -768,13 +770,13 @@ export async function captureSchemaCarousel(
     const label = `Partie ${i + 1}/${CAROUSEL_PARTS}`;
 
     // Repère de l'image brute déjà capturée = tileX0/Y0 relatifs à raw.x0/y0,
-    // à l'échelle EXPORT_ZOOM * EXPORT_PIXEL_RATIO.
-    const sx = Math.max(0, Math.round((tileX0 - raw.x0) * EXPORT_ZOOM * EXPORT_PIXEL_RATIO));
+    // à l'échelle EXPORT_ZOOM * pixelRatio.
+    const sx = Math.max(0, Math.round((tileX0 - raw.x0) * EXPORT_ZOOM * pixelRatio));
     const sy = 0;
-    const sw = Math.round(tileWidth * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
-    const sh = Math.round(tileHeight * EXPORT_ZOOM * EXPORT_PIXEL_RATIO);
+    const sw = Math.round(tileWidth * EXPORT_ZOOM * pixelRatio);
+    const sh = Math.round(tileHeight * EXPORT_ZOOM * pixelRatio);
 
-    const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, EXPORT_PIXEL_RATIO, label, { sx, sy, sw, sh }, legend, [], watermark);
+    const dataUrl = await postProcess(raw.dataUrl, tileWidth, tileHeight, showGrid, projectName, pixelRatio, label, { sx, sy, sw, sh }, legend, [], watermark);
     parts.push({ dataUrl, width: tileWidth, height: tileHeight + EXPORT_FOOTER_HEIGHT, label });
   }
 
@@ -810,7 +812,9 @@ export async function downloadCarouselZip(parts: CarouselCapture[], projectName:
   parts.forEach((part, i) => {
     const base64 = part.dataUrl.split(",")[1];
     const slugLabel = slugify(part.label);
-    zip.file(`${String(i + 1).padStart(2, "0")}-${slugLabel}.png`, base64, { base64: true });
+    // Une partie peut être en JPEG (export réseaux sociaux au-delà de ~1 Mo).
+    const extension = part.dataUrl.startsWith("data:image/jpeg") ? "jpg" : "png";
+    zip.file(`${String(i + 1).padStart(2, "0")}-${slugLabel}.${extension}`, base64, { base64: true });
   });
   const blob = await zip.generateAsync({ type: "blob" });
   const url = URL.createObjectURL(blob);
@@ -854,55 +858,18 @@ const PRINT_STYLE = `
   @media print { .no-print { display: none !important; } }
 `;
 
-// Format de page (retour utilisateur : "ne pas hésiter à changer les formats
-// de page en A3 ou A2 si besoin") — un schéma large écrasé sur une A4
-// portrait fixe devient illisible à l'impression. On choisit le plus petit
-// format A-série (toujours paysage, les schémas sont presque toujours plus
-// larges que hauts) dans lequel le rendu tient à une échelle raisonnable
-// (~2 px CSS par mm, cohérent avec le pixelRatio 2 de la capture), sinon A2.
-const PAGE_FORMATS: { name: string; widthMm: number; heightMm: number }[] = [
-  { name: "A4", widthMm: 297, heightMm: 210 },
-  { name: "A3", widthMm: 420, heightMm: 297 },
-  { name: "A2", widthMm: 594, heightMm: 420 },
-];
-const CSS_PX_PER_MM = 2;
-
-// Bug corrigé : le calcul ne déduisait ni les marges de @page (10mm de
-// chaque côté) ni la place prise par le titre, la date, le bandeau
-// d'avertissement et le pied de page (PRINT_STYLE) — le schéma "tenait"
-// selon ce calcul mais débordait quand même sur une 2e page à l'impression
-// réelle, qui elle inclut ce contenu autour de l'image.
-const PAGE_MARGIN_MM = 10;
-// Estimation prudente (titre + date + bandeau d'avertissement sur 2 lignes
-// + pied de page + padding du corps), en mm à ~2 px CSS/mm — mieux vaut
-// changer de format un cran plus tôt que reproduire le bug à l'envers.
-const PRINT_CHROME_HEIGHT_MM = 55;
-
-function pickPageFormat(width: number, height: number): { name: string; widthMm: number; heightMm: number } {
-  const fit = PAGE_FORMATS.find((f) => {
-    const usableWidthPx = (f.widthMm - PAGE_MARGIN_MM * 2) * CSS_PX_PER_MM;
-    const usableHeightPx = (f.heightMm - PAGE_MARGIN_MM * 2 - PRINT_CHROME_HEIGHT_MM) * CSS_PX_PER_MM;
-    return width <= usableWidthPx && height <= usableHeightPx;
-  });
-  return fit ?? PAGE_FORMATS[PAGE_FORMATS.length - 1];
-}
-
 // PDF (CDC §39) : titre, schéma, date, mention légale, mention FabSystem
 // discrète — via l'impression navigateur ("Enregistrer en PDF"), sans
-// dépendance PDF supplémentaire côté client.
-export function openPrintablePdf(capture: SchemaCapture, projectName: string): void {
+// dépendance PDF supplémentaire côté client. Format choisi par
+// l'utilisateur (A4 par défaut) : voir lib/schema-editor/print-layout.ts
+// pour la cause des "3 pages dont 2 quasiment vides".
+export function openPrintablePdf(capture: SchemaCapture, projectName: string, format: PrintFormat = "A4"): void {
   const win = window.open("", "_blank");
   if (!win) return;
   const dateStr = new Date().toLocaleDateString("fr-FR");
   const title = escapeHtml(projectName || "Schéma");
-  const page = pickPageFormat(capture.width, capture.height);
-  // Filet de sécurité au-delà du choix de format : même au format A2 (le
-  // plus grand disponible), un schéma très dense peut rester plus haut que
-  // la place restante une fois le titre/disclaimer/pied de page comptés —
-  // contraindre l'image en mm (même espace que @page, pas de conversion
-  // px/mm approximative) garantit qu'elle tient toujours sur une page,
-  // quitte à être affichée plus petite.
-  const imgMaxHeightMm = Math.max(60, page.heightMm - PAGE_MARGIN_MM * 2 - PRINT_CHROME_HEIGHT_MM);
+  const layout = computePrintLayout({ format, width: capture.width, height: capture.height });
+  const orientationLabel = layout.pageSize.endsWith("landscape") ? "paysage" : "portrait";
 
   win.document.write(`<!doctype html>
 <html lang="fr">
@@ -910,25 +877,27 @@ export function openPrintablePdf(capture: SchemaCapture, projectName: string): v
 <meta charset="utf-8" />
 <title>${title}</title>
 <style>
-  @page { size: ${page.name} landscape; margin: 10mm; }
+  @page { size: ${layout.pageSize}; margin: ${layout.marginMm}mm; }
   ${PRINT_STYLE}
-  /* La feuille de schéma ne doit jamais dépendre des marges par défaut du
-     navigateur: sinon l'image peut être rognée ou repoussée sur une seconde
-     page malgré le calcul de format A4/A3/A2. */
-  body { margin: 0; padding: 0; }
-  .schema-print { display: flex; flex-direction: column; height: ${page.heightMm - PAGE_MARGIN_MM * 2}mm; overflow: hidden; }
-  .schema-header { flex: 0 0 auto; }
-  .schema-disclaimer { margin: 4mm 0; }
+  /* Une seule feuille : la planche est toujours un peu plus petite que la
+     zone imprimable du format choisi, jamais une hauteur héritée d'un
+     format plus grand que le papier réel. */
+  html, body { margin: 0; padding: 0; }
+  .schema-print { display: flex; flex-direction: column; height: ${layout.sheetHeightMm}mm; overflow: hidden; break-after: avoid; page-break-after: avoid; }
+  .schema-header { flex: 0 0 auto; display: flex; align-items: baseline; justify-content: space-between; gap: 6mm; }
+  .schema-header h1 { margin: 0; }
+  .schema-disclaimer { margin: 2mm 0 3mm; padding: 6px 10px; }
   .schema-image-wrap { min-height: 0; flex: 1 1 auto; display: flex; align-items: center; justify-content: center; }
-  .schema-image-wrap img { display: block; max-width: 100%; max-height: ${imgMaxHeightMm}mm; width: auto; height: auto; object-fit: contain; }
-  .schema-print footer { flex: 0 0 auto; margin-top: 3mm; }
+  .schema-image-wrap img { display: block; max-width: 100%; max-height: ${layout.imageMaxHeightMm}mm; width: auto; height: auto; object-fit: contain; border: 0; border-radius: 0; }
+  .schema-print footer { flex: 0 0 auto; margin-top: 2mm; }
+  @media screen { body { padding: 16px; background: #f3f4f6; } .schema-print { background: #fff; padding: 8mm; width: ${layout.pageWidthMm - layout.marginMm * 2}mm; margin: 0 auto; box-shadow: 0 1px 4px rgba(0,0,0,.15); } }
 </style>
 </head>
 <body>
   <main class="schema-print">
     <div class="schema-header">
       <h1>${title}</h1>
-      <div class="meta">Généré le ${dateStr} · format ${page.name} paysage</div>
+      <div class="meta">Généré le ${dateStr} · ${format} ${orientationLabel}</div>
     </div>
     <div class="disclaimer schema-disclaimer">${escapeHtml(SCHEMA_DISCLAIMER)}</div>
     <div class="schema-image-wrap"><img src="${capture.dataUrl}" alt="${title}" /></div>
