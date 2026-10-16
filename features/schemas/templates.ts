@@ -152,7 +152,7 @@ function buildDucatoGraph(): { nodes: SchemaNode[]; edges: SchemaEdge[] } {
   const nodes: SchemaNode[] = [
     buildNode("du-pv-1", "solar-panel", 0, 0, { label: "Panneau solaire 305 W 1", powerW: 305, voltage: 0, vocVoltage: 0 }),
     buildNode("du-pv-2", "solar-panel", 0, 0, { label: "Panneau solaire 305 W 2", powerW: 305, voltage: 0, vocVoltage: 0 }),
-    buildNode("du-mppt", "mppt", 0, 0, { label: "SmartSolar MPPT 150/60", amperage: 60, systemVoltage: 12, maxPvVoltage: 150 }),
+    buildNode("du-mppt", "mppt", 0, 0, { label: "SmartSolar MPPT 150/60", amperage: 60, systemVoltage: 12, maxPvVoltage: 150, maxPvPower12V: 860, maxPvInputCurrentA: 50 }),
     buildNode("du-starter", "battery", 0, 0, { label: "Batterie moteur", voltage: 12, capacityAh: 95, technology: "agm" }),
     buildNode("du-fuse-dcdc-in", "fuse", 0, 0, { label: "Fusible Orion XS entree", fuseType: "midi", amperage: 60 }),
     buildNode("du-dcdc", "dcdc", 0, 0, { label: "Orion XS 12/12-50", voltageIn: 12, voltageOut: 12, amperage: 50, topology: "non-isolated" }),
@@ -187,7 +187,18 @@ function buildDucatoGraph(): { nodes: SchemaNode[]; edges: SchemaEdge[] } {
     buildNode("du-pump", "consumer", 0, 0, { label: "Pompe a eau", presetType: "pompe-eau", powerW: 60 }),
     buildNode("du-usb", "consumer", 0, 0, { label: "USB-C", presetType: "prise-usb", powerW: 60 }),
     buildNode("du-12v", "consumer", 0, 0, { label: "Prises 12 V", presetType: "prise-12v", powerW: 120 }),
-    buildNode("du-cerbo", "system-controller", 0, 0, { label: "Cerbo GX" }),
+    buildNode("du-cerbo", "system-controller", 0, 0, {
+      label: "Cerbo GX",
+      brandModelId: "victron-cerbo-gx",
+      brand: "Victron",
+      model: "Cerbo GX",
+      communicationPorts: "ve-direct:3,ve-bus:2",
+      // Sans écran GX Touch : supervision à distance (VRM).
+      displayOutput: "",
+    }),
+    buildNode("du-fuse-cerbo", "fuse", 0, 0, { label: "Fusible Cerbo", fuseType: "lame", amperage: 2 }),
+    buildNode("du-socket", "socket-220v", 0, 0, { label: "Prises 230 V atelier", powerW: 1000 }),
+    buildNode("du-ground", "ground", 0, 0, { label: "Point de masse" }),
   ];
 
   const edges: SchemaEdge[] = [
@@ -225,7 +236,7 @@ function buildDucatoGraph(): { nodes: SchemaNode[]; edges: SchemaEdge[] } {
     buildEdge("du-e26", "du-multiplus", "ac-out", "du-ac-panel", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm2", 2),
     // Cloison -> etabli : un seul couple 12 V, puis distribution locale.
     buildEdge("du-e27", "du-tech-positive", "out-4", "du-dc-panel", "input", RED, "power-positive", "16 mm2", 3),
-    buildEdge("du-e28", "du-tech-negative", "out-4", "du-dc-panel", "out-1-neg", BLACK, "power-negative", "16 mm2", 3),
+    buildEdge("du-e28", "du-tech-negative", "out-4", "du-dc-panel", "in-negative", BLACK, "power-negative", "16 mm2", 3),
     buildEdge("du-e29", "du-dc-panel", "out-1", "du-led", "positive", RED, "power-positive", "1.5 mm2", 2),
     buildEdge("du-e30", "du-dc-panel", "out-2", "du-extractor", "positive", RED, "power-positive", "1.5 mm2", 2),
     buildEdge("du-e31", "du-dc-panel", "out-3", "du-pump", "positive", RED, "power-positive", "1.5 mm2", 2),
@@ -238,6 +249,17 @@ function buildDucatoGraph(): { nodes: SchemaNode[]; edges: SchemaEdge[] } {
     buildEdge("du-e38", "du-dc-panel", "out-1-neg", "du-12v", "negative", BLACK, "power-negative", "2.5 mm2", 1),
     // Porte laterale : un seul cable de donnees vers l'affichage.
     buildEdge("du-e39", "du-mppt", "ve-direct", "du-cerbo", "ve-direct", LIME, "data-bus", undefined, 4),
+    // Masse commune (Orion XS non isolé) : négatif batterie moteur ramené au
+    // négatif batteries de service, via le châssis.
+    buildEdge("du-e40", "du-starter", "negative", "du-battery-negative", "out-2", BLACK, "power-negative", "16 mm2", 4),
+    // Cerbo GX alimenté depuis le bus technique, protégé par un fusible.
+    buildEdge("du-e41", "du-tech-positive", "out-5", "du-fuse-cerbo", "input", RED, "power-positive", "0,75 mm²", 1),
+    buildEdge("du-e42", "du-fuse-cerbo", "output", "du-cerbo", "positive", RED, "power-positive", "0,75 mm²", 2),
+    buildEdge("du-e43", "du-tech-negative", "out-5", "du-cerbo", "negative", BLACK, "power-negative", "0,75 mm²", 2),
+    // Départ 230 V atelier (3G : terre dans le câble) et terre du tableau.
+    buildEdge("du-e44", "du-ac-panel", "ac-out", "du-socket", "ac-in", PURPLE_230V, "ac-230v", "3G2,5 mm2", 3),
+    buildEdge("du-e45", "du-ac-panel", "earth", "du-ground", "ground", LIME, "earth", "2,5 mm²", 1),
+    buildEdge("du-e46", "du-ground", "ground", "du-battery-negative", "out-3", LIME, "earth", "16 mm²", 2),
   ];
 
   return { nodes, edges };
@@ -252,7 +274,8 @@ function buildDucatoImplantationTemplate(): { projectName: string; nodes: Schema
     "du-mppt": { x: 1140, y: 180 }, "du-fuse-mppt": { x: 1370, y: 180 }, "du-dcdc": { x: 1140, y: 390 }, "du-fuse-dcdc-out": { x: 1370, y: 390 }, "du-tech-positive": { x: 1580, y: 250 }, "du-tech-negative": { x: 1580, y: 470 }, "du-fuse-multiplus": { x: 1810, y: 250 }, "du-multiplus": { x: 2020, y: 250 },
     "du-shore": { x: 2260, y: 80 }, "du-ac-panel": { x: 2260, y: 330 },
     "du-dc-panel": { x: 2260, y: 800 }, "du-led": { x: 2510, y: 680 }, "du-extractor": { x: 2510, y: 800 }, "du-pump": { x: 2510, y: 920 }, "du-usb": { x: 2510, y: 1040 }, "du-12v": { x: 2510, y: 1160 },
-    "du-cerbo": { x: 2020, y: 720 },
+    "du-cerbo": { x: 2020, y: 720 }, "du-fuse-cerbo": { x: 1810, y: 720 },
+    "du-socket": { x: 2510, y: 330 }, "du-ground": { x: 2260, y: 520 },
   };
   const zones = [
     buildZone("du-zone-roof", 40, 40, 600, 300, "Toit : production solaire", "#eab308"),
@@ -356,6 +379,9 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildNode("qt-fuse-main", "fuse", 600, 380, { label: "Fusible principal", fuseType: "midi", amperage: 30 }),
     buildNode("qt-battery", "battery", 840, 380, { label: "Batterie 12V", voltage: 12, capacityAh: 150, technology: "agm" }),
     buildNode("qt-busbar", "busbar", 1080, 380, { label: "Busbar +", polarity: "positive", outputCount: 6 }),
+    // Négatifs des consommateurs regroupés sur un busbar (plus de 4 cosses
+    // sur le − batterie sinon).
+    buildNode("qt-busbar-neg", "busbar", 1080, 1080, { label: "Busbar −", polarity: "negative", outputCount: 8 }),
     buildNode("qt-switch-frigo", "switch", 1320, 280, { label: "Interrupteur", amperage: 0 }),
     buildNode("qt-frigo", "consumer", 1540, 280, { label: "Réfrigérateur à compression", presetType: "refrigerateur", powerW: 45 }),
     buildNode("qt-switch-eclairage", "switch", 1320, 480, { label: "Interrupteur", amperage: 0 }),
@@ -405,14 +431,15 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
 
     // Batterie → busbar → interrupteurs → consommateurs
     buildEdge("qt-e9", "qt-battery", "positive", "qt-busbar", "input", RED, "power-positive", "16 mm²", 0.5),
+    buildEdge("qt-e41", "qt-battery", "negative", "qt-busbar-neg", "input", BLACK, "power-negative", "16 mm²", 0.5),
     buildEdge("qt-e10", "qt-busbar", "out-1", "qt-switch-frigo", "input", RED, "power-positive", "1,5 mm²", 3),
     buildEdge("qt-e11", "qt-switch-frigo", "output", "qt-frigo", "positive", RED, "power-positive", "1,5 mm²", 1),
     buildEdge("qt-e12", "qt-busbar", "out-2", "qt-switch-eclairage", "input", RED, "power-positive", "0,75 mm²", 4),
     buildEdge("qt-e13", "qt-switch-eclairage", "output", "qt-eclairage", "positive", RED, "power-positive", "0,75 mm²", 1),
 
     // Retour négatif direct
-    buildEdge("qt-e14", "qt-battery", "negative", "qt-frigo", "negative", BLACK, "power-negative", "1,5 mm²", 4),
-    buildEdge("qt-e15", "qt-battery", "negative", "qt-eclairage", "negative", BLACK, "power-negative", "0,75 mm²", 5),
+    buildEdge("qt-e14", "qt-busbar-neg", "out-1", "qt-frigo", "negative", BLACK, "power-negative", "1,5 mm²", 4),
+    buildEdge("qt-e15", "qt-busbar-neg", "out-2", "qt-eclairage", "negative", BLACK, "power-negative", "0,75 mm²", 5),
 
     // Appoint solaire → fusible → batterie (deuxième source de charge, à
     // côté du chargeur secteur)
@@ -431,7 +458,7 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildEdge("qt-e22", "qt-fuse-pompe-auto", "output", "qt-pompe", "positive-auto", RED, "power-positive", "6 mm²", 3),
     buildEdge("qt-e23", "qt-busbar", "out-3", "qt-switch-pompe", "input", RED, "power-positive", "2,5 mm²", 3),
     buildEdge("qt-e24", "qt-switch-pompe", "output", "qt-pompe", "positive-manual", RED, "power-positive", "2,5 mm²", 1),
-    buildEdge("qt-e25", "qt-battery", "negative", "qt-pompe", "negative", BLACK, "power-negative", "2,5 mm²", 4),
+    buildEdge("qt-e25", "qt-busbar-neg", "out-3", "qt-pompe", "negative", BLACK, "power-negative", "2,5 mm²", 4),
 
     // Feux de navigation : un seul interrupteur alimente les 3 en parallèle
     // (bâbord + tribord + tête de mât toujours ensemble en navigation).
@@ -439,20 +466,20 @@ function buildShorePowerTemplate(): { projectName: string; nodes: SchemaNode[]; 
     buildEdge("qt-e29", "qt-switch-nav", "output", "qt-feu-babord", "positive", RED, "power-positive", "1 mm²", 3),
     buildEdge("qt-e30", "qt-switch-nav", "output", "qt-feu-tribord", "positive", RED, "power-positive", "1 mm²", 3),
     buildEdge("qt-e31", "qt-switch-nav", "output", "qt-feu-mat", "positive", RED, "power-positive", "1 mm²", 4),
-    buildEdge("qt-e32", "qt-battery", "negative", "qt-feu-babord", "negative", BLACK, "power-negative", "1 mm²", 5),
-    buildEdge("qt-e33", "qt-battery", "negative", "qt-feu-tribord", "negative", BLACK, "power-negative", "1 mm²", 5),
-    buildEdge("qt-e34", "qt-battery", "negative", "qt-feu-mat", "negative", BLACK, "power-negative", "1 mm²", 6),
+    buildEdge("qt-e32", "qt-busbar-neg", "out-4", "qt-feu-babord", "negative", BLACK, "power-negative", "1 mm²", 5),
+    buildEdge("qt-e33", "qt-busbar-neg", "out-5", "qt-feu-tribord", "negative", BLACK, "power-negative", "1 mm²", 5),
+    buildEdge("qt-e34", "qt-busbar-neg", "out-6", "qt-feu-mat", "negative", BLACK, "power-negative", "1 mm²", 6),
 
     // Feu de mouillage : interrupteur séparé (usage seulement à l'ancre,
     // jamais avec les feux de navigation ci-dessus).
     buildEdge("qt-e35", "qt-busbar", "out-5", "qt-switch-mouillage", "input", RED, "power-positive", "1 mm²", 4),
     buildEdge("qt-e36", "qt-switch-mouillage", "output", "qt-feu-mouillage", "positive", RED, "power-positive", "1 mm²", 4),
-    buildEdge("qt-e37", "qt-battery", "negative", "qt-feu-mouillage", "negative", BLACK, "power-negative", "1 mm²", 6),
+    buildEdge("qt-e37", "qt-busbar-neg", "out-7", "qt-feu-mouillage", "negative", BLACK, "power-negative", "1 mm²", 6),
 
     // Klaxon
     buildEdge("qt-e38", "qt-busbar", "out-6", "qt-switch-klaxon", "input", RED, "power-positive", "1,5 mm²", 4),
     buildEdge("qt-e39", "qt-switch-klaxon", "output", "qt-klaxon", "positive", RED, "power-positive", "1,5 mm²", 4),
-    buildEdge("qt-e40", "qt-battery", "negative", "qt-klaxon", "negative", BLACK, "power-negative", "1,5 mm²", 6),
+    buildEdge("qt-e40", "qt-busbar-neg", "out-8", "qt-klaxon", "negative", BLACK, "power-negative", "1,5 mm²", 6),
   ];
 
   return { projectName: "Quai tranquille (bateau)", nodes, edges };

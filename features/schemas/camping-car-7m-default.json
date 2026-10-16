@@ -130,7 +130,7 @@
         "componentType": "fuse",
         "label": "Fusible alternateur",
         "fuseType": "anl",
-        "amperage": 100
+        "amperage": 125
       },
       "measured": {
         "width": 99,
@@ -636,11 +636,11 @@
         "componentType": "busbar",
         "label": "Busbar −",
         "polarity": "negative",
-        "outputCount": 5,
+        "outputCount": 6,
         "rotation": 180,
         "leftPoints": 2,
         "topPoints": 0,
-        "rightPoints": 4,
+        "rightPoints": 5,
         "bottomPoints": 0,
         "busbarHandleSides": {
           "input": "right",
@@ -1476,18 +1476,6 @@
       }
     },
     {
-      "id": "edge_mtev7yvo_5",
-      "source": "shore-power_mst20n4n_13",
-      "sourceHandle": "earth",
-      "target": "ground_mst20cj7_10",
-      "targetHandle": "ground",
-      "type": "cable",
-      "data": {
-        "color": "#84cc16",
-        "cableType": "earth"
-      }
-    },
-    {
       "id": "edge_mtevr8gw_1",
       "source": "ex-panel",
       "sourceHandle": "out-6-neg",
@@ -1598,7 +1586,8 @@
       "type": "cable",
       "data": {
         "color": "#16a34a",
-        "cableType": "data-bus"
+        "cableType": "data-bus",
+        "length": 1.8
       },
       "selected": false
     },
@@ -1611,7 +1600,8 @@
       "type": "cable",
       "data": {
         "color": "#16a34a",
-        "cableType": "data-bus"
+        "cableType": "data-bus",
+        "length": 1.8
       },
       "selected": false
     },
@@ -1624,7 +1614,8 @@
       "type": "cable",
       "data": {
         "color": "#16a34a",
-        "cableType": "data-bus"
+        "cableType": "data-bus",
+        "length": 1.8
       },
       "selected": false
     },
@@ -1666,7 +1657,8 @@
       "type": "cable",
       "data": {
         "color": "#16a34a",
-        "cableType": "data-bus"
+        "cableType": "data-bus",
+        "length": 1.8
       },
       "selected": false
     },
@@ -1707,7 +1699,8 @@
       "type": "cable",
       "data": {
         "color": "#16a34a",
-        "cableType": "data-bus"
+        "cableType": "data-bus",
+        "length": 1.8
       },
       "selected": false
     },
@@ -1760,6 +1753,20 @@
         ]
       },
       "selected": false
+    },
+    {
+      "id": "edge-cerbo-negative",
+      "source": "system-controller_mtewcnhm_1",
+      "sourceHandle": "negative",
+      "target": "ex-busbar-neg",
+      "targetHandle": "out-6",
+      "type": "cable",
+      "data": {
+        "color": "#111827",
+        "cableType": "power-negative",
+        "section": "0,75 mm²",
+        "length": 2
+      }
     }
   ],
   "updatedAt": "2026-08-29T22:07:34.267Z"

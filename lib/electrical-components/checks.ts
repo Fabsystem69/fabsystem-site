@@ -228,7 +228,9 @@ function computeConnectionIntegrityIssues(nodes: SchemaNodeInternal[], edges: Sc
         });
       }
 
-      if (handle.kind === "earth" && terminalCount === 0) {
+      // Borne de terre facultative (prise de quai, chargeur secteur : la
+      // terre arrive par le câble 3G) — retour utilisateur (10/2026).
+      if (handle.kind === "earth" && terminalCount === 0 && !handle.optional) {
         issues.push({
           id: `${node.id}-${handle.id}-earth-missing`,
           targetKind: "node",
@@ -1059,7 +1061,9 @@ function computeCableSizingIssues(nodes: SchemaNodeInternal[], edges: SchemaEdge
 // Retour utilisateur (10/2026) : "on laisse naturellement une ou deux voies
 // libres sur les busbars pour les évolutions" — des bornes libres sur un
 // busbar ne sont pas un oubli (un busbar relié à rien reste signalé).
-const FREE_STUDS_ALLOWED_TYPES = new Set(["busbar"]);
+// Même logique pour les répartiteurs à voies (Lynx Distributor, platines
+// et tableaux à fusibles) : des emplacements de réserve sont normaux.
+const FREE_STUDS_ALLOWED_TYPES = new Set(["busbar", "lynx-distributor", "fuse-block", "distribution-panel"]);
 
 export function computeSchemaIssues(
   nodes: Node<ElectricalNodeData>[],

@@ -278,7 +278,7 @@
         "componentType": "fuse",
         "label": "Fusible éolienne",
         "fuseType": "midi",
-        "amperage": 35
+        "amperage": 50
       },
       "measured": {
         "width": 86,
@@ -337,7 +337,7 @@
         "componentType": "fuse",
         "label": "Fusible alternateur",
         "fuseType": "anl",
-        "amperage": 120
+        "amperage": 125
       },
       "measured": {
         "width": 99,
@@ -2502,7 +2502,8 @@
       "type": "cable",
       "data": {
         "color": "#84cc16",
-        "cableType": "earth"
+        "cableType": "earth",
+        "length": 1
       }
     },
     {

@@ -1,6 +1,7 @@
 import type { Node, Edge } from "@xyflow/react";
 import { getComponentDefinition } from "@/lib/electrical-components/definitions";
 import { optimizeBusbarHandleLayout } from "@/lib/schema-editor/busbar-layout";
+import { recalculateCableSections } from "@/lib/electrical-components/auto-size";
 import type { ElectricalNodeData, CableEdgeData } from "@/types/schema";
 
 // Types équivalents à SchemaNode/SchemaEdge (features/schemas/store/useSchemaStore.ts)
@@ -102,7 +103,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     // signale l'alternateur comme source de charge non protégée avant la
     // batterie. ANL 100A : calibre usuel juste au-dessus du courant max de
     // l'alternateur (90A).
-    buildNode("ex-fuse-alternator", "fuse", 260, 570, { label: "Fusible alternateur", fuseType: "anl", amperage: 100 }),
+    buildNode("ex-fuse-alternator", "fuse", 260, 570, { label: "Fusible alternateur", fuseType: "anl", amperage: 125 }),
     buildNode("ex-fuse-dcdc", "fuse", 260, 430, { label: "Fusible DC-DC", fuseType: "midi", amperage: 30 }),
     buildNode("ex-dcdc", "dcdc", 390, 490, { label: "Renogy DC-DC 20A", voltageIn: 12, voltageOut: 12, amperage: 20, topology: "non-isolated", brandModelId: "renogy-dcdc-20a-gen2", brand: "Renogy", model: "Chargeur DC-DC 12V/20A (2e gen.)" }),
 
@@ -111,7 +112,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     // fusible principal.
     buildNode("busbar_mst1t8m8_1", "busbar", 940, 230, { label: "Busbar de charge", polarity: "positive", outputCount: 4 }),
     buildNode("circuit-breaker_mst1vjlz_5", "circuit-breaker", 530, 150, { label: "Disjoncteur MPPT", amperage: 35 }), // Victron MPPT 100/30 : 35 à 40 A
-    buildNode("circuit-breaker_mst1vyr4_8", "circuit-breaker", 530, 500, { label: "Disjoncteur DC-DC", amperage: 16, rotation: 180 }),
+    buildNode("circuit-breaker_mst1vyr4_8", "circuit-breaker", 530, 500, { label: "Disjoncteur DC-DC", amperage: 25, rotation: 180 }),
 
     // Batterie auxiliaire + protection + distribution
     buildNode("ex-battery-aux", "battery", 970, 430, {
@@ -124,7 +125,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
       brand: "Victron",
       model: "Lithium Smart 12,8V/100Ah",
     }),
-    buildNode("ex-fuse-main", "fuse", 1140, 230, { label: "Fusible principal", fuseType: "midi", amperage: 100, rotation: 0 }),
+    buildNode("ex-fuse-main", "fuse", 1140, 230, { label: "Fusible principal", fuseType: "mega", amperage: 150, rotation: 0 }),
     buildNode("ex-switch", "battery-switch", 1210, 230, { label: "Coupe-batterie", amperage: 0 }),
     buildNode("ex-busbar-pos", "busbar", 1220, 400, { label: "Busbar + 12V", polarity: "positive", outputCount: 4 }),
     buildNode("ex-panel", "fuse-block", 1580, 600, {
@@ -296,5 +297,12 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     };
   });
 
-  return { projectName: "Camping-car 7 m - lithium, solaire, DC-DC et clim 12 V", nodes: optimizedNodes, edges };
+  // Même moteur de sections que les gabarits (features/schemas/templates.ts) :
+  // l'exemple de démonstration reste cohérent avec ses calibres de protection
+  // (retour utilisateur 10/2026 : "fais une passe sur les exemples").
+  return {
+    projectName: "Camping-car 7 m - lithium, solaire, DC-DC et clim 12 V",
+    nodes: optimizedNodes,
+    edges: recalculateCableSections(optimizedNodes, edges).edges,
+  };
 }

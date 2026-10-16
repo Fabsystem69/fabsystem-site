@@ -751,14 +751,16 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
       { id: "ac-out", label: "230V OUT", kind: "neutral", side: "left", optional: true },
       { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
       { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
-      { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
+      // Facultative (retour utilisateur, 10/2026) : chargeur alimenté en 3G,
+      // la terre arrive avec le câble 230 V.
+      { id: "earth", label: "Terre", kind: "earth", side: "bottom", optional: true },
     ],
     getHandles: (data) => [
       { id: "ac-in", label: "230V IN", kind: "neutral", side: "left" },
       { id: "ac-out", label: "230V OUT", kind: "neutral", side: "left", optional: true },
       { id: "bat-negative", label: "BAT−", kind: "negative", side: "right" },
       { id: "bat-positive", label: "BAT+", kind: "positive", side: "right" },
-      { id: "earth", label: "Terre", kind: "earth", side: "bottom" },
+      { id: "earth", label: "Terre", kind: "earth", side: "bottom", optional: true },
       ...victronCommunicationHandles(data),
     ],
     defaultData: { voltageDC: 12, chargeAmperage: 10, communicationPorts: "" },
