@@ -1,6 +1,16 @@
 import { getComponentDefinition, getEffectiveHandles } from "./definitions";
-import { estimateConnectedAmps, evaluateAcEdgeSection, evaluateEdgeSection, getBrandFuseFloorA, getEdgeParallelRuns, isPowerCableType, parseSectionMm2 } from "./auto-size";
-import { getManufacturerFuseCeilingA, getManufacturerSpec } from "./manufacturer-specs";
+import {
+  estimateConnectedAmps,
+  evaluateAcEdgeSection,
+  evaluateEdgeSection,
+  findManufacturerDeviceForEdge,
+  getBrandFuseFloorA,
+  getEdgeParallelRuns,
+  isPowerCableType,
+  meetsManufacturerSection,
+  parseSectionMm2,
+} from "./auto-size";
+import { BATTERY_SIDE_HANDLES, getManufacturerFuseCeilingA, getManufacturerSpec } from "./manufacturer-specs";
 import { computeManufacturerIssues } from "./manufacturer-checks";
 import { findWireRowByMm2, getDeratedAmpacity } from "@/lib/calc/wire-ampacity";
 import { CONTINUOUS_LOAD_MARGIN } from "@/lib/calc/section-cable";
@@ -542,6 +552,7 @@ function computeProtectionExceedsCableAmpacityIssues(
       const conductors = getEdgeParallelRuns(edge);
       const cableAmpacityA = getDeratedAmpacity(wireRow, "pvc", 30, "single") * conductors;
       if (rating <= cableAmpacityA) continue;
+      if (isManufacturerSanctioned(protectionNode, rating, edge, nodes, edges)) continue;
 
       issues.push({
         id: `${protectionNode.id}-${edge.id}-exceeds-cable-ampacity`,
@@ -553,6 +564,29 @@ function computeProtectionExceedsCableAmpacityIssues(
   }
 
   return issues;
+}
+
+// Décision produit (10/2026) : un fusible au calibre préconisé par le
+// constructeur, sur un câble à la section constructeur pour sa longueur,
+// est accepté tel quel — l'hypothèse prudente du moteur (PVC 70 °C) ne
+// contredit plus un montage conforme au manuel (ex. Victron Inverter Smart
+// 12/3000 : 95 mm² sous 400 A). Hors de ce cas exact, l'alerte reste.
+function isManufacturerSanctioned(
+  protectionNode: SchemaNodeInternal,
+  rating: number,
+  edge: SchemaEdgeInternal,
+  nodes: SchemaNodeInternal[],
+  edges: SchemaEdgeInternal[],
+): boolean {
+  const device = findManufacturerDeviceForEdge(edge, nodes, edges);
+  if (!device) return false;
+  const ceiling = getManufacturerFuseCeilingA(device.spec);
+  if (ceiling <= 0 || rating > ceiling) return false;
+  const handleGroups = BATTERY_SIDE_HANDLES[device.node.data.componentType] ?? [];
+  const protectsDevice = handleGroups.some(([positiveHandle]) =>
+    findNearestProtections(device.node.id, positiveHandle, nodes, edges).some((p) => p.id === protectionNode.id),
+  );
+  return protectsDevice && meetsManufacturerSection(edge, nodes, edges) === true;
 }
 
 const PV_REGULATOR_TYPES = new Set(["mppt", "pwm"]);

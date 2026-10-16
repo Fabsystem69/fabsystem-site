@@ -195,3 +195,73 @@ test("recalcul des protections : propose le calibre Victron (400 A pour un Multi
   const result = recalculateFuseRatings(nodes, edges);
   assert.equal(result.nodes.find((n) => n.id === "fuse")?.data.amperage, 400);
 });
+
+// Décision produit (10/2026, "corrige tout") : une association conforme au
+// manuel Victron (fusible préconisé + section Victron pour la longueur)
+// n'est plus contredite par l'hypothèse prudente PVC 70 °C du moteur.
+const INVERTER_SMART_3000 = {
+  componentType: "inverter",
+  brandModelId: "victron-inverter-smart-3000",
+  deviceData: { powerW: 2400, voltageDC: 12 },
+  positiveHandle: "dc-positive",
+  negativeHandle: "dc-negative",
+};
+
+test("ampacité : Inverter Smart 12/3000 en 95 mm² avec fusible 400 A (conforme Victron) → aucune alerte", () => {
+  const { nodes, edges } = deviceFixture({ ...INVERTER_SMART_3000, fuseA: 400, capacityAh: 600, cableData: { length: 2, section: "95 mm²" } });
+  const relevant = computeSchemaIssues(nodes, edges).filter((i) => /ampacity|manufacturer/.test(i.id));
+  assert.deepEqual(relevant.map((i) => i.id), []);
+});
+
+test("ampacité : section sous la préconisation Victron → l'alerte d'ampacité reste", () => {
+  const { nodes, edges } = deviceFixture({ ...INVERTER_SMART_3000, fuseA: 400, capacityAh: 600, cableData: { length: 2, section: "70 mm²" } });
+  const ids = computeSchemaIssues(nodes, edges).map((i) => i.id);
+  assert.ok(ids.includes("fuse-e-fuse-device-exceeds-cable-ampacity"));
+});
+
+test("trajet : la section Victron s'applique aussi au câble batterie → fusible (à travers le fusible)", () => {
+  const { nodes, edges } = deviceFixture({ ...MULTIPLUS_3000, fuseA: 400, cableData: { length: 2, parallelRuns: 2, section: "50 mm²" } });
+  const patched = edges.map((e) => (e.id === "e-bat-fuse" ? { ...e, data: { ...e.data, parallelRuns: 1, section: "35 mm²" } } : e));
+  const ids = computeSchemaIssues(nodes, patched).map((i) => i.id);
+  assert.ok(ids.includes("e-bat-fuse-manufacturer-section"), ids.join(", "));
+  const diagnostic = evaluateEdgeSection(patched.find((e) => e.id === "e-bat-fuse")!, nodes, patched);
+  assert.ok(diagnostic && diagnostic.recommendedSectionMm2 >= 120);
+});
+
+test("trajet : la section max. de borne ne concerne que le câble branché sur l'appareil", () => {
+  const { nodes, edges } = deviceFixture({
+    componentType: "mppt",
+    brandModelId: "victron-smartsolar-100-20",
+    deviceData: { amperage: 20 },
+    positiveHandle: "bat-positive",
+    negativeHandle: "bat-negative",
+    fuseA: 25,
+    cableData: { length: 1, section: "6 mm²" },
+  });
+  const patched = edges.map((e) => (e.id === "e-bat-fuse" ? { ...e, data: { ...e.data, section: "10 mm²" } } : e));
+  const ids = computeSchemaIssues(nodes, patched).map((i) => i.id);
+  assert.ok(!ids.includes("e-bat-fuse-manufacturer-terminal"));
+});
+
+test("borne : la section auto reste dans la borne quand Victron donne une section valable (Orion XS 50, 5 m → ≤ 25 mm²)", () => {
+  const { nodes, edges } = deviceFixture({
+    componentType: "dcdc",
+    brandModelId: "victron-orion-xs-12-12-50",
+    deviceData: { amperage: 50, voltageIn: 12, voltageOut: 12, topology: "non-isolated" },
+    positiveHandle: "out-positive",
+    negativeHandle: "out-negative",
+    fuseA: 70,
+    cableData: { length: 5 },
+  });
+  const diagnostic = evaluateEdgeSection(edges.find((e) => e.id === "e-fuse-device")!, nodes, edges);
+  assert.ok(diagnostic);
+  assert.ok(diagnostic.recommendedSectionMm2 >= 16 && diagnostic.recommendedSectionMm2 <= 25, `obtenu ${diagnostic.recommendedSectionMm2}`);
+});
+
+test("données : MultiPlus 12/1600 et gamme Compact 230 V (manuels officiels Victron)", () => {
+  assert.equal(findCableBand(getManufacturerSpec("victron-multiplus-1600-70")!, 3)?.sectionMm2, 50);
+  assert.equal(findCableBand(getManufacturerSpec("victron-multiplus-compact-800-35")!, 1)?.sectionMm2, 16);
+  assert.equal(findCableBand(getManufacturerSpec("victron-multiplus-compact-1200-50")!, 4)?.sectionMm2, 50);
+  assert.deepEqual(findCableBand(getManufacturerSpec("victron-multiplus-compact-1600-70")!, 8), { maxLengthM: 10, sectionMm2: 70, conductors: 2 });
+  assert.deepEqual(getManufacturerSpec("victron-multiplus-compact-1600-70")?.batteryAh, { min: 200, max: 700 });
+});

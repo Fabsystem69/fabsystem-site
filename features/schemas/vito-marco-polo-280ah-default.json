@@ -222,7 +222,7 @@
         "componentType": "fuse",
         "label": "Fusible Orion",
         "fuseType": "midi",
-        "amperage": 25
+        "amperage": 60
       },
       "measured": {
         "width": 70,
@@ -630,7 +630,7 @@
         "componentType": "fuse",
         "label": "Fusible Orion",
         "fuseType": "midi",
-        "amperage": 25
+        "amperage": 60
       },
       "measured": {
         "width": 70,
@@ -1100,7 +1100,7 @@
         "color": "#111827",
         "cableType": "power-negative",
         "section": "6 mm²",
-        "length": 4
+        "length": 2
       },
       "selected": false
     },

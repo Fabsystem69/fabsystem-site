@@ -576,7 +576,7 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
     buildNode("vl-dcdc-fuse", "fuse", 300, 420, {
       label: "Fusible Orion",
       fuseType: "midi",
-      amperage: 25,
+      amperage: 60, // Victron Orion-Tr Smart 12 V : fusible 60 A préconisé (entrée et sortie)
     }),
     buildNode("vl-dcdc", "dcdc", 440, 380, {
       label: "Orion-Tr Smart 12/12-18A",
@@ -711,7 +711,7 @@ function buildVictronLightVanTemplate(): { projectName: string; nodes: SchemaNod
     buildNode("fuse_msw6xsvo_2", "fuse", 640, 440, {
       label: "Fusible Orion",
       fuseType: "midi",
-      amperage: 25,
+      amperage: 60, // Victron Orion-Tr Smart 12 V : fusible 60 A préconisé (entrée et sortie)
     }),
   ];
 

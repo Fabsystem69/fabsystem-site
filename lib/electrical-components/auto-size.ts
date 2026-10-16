@@ -120,36 +120,98 @@ export function getBrandFuseFloorA(node: SchemaNode | undefined): number {
   return Math.max(getManufacturerFuseFloorA(getManufacturerSpec(brandModelId)), legacy);
 }
 
-/** Appareil à préconisation constructeur raccordé à ce câble par une de ses
- * bornes DC côté batterie (voir BATTERY_SIDE_HANDLES). */
-export function findManufacturerDeviceForEdge(
-  edge: SchemaEdge,
-  nodes: SchemaNode[],
-): { node: SchemaNode; spec: ManufacturerSpec; handle: string } | null {
-  for (const [nodeId, handle] of [
-    [edge.source, edge.sourceHandle],
-    [edge.target, edge.targetHandle],
-  ] as const) {
-    const node = nodes.find((n) => n.id === nodeId);
-    const spec = getManufacturerSpec(node?.data.brandModelId);
-    if (!node || !spec || !handle) continue;
-    const handleGroups = BATTERY_SIDE_HANDLES[node.data.componentType] ?? [];
-    if (handleGroups.some((group) => group.includes(handle))) return { node, spec, handle };
+// Composants à deux bornes montés en série sur un câble batterie : le
+// courant qui les traverse est celui de l'appareil en bout de ligne. Un
+// busbar arrête la recherche (il répartit vers plusieurs appareils).
+const SERIES_PASSTHROUGH_TYPES = new Set(["fuse", "circuit-breaker", "battery-switch", "shunt"]);
+const MAX_SERIES_HOPS = 3;
+
+export interface ManufacturerDeviceMatch {
+  node: SchemaNode;
+  spec: ManufacturerSpec;
+  handle: string;
+  /** `true` si le câble est branché directement sur l'appareil (borne). */
+  direct: boolean;
+}
+
+function directDeviceMatch(nodeId: string, handle: string | null | undefined, nodes: SchemaNode[]): ManufacturerDeviceMatch | null {
+  const node = nodes.find((n) => n.id === nodeId);
+  const spec = getManufacturerSpec(node?.data.brandModelId);
+  if (!node || !spec || !handle) return null;
+  const handleGroups = BATTERY_SIDE_HANDLES[node.data.componentType] ?? [];
+  return handleGroups.some((group) => group.includes(handle)) ? { node, spec, handle, direct: true } : null;
+}
+
+/** Appareil à préconisation constructeur au bout de ce câble : branché
+ * directement sur une de ses bornes DC côté batterie (BATTERY_SIDE_HANDLES),
+ * ou atteint à travers des composants en série (fusible, coupe-batterie,
+ * shunt) quand `edges` est fourni — retour utilisateur : la section Victron
+ * vaut pour tout le trajet batterie → appareil, pas seulement le dernier câble. */
+export function findManufacturerDeviceForEdge(edge: SchemaEdge, nodes: SchemaNode[], edges?: SchemaEdge[]): ManufacturerDeviceMatch | null {
+  const direct =
+    directDeviceMatch(edge.source, edge.sourceHandle, nodes) ?? directDeviceMatch(edge.target, edge.targetHandle, nodes);
+  if (direct || !edges) return direct;
+
+  const visitedEdges = new Set<string>([edge.id]);
+  let frontier = [edge.source, edge.target];
+  for (let hop = 0; hop < MAX_SERIES_HOPS; hop++) {
+    const next: string[] = [];
+    for (const nodeId of frontier) {
+      const node = nodes.find((n) => n.id === nodeId);
+      if (!node || !SERIES_PASSTHROUGH_TYPES.has(node.data.componentType)) continue;
+      for (const candidate of edges) {
+        if (visitedEdges.has(candidate.id) || (candidate.source !== nodeId && candidate.target !== nodeId)) continue;
+        visitedEdges.add(candidate.id);
+        const otherId = candidate.source === nodeId ? candidate.target : candidate.source;
+        const otherHandle = candidate.source === nodeId ? candidate.targetHandle : candidate.sourceHandle;
+        const match = directDeviceMatch(otherId, otherHandle, nodes);
+        if (match) return { ...match, direct: false };
+        next.push(otherId);
+      }
+    }
+    frontier = next;
   }
   return null;
+}
+
+/** Le câble respecte-t-il la section constructeur pour sa longueur ? (`null` si aucune préconisation) */
+export function meetsManufacturerSection(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): boolean | null {
+  const device = findManufacturerDeviceForEdge(edge, nodes, edges);
+  if (!device) return null;
+  const band = findCableBand(device.spec, getEdgeSizingLength(edge, nodes));
+  const total = band ? bandTotalSectionMm2(band) : null;
+  const section = parseSectionMm2(edge.data?.section);
+  if (total === null || section === null) return null;
+  return section * getEdgeParallelRuns(edge) >= total;
 }
 
 // Section par conducteur exigée par le constructeur pour ce câble (0 si aucune
 // préconisation ne s'applique) — plancher du dimensionnement automatique,
 // jamais un plafond : le moteur garde sa propre valeur si elle est plus grande.
-function getManufacturerSectionFloorMm2(edge: SchemaEdge, nodes: SchemaNode[], lengthM: number): number {
-  const device = findManufacturerDeviceForEdge(edge, nodes);
+function getManufacturerSectionFloorMm2(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[], lengthM: number): number {
+  const device = findManufacturerDeviceForEdge(edge, nodes, edges);
   if (!device) return 0;
   const band = findCableBand(device.spec, lengthM);
   const total = band ? bandTotalSectionMm2(band) : null;
   if (!total) return 0;
   const perConductor = total / getEdgeParallelRuns(edge);
   return AVAILABLE_SECTIONS_MM2.find((s) => s >= perConductor) ?? AVAILABLE_SECTIONS_MM2[AVAILABLE_SECTIONS_MM2.length - 1];
+}
+
+// Câble branché directement sur l'appareil : quand le constructeur donne une
+// section valable pour cette longueur et qu'elle tient dans la borne, la
+// proposition auto ne dépasse pas la borne (ex. Orion XS 12/12-50 à 5 m :
+// Victron 16 mm², borne 25 mm² — le moteur seul proposait 35 mm², impossible
+// à serrer). Sans section constructeur (MPPT), aucun plafond : l'alerte de
+// borne invite alors à rapprocher l'appareil.
+function capToManufacturerTerminal(section: number, edge: SchemaEdge, nodes: SchemaNode[], lengthM: number): number {
+  const device = findManufacturerDeviceForEdge(edge, nodes);
+  const terminal = device?.spec.maxTerminalMm2;
+  if (!device || !terminal || section <= terminal) return section;
+  const band = findCableBand(device.spec, lengthM);
+  const total = band ? bandTotalSectionMm2(band) : null;
+  if (total === null || total / getEdgeParallelRuns(edge) > terminal) return section;
+  return terminal;
 }
 
 export function getEdgeSizingLength(edge: SchemaEdge, nodes: SchemaNode[]): number {
@@ -529,7 +591,12 @@ export function evaluateEdgeSection(edge: SchemaEdge, nodes: SchemaNode[], edges
   // jamais la chute de tension seule. Câbles doublés : chaque conducteur
   // porte sa part du courant (résistance et échauffement divisés d'autant).
   const engineSection = calcSectionSafe(amps / getEdgeParallelRuns(edge), length, DC_MAX_VOLTAGE_DROP_PCT, voltage).section;
-  const section = Math.max(engineSection, getManufacturerSectionFloorMm2(edge, nodes, length));
+  const section = capToManufacturerTerminal(
+    Math.max(engineSection, getManufacturerSectionFloorMm2(edge, nodes, edges, length)),
+    edge,
+    nodes,
+    length,
+  );
   const currentSectionMm2 = parseSectionMm2(edge.data?.section);
 
   const ampsSource: EdgeSectionDiagnostic["ampsSource"] =

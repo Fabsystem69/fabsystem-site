@@ -224,7 +224,7 @@
       "data": {
         "componentType": "circuit-breaker",
         "label": "Disjoncteur MPPT",
-        "amperage": 30
+        "amperage": 35
       },
       "measured": {
         "width": 93,

@@ -7,7 +7,7 @@
 // Règles de saisie :
 // - uniquement des valeurs lues dans un manuel constructeur officiel (source
 //   + URL sur chaque entrée) ; un modèle sans manuel vérifié n'a pas d'entrée
-//   (ex. MultiPlus 12/1600, gamme Compact 230 V, BlueSolar) ;
+//   (ex. BlueSolar) ;
 // - 12 V uniquement pour l'instant (décision produit) ;
 // - sections "par borne + et −" : `conductors: 2` = deux câbles + et deux − ;
 // - longueur = longueur aller du câble (même convention que `edge.data.length`).
@@ -58,6 +58,15 @@ const MULTIPLUS_500_1200 = {
   source: "Manuel Victron MultiPlus 500 VA – 1200 VA",
   sourceUrl: "https://www.victronenergy.com/upload/documents/Manual-MultiPlus-500VA-1200VA-EN-NL-FR-DE-ES-IT.pdf",
 };
+const MULTIPLUS_1600 = {
+  source: "Manuel Victron MultiPlus 1600 VA",
+  sourceUrl: "https://www.victronenergy.com/upload/documents/Manual-MultiPlus-1600VA-EN-NL-FR-DE-ES-IT.pdf",
+};
+const MULTIPLUS_COMPACT = {
+  source: "Manuel Victron MultiPlus Compact 800 / 1200 / 1600 VA",
+  sourceUrl: "https://www.victronenergy.com/upload/documents/Manual-MultiPlus-Compact-800-1200-1600-EN-NL-FR-DE-ES.pdf",
+};
+const COMPACT_NOTE = "La première tranche (1,5 m) correspond au câble préassemblé fourni par Victron.";
 const MPPT_75_100_20 = {
   source: "Manuel Victron SmartSolar MPPT 75/10 à 100/20",
   sourceUrl: "https://www.victronenergy.com/media/pg/Manual_SmartSolar_MPPT_75-10_up_to_100-20/en/installation.html",
@@ -186,6 +195,32 @@ const MANUFACTURER_SPECS: Record<string, ManufacturerSpec> = {
     batteryCable: [{ maxLengthM: 5, sectionMm2: 35 }],
     internalFuse: "200 A MIDI ou BF1",
     batteryAh: { min: 150, max: 700 },
+  },
+  "victron-multiplus-1600-70": {
+    ...MULTIPLUS_1600,
+    batteryCable: [{ maxLengthM: 5, sectionMm2: 50 }],
+    internalFuse: "200 A MIDI ou BF1",
+    batteryAh: { min: 200, max: 700 },
+  },
+  "victron-multiplus-compact-800-35": {
+    ...MULTIPLUS_COMPACT,
+    batteryCable: [{ maxLengthM: 1.5, sectionMm2: 16 }, { maxLengthM: 5, sectionMm2: 35 }, { maxLengthM: 10, sectionMm2: 70 }],
+    batteryAh: { min: 100, max: 400 },
+    notes: [COMPACT_NOTE],
+  },
+  "victron-multiplus-compact-1200-50": {
+    ...MULTIPLUS_COMPACT,
+    batteryCable: [{ maxLengthM: 1.5, sectionMm2: 25 }, { maxLengthM: 5, sectionMm2: 50 }, { maxLengthM: 10, sectionMm2: 100 }],
+    batteryAh: { min: 150, max: 700 },
+    notes: [COMPACT_NOTE, "100 mm² n'est pas une section courante : 2 × 50 mm² conviennent."],
+  },
+  "victron-multiplus-compact-1600-70": {
+    ...MULTIPLUS_COMPACT,
+    // Le manuel donne 140 mm² entre 5 et 10 m : section hors catalogue,
+    // exprimée en 2 × 70 mm² (même section totale).
+    batteryCable: [{ maxLengthM: 1.5, sectionMm2: 35 }, { maxLengthM: 5, sectionMm2: 70 }, { maxLengthM: 10, sectionMm2: 70, conductors: 2 }],
+    batteryAh: { min: 200, max: 700 },
+    notes: [COMPACT_NOTE, "Entre 5 et 10 m, Victron indique 140 mm² au total, soit 2 × 70 mm²."],
   },
   "victron-multiplus-12-2000-80": {
     source: "Manuel Victron MultiPlus 2 kVA 230 V",

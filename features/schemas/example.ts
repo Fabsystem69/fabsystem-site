@@ -110,7 +110,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     // par son propre disjoncteur DC avant de rejoindre la batterie aux et le
     // fusible principal.
     buildNode("busbar_mst1t8m8_1", "busbar", 940, 230, { label: "Busbar de charge", polarity: "positive", outputCount: 4 }),
-    buildNode("circuit-breaker_mst1vjlz_5", "circuit-breaker", 530, 150, { label: "Disjoncteur MPPT", amperage: 16 }),
+    buildNode("circuit-breaker_mst1vjlz_5", "circuit-breaker", 530, 150, { label: "Disjoncteur MPPT", amperage: 35 }), // Victron MPPT 100/30 : 35 à 40 A
     buildNode("circuit-breaker_mst1vyr4_8", "circuit-breaker", 530, 500, { label: "Disjoncteur DC-DC", amperage: 16, rotation: 180 }),
 
     // Batterie auxiliaire + protection + distribution
@@ -214,7 +214,7 @@ export function buildExampleSchema(): { projectName: string; nodes: SchemaNode[]
     buildEdge("ex-e8", "ex-mppt", "bat-negative", "ex-busbar-neg", "out-1", BLACK, "power-negative", "6 mm²", L_6),
     buildEdge("ex-e9", "ex-dcdc", "ground", "ex-busbar-neg", "out-2", BLACK, "power-negative", "6 mm²", L_6),
     buildEdge("edge_mst1vt1f_6", "ex-mppt", "bat-positive", "circuit-breaker_mst1vjlz_5", "input", RED, "power-positive", "6 mm²", 0.3),
-    buildEdge("edge_mst1vuy1_7", "circuit-breaker_mst1vjlz_5", "output", "busbar_mst1t8m8_1", "out-3", RED, "power-positive", "6 mm²", L_6),
+    buildEdge("edge_mst1vuy1_7", "circuit-breaker_mst1vjlz_5", "output", "busbar_mst1t8m8_1", "out-3", RED, "power-positive", "10 mm²", L_6),
     buildEdge("edge_mst1w7mi_1", "ex-dcdc", "out-positive", "circuit-breaker_mst1vyr4_8", "output", RED, "power-positive", "6 mm²", L_6),
     buildEdge("edge_mst1wg0b_2", "circuit-breaker_mst1vyr4_8", "input", "busbar_mst1t8m8_1", "out-2", RED, "power-positive", "6 mm²", L_6),
 

@@ -40,9 +40,9 @@ function reference(spec: ManufacturerSpec): SchemaIssue["reference"] {
   return { label: spec.source, sourceUrl: spec.sourceUrl };
 }
 
-function computeCableIssues(edge: SchemaEdge, nodes: SchemaNode[]): SchemaIssue[] {
+function computeCableIssues(edge: SchemaEdge, nodes: SchemaNode[], edges: SchemaEdge[]): SchemaIssue[] {
   if (!isPowerCableType(edge.data?.cableType)) return [];
-  const device = findManufacturerDeviceForEdge(edge, nodes);
+  const device = findManufacturerDeviceForEdge(edge, nodes, edges);
   if (!device) return [];
   const { spec } = device;
   const deviceName = nodeLabel(device.node);
@@ -80,7 +80,7 @@ function computeCableIssues(edge: SchemaEdge, nodes: SchemaNode[]): SchemaIssue[
     }
   }
 
-  if (spec.maxTerminalMm2 && sectionMm2 !== null && sectionMm2 > spec.maxTerminalMm2) {
+  if (device.direct && spec.maxTerminalMm2 && sectionMm2 !== null && sectionMm2 > spec.maxTerminalMm2) {
     issues.push({
       id: `${edge.id}-manufacturer-terminal`,
       targetKind: "edge",
@@ -205,7 +205,7 @@ function computeDeviceIssues(device: SchemaNode, spec: ManufacturerSpec, nodes: 
 
 export function computeManufacturerIssues(nodes: SchemaNode[], edges: SchemaEdge[], findProtections: FindProtections): SchemaIssue[] {
   const issues: SchemaIssue[] = [];
-  for (const edge of edges) issues.push(...computeCableIssues(edge, nodes));
+  for (const edge of edges) issues.push(...computeCableIssues(edge, nodes, edges));
   for (const node of nodes) {
     const spec = getManufacturerSpec(node.data.brandModelId);
     if (spec) issues.push(...computeDeviceIssues(node, spec, nodes, edges, findProtections));
